@@ -129,6 +129,9 @@ socket server, but it can be extended for use with other web socket servers.
       if ($tw.MultiUser.ExcludeList.indexOf('$:/HistoryList') === -1) {
         $tw.MultiUser.ExcludeList.push('$:/HistoryList');
       }
+      if ($tw.MultiUser.ExcludeList.indexOf('$:/status/UserName') === -1) {
+        $tw.MultiUser.ExcludeList.push('$:/status/UserName');
+      }
     	$tw.wiki.addEventListener("change",function(changes) {
         Object.keys(changes).forEach(function(tiddlerTitle) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {

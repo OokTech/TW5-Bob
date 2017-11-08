@@ -37,7 +37,7 @@ if (fs) {
     A per-wiki exclude list would be best but that is going to have annoying
     logic so it will come later.
   */
-  $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList'];
+  $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName'];
   /*
     Watch the tiddlers folder for chanegs
   */
