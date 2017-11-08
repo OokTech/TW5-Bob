@@ -1,0 +1,11 @@
+created: 20171108214748719
+title: What is this?
+tags: 
+modified: 20171108214931014
+
+To open this wiki on other computers on the same network open this address in your browser.
+
+IP to connect to the server: 
+
+<pre>{{$:/ServerIP}}:8080
+</pre>
