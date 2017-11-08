@@ -1,0 +1,15 @@
+{
+	"description": "This is the demo edition for the MultiUser plugin created by OokTech",
+	"plugins": [
+    "OokTech/TW5-MultiUser"
+	],
+	"themes": [
+		"tiddlywiki/vanilla",
+		"tiddlywiki/snowwhite",
+    "OokTech/Mobile"
+	],
+	"build": {
+		"index": [
+			"--rendertiddler","$:/core/save/all","index.html","text/plain"]
+	}
+}
