@@ -1,0 +1,9 @@
+{
+	"title": "$:/plugins/OokTech/MultiUser",
+	"description": "A plugin that lets multiple people use a wiki simultaneously",
+	"author": "inmysocks",
+	"version": "0.0.1",
+	"core-version": ">=5.1.5",
+	"source": "",
+	"plugin-type": "plugin"
+}
