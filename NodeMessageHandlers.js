@@ -40,24 +40,26 @@ $tw.nodeMessageHandlers.test = function(data) {
 }
 
 $tw.nodeMessageHandlers.saveTiddler = function(data) {
-  if (data.tiddler.fields) {
-    if (!data.tiddler.fields['draft.of']) {
-      $tw.nodeMessageHandlers.cancelEditingTiddler({data:data.tiddler.fields.title});
-      $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
-      if (!$tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title]) {
-        console.log('Node Save Tiddler');
-        if (!$tw.boot.files[data.tiddler.fields.title]) {
-          $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
-        } else {
-          // If changed send tiddler
-          var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
-          var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(data.tiddler, tiddlerObject);
-          if (changed) {
+  if (data.tiddler) {
+    if (data.tiddler.fields) {
+      if (!data.tiddler.fields['draft.of']) {
+        $tw.nodeMessageHandlers.cancelEditingTiddler({data:data.tiddler.fields.title});
+        $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
+        if (!$tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title]) {
+          console.log('Node Save Tiddler');
+          if (!$tw.boot.files[data.tiddler.fields.title]) {
             $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
+          } else {
+            // If changed send tiddler
+            var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
+            var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(data.tiddler, tiddlerObject);
+            if (changed) {
+              $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
+            }
           }
+        } else {
+          $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
         }
-      } else {
-        $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
       }
     }
   }

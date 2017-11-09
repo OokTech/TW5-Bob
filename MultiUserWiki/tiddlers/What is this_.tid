@@ -1,11 +1,26 @@
 created: 20171108214748719
+creator: inmysocks
 title: What is this?
 tags: 
-modified: 20171108214931014
+modified: 20171108222930204
+modifier: inmysocks
 
 To open this wiki on other computers on the same network open this address in your browser.
 
-IP to connect to the server: 
+IP to connect to the server (copy this into the browser on another computer): 
 
 <pre>{{$:/ServerIP}}:8080
 </pre>
+
+When you open the wiki on another computer as well here are a few things to try:
+
+Make a new tiddler on the other computer and save it. It will appear here. Draft tiddlers are not saved and no tiddlers with titles that start with `$:/temp/` or `$:/state/` are pushed to other browsers either.
+
+I am planning on making a setting where you can set which tiddlers are ignored for saving and pushing to wikis in other browsers.
+
+If you delete the tiddler you have created than it will also be deleted on the other wikis.
+Edits to tiddlers made using the tiddler edit interface are propagated when the tiddler is saved. If you edit a tiddler using an edit text widget or something like that than the edits are pushed immediately. This can cause problems because the changes are pushed on every keypress and that can make the wiki slow down a bit.
+
+I need to make it so that different browsers with the wikis open can have different usernames. Then I need to make it so that each browser can be viewing a different wiki.
+
+I should make the tiddlerList message also send the username given in a wiki to let me add some very simple authentication.

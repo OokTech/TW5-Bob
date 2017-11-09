@@ -54,7 +54,8 @@ if (fs) {
           var tiddler = $tw.wiki.getTiddler(tiddlerObject.tiddlers[0].title);
           if (!tiddler) {
             tiddler = new $tw.Tiddler({fields:tiddlerObject.tiddlers[0]});
-            $tw.wiki.addTiddler(tiddler);
+            // Allow multi-tid files. This isn't tested in this context.
+            $tw.wiki.addTiddlers(tiddlerObject);
           }
           var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(tiddler, tiddlerObject);
           if (changed) {
@@ -89,19 +90,33 @@ if (fs) {
           }
         }
       } else {
-        console.log('Deleting tiddler')
+        console.log(`Deleted tiddler file ${filename}`)
         // Non draft tiddler has been deleted
-        // Send message to every connected wiki to remove the tiddler
-        $tw.connections.forEach(function (connection, index, connections) {
-          if (connection.active) {
-            try {
-              connection.socket.send(JSON.stringify({type: 'removeTiddler', title: filename.slice(0,-4)}));
-            } catch (err) {
-              console.log(err);
-              $tw.connections[index].active = false;
-            }
+        // Get the file name because it isn't always the same as the tiddler
+        // title.
+        var title = undefined;
+        Object.keys($tw.boot.files).forEach(function(tiddlerName) {
+          if ($tw.boot.files[tiddlerName].filepath === `${$tw.boot.wikiTiddlersPath}/${filename}`) {
+            title = tiddlerName;
           }
         });
+        // Make sure we have the tiddler title.
+        if (title) {
+          // Remove the tiddler info from $tw.boot.files
+          console.log(`Deleting Tiddler "${title}"`);
+          delete $tw.boot.files[title]
+          // Send message to every connected wiki to remove the tiddler
+          $tw.connections.forEach(function (connection, index, connections) {
+            if (connection.active) {
+              try {
+                connection.socket.send(JSON.stringify({type: 'removeTiddler', title: title}));
+              } catch (err) {
+                console.log(err);
+                $tw.connections[index].active = false;
+              }
+            }
+          });
+        }
       }
     } else {
       console.log('No filename given!');
