@@ -75,7 +75,9 @@ if (fs) {
               if (!$tw.MultiUser.WaitingList[connection][tiddler.fields.title]) {
                 // Update the list of tiddlers currently in the browser
                 var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0]});
-                $tw.MultiUser.SendToBrowser(connection, message);
+                // TODO make it consistent so that connection is always the
+                // object instead of sometimes just teh index.
+                $tw.MultiUser.SendToBrowser($tw.connections[connection], message);
                 // Put this tiddler on this connection on the wait list.
                 $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
               }
@@ -164,14 +166,12 @@ if (fs) {
     if (typeof message !== 'string') {
       message = JSON.stringify(message);
     }
-    // If the connection is active, send the message
-    if (connection.active) {
+    // If the connection is open, send the message
+    if (connection.socket.readyState === 1) {
       try {
         connection.socket.send(message);
       } catch (err) {
-        // If there was an error mark the connection as inacive
-        console.log(`Connection ${connection} in inactive.`)
-        $tw.connections[index].active = false;
+        console.log(err);
       }
     }
   }

@@ -47,6 +47,14 @@ var setup = function () {
 
   // Set the onconnection function
   $tw.wss.on('connection', handleConnection);
+
+  // I don't know how to set up actually closing a connection, so this doesn't
+  // do anything useful yet
+  /*.
+  $tw.wss.on('close', function(connection) {
+    console.log('closed connection ', connection);
+  })
+  */
 }
 
 /*
@@ -89,6 +97,7 @@ function handleConnection(client) {
   });
   // Respond to the initial connection with a request for the tiddlers the
   // browser currently has to initialise everything.
+  $tw.connections[Object.keys($tw.connections).length-1].index = [Object.keys($tw.connections).length-1];
   $tw.connections[Object.keys($tw.connections).length-1].socket.send(JSON.stringify({type: 'listTiddlers'}));
 }
 
