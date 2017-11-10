@@ -22,6 +22,10 @@ socket server, but it can be extended for use with other web socket servers.
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
 
   exports.startup = function() {
+    // Ensure that the needed objects exist
+    $tw.MultiUser = $tw.MultiUser || {};
+    $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
+
     // Do all actions on startup.
     function setup() {
       var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
@@ -62,13 +66,63 @@ socket server, but it can be extended for use with other web socket servers.
 
       Some unused hooks have commented out skeletons for adding those hooks in
       the future if they are needed.
-
-      Other available hooks are:
-      th-importing-tiddler
-      th-relinking-tiddler
-      th-renaming-tiddler
     */
     var addHooks = function() {
+      $tw.hooks.addHook("th-editing-tiddler", function(event) {
+        console.log('Editing tiddler event: ', event);
+        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle});
+        $tw.socket.send(message);
+        // do the normal editing actions for the event
+        return true;
+      })
+      $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
+        console.log("cancel editing event: ",event);
+        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle});
+        $tw.socket.send(message);
+        // Do the normal handling
+        return event;
+      })
+
+      /*
+        Listen out for changes to tiddlers
+        This handles tiddlers that are edited directly or made using things
+        like the setfield widget.
+        This ignores tiddlers that are in the exclude list as well as tiddlers
+        with titles starting with $:/temp/ or $:/state/
+      */
+    	$tw.wiki.addEventListener("change",function(changes) {
+        Object.keys(changes).forEach(function(tiddlerTitle) {
+          if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
+            if (changes[tiddlerTitle].modified) {
+              console.log('Modified/Created Tiddler');
+              var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
+              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler});
+              $tw.socket.send(message);
+            } else if (changes[tiddlerTitle].deleted) {
+              console.log('Deleted Tiddler');
+              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle});
+              $tw.socket.send(message);
+            }
+          }
+        });
+    	});
+      /*
+        Below here are skeletons for adding new actions to existing hooks.
+        None are needed right now but the skeletons may help later.
+
+        Other available hooks are:
+        th-importing-tiddler
+        th-relinking-tiddler
+        th-renaming-tiddler
+      */
+      /*
+        This handles the hook for importing tiddlers.
+      */
+      /*
+      $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
+        return tiddler;
+      });
+      */
       /*
         For the th-saving-tiddler hook send the saveTiddler message along with
         the tiddler object.
@@ -89,13 +143,6 @@ socket server, but it can be extended for use with other web socket servers.
         return true;
       });
       */
-      $tw.hooks.addHook("th-editing-tiddler", function(event) {
-        console.log('Editing tiddler event: ', event);
-        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle});
-        $tw.socket.send(message);
-        // do the normal editing actions for the event
-        return true;
-      })
       /*
       $tw.hooks.addHook("th-new-tiddler", function(event) {
         console.log("new tiddler hook: ", event);
@@ -106,48 +153,6 @@ socket server, but it can be extended for use with other web socket servers.
         return event;
       })
       */
-      $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
-        console.log("cancel editing event: ",event);
-        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle});
-        $tw.socket.send(message);
-        // Do the normal handling
-        return event;
-      })
-
-      /*
-        Listen out for changes to tiddlers
-        This handles tiddlers that are edited directly or made using things
-        like the setfield widget.
-        This ignores tiddlers that are in the exclude list as well as tiddlers
-        with titles starting with $:/temp/ or $:/state/
-      */
-      $tw.MultiUser = $tw.MultiUser || {};
-      $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || [];
-      if ($tw.MultiUser.ExcludeList.indexOf('$:/StoryList') === -1) {
-        $tw.MultiUser.ExcludeList.push('$:/StoryList');
-      }
-      if ($tw.MultiUser.ExcludeList.indexOf('$:/HistoryList') === -1) {
-        $tw.MultiUser.ExcludeList.push('$:/HistoryList');
-      }
-      if ($tw.MultiUser.ExcludeList.indexOf('$:/status/UserName') === -1) {
-        $tw.MultiUser.ExcludeList.push('$:/status/UserName');
-      }
-    	$tw.wiki.addEventListener("change",function(changes) {
-        Object.keys(changes).forEach(function(tiddlerTitle) {
-          if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
-            if (changes[tiddlerTitle].modified) {
-              console.log('Modified/Created Tiddler');
-              var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
-              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler});
-              $tw.socket.send(message);
-            } else if (changes[tiddlerTitle].deleted) {
-              console.log('Deleted Tiddler');
-              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle});
-              $tw.socket.send(message);
-            }
-          }
-        });
-    	});
     }
     // Send the message to node using the websocket
     setup();

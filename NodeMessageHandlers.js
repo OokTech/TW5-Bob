@@ -17,7 +17,8 @@ This handles messages sent to the node process.
 // This lets you add to the $tw.nodeMessageHandlers object without overwriting
 // existing handler functions
 $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-
+// Ensure that the browser tiddler list object exists without overwriting an
+// existing copy.
 $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
 /*
@@ -33,19 +34,36 @@ $tw.nodeMessageHandlers.browserTiddlerList = function(data) {
 
 /*
   This is just a test function to make sure that everthing is working.
-  It just displays the contents of the data in the console.
+  It displays the contents of the received data in the console.
 */
 $tw.nodeMessageHandlers.test = function(data) {
   console.log(data);
 }
 
+/*
+  This handles saveTiddler messages sent from the browser.
+
+  TODO: Determine if we always want to ignore draft tiddlers.
+*/
 $tw.nodeMessageHandlers.saveTiddler = function(data) {
+  // Make sure there is actually a tiddler sent
   if (data.tiddler) {
+    // Make sure that the tiddler that is sent has fields
     if (data.tiddler.fields) {
+      // Ignore draft tiddlers
       if (!data.tiddler.fields['draft.of']) {
+        // Set the saved tiddler as no longer being edited. It isn't always
+        // being edited but checking eacd time is more complex than just always
+        // setting it this way and doesn't benifit us.
         $tw.nodeMessageHandlers.cancelEditingTiddler({data:data.tiddler.fields.title});
+        // Make sure that the waitinhg list object has an entry for this
+        // connection
         $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
+        // Check to see if we are expecting a save tiddler message from this
+        // connection for this tiddler.
         if (!$tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title]) {
+          // If we are not expecting a save tiddler event than save the tiddler
+          // normally.
           console.log('Node Save Tiddler');
           if (!$tw.boot.files[data.tiddler.fields.title]) {
             $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
@@ -58,6 +76,11 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
             }
           }
         } else {
+          // If we are expecting a save tiddler message than it is the browser
+          // acknowledging that it received the update and we remove the entry
+          // from the waiting list.
+          // This is very important, without this it gets stuck in infitine
+          // update loops.
           $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
         }
       }
@@ -65,23 +88,37 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
   }
 }
 
+/*
+  This is the handler for when the browser sends the deleteTiddler message.
+*/
 $tw.nodeMessageHandlers.deleteTiddler = function(data) {
-  //Something here!
   console.log('Node Delete Tiddler');
+  // Delete the tiddler file from the file system
   $tw.MultiUser.FileSystemFunctions.deleteTiddler(data.tiddler);
+  // Remove the tiddler from the list of tiddlers being edited.
   if ($tw.MultiUser.EditingTiddlers[data.tiddler]) {
     delete $tw.MultiUser.EditingTiddlers[data.tiddler];
     $tw.MultiUser.UpdateEditingTiddlers(false);
   }
 }
 
+/*
+  This is the handler for when a browser sends the editingTiddler message.
+*/
 $tw.nodeMessageHandlers.editingTiddler = function(data) {
   console.log('Editing Tiddler');
+  // Add the tiddler to the list of tiddlers being edited to prevent multiple
+  // people from editing it at the same time.
   $tw.MultiUser.UpdateEditingTiddlers(data.tiddler);
 }
 
+/*
+  This is the handler for when a browser stops editing a tiddler.
+*/
 $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
   console.log('Cancel Editing Tiddler');
+  // This is ugly and terrible and I need to make the different soures of this
+  // message all use the same message structure.
   if (typeof data.data === 'string') {
     if (data.data.startsWith("Draft of '")) {
       var title = data.data.slice(10,-1);
@@ -95,6 +132,7 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
       var title = data.tiddler;
     }
   }
+  // Remove the current tiddler from the list of tiddlers being edited.
   if ($tw.MultiUser.EditingTiddlers[title]) {
     delete $tw.MultiUser.EditingTiddlers[title];
     $tw.MultiUser.UpdateEditingTiddlers(false);

@@ -29,7 +29,7 @@ var setup = function () {
   // initialise the empty $tw.nodeMessageHandlers object. This holds the functions that
   // are used for each message type
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-
+  // Initialise connections array
   $tw.connections = [];
   // We need to get the ip address of the node process so that we can connect
   // to the websocket server from the browser
@@ -44,11 +44,7 @@ var setup = function () {
   var SERVER_PORT = 8000;
   // Create the web socket server on the defined port
   $tw.wss = new WebSocketServer({port: SERVER_PORT});
-  // Initialise the connections array
-  //var connections = new Array;
-  // Put a 0 in the array to start, it wasn't working without putting something // here for some reason.
 
-  //$tw.connections.push(0);
   // Set the onconnection function
   $tw.wss.on('connection', handleConnection);
 }
@@ -65,6 +61,7 @@ var setup = function () {
 
   connection objects are:
   {
+    "active": boolean showing if the connection is active,
     "socket": socketObject,
     "name": the user name for the wiki using this connection
   }
@@ -74,43 +71,31 @@ function handleConnection(client) {
   $tw.connections.push({'socket':client, 'active': true});
   client.on('message', function incoming(event) {
     var self = this;
+    // Determine which connection the message came from
     var thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
-    if (typeof event === 'object') {
-      //console.log(Object.keys(event));
-    }
     try {
       var eventData = JSON.parse(event);
       // Add the source to the eventData object so it can be used later.
-      //eventData.source_connection = $tw.connections.indexOf(this);
       eventData.source_connection = thisIndex;
+      // Make sure we have a handler for the message type
       if (typeof $tw.nodeMessageHandlers[eventData.messageType] === 'function') {
         $tw.nodeMessageHandlers[eventData.messageType](eventData);
       } else {
         console.log('No handler for message of type ', eventData.messageType);
       }
     } catch (e) {
-      console.log(e);
+      console.log("WebSocket error, probably closed connection: ", e);
     }
   });
+  // Respond to the initial connection with a request for the tiddlers the
+  // browser currently has to initialise everything.
   $tw.connections[Object.keys($tw.connections).length-1].socket.send(JSON.stringify({type: 'listTiddlers'}));
 }
 
-//module.exports = setup;
+// Only act if we are running on node. Otherwise WebSocketServer will be
+// undefined.
 if (WebSocketServer) {
   setup()
-  setTimeout(function() {testFunction()}, 1000)
-
-  var testFunction = function() {
-    if ($tw.connections[0]) {
-      if (typeof $tw.connections[0].socket.send === 'function') {
-        $tw.connections[0].socket.send(JSON.stringify({type: "listTiddlers"}))
-      } else {
-        setTimeout(testFunction, 1000)
-      }
-    } else {
-      setTimeout(testFunction, 1000)
-    }
-  }
 }
 
 })();

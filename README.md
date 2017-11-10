@@ -43,3 +43,10 @@ This plugin does a few things:
 
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* MultiUser ability on multiple wikis simultaneously
+- *coming soon* an indication if your connection to the server is active or not
+
+Some notes:
+
+There will be a lot of messages in the terminal where you started the node process. Messages saying `Cancel Editing Tiddler`, `Node Delete Tiddler`, the messages come from every connected browser so the more connections there are the more times they will be repeated. I am leaving them in for now for debugging but they can be safely ignored.
+
+As soon as you edit anything the browser will make the save button turn red, this doesn't mean anything. I need to look at how to change the dirty status of the wiki because there are ways to tell if changes have been saved or not using this. Changes are saved very quickly so the red save button can be safely ignored for now.

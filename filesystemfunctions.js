@@ -154,17 +154,26 @@ var setup = function () {
     			return callback(error);
     		}
     		if(fileInfo.hasMetaFile) {
+          console.log('saving metafile');
     			// Save the tiddler as a separate body and meta file
     			var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
     			fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
     				if(err) {
     					return callback(err);
     				}
-    				content = $tw.wiki.renderTiddler("text/plain","$:/core/templates/tiddler-metadata",{variables: {currentTiddler: tiddler.fields.title}});
+            var content = makeTiddlerFile(tiddler);
+            console.log(content);
+    				//content = $tw.wiki.renderTiddler("text/plain","$:/core/templates/tiddler-metadata",{variables: {currentTiddler: tiddler.fields.title}});
     				fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
     					if(err) {
     						return callback(err);
     					}
+              // Save with metadata
+              console.log('saved file with metadata', filepath)
+              $tw.wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
+              Object.keys($tw.connections).forEach(function(connection) {
+                $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
+              });
     					//self.logger.log("Saved file",filepath);
     					return callback(null);
     				});
@@ -225,7 +234,7 @@ var setup = function () {
   $tw.MultiUser.FileSystemFunctions.deleteTiddler = function(title,callback,options) {
     if (!callback) {
       callback = function () {
-
+        // Just a blank function to prevent errors
       }
     }
   	var self = this,
