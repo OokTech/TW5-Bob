@@ -18,8 +18,7 @@ $tw.nodeMessageHandlers object.
 "use strict";
 
 // require the websockets module if we are running node
-var WebSocketServer = $tw.node ? require('ws').Server : undefined;
-//var Git = $tw.node ? require('simple-git') : undefined;
+var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/MultiUser/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
 
 /*
@@ -33,7 +32,9 @@ var setup = function () {
   $tw.connections = [];
   // We need to get the ip address of the node process so that we can connect
   // to the websocket server from the browser
-  var ip = require("ip");
+  // This is the node ip module wrapped in a tiddler so it can be packaged with
+  // the plugin.
+  var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
   var ipAddress = ip.address();
   // Create the tiddler that holds the IP address
   var fileData = `title: $:/ServerIP\n\n${ipAddress}`;

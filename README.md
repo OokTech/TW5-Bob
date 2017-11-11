@@ -2,18 +2,18 @@
 
 BIG DISCLAMER OF DOOM - THIS IS IN BETA, ONLY I HAVE TESTED THIS. EXPECT BUGS. IT SHOULDN'T MAKE YOUR COMPUTER EXPLODE BUT THEN AGAIN IT MAY.
 
-This plugin is only usable on the node version of tiddlywiki
+This plugin is only usable on the node version of tiddlywiki. The plugin includes the npm modules ip and ws, these are included in the plugin so you don't need to install them separately.
 
-This plugin uses two npm modules in addition to tiddlywiki. So far I have been unsuccessful getting this to work with the modules installed globally, so this has to be done without installing tiddlywiki through npm at the moment.
+With the node modules included you can now use the globally installed tiddlywiki version. To do this you either need to place the plugin tiddler files in the plugins sub-folder of the folder that contains the tiddlywiki.info file
 
-Command line instructions:
+
+
+If you want to use a fresh local install of tiddlywiki here are command line instructions:
 
 Clone the tiddlywiki repo and get the plugin:
 ```
 git clone https://github.com/Jermolene/TiddlyWiki5.git
 cd TiddlyWiki5
-npm install ws
-npm install ip
 cd plugins
 mkdir OokTech
 cd OokTech
