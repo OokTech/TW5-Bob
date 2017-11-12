@@ -154,7 +154,6 @@ var Command = function(params,commander,callback) {
 	this.server = new SimpleServer({
 		wiki: this.commander.wiki
 	});
-  /*
 	// Add route handlers
 	this.server.addRoute({
 		method: "PUT",
@@ -194,12 +193,10 @@ var Command = function(params,commander,callback) {
 			response.end();
 		}
 	});
-  */
 	this.server.addRoute({
 		method: "GET",
 		path: /^\/$/,
 		handler: function(request,response,state) {
-      console.log('here')
 			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
 			var text = state.wiki.renderTiddler(state.server.get("renderType"),state.server.get("rootTiddler"));
 			response.end(text,"utf8");
@@ -305,12 +302,6 @@ Command.prototype.execute = function() {
 	this.server.listen(port,host);
 	$tw.utils.log("Serving on " + host + ":" + port,"brown/orange");
 	$tw.utils.log("(press ctrl-C to exit)","red");
-	// Warn if required plugins are missing
-  /*
-	if(!$tw.wiki.getTiddler("$:/plugins/tiddlywiki/tiddlyweb") || !$tw.wiki.getTiddler("$:/plugins/tiddlywiki/filesystem")) {
-		$tw.utils.warning("Warning: Plugins required for client-server operation (\"tiddlywiki/filesystem\" and \"tiddlywiki/tiddlyweb\") are missing from tiddlywiki.info file");
-	}
-  */
 	return null;
 };
 

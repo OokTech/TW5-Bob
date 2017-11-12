@@ -136,7 +136,7 @@ var setup = function () {
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
   $tw.MultiUser.FileSystemFunctions.saveTiddler = function(tiddler,callback) {
-    if (!callback) {
+    if (typeof callback !== 'function') {
       callback = function () {
 
       }
@@ -150,6 +150,7 @@ var setup = function () {
     		}
     		var filepath = fileInfo.filepath,
     			error = $tw.utils.createDirectory(path.dirname(filepath));
+        console.log(filepath);
     		if(error) {
     			return callback(error);
     		}
@@ -182,13 +183,15 @@ var setup = function () {
           console.log('saving')
     			// Save the tiddler as a self contained templated file
           var content = makeTiddlerFile(tiddler);
-    			fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
+          // If we aren't passed a path
+			    fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
     				if(err) {
     					return callback(err);
     				}
             console.log('saved file', filepath)
             $tw.wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
             Object.keys($tw.connections).forEach(function(connection) {
+              $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
               $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
             });
     				//self.logger.log("Saved file",filepath);

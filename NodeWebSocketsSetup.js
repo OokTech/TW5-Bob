@@ -99,7 +99,11 @@ function handleConnection(client) {
   // Respond to the initial connection with a request for the tiddlers the
   // browser currently has to initialise everything.
   $tw.connections[Object.keys($tw.connections).length-1].index = [Object.keys($tw.connections).length-1];
-  $tw.connections[Object.keys($tw.connections).length-1].socket.send(JSON.stringify({type: 'listTiddlers'}));
+  $tw.connections[Object.keys($tw.connections).length-1].socket.send(JSON.stringify({type: 'listTiddlers'}), function (err) {
+    if (err) {
+      console.log(err);
+    }
+  });
 }
 
 // Only act if we are running on node. Otherwise WebSocketServer will be
