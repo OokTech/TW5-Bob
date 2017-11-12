@@ -150,7 +150,6 @@ var setup = function () {
     		}
     		var filepath = fileInfo.filepath,
     			error = $tw.utils.createDirectory(path.dirname(filepath));
-        console.log(filepath);
     		if(error) {
     			return callback(error);
     		}
@@ -163,7 +162,6 @@ var setup = function () {
     					return callback(err);
     				}
             var content = makeTiddlerFile(tiddler);
-            console.log(content);
     				//content = $tw.wiki.renderTiddler("text/plain","$:/core/templates/tiddler-metadata",{variables: {currentTiddler: tiddler.fields.title}});
     				fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
     					if(err) {
@@ -207,13 +205,15 @@ var setup = function () {
     Object.keys(tiddler.fields).forEach(function(fieldName, index) {
       if (fieldName === 'created' || fieldName === 'modified') {
         output += `${fieldName}: ${$tw.utils.stringifyDate(new Date(tiddler.fields[fieldName]))}\n`;
-      } else if (fieldName === 'list'){
-        output += `${fieldName}: ${$tw.utils.stringifyList(tiddler.fields[fieldName])}`;
+      } else if (fieldName === 'list' || fieldName === 'tags'){
+        output += `${fieldName}: ${$tw.utils.stringifyList(tiddler.fields[fieldName])}\n`;
       } else if (fieldName !== 'text') {
         output += `${fieldName}: ${tiddler.fields[fieldName]}\n`;
       }
     })
-    output += `\n${tiddler.fields.text}`;
+    if (tiddler.fields.text) {
+      output += `\n${tiddler.fields.text}`;
+    }
     return output;
   }
 

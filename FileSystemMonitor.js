@@ -140,8 +140,6 @@ if (fs) {
     fs.watch(path, function (eventType, filename) {
       // Make sure that the file name isn't undefined
       if (filename) {
-        console.log(path)
-        console.log(filename);
         // If the event is that the file has been deleted than it won't exist
         // but we still need to act here.
         if(fs.existsSync(`${path}/${filename}`)) {
@@ -152,7 +150,6 @@ if (fs) {
             // Don't update tiddlers on the exclude list or draft tiddlers
             if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
               var tiddler = $tw.wiki.getTiddler(tiddlerObject.tiddlers[0].title);
-              console.log(tiddler)
               if (!tiddler) {
                 console.log('create tiddlerinfo')
                 // If the tiddler doesn't exits yet, create it.
