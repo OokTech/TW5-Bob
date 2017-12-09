@@ -191,8 +191,7 @@ if (fs) {
                   if (!$tw.MultiUser.WaitingList[connectionIndex]) {
                     $tw.MultiUser.WaitingList[connectionIndex] = {};
                   }
-                  // If the current tiddler on the current connection isn't on the
-                  // waiting list
+                  // If the current tiddler on the current connection isn't on // the waiting list
                   if (!$tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title]) {
                     // Update the list of tiddlers currently in the browser
                     var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0]});
