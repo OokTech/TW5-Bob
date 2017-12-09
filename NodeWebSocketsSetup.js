@@ -42,7 +42,7 @@ var setup = function () {
   $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress}));
 
   // This is the port used by the web socket server
-  var SERVER_PORT = 8000;
+  var SERVER_PORT = 8081;
   // Create the web socket server on the defined port
   $tw.wss = new WebSocketServer({port: SERVER_PORT});
 

@@ -19,6 +19,7 @@ var fs = $tw.node ? require("fs") : null,
 	path = $tw.node ? require("path") : null;
 
 var setup = function () {
+  $tw.MultiUser = $tw.MultiUser || {};
   //$tw.utils.createDirectory($tw.boot.wikiTiddlersPath);
   $tw.MultiUser.FileSystemFunctions = $tw.MultiUser.FileSystemFunctions || {};
 

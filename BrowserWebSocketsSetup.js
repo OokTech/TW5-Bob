@@ -30,7 +30,7 @@ socket server, but it can be extended for use with other web socket servers.
     function setup() {
       var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
       var IPAddress = IPTiddler.fields.text;
-      $tw.socket = new WebSocket(`ws://${IPAddress}:8000`);
+      $tw.socket = new WebSocket(`ws://${IPAddress}:8081`);
       $tw.socket.onopen = openSocket;
       $tw.socket.onmessage = parseMessage;
       $tw.socket.binaryType = "arraybuffer";
