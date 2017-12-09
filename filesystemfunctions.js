@@ -61,7 +61,7 @@ var setup = function () {
   			extension = ".tid";
   		}
   		// Generate the base filepath and ensure the directories exist
-  		var baseFilepath = path.resolve($tw.boot.wikiTiddlersPath,$tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(title));
+  		var baseFilepath = path.resolve($tw.boot.wikiTiddlersPath, $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(title));
   		$tw.utils.createFileDirectories(baseFilepath);
   		// Start by getting a list of the existing files in the directory
   		fs.readdir(path.dirname(baseFilepath),function(err,files) {
@@ -113,7 +113,7 @@ var setup = function () {
   	var pathNameFilters = $tw.wiki.getTiddlerText("$:/config/FileSystemPaths");
   	if(pathNameFilters) {
   		var source = $tw.wiki.makeTiddlerIterator([title]);
-  		baseFilename = $tw.MultiUser.FileSystemFunctions.findFirstFilter(pathNameFilters.split("\n"),source);
+  		baseFilename = $tw.MultiUser.FileSystemFunctions.findFirstFilter( pathNameFilters.split("\n"),source);
   		if(baseFilename) {
   			// Interpret "/" and "\" as path separator
   			baseFilename = baseFilename.replace(/\/|\\/g,path.sep);
@@ -144,7 +144,7 @@ var setup = function () {
     if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       console.log('save tiddler function')
     	var self = this;
-    	$tw.MultiUser.FileSystemFunctions.getTiddlerFileInfo(tiddler,function(err,fileInfo) {
+    	$tw.MultiUser.FileSystemFunctions.getTiddlerFileInfo(tiddler, function(err,fileInfo) {
     		if(err) {
     			return callback(err);
     		}
@@ -162,7 +162,6 @@ var setup = function () {
     					return callback(err);
     				}
             var content = makeTiddlerFile(tiddler);
-    				//content = $tw.wiki.renderTiddler("text/plain","$:/core/templates/tiddler-metadata",{variables: {currentTiddler: tiddler.fields.title}});
     				fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
     					if(err) {
     						return callback(err);
@@ -173,7 +172,6 @@ var setup = function () {
               Object.keys($tw.connections).forEach(function(connection) {
                 $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
               });
-    					//self.logger.log("Saved file",filepath);
     					return callback(null);
     				});
     			});
@@ -192,7 +190,6 @@ var setup = function () {
               $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
               $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
             });
-    				//self.logger.log("Saved file",filepath);
     				return callback(null);
     			});
     		}
@@ -280,7 +277,7 @@ var setup = function () {
     }
 
     var changed = false;
-    var longer = Object.keys(tiddler.fields).length > Object.keys(tiddlerFileObject.tiddlers[0])?Object.keys(tiddler.fields).length:Object.keys(tiddlerFileObject.tiddlers[0]);
+    var longer = Object.keys(tiddler.fields).length > Object.keys(tiddlerFileObject.tiddlers[0]) ? Object.keys(tiddler.fields).length : Object.keys(tiddlerFileObject.tiddlers[0]);
     // check to see if the field values are the same, ignore modified for now
     longer.forEach(function(field) {
       if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {

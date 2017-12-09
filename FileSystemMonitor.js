@@ -150,12 +150,12 @@ if (fs) {
             // Don't update tiddlers on the exclude list or draft tiddlers
             if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
               var tiddler = $tw.wiki.getTiddler(tiddlerObject.tiddlers[0].title);
-              if (!tiddler) {
+              if (!tiddler || !$tw.boot.files[tiddlerObject.tiddlers[0].title]) {
                 console.log('create tiddlerinfo')
                 // If the tiddler doesn't exits yet, create it.
                 tiddler = new $tw.Tiddler({fields:tiddlerObject.tiddlers[0]});
 
-                /*
+
                 // Create the file info also
             		var fileInfo = {};
             		var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
@@ -174,10 +174,11 @@ if (fs) {
           			fileInfo.filepath = `${path}/${filename}`;
                 $tw.boot.files[tiddler.fields.title] = fileInfo;
                 console.log(fileInfo)
-                */
-                // Add the newly cretaed tiddler. Allow multi-tid files (This isn't
-                // tested in this context).
+
+                // Add the newly cretaed tiddler. Allow multi-tid files (This
+                // isn't tested in this context).
                 $tw.wiki.addTiddlers(tiddlerObject);
+                $tw.wiki.addTiddler(tiddlerObject);
               }
               // Determine if the current tiddler has chaged
               var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(tiddler, tiddlerObject);
