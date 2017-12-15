@@ -74,15 +74,20 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.socket.send(message);
         // do the normal editing actions for the event
         return true;
-      })
+      });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         console.log("cancel editing event: ",event);
         var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle});
         $tw.socket.send(message);
         // Do the normal handling
         return event;
-      })
-
+      });
+      $tw.hooks.addHook("th-renaming-tiddler", function (event) {
+        // For some reason this wasn't being handled by the generic 'change'
+        // event. So the hook is here.
+        console.log('renaming tiddler');
+        console.log(event)
+      });
       /*
         Listen out for changes to tiddlers
         This handles tiddlers that are edited directly or made using things

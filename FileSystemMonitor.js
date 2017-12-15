@@ -136,6 +136,11 @@ if (fs) {
     }
   }
 
+  /*
+    TODO right now this misses when a tiddler is renamed on the file system.
+    I believe that I need to make it check to see if the filename doesn't match
+    the title in the tiddlerObject and if so do something to handle it.
+  */
   $tw.MultiUser.WatchFolder = function (path) {
     fs.watch(path, function (eventType, filename) {
       // Make sure that the file name isn't undefined
@@ -157,21 +162,21 @@ if (fs) {
 
 
                 // Create the file info also
-            		var fileInfo = {};
-            		var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
-            		// Get the content type info
-            		var contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
-            		// Get the file type by looking up the extension
-            		var extension = contentTypeInfo.extension || ".tid";
-            		fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
-            		// Use a .meta file unless we're saving a .tid file.
-            		// (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
-            		fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
-            		if(!fileInfo.hasMetaFile) {
-            			extension = ".tid";
-            		}
+                var fileInfo = {};
+                var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
+                // Get the content type info
+                var contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
+                // Get the file type by looking up the extension
+                var extension = contentTypeInfo.extension || ".tid";
+                fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
+                // Use a .meta file unless we're saving a .tid file.
+                // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
+                fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
+                if(!fileInfo.hasMetaFile) {
+                  extension = ".tid";
+                }
                 // Set the final fileInfo
-          			fileInfo.filepath = `${path}/${filename}`;
+                fileInfo.filepath = `${path}/${filename}`;
                 $tw.boot.files[tiddler.fields.title] = fileInfo;
                 console.log(fileInfo)
 
