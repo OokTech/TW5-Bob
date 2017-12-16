@@ -141,52 +141,66 @@ if (fs) {
     I believe that I need to make it check to see if the filename doesn't match
     the title in the tiddlerObject and if so do something to handle it.
   */
-  $tw.MultiUser.WatchFolder = function (path) {
-    fs.watch(path, function (eventType, filename) {
+  $tw.MultiUser.WatchFolder = function (folder) {
+    fs.watch(folder, function (eventType, filename) {
       // Make sure that the file name isn't undefined
       if (filename) {
+        var itemPath = path.join(folder, filename);
         // If the event is that the file has been deleted than it won't exist
         // but we still need to act here.
-        if(fs.existsSync(`${path}/${filename}`)) {
-          console.log(`${path}/${filename}`);
-          if (fs.lstatSync(`${path}/${filename}`).isFile()) {
+        if(fs.existsSync(itemPath)) {
+          if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
-            var tiddlerObject = $tw.loadTiddlersFromFile(`${path}/${filename}`);
+            var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
             // Don't update tiddlers on the exclude list or draft tiddlers
             if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
               var tiddler = $tw.wiki.getTiddler(tiddlerObject.tiddlers[0].title);
-              if (!tiddler || !$tw.boot.files[tiddlerObject.tiddlers[0].title]) {
-                console.log('create tiddlerinfo')
-                // If the tiddler doesn't exits yet, create it.
-                tiddler = new $tw.Tiddler({fields:tiddlerObject.tiddlers[0]});
+              // We need to check if the title listed in $tw.boot.files thing
+              // no longer matches.
 
-
-                // Create the file info also
-                var fileInfo = {};
-                var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
-                // Get the content type info
-                var contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
-                // Get the file type by looking up the extension
-                var extension = contentTypeInfo.extension || ".tid";
-                fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
-                // Use a .meta file unless we're saving a .tid file.
-                // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
-                fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
-                if(!fileInfo.hasMetaFile) {
-                  extension = ".tid";
+              // If the tiddler with that title doesn't exist, check if a
+              // tiddler is listed with that file path in $tw.boot.files with a
+              // different title. If so than remove the old tiddler and add the
+              // new one. Also remove the old file and make the new one.
+              //console.log(Object.keys($tw.boot.files))
+              var thing = Object.keys($tw.boot.files).filter(function (item) {
+                if (typeof item === 'string') {
+                  if (item === 'undefined') {
+                    //console.log('undefined: ', $tw.boot.files[item])
+                    delete $tw.boot.files[item];
+                    return false;
+                  }
+                  return ($tw.boot.files[item].filepath === itemPath) && (tiddlerObject.tiddlers[0].title !== item)
+                } else {
+                  return false;
                 }
-                // Set the final fileInfo
-                fileInfo.filepath = `${path}/${filename}`;
-                $tw.boot.files[tiddler.fields.title] = fileInfo;
-                console.log(fileInfo)
-
-                // Add the newly cretaed tiddler. Allow multi-tid files (This
-                // isn't tested in this context).
-                $tw.wiki.addTiddlers(tiddlerObject);
-                $tw.wiki.addTiddler(tiddlerObject);
+              })
+              if (!tiddler && thing.length > 0) {
+                var theFilepath = $tw.boot.files[thing[0]].filepath;
+                // This should be when a tiddler is renamed.
+                // So create the new one and delete the old one.
+                // Make the new file path
+                var newTitle = $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
+                console.log('Rename Tiddler ', thing, ' to ', newTitle);
+                // Create the new tiddler
+                $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject);
+                // Put the tiddler object in the correct form
+                var newTiddler = {fields: tiddlerObject.tiddlers[0]};
+                // Save the new file
+                $tw.MultiUser.FileSystemFunctions.saveTiddler(newTiddler);
+                // Delete the old file, the normal delete action takes care of
+                // the rest.
+                fs.unlink(theFilepath);
+              } else if (!tiddler || !$tw.boot.files[tiddlerObject.tiddlers[0].title]) {
+                // This is a new tiddler, so just save the tiddler info
+                $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject);
               }
               // Determine if the current tiddler has chaged
               var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(tiddler, tiddlerObject);
+              if (!tiddler) {
+                tiddler = {};
+                tiddler.fields = tiddlerObject.tiddlers[0];
+              }
               // If the current tiddler has changed
               if (changed || true) {
                 // Check if we should send it to each of the connected browsers
@@ -209,37 +223,73 @@ if (fs) {
                 });
               }
             }
-          } else if (fs.lstatSync(`${path}/${filename}`).isDirectory()) {
+          } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');
-            console.log(`${path}/${filename}`)
-            $tw.MultiUser.WatchFolder(path);
+            console.log(itemPath)
+            $tw.MultiUser.WatchFolder(folder);
 
           }
         } else {
-          console.log(`Deleted tiddler file ${filename}`)
-          // Get the file name because it isn't always the same as the tiddler
-          // title.
-          var title = undefined;
-          Object.keys($tw.boot.files).forEach(function(tiddlerName) {
-            if ($tw.boot.files[tiddlerName].filepath === `${path}/${filename}`) {
-              title = tiddlerName;
-            }
-          });
-          // Make sure we have the tiddler title.
-          if (title) {
-            // Remove the tiddler info from $tw.boot.files
-            console.log(`Deleting Tiddler "${title}"`);
-            delete $tw.boot.files[title]
-            // Create a message saying to remove the tiddler
-            var message = JSON.stringify({type: 'removeTiddler', title: title});
-            // Send the message to each connected browser
-            $tw.MultiUser.SendToBrowsers(message);
-          }
+          $tw.MultiUser.DeleteTiddler(folder, filename);
         }
       } else {
         console.log('No filename given!');
       }
     });
+  }
+
+  $tw.MultiUser.MakeTiddlerInfo = function (folder, filename, tiddlerObject) {
+    console.log('create tiddlerinfo')
+    var itemPath = path.join(folder, filename);
+    // If the tiddler doesn't exits yet, create it.
+    var tiddler = new $tw.Tiddler({fields:tiddlerObject.tiddlers[0]});
+
+
+    // Create the file info also
+    var fileInfo = {};
+    var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
+    // Get the content type info
+    var contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
+    // Get the file type by looking up the extension
+    var extension = contentTypeInfo.extension || ".tid";
+    fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
+    // Use a .meta file unless we're saving a .tid file.
+    // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
+    fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
+    if(!fileInfo.hasMetaFile) {
+      extension = ".tid";
+    }
+    // Set the final fileInfo
+    fileInfo.filepath = itemPath;
+    $tw.boot.files[tiddler.fields.title] = fileInfo;
+
+    // Add the newly cretaed tiddler. Allow multi-tid files (This
+    // isn't tested in this context).
+    $tw.wiki.addTiddlers(tiddlerObject);
+    $tw.wiki.addTiddler(tiddlerObject);
+  }
+
+  $tw.MultiUser.DeleteTiddler = function (folder, filename) {
+    console.log(`Deleted tiddler file ${filename}`)
+    var itemPath = path.join(folder, filename);
+    // Get the file name because it isn't always the same as the tiddler
+    // title.
+    var title;
+    Object.keys($tw.boot.files).forEach(function(tiddlerName) {
+      if ($tw.boot.files[tiddlerName].filepath === itemPath) {
+        title = tiddlerName;
+      }
+    });
+    // Make sure we have the tiddler title.
+    if (typeof title === 'string') {
+      // Remove the tiddler info from $tw.boot.files
+      console.log(`Deleting Tiddler "${title}"`);
+      delete $tw.boot.files[title]
+      // Create a message saying to remove the tiddler
+      var message = JSON.stringify({type: 'removeTiddler', title: title});
+      // Send the message to each connected browser
+      $tw.MultiUser.SendToBrowsers(message);
+    }
   }
 
   /*

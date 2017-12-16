@@ -26,6 +26,52 @@ exports.info = {
 };
 
 /*
+  Commands are loaded before plugins so the updateSettings function may not exist
+  yet.
+*/
+$tw.updateSettings = $tw.updateSettings || function (globalSettings, localSettings) {
+  //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
+  Object.keys(localSettings).forEach(function(key,index){
+    if (typeof localSettings[key] === 'object') {
+      if (!globalSettings[key]) {
+        globalSettings[key] = {};
+      }
+      //do this again!
+      $tw.updateSettings(globalSettings[key], localSettings[key]);
+    } else {
+      globalSettings[key] = localSettings[key];
+    }
+  });
+}
+$tw.loadSettings = function(settings, newSettingsPath) {
+  if ($tw.node && !fs) {
+    var fs = require('fs')
+  }
+	var rawSettings;
+	var newSettings;
+
+	// try/catch in case defined path is invalid.
+	try {
+		rawSettings = fs.readFileSync(newSettingsPath);
+	} catch (err) {
+		console.log(`ws-server - Failed to load settings file.`);
+    rawSettings = '{}';
+	}
+
+	// Try to parse the JSON after loading the file.
+	try {
+		newSettings = JSON.parse(rawSettings);
+	} catch (err) {
+		console.log(`ws-server - Malformed Settings. Using empty default.`);
+		console.log(`ws-server - Check Settings. Maybe comma error?`);
+		// Create an empty default Settings.
+		newSettings = {};
+	}
+
+  $tw.updateSettings(settings,newSettings);
+}
+
+/*
 A simple HTTP server with regexp-based routes
 */
 function SimpleServer(options) {
@@ -150,6 +196,15 @@ var Command = function(params,commander,callback) {
 	this.params = params;
 	this.commander = commander;
 	this.callback = callback;
+  // Get default Settings
+  var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
+  // Make sure that $tw.settings exists.
+  $tw.settings = $tw.settings || {};
+  // Add Settings to the global $tw.settings
+  $tw.updateSettings($tw.settings, settings);
+  // Get user settings, if any
+  var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+  $tw.loadSettings($tw.settings,userSettingsPath);
 	// Set up server
 	this.server = new SimpleServer({
 		wiki: this.commander.wiki
@@ -283,14 +338,14 @@ Command.prototype.execute = function() {
 	if(!$tw.boot.wikiTiddlersPath) {
 		$tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
 	}
-	var port = this.params[0] || "8080",
-		rootTiddler = this.params[1] || "$:/core/save/all",
-		renderType = this.params[2] || "text/plain",
-		serveType = this.params[3] || "text/html",
-		username = this.params[4],
-		password = this.params[5],
-		host = this.params[6] || "127.0.0.1",
-		pathprefix = this.params[7];
+	var port = $tw.settings['ws-server'].port || "8080",
+		rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/all",
+		renderType = $tw.settings['ws-server'].renderType || "text/plain",
+		serveType = $tw.settings['ws-server'].serveType || "text/html",
+		username = $tw.settings['ws-server'].username,
+		password = $tw.settings['ws-server'].password,
+		host = $tw.settings['ws-server'].host || "127.0.0.1",
+		pathprefix = $tw.settings['ws-server'].pathprefix;
 	this.server.set({
 		rootTiddler: rootTiddler,
 		renderType: renderType,
@@ -300,8 +355,8 @@ Command.prototype.execute = function() {
 		pathprefix: pathprefix
 	});
 	this.server.listen(port,host);
-	$tw.utils.log("Serving on " + host + ":" + port,"brown/orange");
-	$tw.utils.log("(press ctrl-C to exit)","red");
+	console.log("Serving on " + host + ":" + port);
+	console.log("(press ctrl-C to exit)");
 	return null;
 };
 

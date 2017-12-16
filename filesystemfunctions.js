@@ -35,8 +35,12 @@ var setup = function () {
   */
   $tw.MultiUser.FileSystemFunctions.getTiddlerFileInfo = function(tiddler,callback) {
     if (!callback) {
-      callback = function () {
-
+      callback = function (err, fileInfo) {
+        if (err) {
+          console.log(err);
+        } else {
+          return fileInfo;
+        }
       }
     }
   	// See if we've already got information about this file

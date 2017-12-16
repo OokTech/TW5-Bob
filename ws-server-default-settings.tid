@@ -1,0 +1,15 @@
+title: $:/plugins/OokTech/MultiUser/ws-server-default-settings
+type: application/json
+
+{
+  "ws-server": {
+    "port": "8080",
+		"rootTiddler": "$:/core/save/all",
+		"renderType": "text/plain",
+		"serveType": "text/html",
+		"username": "",
+		"password": "",
+		"host": "127.0.0.1",
+		"pathprefix": ""
+  }
+}
