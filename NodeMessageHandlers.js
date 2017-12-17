@@ -99,6 +99,17 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
 }
 
 /*
+  Remove a tiddler from the waiting list.
+  This is the response that a browser gives if a tiddler is sent that is
+  identical to what is already on the browser.
+  We use this instead of the browser sending back an update message with the
+  new tiddler as a change.
+*/
+$tw.nodeMessageHandlers.clearStatus = function(data) {
+  delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+}
+
+/*
   This is the handler for when the browser sends the deleteTiddler message.
 */
 $tw.nodeMessageHandlers.deleteTiddler = function(data) {
@@ -116,7 +127,6 @@ $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   This is the handler for when a browser sends the editingTiddler message.
 */
 $tw.nodeMessageHandlers.editingTiddler = function(data) {
-  console.log('Editing Tiddler');
   // Add the tiddler to the list of tiddlers being edited to prevent multiple
   // people from editing it at the same time.
   $tw.MultiUser.UpdateEditingTiddlers(data.tiddler);
@@ -126,7 +136,6 @@ $tw.nodeMessageHandlers.editingTiddler = function(data) {
   This is the handler for when a browser stops editing a tiddler.
 */
 $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
-  console.log('Cancel Editing Tiddler');
   // This is ugly and terrible and I need to make the different soures of this
   // message all use the same message structure.
   if (typeof data.data === 'string') {

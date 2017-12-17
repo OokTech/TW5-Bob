@@ -216,33 +216,28 @@ if (fs) {
                 // This is a new tiddler, so just save the tiddler info
                 $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject);
               }
-              // Determine if the current tiddler has chaged
-              var changed = $tw.syncadaptor.TiddlerHasChanged(tiddler, tiddlerObject);
               if (!tiddler) {
                 tiddler = {};
                 tiddler.fields = tiddlerObject.tiddlers[0];
               }
-              // If the current tiddler has changed
-              if (changed || true) {
-                // Check if we should send it to each of the connected browsers
-                Object.keys($tw.connections).forEach(function(connectionIndex) {
-                  // If the waiting list entry for this connection doesn't exist
-                  // than create it as an empty object.
-                  if (!$tw.MultiUser.WaitingList[connectionIndex]) {
-                    $tw.MultiUser.WaitingList[connectionIndex] = {};
-                  }
-                  // If the current tiddler on the current connection isn't on // the waiting list
-                  if (!$tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title]) {
-                    // Update the list of tiddlers currently in the browser
-                    var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0]});
-                    // TODO make it consistent so that connection is always the
-                    // object instead of sometimes just teh index.
-                    $tw.MultiUser.SendToBrowser($tw.connections[connectionIndex], message);
-                    // Put this tiddler on this connection on the wait list.
-                    $tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title] = true;
-                  }
-                });
-              }
+              // Check if we should send it to each of the connected browsers
+              Object.keys($tw.connections).forEach(function(connectionIndex) {
+                // If the waiting list entry for this connection doesn't exist
+                // than create it as an empty object.
+                if (!$tw.MultiUser.WaitingList[connectionIndex]) {
+                  $tw.MultiUser.WaitingList[connectionIndex] = {};
+                }
+                // If the current tiddler on the current connection isn't on // the waiting list
+                if (!$tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title]) {
+                  // Update the list of tiddlers currently in the browser
+                  var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0]});
+                  // TODO make it consistent so that connection is always the
+                  // object instead of sometimes just teh index.
+                  $tw.MultiUser.SendToBrowser($tw.connections[connectionIndex], message);
+                  // Put this tiddler on this connection on the wait list.
+                  $tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title] = true;
+                }
+              });
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');

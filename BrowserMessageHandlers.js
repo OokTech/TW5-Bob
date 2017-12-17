@@ -57,8 +57,17 @@ it will overwrite this file.
     // The title must exist and must be a string, everything else is optional
     if (data.fields) {
       if (typeof data.fields.title === 'string') {
-        console.log('Create Tiddler ', data.fields.title);
-        $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
+        // if the tiddler exists already only update it if the update is
+        // different than the existing one.
+        var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));
+        if (changed) {
+          console.log('Create Tiddler ', data.fields.title);
+          $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
+        } else {
+          // Respond that we already have this tiddler synced
+          var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title});
+          $tw.socket.send(message);
+        }
       } else {
         console.log('Invalid tiddler title');
       }
@@ -66,6 +75,46 @@ it will overwrite this file.
       console.log("No tiddler fields given");
     }
   }
+
+  /*
+    Check if the file version matches the in-browser version of a tiddler
+  */
+  function TiddlerHasChanged(tiddler, otherTiddler) {
+    if (!otherTiddler) {
+      return true;
+    }
+    if (!tiddler) {
+      return true;
+    }
+
+    var changed = false;
+    var longer = Object.keys(tiddler.fields).length > Object.keys(otherTiddler.fields) ? Object.keys(tiddler.fields) : Object.keys(otherTiddler.fields);
+    // check to see if the field values are the same, ignore modified for now
+    longer.forEach(function(field) {
+      if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
+        if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
+          // There is a difference!
+          changed = true;
+        }
+      } else if (field === 'list' || field === 'tags') {
+        if (tiddler.fields[field] && otherTiddler.fields[field]) {
+          if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
+            changed = true;
+          } else {
+            var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
+            arrayList.forEach(function(item) {
+              if (tiddler.fields[field].indexOf(item) === -1) {
+                changed = true;
+              }
+            })
+          }
+        } else {
+          changed = true;
+        }
+      }
+    })
+    return changed;
+  };
 
   /*
     This message handles the remove tiddler function. Note that this removes

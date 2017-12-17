@@ -291,7 +291,7 @@ WebsocketAdaptor.prototype.TiddlerHasChanged = function (tiddler, tiddlerFileObj
   }
 
   var changed = false;
-  var longer = Object.keys(tiddler.fields).length > Object.keys(tiddlerFileObject.tiddlers[0]) ? Object.keys(tiddler.fields).length : Object.keys(tiddlerFileObject.tiddlers[0]);
+  var longer = Object.keys(tiddler.fields).length > Object.keys(tiddlerFileObject.tiddlers[0]) ? Object.keys(tiddler.fields) : Object.keys(tiddlerFileObject.tiddlers[0]);
   // check to see if the field values are the same, ignore modified for now
   longer.forEach(function(field) {
     if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
