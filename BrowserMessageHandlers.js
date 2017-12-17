@@ -94,4 +94,15 @@ it will overwrite this file.
     // Send the response JSON as a string.
     $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response}));
   }
+
+  /*
+    This handles a ping from the server. The server and browser make sure they
+    are connected by sending pings periodically.
+  */
+  $tw.browserMessageHandlers.ping = function (data) {
+    // The message is just the message type
+    var response = JSON.stringify({messageType: 'pong'});
+    // Send the response
+    $tw.socket.send(response);
+  }
 })();

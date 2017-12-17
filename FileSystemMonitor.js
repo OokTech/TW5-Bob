@@ -160,7 +160,7 @@ if (fs) {
             var rename = false;
             if (tiddlerObject.tiddlers[0].title) {
               var tiddlerFileTitle = filename.slice(0,-4);
-              if (tiddlerFileTitle !== $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
+              if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
                 rename = true;
               }
             }
@@ -192,21 +192,21 @@ if (fs) {
               if (rename || (!tiddler && tiddlerName)) {
                 if (rename) {
                   // translate tiddler title into filepath
-                  var theFilepath = path.join(folder, $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
+                  var theFilepath = path.join(folder, $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
                 } else {
                   var theFilepath = $tw.boot.files[tiddlerName].filepath;
                 }
                 // This should be when a tiddler is renamed.
                 // So create the new one and delete the old one.
                 // Make the new file path
-                var newTitle = $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
+                var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
                 console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
                 // Create the new tiddler
                 $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject);
                 // Put the tiddler object in the correct form
                 var newTiddler = {fields: tiddlerObject.tiddlers[0]};
                 // Save the new file
-                $tw.MultiUser.FileSystemFunctions.saveTiddler(newTiddler);
+                $tw.syncadaptor.saveTiddler(newTiddler);
                 if (itemPath !== theFilepath) {
                   // Delete the old file, the normal delete action takes care of
                   // the rest.
@@ -217,7 +217,7 @@ if (fs) {
                 $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject);
               }
               // Determine if the current tiddler has chaged
-              var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(tiddler, tiddlerObject);
+              var changed = $tw.syncadaptor.TiddlerHasChanged(tiddler, tiddlerObject);
               if (!tiddler) {
                 tiddler = {};
                 tiddler.fields = tiddlerObject.tiddlers[0];

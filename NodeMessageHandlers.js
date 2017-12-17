@@ -41,6 +41,16 @@ $tw.nodeMessageHandlers.test = function(data) {
 }
 
 /*
+  This responds to a ping from the browser. This is used to check and make sure
+  that the browser and server are connected.
+*/
+$tw.nodeMessageHandlers.ping = function(data) {
+  // When the server receives a ping it sends back a pong.
+  var response = JSON.stringify({'type': 'pong'});
+  $tw.connections[data.source_connection].socket.send(response);
+}
+
+/*
   This handles saveTiddler messages sent from the browser.
 
   TODO: Determine if we always want to ignore draft tiddlers.
@@ -66,13 +76,13 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           // normally.
           console.log('Node Save Tiddler');
           if (!$tw.boot.files[data.tiddler.fields.title]) {
-            $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
+            $tw.syncadaptor.saveTiddler(data.tiddler);
           } else {
             // If changed send tiddler
             var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
-            var changed = $tw.MultiUser.FileSystemFunctions.TiddlerHasChanged(data.tiddler, tiddlerObject);
+            var changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
             if (changed) {
-              $tw.MultiUser.FileSystemFunctions.saveTiddler(data.tiddler);
+              $tw.syncadaptor.saveTiddler(data.tiddler);
             }
           }
         } else {
@@ -94,7 +104,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
 $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   console.log('Node Delete Tiddler');
   // Delete the tiddler file from the file system
-  $tw.MultiUser.FileSystemFunctions.deleteTiddler(data.tiddler);
+  $tw.syncadaptor.deleteTiddler(data.tiddler);
   // Remove the tiddler from the list of tiddlers being edited.
   if ($tw.MultiUser.EditingTiddlers[data.tiddler]) {
     delete $tw.MultiUser.EditingTiddlers[data.tiddler];
