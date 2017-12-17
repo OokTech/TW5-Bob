@@ -104,14 +104,10 @@ socket server, but it can be extended for use with other web socket servers.
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
               var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler});
               $tw.socket.send(message);
-              // TODO do this properly
-              $tw.utils.toggleClass(document.body,"tc-dirty",false);
             } else if (changes[tiddlerTitle].deleted) {
               // console.log('Deleted Tiddler');
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle});
               $tw.socket.send(message);
-              // TODO do this properly
-              $tw.utils.toggleClass(document.body,"tc-dirty",false);
             }
           }
         });
