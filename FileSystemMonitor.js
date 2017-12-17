@@ -22,6 +22,10 @@ for changes to files.
 /*global $tw: false */
 "use strict";
 
+exports.name = 'FileSystemMonitor';
+exports.after = ["load-modules"];
+exports.synchronous = true;
+
 // require the fs module if we are running node
 var fs = $tw.node ? require("fs"): undefined;
 var path = $tw.node ? require("path"): undefined;
@@ -340,6 +344,36 @@ if (fs) {
       $tw.MultiUser.WatchAllFolders(folderTree.folders[folder]);
     });
   }
+
+  /*
+    Recursively create a directory
+    copied from core/modules/utils/filesystem.js because for some reason it
+    isn't available at this point in the boot process.
+  */
+  var isDirectory = function(dirPath) {
+  	return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+  };
+  var createDirectory = function(dirPath) {
+  	if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
+  		dirPath = dirPath + path.sep;
+  	}
+  	var pos = 1;
+  	pos = dirPath.indexOf(path.sep,pos);
+  	while(pos !== -1) {
+  		var subDirPath = dirPath.substr(0,pos);
+  		if(!isDirectory(subDirPath)) {
+  			try {
+  				fs.mkdirSync(subDirPath);
+  			} catch(e) {
+  				return "Error creating directory '" + subDirPath + "'";
+  			}
+  		}
+  		pos = dirPath.indexOf(path.sep,pos + 1);
+  	}
+  	return null;
+  };
+
+  createDirectory($tw.boot.wikiTiddlersPath);
 
   // Recursively build the folder tree structure
   $tw.MultiUser.FolderTree = buildTree('.', $tw.boot.wikiTiddlersPath, {});

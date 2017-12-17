@@ -17,6 +17,11 @@ $tw.nodeMessageHandlers object.
 /*global $tw: false */
 "use strict";
 
+exports.name = "websocket-server";
+exports.platforms = ["node"];
+exports.after = ["node-settings"];
+exports.synchronous = true;
+
 // require the websockets module if we are running node
 var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/MultiUser/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
@@ -36,10 +41,12 @@ var setup = function () {
   // the plugin.
   var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
   var ipAddress = ip.address();
-  // Create the tiddler that holds the IP address
-  var fileData = `title: $:/ServerIP\n\n${ipAddress}`;
+  $tw.settings = $tw.settings || {};
+  $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
+  var ServerPort = $tw.settings['ws-server'].port || 8080;
+  var host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-  $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress}));
+  $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress, port: ServerPort, host: host}));
 
   // This is the port used by the web socket server
   var SERVER_PORT = 8081;

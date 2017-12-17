@@ -163,4 +163,44 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
   }
 }
 
+/*
+  This function sets values in the settings files.
+*/
+$tw.nodeMessageHandlers.updateSettings = function(data) {
+  if ($tw.node && !fs) {
+    var fs = require('fs');
+    var path = require('path');
+  }
+  // This should have some sort of validation
+  if (typeof data === 'object') {
+    // Update the settings
+    $tw.updateSettings($tw.settings, JSON.parse(data.body));
+    // Save the updated settings
+    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    var settingsFileString = JSON.stringify($tw.settings, null, 2);
+    fs.writeFile(userSettingsPath, settingsFileString);
+  }
+}
+
+/*
+  This lets us restart the tiddlywiki server without having to use the command
+  line.
+*/
+$tw.nodeMessageHandlers.restartServer = function(data) {
+  if ($tw.node) {
+    console.log('Restarting Server!');
+    // Close web socket server.
+    $tw.wss.close();
+    // Close http server.
+    $tw.httpServer.close();
+    // This bit of magic restarts whatever node process is running. In this
+    // case the tiddlywiki server.
+    require('child_process').spawn(process.argv.shift(), process.argv, {
+      cwd: process.cwd(),
+      detached: true,
+      stdio: "inherit"
+    });
+  }
+}
+
 })()
