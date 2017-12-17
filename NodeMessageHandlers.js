@@ -79,8 +79,13 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
             $tw.syncadaptor.saveTiddler(data.tiddler);
           } else {
             // If changed send tiddler
-            var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
-            var changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
+            var changed = true;
+            try {
+              var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
+              var changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
+            } catch (e) {
+              console.log(e);
+            }
             if (changed) {
               $tw.syncadaptor.saveTiddler(data.tiddler);
             }

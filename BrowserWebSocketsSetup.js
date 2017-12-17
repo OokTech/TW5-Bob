@@ -28,6 +28,7 @@ socket server, but it can be extended for use with other web socket servers.
 
     // Do all actions on startup.
     function setup() {
+      $tw.Syncer.isDirty = false;
       var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
       var IPAddress = IPTiddler.fields.text;
       $tw.socket = new WebSocket(`ws://${IPAddress}:8081`);
@@ -51,10 +52,10 @@ socket server, but it can be extended for use with other web socket servers.
     */
     var parseMessage = function(event) {
       var eventData = JSON.parse(event.data);
-      console.log("Event data: ",event.data)
+      // console.log("Event data: ",event.data)
       if (eventData.type) {
         if (typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
-          console.log(Object.keys($tw.browserMessageHandlers))
+          // console.log(Object.keys($tw.browserMessageHandlers))
           $tw.browserMessageHandlers[eventData.type](eventData);
         }
       }
@@ -69,14 +70,14 @@ socket server, but it can be extended for use with other web socket servers.
     */
     var addHooks = function() {
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
-        console.log('Editing tiddler event: ', event);
+        // console.log('Editing tiddler event: ', event);
         var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle});
         $tw.socket.send(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
-        console.log("cancel editing event: ",event);
+        // console.log("cancel editing event: ",event);
         var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle});
         $tw.socket.send(message);
         // Do the normal handling
@@ -99,14 +100,18 @@ socket server, but it can be extended for use with other web socket servers.
         Object.keys(changes).forEach(function(tiddlerTitle) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
-              console.log('Modified/Created Tiddler');
+              // console.log('Modified/Created Tiddler');
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
               var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler});
               $tw.socket.send(message);
+              // TODO do this properly
+              $tw.utils.toggleClass(document.body,"tc-dirty",false);
             } else if (changes[tiddlerTitle].deleted) {
-              console.log('Deleted Tiddler');
+              // console.log('Deleted Tiddler');
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle});
               $tw.socket.send(message);
+              // TODO do this properly
+              $tw.utils.toggleClass(document.body,"tc-dirty",false);
             }
           }
         });

@@ -53,7 +53,7 @@ it will overwrite this file.
     }
   */
   $tw.browserMessageHandlers.makeTiddler = function(data) {
-    console.log('Make Tiddler')
+    // console.log('Make Tiddler')
     // The title must exist and must be a string, everything else is optional
     if (data.fields) {
       if (typeof data.fields.title === 'string') {

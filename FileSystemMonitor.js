@@ -86,7 +86,7 @@ if (fs) {
     }
     // Create a json object representing the tiddler that lists which tiddlers
     // are currently being edited.
-    var tiddlerFields = {title: "$:/MultiUser/EditingTiddlers", list: $tw.utils.stringifyList(Object.keys($tw.MultiUser.EditingTiddlers))};
+    var tiddlerFields = {title: "$:/state/MultiUser/EditingTiddlers", list: $tw.utils.stringifyList(Object.keys($tw.MultiUser.EditingTiddlers))};
     var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerFields});
     // Send the tiddler info to each connected browser
     $tw.MultiUser.SendToBrowsers(message);
@@ -246,6 +246,7 @@ if (fs) {
 
           }
         } else {
+          console.log('Delete Tiddler ', folder, '/', filename)
           $tw.MultiUser.DeleteTiddler(folder, filename);
         }
       } else {
@@ -290,22 +291,22 @@ if (fs) {
     var itemPath = path.join(folder, filename);
     // Get the file name because it isn't always the same as the tiddler
     // title.
-    var title;
+    // TODO there is a strange error where sometimes $tw.boot.files will have
+    // an old entry instead of deleting it it will rename it 'undefined'.
+    // This part takes care of that but I don't know why it happens.
+    // So sometimes you will get the message 'Deleting Tiddler "undefined"'
+    // in addition to the message about deleting the real tiddler.
     Object.keys($tw.boot.files).forEach(function(tiddlerName) {
       if ($tw.boot.files[tiddlerName].filepath === itemPath) {
-        title = tiddlerName;
+        // Remove the tiddler info from $tw.boot.files
+        console.log(`Deleting Tiddler "${tiddlerName}"`);
+        delete $tw.boot.files[tiddlerName]
+        // Create a message saying to remove the tiddler
+        var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName});
+        // Send the message to each connected browser
+        $tw.MultiUser.SendToBrowsers(message);
       }
     });
-    // Make sure we have the tiddler title.
-    if (typeof title === 'string') {
-      // Remove the tiddler info from $tw.boot.files
-      console.log(`Deleting Tiddler "${title}"`);
-      delete $tw.boot.files[title]
-      // Create a message saying to remove the tiddler
-      var message = JSON.stringify({type: 'removeTiddler', title: title});
-      // Send the message to each connected browser
-      $tw.MultiUser.SendToBrowsers(message);
-    }
   }
 
   /*
