@@ -152,6 +152,19 @@ if (fs) {
           if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
+            // Test to see if the filename matches what the wiki says it should
+            // be. If not rename the file to match the rules set by the wiki.
+            // TODO this assumes that the filename ends with .tid, that may not
+            // always be the case. Figure out if we need to fix that for
+            // tiddlres with meta files.
+            var rename = false;
+            if (tiddlerObject.tiddlers[0].title) {
+              var tiddlerFileTitle = filename.slice(0,-4);
+              if (tiddlerFileTitle !== $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
+                rename = true;
+              }
+            }
+
             // Don't update tiddlers on the exclude list or draft tiddlers
             if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
               var tiddler = $tw.wiki.getTiddler(tiddlerObject.tiddlers[0].title);
@@ -162,11 +175,12 @@ if (fs) {
               // tiddler is listed with that file path in $tw.boot.files with a
               // different title. If so than remove the old tiddler and add the
               // new one. Also remove the old file and make the new one.
-              //console.log(Object.keys($tw.boot.files))
-              var thing = Object.keys($tw.boot.files).filter(function (item) {
+              var tiddlerName = Object.keys($tw.boot.files).filter(function (item) {
+                // A lot of this is to handle some weird edge cases I ran into
+                // while making it.
+                // TODO figure out why this happens.
                 if (typeof item === 'string') {
                   if (item === 'undefined') {
-                    //console.log('undefined: ', $tw.boot.files[item])
                     delete $tw.boot.files[item];
                     return false;
                   }
@@ -174,23 +188,30 @@ if (fs) {
                 } else {
                   return false;
                 }
-              })
-              if (!tiddler && thing.length > 0) {
-                var theFilepath = $tw.boot.files[thing[0]].filepath;
+              })[0];
+              if (rename || (!tiddler && tiddlerName)) {
+                if (rename) {
+                  // translate tiddler title into filepath
+                  var theFilepath = path.join(folder, $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
+                } else {
+                  var theFilepath = $tw.boot.files[tiddlerName].filepath;
+                }
                 // This should be when a tiddler is renamed.
                 // So create the new one and delete the old one.
                 // Make the new file path
                 var newTitle = $tw.MultiUser.FileSystemFunctions.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
-                console.log('Rename Tiddler ', thing, ' to ', newTitle);
+                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
                 // Create the new tiddler
                 $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject);
                 // Put the tiddler object in the correct form
                 var newTiddler = {fields: tiddlerObject.tiddlers[0]};
                 // Save the new file
                 $tw.MultiUser.FileSystemFunctions.saveTiddler(newTiddler);
-                // Delete the old file, the normal delete action takes care of
-                // the rest.
-                fs.unlink(theFilepath);
+                if (itemPath !== theFilepath) {
+                  // Delete the old file, the normal delete action takes care of
+                  // the rest.
+                  fs.unlinkSync(itemPath);
+                }
               } else if (!tiddler || !$tw.boot.files[tiddlerObject.tiddlers[0].title]) {
                 // This is a new tiddler, so just save the tiddler info
                 $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject);
