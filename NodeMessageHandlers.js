@@ -197,9 +197,44 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
     // case the tiddlywiki server.
     require('child_process').spawn(process.argv.shift(), process.argv, {
       cwd: process.cwd(),
-      detached: true,
+      detached: false,
       stdio: "inherit"
     });
+  }
+}
+
+/*
+  This restarts the tiddlywiki server and loads a different wiki.
+*/
+$tw.nodeMessageHandlers.changeWiki = function(data) {
+  if ($tw.node) {
+    if (data.wikiName) {
+      if ($tw.settings.wikis[data.wikiName]) {
+        console.log('Switch wiki to ', data.wikiName);
+        // TODO figure out how to make sure that the tiddlywiki.info file exists
+        // Close web socket server.
+        $tw.wss.close();
+        // Close http server.
+        $tw.httpServer.close();
+        // This bit of magic restarts the server and replaces the current wiki
+        // with the wiki listed in data.wikiName
+        // Get our commands (node and tiddlywiki)
+        var nodeCommand = process.argv.shift();
+        var tiddlyWikiCommand = process.argv.shift();
+        // cut off the old wiki argument
+        process.argv.shift();
+        // Add the new wiki argument.
+        process.argv.unshift($tw.settings.wikis[data.wikiName]);
+        // Readd the tiddlywiki command
+        process.argv.unshift(tiddlyWikiCommand);
+        console.log(process.argv)
+        require('child_process').spawn(nodeCommand, process.argv, {
+          cwd: process.cwd(),
+          detached: false,
+          stdio: "inherit"
+        });
+      }
+    }
   }
 }
 
