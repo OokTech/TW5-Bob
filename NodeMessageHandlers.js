@@ -204,6 +204,15 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
 }
 
 /*
+  This lets us shutdown the server from within the wiki.
+*/
+$tw.nodeMessageHandlers.shutdownServer = function(data) {
+  console.log('Shutting down server.');
+  // TODO figure out if there are any cleanup tasks we should do here.
+  process.exit();
+}
+
+/*
   TODO a note here about how to get a list of used ports on a linux or mac
   machine. I have no idea how to do this in windows.
 

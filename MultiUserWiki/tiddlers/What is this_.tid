@@ -52,3 +52,11 @@ button soon.
   Test Restart
   <$action-websocketmessage $type='restartServer'/>
 </$button>
+
+Warning! This button shuts down the server. You have to restart from the
+command line.
+
+<$button>
+  Shutdown Server
+  <$action-websocketmessage $type='shutdownServer'/>
+</$button>
