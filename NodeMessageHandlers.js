@@ -204,6 +204,16 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
 }
 
 /*
+  TODO a note here about how to get a list of used ports on a linux or mac
+  machine. I have no idea how to do this in windows.
+
+  linux:
+  ss -lntu | awk '{print $5}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
+  osx:
+  lsof -PiUDP -PiTCP -sTCP:LISTEN | awk '{print $9}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
+*/
+
+/*
   This restarts the tiddlywiki server and loads a different wiki.
 */
 $tw.nodeMessageHandlers.changeWiki = function(data) {
