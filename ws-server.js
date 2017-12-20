@@ -189,7 +189,17 @@ SimpleServer.prototype.requestHandler = function(request,response) {
 };
 
 SimpleServer.prototype.listen = function(port,host) {
-	$tw.httpServer = http.createServer(this.requestHandler.bind(this)).listen(port,host);
+  if (!(process.argv[process.argv.length-1] === 'noserver')) {
+    console.log('bleep')
+	  $tw.httpServer = http.createServer(this.requestHandler.bind(this)).listen(port,host);
+  } else {
+    process.on('message', function (msg) {
+      console.log('MESSSAGE')
+      if (msg.server) {
+        $tw.httpServer = msg.server;
+      }
+    });
+  }
 };
 
 var Command = function(params,commander,callback) {
@@ -213,6 +223,7 @@ var Command = function(params,commander,callback) {
 	this.server.addRoute({
 		method: "GET",
 		path: /^\/$/,
+    //path: new RegExp(`^\/${$tw.settings.MountPoint}\/$`), // /^\/test\/$/,
 		handler: function(request,response,state) {
 			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
 			var text = state.wiki.renderTiddler(state.server.get("renderType"),state.server.get("rootTiddler"));
@@ -250,8 +261,8 @@ Command.prototype.execute = function() {
 		password: password,
 		pathprefix: pathprefix
 	});
-	this.server.listen(port,host);
-	console.log("Serving on " + host + ":" + port);
+  this.server.listen(port,host);
+	console.log("Serving on " + host + ":" + port + `/${$tw.settings.MountPoint}/`);
 	console.log("(press ctrl-C to exit)");
 	return null;
 };

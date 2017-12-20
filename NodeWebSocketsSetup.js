@@ -48,6 +48,20 @@ var setup = function () {
 
   $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress, port: ServerPort, host: host}));
 
+  /*
+    Make the tiddler that lists the available wikis and puts it in a data tiddler
+  */
+  var MakeWikiListTiddler = function () {
+    var tiddlerFields = {
+      title: '$:/plugins/OokTech/MultiUser/WikiList',
+      text: JSON.stringify($tw.settings.wikis, "", 2),
+      type: 'application/json'
+    };
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+  }
+
+  MakeWikiListTiddler();
+
   // This is the port used by the web socket server
   var SERVER_PORT = 8081;
   // Create the web socket server on the defined port

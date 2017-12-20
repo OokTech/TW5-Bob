@@ -82,7 +82,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
             var changed = true;
             try {
               var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
-              var changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
+              changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
             } catch (e) {
               console.log(e);
             }
@@ -220,6 +220,8 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
   ss -lntu | awk '{print $5}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
   osx:
   lsof -PiUDP -PiTCP -sTCP:LISTEN | awk '{print $9}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
+  windows:
+  ????
 */
 
 /*
@@ -228,13 +230,19 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
 $tw.nodeMessageHandlers.changeWiki = function(data) {
   if ($tw.node) {
     if (data.wikiName) {
+      console.log($tw.settings);
       if ($tw.settings.wikis[data.wikiName]) {
         console.log('Switch wiki to ', data.wikiName);
-        // TODO figure out how to make sure that the tiddlywiki.info file exists
+        // TODO figure out how to make sure that the tiddlywiki.info file
+        // exists before moving to this point
         // Close web socket server.
+        // TODO make a new server on another socket instead of closing the
+        // server
         $tw.wss.close();
         // Close http server.
-        $tw.httpServer.close();
+        // TODO instead of closign the server add a new route to the existing
+        // http server.
+        //$tw.httpServer.close();
         // This bit of magic restarts the server and replaces the current wiki
         // with the wiki listed in data.wikiName
         // Get our commands (node and tiddlywiki)
@@ -245,13 +253,27 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         // Add the new wiki argument.
         process.argv.unshift($tw.settings.wikis[data.wikiName]);
         // Readd the tiddlywiki command
-        process.argv.unshift(tiddlyWikiCommand);
-        console.log(process.argv)
+        //process.argv.unshift(tiddlyWikiCommand);
+        process.argv.push('noserver');
+        //console.log(process.argv)
+        /*
         require('child_process').spawn(nodeCommand, process.argv, {
           cwd: process.cwd(),
           detached: false,
           stdio: "inherit"
         });
+        */
+
+        /*
+        var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
+          cwd: process.cwd(),
+          detached: false,
+          stdio: "inherit"
+        });
+        console.log(Object.keys($tw.httpServer))
+        forked.send({server: $tw.httpServer});
+        */
+        console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));
       }
     }
   }

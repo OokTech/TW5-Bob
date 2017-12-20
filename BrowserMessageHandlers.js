@@ -88,9 +88,13 @@ it will overwrite this file.
     }
 
     var changed = false;
-    var longer = Object.keys(tiddler.fields).length > Object.keys(otherTiddler.fields) ? Object.keys(tiddler.fields) : Object.keys(otherTiddler.fields);
+    // Some cleverness that gives a list of all fields in both tiddlers without
+    // duplicates.
+    var allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
+      return Object.keys(tiddler.fields).indexOf(item) < 0;
+    }));
     // check to see if the field values are the same, ignore modified for now
-    longer.forEach(function(field) {
+    allFields.forEach(function(field) {
       if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
         if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
           // There is a difference!
