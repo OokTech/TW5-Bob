@@ -188,18 +188,27 @@ SimpleServer.prototype.requestHandler = function(request,response) {
 	}
 };
 
+/*
+  This function will try the default port, if that port is in use than it will
+  increment port numbers until it finds an unused port.
+*/
 SimpleServer.prototype.listen = function(port,host) {
-  if (!(process.argv[process.argv.length-1] === 'noserver')) {
-    console.log('bleep')
-	  $tw.httpServer = http.createServer(this.requestHandler.bind(this)).listen(port,host);
-  } else {
-    process.on('message', function (msg) {
-      console.log('MESSSAGE')
-      if (msg.server) {
-        $tw.httpServer = msg.server;
-      }
-    });
-  }
+  var self = this;
+  $tw.httpServer = http.createServer(this.requestHandler.bind(this));
+  $tw.httpServer.on('error', function (e) {
+    if (e.code === 'EADDRINUSE') {
+      self.listen(port+1, host);
+    }
+  });
+  $tw.httpServer.listen(port,host, function (e) {
+    if (!e) {
+      $tw.httpServerPort = port;
+      console.log("Serving on " + host + ":" + $tw.httpServerPort);
+      console.log("(press ctrl-C to exit)");
+    } else {
+      console.log('Port ', port, ' in use, trying ', port+1);
+    }
+  });
 };
 
 var Command = function(params,commander,callback) {
@@ -261,9 +270,8 @@ Command.prototype.execute = function() {
 		password: password,
 		pathprefix: pathprefix
 	});
+
   this.server.listen(port,host);
-	console.log("Serving on " + host + ":" + port + `/${$tw.settings.MountPoint}/`);
-	console.log("(press ctrl-C to exit)");
 	return null;
 };
 

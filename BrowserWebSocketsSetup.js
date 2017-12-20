@@ -31,7 +31,8 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.Syncer.isDirty = false;
       var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
       var IPAddress = IPTiddler.fields.text;
-      $tw.socket = new WebSocket(`ws://${IPAddress}:8081`);
+      var WSSPort = IPTiddler.fields.wss_port;
+      $tw.socket = new WebSocket(`ws://${IPAddress}:${WSSPort}`);
       $tw.socket.onopen = openSocket;
       $tw.socket.onmessage = parseMessage;
       $tw.socket.binaryType = "arraybuffer";

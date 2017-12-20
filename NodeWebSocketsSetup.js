@@ -25,6 +25,7 @@ exports.synchronous = true;
 // require the websockets module if we are running node
 var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/MultiUser/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
+var http = $tw.node ? require("http") : undefined;
 
 /*
   This sets up the websocket server and attaches it to the $tw object
@@ -46,8 +47,6 @@ var setup = function () {
   var ServerPort = $tw.settings['ws-server'].port || 8080;
   var host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-  $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress, port: ServerPort, host: host}));
-
   /*
     Make the tiddler that lists the available wikis and puts it in a data tiddler
   */
@@ -62,21 +61,55 @@ var setup = function () {
 
   MakeWikiListTiddler();
 
-  // This is the port used by the web socket server
-  var SERVER_PORT = 8081;
-  // Create the web socket server on the defined port
-  $tw.wss = new WebSocketServer({port: SERVER_PORT});
-
-  // Set the onconnection function
-  $tw.wss.on('connection', handleConnection);
-
-  // I don't know how to set up actually closing a connection, so this doesn't
-  // do anything useful yet
-  /*.
-  $tw.wss.on('close', function(connection) {
-    console.log('closed connection ', connection);
-  })
+  /*
+    This function ensures that the WS server is made on an available port
   */
+  var server;
+  function makeWSS () {
+    try {
+      server = http.createServer(function (request, response) {
+        // We don't need anything here, this is just for websockets.
+      });
+      server.on('error', function (e) {
+        if (e.code === 'EADDRINUSE') {
+          WSS_SERVER_PORT = WSS_SERVER_PORT + 1;
+          makeWSS();
+        }
+      });
+      server.listen(WSS_SERVER_PORT, function (e) {
+        if (!e) {
+          console.log('Websockets listening on ', WSS_SERVER_PORT);
+          finishSetup();
+        } else {
+          console.log('Port ', WSS_SERVER_PORT, ' in use trying ', WSS_SERVER_PORT + 1);
+        }
+      });
+    } catch (e) {
+      WSS_SERVER_PORT += 1;
+      makeWSS();
+    }
+  }
+  // Stat trying with the next port from the one used by the http process
+  var WSS_SERVER_PORT = $tw.settings['ws-server'].port;// + 1;
+  // This makes the server and returns the actual port used
+  makeWSS();
+
+  function finishSetup () {
+    $tw.wss = new WebSocketServer({server: server});
+    // Put all the port and host info into a tiddler so the browser can use it
+    $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress, port: ServerPort, host: host, wss_port: WSS_SERVER_PORT}));
+
+    // Set the onconnection function
+    $tw.wss.on('connection', handleConnection);
+
+    // I don't know how to set up actually closing a connection, so this doesn't
+    // do anything useful yet
+    /*.
+    $tw.wss.on('close', function(connection) {
+      console.log('closed connection ', connection);
+    })
+    */
+  }
 }
 
 /*

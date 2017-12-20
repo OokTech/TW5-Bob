@@ -190,9 +190,17 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
   if ($tw.node) {
     console.log('Restarting Server!');
     // Close web socket server.
-    $tw.wss.close();
+    $tw.wss.close(function () {
+      console.log('Closed WSS');
+    });
     // Close http server.
-    $tw.httpServer.close();
+    // TODO figure out how to do this properly.  we have to close all open
+    // connections or it will wait to timeout before actualy closing. And the
+    // socket is left open for some reason.
+    $tw.httpServer.close(function () {
+      console.log('Closed http server');
+    });
+    console.log('Restarting Server');
     // This bit of magic restarts whatever node process is running. In this
     // case the tiddlywiki server.
     require('child_process').spawn(process.argv.shift(), process.argv, {
@@ -230,7 +238,6 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
 $tw.nodeMessageHandlers.changeWiki = function(data) {
   if ($tw.node) {
     if (data.wikiName) {
-      console.log($tw.settings);
       if ($tw.settings.wikis[data.wikiName]) {
         console.log('Switch wiki to ', data.wikiName);
         // TODO figure out how to make sure that the tiddlywiki.info file
@@ -238,7 +245,7 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         // Close web socket server.
         // TODO make a new server on another socket instead of closing the
         // server
-        $tw.wss.close();
+        //$tw.wss.close();
         // Close http server.
         // TODO instead of closign the server add a new route to the existing
         // http server.
@@ -254,7 +261,6 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         process.argv.unshift($tw.settings.wikis[data.wikiName]);
         // Readd the tiddlywiki command
         //process.argv.unshift(tiddlyWikiCommand);
-        process.argv.push('noserver');
         //console.log(process.argv)
         /*
         require('child_process').spawn(nodeCommand, process.argv, {
@@ -264,16 +270,16 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         });
         */
 
-        /*
+
         var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
           cwd: process.cwd(),
           detached: false,
           stdio: "inherit"
         });
-        console.log(Object.keys($tw.httpServer))
-        forked.send({server: $tw.httpServer});
-        */
-        console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));
+        //console.log(Object.keys($tw.httpServer))
+        //forked.send({server: $tw.httpServer});
+
+        //console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));
       }
     }
   }
