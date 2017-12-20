@@ -283,10 +283,17 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
   }
   // Get first tiddler to start out
   var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
-  var settings = buildSettings(tiddler);
+  var settings = JSON.stringify(buildSettings(tiddler), "", 2);
+  // Update the settings tiddler in the wiki.
+  var tiddlerFields = {
+    title: '$:/WikiSettings',
+    text: settings,
+    type: 'application/json'
+  };
+  $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   // Save the updated settings
   var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-  fs.writeFile(userSettingsPath, JSON.stringify(settings, "", 2), {encoding: "utf8"}, function (err) {
+  fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
     if (err) {
       console.log(err);
     }
