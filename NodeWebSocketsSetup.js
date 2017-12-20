@@ -90,7 +90,9 @@ var setup = function () {
     }
   }
   // Stat trying with the next port from the one used by the http process
-  var WSS_SERVER_PORT = $tw.settings['ws-server'].port;// + 1;
+  // We want this one to start at the +1 place so that the webserver has a
+  // chance to be in the desired port.
+  var WSS_SERVER_PORT = $tw.settings['ws-server'].port + 1;
   // This makes the server and returns the actual port used
   makeWSS();
 
@@ -163,7 +165,7 @@ function handleConnection(client) {
 // Only act if we are running on node. Otherwise WebSocketServer will be
 // undefined.
 if (WebSocketServer) {
-  setup()
+  setup();
 }
 
 })();

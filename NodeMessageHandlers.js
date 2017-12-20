@@ -242,16 +242,9 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         console.log('Switch wiki to ', data.wikiName);
         // TODO figure out how to make sure that the tiddlywiki.info file
         // exists before moving to this point
-        // Close web socket server.
-        // TODO make a new server on another socket instead of closing the
-        // server
-        //$tw.wss.close();
-        // Close http server.
-        // TODO instead of closign the server add a new route to the existing
-        // http server.
-        //$tw.httpServer.close();
-        // This bit of magic restarts the server and replaces the current wiki
-        // with the wiki listed in data.wikiName
+
+        // This bit of magic starts a new server with the wiki given in
+        // data.wikiName
         // Get our commands (node and tiddlywiki)
         var nodeCommand = process.argv.shift();
         var tiddlyWikiCommand = process.argv.shift();
@@ -259,24 +252,14 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
         process.argv.shift();
         // Add the new wiki argument.
         process.argv.unshift($tw.settings.wikis[data.wikiName]);
-        // Readd the tiddlywiki command
-        //process.argv.unshift(tiddlyWikiCommand);
-        //console.log(process.argv)
-        /*
-        require('child_process').spawn(nodeCommand, process.argv, {
-          cwd: process.cwd(),
-          detached: false,
-          stdio: "inherit"
-        });
-        */
-
-
+        // the fork command uses the same node command to start the wiki and
+        // we can use the returned object forked to send and received messages // to and from the new process. This can be used to wait until the
+        // wiki is fully booted before switching to it. And other stuff.
         var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
           cwd: process.cwd(),
           detached: false,
           stdio: "inherit"
         });
-        //console.log(Object.keys($tw.httpServer))
         //forked.send({server: $tw.httpServer});
 
         //console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));

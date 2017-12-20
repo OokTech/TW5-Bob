@@ -21,25 +21,37 @@ In a terminal navigate to the TiddlyWiki5 folder and type:
 
 In a browser go to `127.0.0.1:8080` and the wiki should load. From here any tiddlers you create should have .tid files created in the `editions/MultiUserWiki/tiddlers` folder, any edits you do to those files should be immediately reflected in the browser. Open the tiddler called `$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the browser of another computer on the network to access the wiki). Now any changes you make to tiddlers on one computer will be reflected almost immediately on the other, and any chaneges you make to tiddlers or the file system will be almost immediately reflected in all connected wikis.
 
+*A note about command line arguments and configuration:*
+I am terrible with command line arguments.
+To prevent the need to have 10 or 15 command line arguments in order to fully
+configure a wiki I instead added a `settings` folder in the same folder that
+holds the `tiddlers` folder and the `tiddlywiki.info` file. Inside this folder
+there is a `settings.json` file that you can use the configure the wiki.
+This also lets you change the wiki's settings from within the wiki. Most of the
+settings wouldn't take effect until the wiki server is reset, so I made a way
+to reset the wiki server from inside the wiki. You can also shutdown the wiki
+server from inside the wiki.
+
 ---
 
 This plugin does a few things:
 
 - Makes tiddlywiki watch the tiddlers folder and updates any tiddlers in the wiki when there are changes to any tiddler files.
-- Makes tiddlywiki save any changes to tiddlers made in the wiki immeditaely to the file system
-- Uses an exclude list to ignore certain tiddlers in the browser
+- Makes tiddlywiki save any changes to tiddlers made in the wiki immediately to the file system
+- Uses an exclude list to ignore certain tiddlers when syncing in the browser
 - Prevents multiple people from editing the same tiddler at the same time by disabling the edit button for tiddlers currently being edited
-- Allows any number of people or computers to connect to the wiki server and use the same wiki simultaneously
+- Allows any number of people or computers to connect to the wiki server and use or edit the same wiki simultaneously.
 - Adds a websocket interface to tiddlywiki (currently only used by this plugin, a git plugin is currently being developed as well as plugins to run scripts on the local computer from tiddlywiki)
-- Adds an action widget that allows you to send arbitrary websocket messages to the server (currently unused by this plugin)
-- Adds some new hooks to the navigator widget (this doesn't change anything about how the navigator widget acts, it just adds some new places for hooks)
-- Adds a new command `wsserver` that starts up a minimal http server so the websockets work.
+- Adds an action widget that allows you to send arbitrary websocket messages to the server. This can be used to do things like trigger shell scripts from inside the wiki.
+- Adds some new hooks to the navigator widget that were needed (this doesn't change anything about how the navigator widget acts, it just adds some new places for hooks)
+- Adds a new command `wsserver` that starts up a minimal http server so the websockets work and so that the node process can spawn child processses which serve other wikis.
 - Is compatible with the `NodeSettings` plugin.
 - Allows you to reset the tiddlywiki server from the browser using a websocket message.
+- MultiUser ability on multiple wikis simultaneously
 
+- *in progress* A way to run shell scripts from the wiki
 - *in progress* A utility to configure everything from inside the wiki
 - *coming soon* Exclude lists on a per-wiki and per-user basis
-- *coming soon* MultiUser ability on multiple wikis simultaneously
 - *coming soon* an indication if your connection to the server is active or not
 
 Some notes:

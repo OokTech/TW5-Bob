@@ -12,10 +12,6 @@ Load settings settings from a JSON file or tiddlers
 /*global $tw: false */
 "use strict";
 
-/*jslint node: true, browser: true */
-/*global $tw: false */
-"use strict";
-
 // Export name and synchronous status
 exports.name = "node-settings";
 exports.platforms = ["node"];
@@ -110,6 +106,14 @@ $tw.updateSettings = function (globalSettings, localSettings) {
       globalSettings[key] = localSettings[key];
     }
   });
+  // Save the settings to a tiddler.
+  var settingsString = JSON.stringify($tw.settings, null, 2);
+  var tiddlerFields = {
+    title: '$:/WikiSettings',
+    text: settingsString,
+    type: 'application/json'
+  };
+  $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
 }
 
 if ($tw.node) {

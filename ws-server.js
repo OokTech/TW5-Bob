@@ -232,7 +232,7 @@ var Command = function(params,commander,callback) {
 	this.server.addRoute({
 		method: "GET",
 		path: /^\/$/,
-    //path: new RegExp(`^\/${$tw.settings.MountPoint}\/$`), // /^\/test\/$/,
+    //path: new RegExp(`^\/${$tw.settings.MountPoint}\/$`),
 		handler: function(request,response,state) {
 			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
 			var text = state.wiki.renderTiddler(state.server.get("renderType"),state.server.get("rootTiddler"));
