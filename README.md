@@ -10,9 +10,9 @@ If you want to use a fresh local install of tiddlywiki here are command line ins
 
 Clone the tiddlywiki repo and get the plugin:
 ```
-git clone https://github.com/Jermolene/TiddlyWiki5.git
-git clone --depth=1 https://github.com/OokTech/TW5-MultiUser.git TiddlyWiki5/plugins/OokTech
-cp -r TiddlyWiki5/plugins/OokTech/MultiUserWiki TiddlyWiki5/editions/
+git clone --depth=1 https://github.com/Jermolene/TiddlyWiki5.git
+git clone --depth=1 https://github.com/OokTech/TW5-MultiUser.git TiddlyWiki5/plugins/OokTech/TW5-MultiUser
+cp -r TiddlyWiki5/plugins/OokTech/TW5-MultiUser/MultiUserWiki TiddlyWiki5/editions/
 ```
 
 In a terminal navigate to the TiddlyWiki5 folder and type:
