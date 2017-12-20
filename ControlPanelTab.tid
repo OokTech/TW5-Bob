@@ -1,0 +1,10 @@
+title: $:/plugins/OokTech/MultiUser/ControlPanelTab
+tags: $:/tags/ControlPanel
+caption: Node Settings
+
+{{$:/WikiSettings/split||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}}
+
+<$button>
+  Update Settings
+  <$action-websocketmessage $type=saveSettings/>
+</$button>

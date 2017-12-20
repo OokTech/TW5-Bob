@@ -1,0 +1,187 @@
+title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
+
+\define thisEditingState() $:/state/$(currentTiddler)$/$(item)$/editing
+
+\define thisNewItemState() $:/state/$(currentTiddler)$/$(item)$/newItem
+
+\define EditButton()
+<$reveal
+  type='nomatch'
+  state=<<thisEditingState>>
+  text='editing'
+>
+  <$button
+    class='tc-btn-invisible'
+  >
+    "<$view index=<<item>>/>"
+    <$action-setfield $tiddler=<<thisEditingState>> text=editing/>
+  </$button>
+</$reveal>
+<$reveal
+  type='match'
+  state=<<thisEditingState>>
+  text='editing'
+>
+  <$edit-text
+    class='tc-edit-texteditor'
+    tiddler=<<currentTiddler>>
+    index=<<item>>
+    tag=input
+  />
+  <$button>
+    Done
+    <$action-setfield $tiddler=<<thisEditingState>> text=''/>
+    <$action-deletetiddler $tiddler=<<thisEditingState>>/>
+  </$button>
+  <$button
+    class='tc-btn-invisible'
+  >
+    {{$:/core/images/delete-button}}
+    <$action-setfield
+      $tiddler=<<currentTiddler>>
+      $index=<<item>>
+    />
+  </$button>
+</$reveal>
+\end
+
+{
+<ul>
+  <$list
+    filter='[<currentTiddler>indexes[]butlast[]]'
+    variable='item'
+  >
+    "<$view tiddler=<<item>> field=title/>":
+    <$list
+      filter='[<currentTiddler>getindex<item>type[application/json]]'
+      emptyMessage="""<<EditButton>>,"""
+    >
+      {{||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}},
+    </$list>
+    <br>
+  </$list>
+  <$list
+    filter='[<currentTiddler>indexes[]last[]]'
+    variable='item'
+  >
+    "<$view tiddler=<<item>> field=title/>":
+    <$list
+      filter='[<currentTiddler>getindex<item>type[application/json]]'
+      emptyMessage="""<<EditButton>>"""
+    >
+      {{||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}}
+    </$list>
+    <br>
+  </$list>
+  <$reveal
+    type='nomatch'
+    state=<<thisNewItemState>>
+    text=editing
+  >
+    <$button
+      class='tc-btn-invisible'
+    >
+      {{$:/core/images/new-button}}
+      <$action-setfield
+        $tiddler=<<thisNewItemState>>
+        text=editing
+      />
+    </$button>
+  </$reveal>
+  <$reveal
+    type='match'
+    state=<<thisNewItemState>>
+    text=editing
+  >
+    <$edit-text
+      tiddler=<<thisNewItemState>>
+      field='new_name'
+    />:
+    <$radio
+      tiddler=<<thisNewItemState>>
+      field=item_type
+      value='Object'
+    >
+      Object
+    </$radio>
+    <$radio
+      tiddler=<<thisNewItemState>>
+      field=item_type
+      value='Field'
+    >
+      Field
+    </$radio>
+    <$edit-text
+      tiddler=<<thisNewItemState>>
+      field='new_value'
+      class='tc-edit-texteditor'
+    />
+    <$button
+      class='tc-btn-invisible'
+    >
+      {{$:/core/images/save-button}}
+      <$set
+        name=CurrentLevel
+        value=<<currentTiddler>>
+      >
+        <$tiddler
+          tiddler=<<thisNewItemState>>
+        >
+          <$reveal
+            type='nomatch'
+            state='!!item_type'
+            text='Object'
+          >
+            <$action-setfield
+              $tiddler=<<CurrentLevel>>
+              $index={{!!new_name}}
+              $value={{!!new_value}}
+            />
+          </$reveal>
+          <$reveal
+            type='match'
+            state='!!item_type'
+            text='Object'
+          >
+            <$list
+              filter='[<CurrentLevel>addsuffix[/]addsuffix{!!new_name}]'
+              variable='NewName'
+            >
+              <$action-setfield
+                $tiddler=<<NewName>>
+                type='application/json'
+                text='{}'
+              />
+              <$action-setfield
+                $tiddler=<<CurrentLevel>>
+                $index={{!!new_name}}
+                $value=<<NewName>>
+              />
+            </$list>
+          </$reveal>
+        </$tiddler>
+      </$set>
+      <$action-setfield
+        $tiddler=<<thisNewItemState>>
+        text=''
+      />
+      <$action-deletetiddler
+        $tiddler=<<thisNewItemState>>
+      />
+    </$button>
+    <$button
+      class='tc-btn-invisible'
+    >
+      {{$:/core/images/cancel-button}}
+      <$action-setfield
+        $tiddler=<<thisNewItemState>>
+        text=''
+      />
+      <$action-deletetiddler
+        $tiddler=<<thisNewItemState>>
+      />
+    </$button>
+  </$reveal>
+  <br>
+</ul>
+}

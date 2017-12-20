@@ -272,4 +272,45 @@ $tw.nodeMessageHandlers.changeWiki = function(data) {
   }
 }
 
+/*
+  This updates the settings.json file based on the changes that have been made
+  in the browser.
+*/
+$tw.nodeMessageHandlers.saveSettings = function(data) {
+  if (!path) {
+    var path = require('path');
+    var fs = require('fs');
+  }
+  // Get first tiddler to start out
+  var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
+  var settings = buildSettings(tiddler);
+  // Save the updated settings
+  var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+  fs.writeFile(userSettingsPath, JSON.stringify(settings, "", 2), {encoding: "utf8"}, function (err) {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+function buildSettings (tiddler) {
+  var settings = {};
+  var object = JSON.parse(tiddler.fields.text);
+  Object.keys(object).forEach(function (field) {
+    if (typeof object[field] === 'string' || typeof object[field] === 'number') {
+      if (String(object[field]).startsWith('$:/WikiSettings/split')) {
+        // Recurse!
+        var newTiddler = $tw.wiki.getTiddler(object[field]);
+        settings[field] = buildSettings(newTiddler);
+      } else {
+        // Actual thingy!
+        settings[field] = object[field];
+      }
+    } else {
+      settings[field] = "";
+    }
+  });
+  return settings;
+}
+
 })()

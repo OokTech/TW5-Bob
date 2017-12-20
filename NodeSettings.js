@@ -106,11 +106,37 @@ $tw.updateSettings = function (globalSettings, localSettings) {
       globalSettings[key] = localSettings[key];
     }
   });
+  CreateSettingsTiddlers();
+}
+
+function CreateSettingsTiddlers () {
   // Save the settings to a tiddler.
   var settingsString = JSON.stringify($tw.settings, null, 2);
   var tiddlerFields = {
     title: '$:/WikiSettings',
     text: settingsString,
+    type: 'application/json'
+  };
+  $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+  // Split it into different things for each thingy
+  doThisLevel($tw.settings, "$:/WikiSettings/split");
+}
+
+function doThisLevel (inputObject, currentName) {
+  var currentLevel = {};
+  Object.keys(inputObject).forEach( function (property) {
+    if (typeof inputObject[property] === 'object') {
+      // Call recursive function to walk through properties
+      doThisLevel(inputObject[property], currentName + '/' + property);
+      currentLevel[property] = currentName + '/' + property;
+    } else {
+      // Add it to this one.
+      currentLevel[property] = inputObject[property];
+    }
+  });
+  var tiddlerFields = {
+    title: currentName,
+    text: JSON.stringify(currentLevel, "", 2),
     type: 'application/json'
   };
   $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
