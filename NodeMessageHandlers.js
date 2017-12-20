@@ -178,7 +178,11 @@ $tw.nodeMessageHandlers.updateSettings = function(data) {
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     var settingsFileString = JSON.stringify($tw.settings, null, 2);
-    fs.writeFile(userSettingsPath, settingsFileString);
+    fs.writeFile(userSettingsPath, settingsFileString, {encoding: "utf8"}, function (err) {
+      if (err) {
+        console.log(err);
+      }
+    });
   }
 }
 
