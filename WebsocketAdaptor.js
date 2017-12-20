@@ -223,7 +223,7 @@ function makeTiddlerFile(tiddler) {
     }
   })
   if (tiddler.fields.text) {
-    output += `\n${tiddler.fields.text}`;
+    output += `\n${tiddler.fields.text}\n`;
   }
   return output;
 }
