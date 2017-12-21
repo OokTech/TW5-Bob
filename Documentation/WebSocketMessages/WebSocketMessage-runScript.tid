@@ -13,6 +13,12 @@ and the argument in the script will be replaced with the value given. See the
 example below for clarification. The placeholders here start with # to make
 them obvious.
 
+See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages]]
+
+|!Parameter |!Description |
+|name |The name given to a script listed in the `Node Settings` |
+|//{any parameter not starting with $}// |Any other parameters passed are assumed to be the names for placeholders. |
+
 ! Usage
 
 Assuming that you have a script defined in the settings as:
@@ -27,3 +33,6 @@ and assuming that you have an edition called `MultiUser`.
   <$action-websocketmessage $type='runScript' name='NewWiki' #wikiName='Wikis/SomeName' #editionName='MultiUser'/>
 </$button>
 ```
+
+This would then run the shell command `tiddlywiki Wikis/SomeName --init MultiUser`,
+which creates a new wiki using the MultiUser edition in the folder Wikis/SomeName.

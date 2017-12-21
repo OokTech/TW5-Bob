@@ -2,3 +2,5 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-ping
 tags: [[Websocket Message]] [[Human Usable]]
 caption: ping
 description: Send a ping to the server. Human usable but not very useful in most cases.
+
+This sends a ping to the server. It doesn't do anything else and unless you modify the node message handler part there isn't any visible effect.

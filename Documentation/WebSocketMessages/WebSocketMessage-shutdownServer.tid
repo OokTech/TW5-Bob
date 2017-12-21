@@ -2,3 +2,9 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-shutdownServer
 tags: [[Websocket Message]] [[Human Usable]]
 caption: shutdownServer
 description: Shutdown the current wiki.
+
+This message shuts down the current wiki. If multiple wikis are being served
+this has no effect on any of the other wikis.
+
+Note that for some reason the http server may take a few minutes to finally
+stop and until it stops the socket it was using will remain in use.
