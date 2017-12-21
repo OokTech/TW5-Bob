@@ -2,3 +2,7 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-editingTiddler
 tags: [[Websocket Message]]
 caption: editingTiddler
 description: A message for the backend, not human usable.
+
+A message for the backend, not human usable.
+
+If you use this in normal wikitext than it will probably break things and I will not offer any help fixing it.

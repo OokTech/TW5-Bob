@@ -2,3 +2,7 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-restartServer
 tags: [[Websocket Message]] [[Human Usable]]
 caption: restartServer
 description: Restart the current wiki.
+
+This message takes no parameters. It restarts the current wiki. This only restarts the current wiki even if multiple wikis are being served simultaneously.
+
+There may be some parts that don't reset the way you expect. I am still looking into it.

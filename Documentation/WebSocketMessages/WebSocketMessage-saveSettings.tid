@@ -2,3 +2,11 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-saveSettings
 tags: [[Websocket Message]] [[Human Usable]]
 caption: saveSettings
 description: Save changed made to the settings from within the wiki.
+
+This saves any changes to the node settings made in the wiki to the file system.
+
+This message takes no inputs.
+
+!!Usage
+
+`<$action-websocketmessage $type='saveSettings'/>`

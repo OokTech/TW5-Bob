@@ -2,3 +2,10 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-test
 tags: [[Websocket Message]] [[Human Usable]]
 caption: test
 description: A message for debugging. Human usable but not particularly useful outside of development.
+
+This message is for testing and doesn't have much practical use outside of
+debugging.
+
+This message takes any input parameters and puts them into a json object and sends that as the message.
+
+On the node side the received data is printed to the terminal.

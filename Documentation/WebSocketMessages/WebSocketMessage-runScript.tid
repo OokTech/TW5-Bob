@@ -2,3 +2,14 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-runScript
 tags: [[Websocket Message]] [[Human Usable]]
 caption: runScript
 description: Run a shell command defined in the settings.
+
+This lets you run a script defined in the `Node Settings` tab of the $:/ControlPanel
+
+See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages]]
+
+|!Parameter |!Description |
+|name |The name given to a script listed in the `Node Settings` |
+
+!!Usage
+
+`<$action-websocketmessage $type='runScript' name='scriptName'/>`
