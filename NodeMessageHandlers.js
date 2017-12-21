@@ -320,4 +320,39 @@ function buildSettings (tiddler) {
   return settings;
 }
 
+/*
+  This message lets you run a script defined in the settings.json file.
+  You name and define the script there and then you can run it using this.
+
+  The script must be listed in the settings. You send the script name with the
+  message and then it takes the information for it from the settings file.
+
+  settings file entries should be like this:
+
+  "name": "somecommand argument argument"
+
+  it would be easiest to write a script and then just call the script using
+  this.
+*/
+$tw.nodeMessageHandlers.runScript = function (data) {
+  if (data.name) {
+    if ($tw.settings.scripts) {
+      if ($tw.settings.scripts[data.name]) {
+        if (typeof $tw.settings.scripts[data.name] === 'string') {
+          var splitThing = $tw.settings.scripts[data.name].split(" ");
+
+          var command = splitThing.shift(),
+          args = splitThing || [],
+          options = {
+            cwd: process.cwd(),
+            detached: false,
+            stdio: "inherit"
+          };
+          require('child_process').spawn(command, args, options);
+        }
+      }
+    }
+  }
+}
+
 })()
