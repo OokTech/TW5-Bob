@@ -2,3 +2,28 @@ title: $:/plugins/OokTech/MultiUser/WebSocketMessage-runScript
 tags: [[Websocket Message]] [[Human Usable]]
 caption: runScript
 description: Run a shell command defined in the settings.
+
+You can define a shell command in the `Node Settings` tab of $:/ControlPanel.
+Then you can use this message to run that command.
+
+It is possible to make messages that have placeholder values that you can set
+when you send the message. To do this you put an attribute that has the same
+name as the placeholder in the script (or the actual argument in the script)
+and the argument in the script will be replaced with the value given. See the
+example below for clarification. The placeholders here start with # to make
+them obvious.
+
+! Usage
+
+Assuming that you have a script defined in the settings as:
+
+`"NewWiki": "tiddlywiki #wikiName --init #editionName"`
+
+and assuming that you have an edition called `MultiUser`.
+
+```
+<$button>
+  Make Wiki!
+  <$action-websocketmessage $type='runScript' name='NewWiki' #wikiName='Wikis/SomeName' #editionName='MultiUser'/>
+</$button>
+```

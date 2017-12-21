@@ -340,7 +340,6 @@ $tw.nodeMessageHandlers.runScript = function (data) {
       if ($tw.settings.scripts[data.name]) {
         if (typeof $tw.settings.scripts[data.name] === 'string') {
           var splitThing = $tw.settings.scripts[data.name].split(" ");
-
           var command = splitThing.shift(),
           args = splitThing || [],
           options = {
@@ -348,6 +347,14 @@ $tw.nodeMessageHandlers.runScript = function (data) {
             detached: false,
             stdio: "inherit"
           };
+          // If a command has an item that matches a property in the input
+          // object than replace it with the value from the input object.
+          Object.keys(data).forEach(function(item) {
+            var index = args.indexOf(item);
+            if (index !== -1) {
+              args[index] = data[item];
+            }
+          })
           require('child_process').spawn(command, args, options);
         }
       }
