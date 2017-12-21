@@ -1,0 +1,11 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-cancelEditingTiddler
+tags: [[Websocket Message]]
+caption: cancelEditingTiddler
+description: A message for the backend, not human usable.
+
+This message is used to keep all connected browsers in sync and is only used by
+the back end to keep track of if a tiddler is being edited or not.
+
+!!Usage
+
+This message isn't meant to be manually used. Sending this message manually will break things.

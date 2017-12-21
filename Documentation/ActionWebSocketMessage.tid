@@ -1,0 +1,60 @@
+title: $:/plugins/OokTech/MultiUser/ActionWebSocketMessage
+tags: ActionWidgets Widgets
+
+! Introduction
+
+The ''action-websocketmessage''  widget is an [[action widget|ActionWidgets]]
+that sends a websocket message to the websocket server on the node server
+process.
+
+See [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]] for a
+list of available messages and their descriptions.
+
+This is how any non-automated interaction with he websocket server is done.
+
+! Content and Attributes
+
+The ''action-websocketmessage'' widget is invisible. Any content within it is ignored.
+
+|!Attribute |!Description |
+|$type |The name of the websocket message you are sending, from the list in [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]] |
+|$param |This was supposed to be the default parameter for messages but it isn't used. This will probably be removed in the future. |
+|//{any other attributes}// |Each other attributed is added to the message sent. Attributes are added using `attribute=value` syntax. |
+
+! Examples
+
+This will send a ping message to the server. All that it does is print out the
+received message in the terminal running the node process.
+
+This message will print out:
+
+`{ messageType: 'test', attribute: 'value', source_connection: 0 }`
+
+Note: the source connection may not be 0. The source connection is the
+zero-based index of the browser connection to the server.
+
+```
+<$button>
+  Test!
+  <$action-websocketmessage $type='test' attribute=value/>
+</$button>
+```
+
+<$button>
+  PING!
+  <$action-websocketmessage $type='test' attribute=value/>
+</$button>
+
+This will reset the tiddlywiki server. Note that if you press this button than it will break your connection to the server and you will have to refresh the page after the server has restarted.
+
+```
+<$button>
+  Restart Server!
+  <$action-websocketmessage $type='restartServer'/>
+</$button>
+```
+
+<$button>
+  Restart Server!
+  <$action-websocketmessage $type='restartServer'/>
+</$button>

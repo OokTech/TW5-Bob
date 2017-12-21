@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-runScript
+tags: [[Websocket Message]] [[Human Usable]]
+caption: runScript
+description: Run a shell command defined in the settings.

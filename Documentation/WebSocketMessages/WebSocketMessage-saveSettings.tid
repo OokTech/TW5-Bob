@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-saveSettings
+tags: [[Websocket Message]] [[Human Usable]]
+caption: saveSettings
+description: Save changed made to the settings from within the wiki.

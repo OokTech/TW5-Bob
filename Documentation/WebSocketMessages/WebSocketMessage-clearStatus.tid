@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-clearStatus
+tags: [[Websocket Message]]
+caption: clearStatus
+description: A message for the backend, not human usable.

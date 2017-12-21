@@ -1,0 +1,28 @@
+title: $:/plugins/OokTech/MultiUser/BackendWebSocketMessages
+caption: BackendWebSocketMessages
+
+These are the messages available for websockets that are only used by the
+back-end.
+
+If you use these in normal wikitext than you will probably break things and I
+will not offer any sort of support. These are only used by the plugin itself
+so they are only useful if you are modifying the plugin.
+
+<$list
+  filter='[all[tiddlers+shadows]tag[Websocket Message]!tag[Human Usable]]'
+>
+  <$link
+    to=<<currentTiddler>>
+  >
+    <$view
+      field='caption'
+    />
+  </$link>
+  -
+  <$view
+    field='description'
+  />
+  <br>
+</$list>
+
+For human usable messages see [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]].

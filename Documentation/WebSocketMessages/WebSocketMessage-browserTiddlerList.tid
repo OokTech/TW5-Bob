@@ -1,0 +1,15 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-browserTiddlerList
+tags: [[Websocket Message]]
+caption: browserTiddlerList
+description: A message for the backend, not human usable.
+
+This message isn't used by the backend to help keep the browser and server in
+sync.
+
+This message is sent with a list of all tiddlers currently in the wiki open in
+the browser.
+
+!!Usage
+
+This message is used by the back-end, sending this message manually will break
+the synchronisation between your browser and the server so don't do it.

@@ -48,11 +48,13 @@ This plugin does a few things:
 - Is compatible with the `NodeSettings` plugin.
 - Allows you to reset the tiddlywiki server from the browser using a websocket message.
 - MultiUser ability on multiple wikis simultaneously
+- Adds a way to run shell scripts from the wiki
+- Adds a utility to configure everything from inside the wiki
 
-- *in progress* A way to run shell scripts from the wiki
-- *in progress* A utility to configure everything from inside the wiki
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* an indication if your connection to the server is active or not
+- *coming soon* a list of all wikis currently being served
+- *coming soon* each new wiki is made as a child process which allows messages to be passed between the different wikis. I need to find how to use this to make sure each wiki is accessible to all the others.
 
 Some notes:
 

@@ -14,4 +14,4 @@ emptyMessage="""<$button message="tm-edit-tiddler" tooltip={{$:/language/Buttons
 <$text text={{$:/language/Buttons/Edit/Caption}}/>
 </span>
 </$list>
-</$button>""">X</$list>
+</$button>""">{{$:/core/images/locked-padlock}}</$list>

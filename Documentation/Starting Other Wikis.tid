@@ -1,0 +1,25 @@
+title: $:/plugins/OokTech/MultiUser/Starting Other Wikis
+caption: Starting Other Wikis
+
+You can start serving other wikis from within the wiki. First you need to give
+the wiki a name and list its path in the settings. Go to the `Node Settings`
+tab in the [[$:/ControlPanel]] and give the wiki a name and list its path in
+the `wikis` section like this:
+
+`'otherwiki': ~/Documents/TiddlyWiki/Wikis/MultiUser`
+
+then you can start up the other wiki using this:
+
+```
+<$button>
+  Start otherwiki
+  <$action-websocketmessage $type='switchWiki' wikiName='otherwiki'/>
+</$button>
+```
+
+the terminal will print out the url for the new wiki.
+
+<$button>
+  Start otherwiki
+  <$action-websocketmessage $type='switchWiki' wikiName='otherwiki'/>
+</$button>

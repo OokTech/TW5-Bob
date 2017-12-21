@@ -1,0 +1,22 @@
+title: $:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages
+caption: Running Scripts Using Websocket Messages
+
+For safety it is set up so that you can only run messages that are defined in
+the settings.
+
+To define a script to run make a new entry in the `scripts` section of the
+settings. The name is what you send in the websocket message, the value is the
+command you want to run.
+
+To run the `ls` command you put this in it:
+
+`'test': 'ls'`
+
+then you would make a button like this:
+
+```
+<$button>
+  Test Script
+  <$action-websocketmessage $type='runScript' name='test'/>
+</$button>
+```

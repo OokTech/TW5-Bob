@@ -1,0 +1,25 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessages
+caption: WebSocketMessages
+
+You use websocket messages with the [[ActionWebSocketMessage|$:/plugins/OokTech/MultiUser/ActionWebSocketMessage]] widget.
+
+These are the human usable messages currently available for websockets:
+
+<$list
+  filter='[all[tiddlers+shadows]tag[Websocket Message]tag[Human Usable]]'
+>
+  <$link
+    to=<<currentTiddler>>
+  >
+    <$view
+      field='caption'
+    />
+  </$link>
+  -
+  <$view
+    field='description'
+  />
+  <br>
+</$list>
+
+For developers there are also [[messaged used by the back-end|$:/plugins/OokTech/MultiUser/BackendWebSocketMessages]].

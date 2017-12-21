@@ -1,0 +1,34 @@
+title: $:/plugins/OokTech/MultiUser/readme
+caption: readme
+
+! Connecting other computers to the wiki
+
+The wiki server ip address and port is:
+
+<pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}</pre>
+
+to connect to this wiki from another computer on the same network enter the
+above into the address bar of a browser.
+
+! Configuration
+
+You can configure the plugin (and possibly other things in the future) using
+the `Node Settings` tab in the [[$:/ControlPanel]].
+
+These settings are available to the node process in the $tw.settings object.
+
+After changing any of the settings they are not saved in a way that will change
+anything until you click the `Update Settings` button. Note that some settings
+may not take effect until you reset the server.
+
+Configuring the host is done in the `ws-server` section. You can set the host,
+port username and password for the wiki there (see [[a note about ports|$:/plugins/OokTech/MultiUser/A note about ports]]).
+Some of these settings may not always be updated the way you expect when
+resetting the server using the node message. I am not exactly sure what is
+different or why.
+
+The scripts that you can run using the `runScript` websocket message are listed
+in the `scripts` section. You can also add or modify the scripts here. See [[running scripts using websocket messages|$:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages]].
+
+The other wikis you can start from this wiki are listed in the `wikis` section.
+You can add new wikis here as well. See [[starting other wikis from within a wiki|$:/plugins/OokTech/MultiUser/Starting Other Wikis]].

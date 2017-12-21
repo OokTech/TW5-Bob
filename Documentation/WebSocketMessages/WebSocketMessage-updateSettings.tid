@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-updateSettings
+tags: [[Websocket Message]]
+caption: updateSettings
+description: Depreciated. Use saveSettings instead.
