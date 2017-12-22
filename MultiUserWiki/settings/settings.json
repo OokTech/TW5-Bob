@@ -8,5 +8,8 @@
   "ws-server": {
     "port": 8080,
     "host": "0.0.0.0"
+  },
+  "heartbeat": {
+    "interval": 1000
   }
 }

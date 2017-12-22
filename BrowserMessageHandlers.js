@@ -151,11 +151,50 @@ it will overwrite this file.
   /*
     This handles a ping from the server. The server and browser make sure they
     are connected by sending pings periodically.
+    The pong response also echos back whatever was sent along with the ping.
   */
   $tw.browserMessageHandlers.ping = function (data) {
+    var message = {messageType: 'pong'};
+    Object.keys(data).forEach(function (key) {
+      message[key] = data[key];
+    })
     // The message is just the message type
-    var response = JSON.stringify({messageType: 'pong'});
+    var response = JSON.stringify(message);
     // Send the response
     $tw.socket.send(response);
   }
+
+  /*
+    This handles the pong response of a ping. It is also used as the heartbeat
+    to ensure that the connection to the server is still live.
+  */
+  $tw.browserMessageHandlers.pong = function (data) {
+    // If this pong is part of a heartbeat than use a setTimeout to send
+    // another beat in the interval defined in $tw.settings.heartbeat.interval
+    // the timeout id is stored in $tw.settings.heartbeat.timeoutid
+    if (data.heartbeat) {
+      $tw.settings.heartbeat = $tw.settings.heartbeat || {};
+      $tw.settings.heartbeat.interval = $tw.settings.heartbeat.interval || 1000;
+      $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      // Clear the time to live timeout.
+      clearTimeout($tw.settings.heartbeat.TTLID);
+      setTimeout(function () {
+        $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
+      }, $tw.settings.heartbeat.interval);
+      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, 1.5*Number($tw.settings.heartbeat.interval));
+    }
+  }
+
+  /*
+    This is what happens when the browser detects that it isn't connected to
+    the server anymore.
+    TODO make this do something useful.
+  */
+  function handleDisconnected() {
+    console.log('Disconnected from server');
+    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
+    var tiddler = {title: 'Server Warning', text: text, tags: '$:/tags/PageTemplate'};
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
+  }
+
 })();

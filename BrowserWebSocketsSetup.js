@@ -40,11 +40,12 @@ socket server, but it can be extended for use with other web socket servers.
       addHooks();
     }
     /*
-      If anything needs to be done to set things up when a socket is opened
-      put it in this function
+      When the socket is opened the heartbeat process starts. This lets us know
+      if the connection to the server gets interrupted.
     */
     var openSocket = function() {
-
+      // Start the heartbeat process
+      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
     }
     /*
       This is a wrapper function, each message from the websocket server has a
