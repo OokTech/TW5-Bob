@@ -243,9 +243,9 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
 */
 
 /*
-  This restarts the tiddlywiki server and loads a different wiki.
+  This starts a new tiddlywiki server and loads a different wiki.
 */
-$tw.nodeMessageHandlers.changeWiki = function(data) {
+$tw.nodeMessageHandlers.startWiki = function(data) {
   if ($tw.node) {
     if (data.wikiName) {
       if ($tw.settings.wikis[data.wikiName]) {

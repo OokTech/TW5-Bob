@@ -197,7 +197,7 @@ SimpleServer.prototype.listen = function(port,host) {
   $tw.httpServer = http.createServer(this.requestHandler.bind(this));
   $tw.httpServer.on('error', function (e) {
     if (e.code === 'EADDRINUSE') {
-      self.listen(port+1, host);
+      self.listen(Number(port)+1, host);
     }
   });
   $tw.httpServer.listen(port,host, function (e) {

@@ -1,6 +1,6 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-changeWiki
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-startWiki
 tags: [[Websocket Message]] [[Human Usable]]
-caption: changeWiki
+caption: startWiki
 description: Start serving another wiki.
 
 This message lets you open a new wiki from within tiddlywiki.
@@ -12,4 +12,4 @@ The location of the named wiki must be listed in the `wikis` section of the
 
 !!Usage
 
-`<$action-websocketmessage $type='changeWiki' wikiName='wikiName'/>`
+`<$action-websocketmessage $type='startWiki' wikiName='wikiName'/>`

@@ -173,6 +173,9 @@ it will overwrite this file.
     // another beat in the interval defined in $tw.settings.heartbeat.interval
     // the timeout id is stored in $tw.settings.heartbeat.timeoutid
     if (data.heartbeat) {
+      if ($tw.wiki.tiddlerExists('$:/plugins/OokTech/MultiUser/Server Warning')) {
+        $tw.wiki.deleteTiddler('$:/plugins/OokTech/MultiUser/Server Warning');
+      }
       $tw.settings.heartbeat = $tw.settings.heartbeat || {};
       $tw.settings.heartbeat.interval = $tw.settings.heartbeat.interval || 1000;
       $tw.utils.toggleClass(document.body,"tc-dirty",false);
@@ -188,12 +191,11 @@ it will overwrite this file.
   /*
     This is what happens when the browser detects that it isn't connected to
     the server anymore.
-    TODO make this do something useful.
   */
   function handleDisconnected() {
     console.log('Disconnected from server');
     var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
-    var tiddler = {title: 'Server Warning', text: text, tags: '$:/tags/PageTemplate'};
+    var tiddler = {title: '$:/plugins/OokTech/MultiUser/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
   }
 
