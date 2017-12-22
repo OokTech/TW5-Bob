@@ -1,0 +1,109 @@
+/*\
+title: $:/plugin/OokTech/MultiUser/macros/getSetting.js
+type: application/javascript
+module-type: macro
+
+/*
+Macro to return the value of a setting in the settings json structure
+
+This is needed because tiddlywiki doesn't support nested json objects and
+the settings structure is faking it.
+
+This is done relative to the tiddler given by the root parameter.
+
+To fit with tiddlywiki as much as possible each level is separated by ##
+
+{
+  First: {
+    Second: {
+      Item: Value
+    }
+  }
+}
+
+Given the above JSON you could use this:
+
+<<getSetting key="First##Second##Item">>
+
+which would return Value
+
+Note that this returns the first leaf reached. If you add extra levels that
+don't exit to the end of the key they are ignored. So in the example if you
+used First##Second##Item##this##changes##nothing than it would work the same
+way.
+
+
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+"use strict";
+
+/*
+Information about this macro
+*/
+
+exports.name = "getSetting";
+
+exports.params = [
+	{name: "key"},
+  {name: "root"}
+];
+
+/*
+Run the macro
+*/
+exports.run = function(key, root) {
+  if (!key) {
+    // If no key is given return an empty string.
+    return "";
+  } else {
+    // Split the key up into it separate parts.
+    var keys = key.split('##');
+  }
+  // If no root is given use the default.
+  if (!root) {
+    root = "$:/WikiSettings/split";
+  }
+  var tiddler = $tw.wiki.getTiddler(root);
+  if (!tiddler) {
+    // if the root doesn't exist return an empty string.
+    return "";
+  }
+  // Walk through the settings to find the desired key and return it.
+  return walk(keys, tiddler);
+};
+
+/*
+This function walks though each property in the json from the tiddler text and
+either returns the value indicated by the next key or, if the value is a
+tiddler title in the correct form, calls itself again with the next key and
+tiddler.
+*/
+function walk(keys, tiddler) {
+  try {
+    var currentLevel = JSON.parse(tiddler.fields.text);
+    if (typeof currentLevel[keys[0]] === 'string') {
+      // If the current level is a tiddler holding the next nested object pass
+      // that into the walk function, otherwise return the value of the key at
+      // this level.
+      if (currentLevel[keys[0]].startsWith(tiddler.fields.title)) {
+        var newTiddler = $tw.wiki.getTiddler(currentLevel[keys[0]]);
+        keys.shift();
+        return walk(keys, newTiddler);
+      } else {
+        return currentLevel[keys[0]];
+      }
+    } else {
+      // If we run into an invalid key, or one that doesn't exist return an
+      // empty string.
+      return "";
+    }
+  } catch (e) {
+    // If parsing fails return an empty string.
+    return "";
+  }
+}
+
+})();

@@ -1,0 +1,45 @@
+title: $:/plugins/OokTech/MultiUser/getSetting Macro
+caption: getSetting Macro
+tags: Macros
+
+A convenience macro to return the value of a setting in the settings
+pseudo-json structure.
+
+This is needed because tiddlywiki doesn't support nested json objects and
+the settings structure is faking it.
+
+This is done relative to the tiddler given by the root parameter.
+
+To fit with tiddlywiki as much as possible each level is separated by ##
+
+{
+  First: {
+    Second: {
+      Item: Value
+    }
+  }
+}
+
+Given the above JSON you could use this:
+
+<<getSetting key="First##Second##Item">>
+
+which would return Value
+
+Note that this returns the first leaf reached. If you add extra levels that
+don't exit to the end of the key they are ignored. So in the example if you
+used First##Second##Item##this##changes##nothing than it would work the same
+way.
+
+!! Parameters
+
+''key''
+
+  The key to look up. If you are looking up a value that isn't on the root
+  level than you separate each level's key by `##`, like
+  FirstLevel##SecondLevel##key.
+
+''root''
+
+  (optional) the root tiddler for the settings. Defaults to
+  `$:/WikiSettings/split`
