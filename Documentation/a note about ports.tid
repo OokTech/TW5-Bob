@@ -7,4 +7,5 @@ Because of this the wiki may not be on the same port that you expect, so look
 at the commandline output to see which port it is being served on.
 
 The websocket server needs to be on a separate port. It tries to use the next
-port above the http server port, but if that doesn't work it increments until it finds an available port to use.
+port above the http server port, but if that doesn't work it increments until
+it finds an available port to use.

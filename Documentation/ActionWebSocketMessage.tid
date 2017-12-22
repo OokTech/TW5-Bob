@@ -1,5 +1,7 @@
 title: $:/plugins/OokTech/MultiUser/ActionWebSocketMessage
-tags: ActionWidgets Widgets
+tags: ActionWidgets Widgets [[MultiUser Documentation]]
+caption: ActionWebSocketMessage
+description: The widget for sending websocket messages.
 
 ! Introduction
 

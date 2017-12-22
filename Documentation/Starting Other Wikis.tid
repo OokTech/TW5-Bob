@@ -1,5 +1,17 @@
 title: $:/plugins/OokTech/MultiUser/Starting Other Wikis
 caption: Starting Other Wikis
+tags: [[MultiUser Documentation]]
+description: Server multiple wikis at the same time.
+
+This works using the `wsserver` command included in this plugin. So any wikis
+you start this way need to also include this plugin. You can serve other wikis
+using the normal `server` command using the
+[[runScript|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]]
+message.
+
+Using this method of starting another multi-user wiki allows the two processes
+to communicate, although currently this isn't used. In the future it will be
+used to let each wiki know what other wikis are open.
 
 You can start serving other wikis from within the wiki. First you need to give
 the wiki a name and list its path in the settings. Go to the `Node Settings`

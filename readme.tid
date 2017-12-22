@@ -32,3 +32,22 @@ in the `scripts` section. You can also add or modify the scripts here. See [[run
 
 The other wikis you can start from this wiki are listed in the `wikis` section.
 You can add new wikis here as well. See [[starting other wikis from within a wiki|$:/plugins/OokTech/MultiUser/Starting Other Wikis]].
+
+! Other Documentation
+
+<$list
+  filter='[all[tiddlers+shadows]tag[MultiUser Documentation]]'
+>
+  <$link
+    to=<<currentTiddler>>
+  >
+    <$view
+      field='caption'
+    >
+      <$view
+        field='title'
+      />
+    </$view>
+  </$link> - <$view field='description'/>
+  <br>
+</$list>

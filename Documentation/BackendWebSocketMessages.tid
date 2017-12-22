@@ -1,5 +1,7 @@
 title: $:/plugins/OokTech/MultiUser/BackendWebSocketMessages
 caption: BackendWebSocketMessages
+tags: [[MultiUser Documentation]]
+description: Back-end messages for developers.
 
 These are the messages available for websockets that are only used by the
 back-end.
