@@ -12,3 +12,26 @@ To add a new value click on the <$button class='tc-btn-invisible'>{{$:/core/imag
   Update Settings
   <$action-websocketmessage $type=saveSettings/>
 </$button>
+
+
+---
+
+This button will restart the wiki server, you will have to reload the wiki
+after the server has restarted to reconnect.
+This may not be a full restart in the same way as stopping the process and
+restarting from the terminal is. I am not sure why not.
+
+<$button>
+  Restart Wiki
+  <$action-websocketmessage $type=restartServers/>
+</$button>
+
+---
+
+WARNING: This button will shutdown this wiki. If you are running multiple wikis
+simultaneously this only shuts down the current wiki.
+
+<$button>
+  Shutdown Wiki
+  <$action-websocketmessage $type=shutdownServer/>
+</$button>
