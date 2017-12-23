@@ -23,7 +23,7 @@ restarting from the terminal is. I am not sure why not.
 
 <$button>
   Restart Wiki
-  <$action-websocketmessage $type=restartServers/>
+  <$action-websocketmessage $type=restartServer/>
 </$button>
 
 ---
