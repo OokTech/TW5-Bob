@@ -4,6 +4,8 @@ BIG DISCLAMER OF DOOM - THIS IS IN BETA, ONLY I HAVE TESTED THIS. EXPECT BUGS. I
 
 This plugin is only usable on the node version of tiddlywiki. The plugin includes the npm modules ip and ws, these are included in the plugin so you don't need to install them separately.
 
+A lot of the documentation is in the tiddler files in the Documentation folder of the plugin, or in the wiki in the plugin information on the control panel.
+
 With the node modules included you can now use the globally installed tiddlywiki version. To do this you either need to place the plugin tiddler files in the plugins sub-folder of the folder that contains the tiddlywiki.info file
 
 If you want to use a fresh local install of tiddlywiki here are command line instructions:
@@ -50,9 +52,9 @@ This plugin does a few things:
 - MultiUser ability on multiple wikis simultaneously
 - Adds a way to run shell scripts from the wiki
 - Adds a utility to configure everything from inside the wiki
+- Your connection to the server is monitored and you are warned if there is a problem
 
 - *coming soon* Exclude lists on a per-wiki and per-user basis
-- *coming soon* an indication if your connection to the server is active or not
 - *coming soon* a list of all wikis currently being served
 - *coming soon* each new wiki is made as a child process which allows messages to be passed between the different wikis. I need to find how to use this to make sure each wiki is accessible to all the others.
 
