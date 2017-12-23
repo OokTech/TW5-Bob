@@ -1,6 +1,6 @@
 # TW5-MultiUser
 
-BIG DISCLAMER OF DOOM - THIS IS IN BETA, ONLY I HAVE TESTED THIS. EXPECT BUGS. IT SHOULDN'T MAKE YOUR COMPUTER EXPLODE BUT THEN AGAIN IT MAY.
+BIG DISCLAMER OF DOOM - Back up your data. Do it. This has been tested but there may be bugs that I don't know about.
 
 This plugin is only usable on the node version of tiddlywiki. The plugin includes the npm modules ip and ws, these are included in the plugin so you don't need to install them separately.
 
@@ -38,21 +38,35 @@ server from inside the wiki.
 
 This plugin does a few things:
 
-- Makes tiddlywiki watch the tiddlers folder and updates any tiddlers in the wiki when there are changes to any tiddler files.
-- Makes tiddlywiki save any changes to tiddlers made in the wiki immediately to the file system
+- Makes tiddlywiki watch the tiddlers folder and updates any tiddlers in the
+wiki when there are changes to any tiddler files.
+- Makes tiddlywiki save any changes to tiddlers made in the wiki immediately to
+the file system
 - Uses an exclude list to ignore certain tiddlers when syncing in the browser
-- Prevents multiple people from editing the same tiddler at the same time by disabling the edit button for tiddlers currently being edited
-- Allows any number of people or computers to connect to the wiki server and use or edit the same wiki simultaneously.
-- Adds a websocket interface to tiddlywiki (currently only used by this plugin, a git plugin is currently being developed as well as plugins to run scripts on the local computer from tiddlywiki)
-- Adds an action widget that allows you to send arbitrary websocket messages to the server. This can be used to do things like trigger shell scripts from inside the wiki.
-- Adds some new hooks to the navigator widget that were needed (this doesn't change anything about how the navigator widget acts, it just adds some new places for hooks)
-- Adds a new command `wsserver` that starts up a minimal http server so the websockets work and so that the node process can spawn child processses which serve other wikis.
+- Prevents multiple people from editing the same tiddler at the same time by
+  disabling the edit button for tiddlers currently being edited
+- Allows any number of people or computers to connect to the wiki server and
+  use or edit the same wiki simultaneously.
+- Adds a websocket interface to tiddlywiki (currently only used by this plugin,
+  a git plugin is currently being developed as well as plugins to run scripts
+  on the local computer from tiddlywiki)
+- Adds an action widget that allows you to send arbitrary websocket messages to
+  the server. This can be used to do things like trigger shell scripts from
+  inside the wiki.
+- Adds some new hooks to the navigator widget that were needed (this doesn't
+  change anything about how the navigator widget acts, it just adds some new
+  places for hooks)
+- Adds a new command `wsserver` that starts up a minimal http server so the
+  websockets work and so that the node process can spawn child processses which
+  serve other wikis.
 - Is compatible with the `NodeSettings` plugin.
-- Allows you to reset the tiddlywiki server from the browser using a websocket message.
+- Allows you to reset the tiddlywiki server from the browser using a websocket
+  message.
 - MultiUser ability on multiple wikis simultaneously
 - Adds a way to run shell scripts from the wiki
 - Adds a utility to configure everything from inside the wiki
-- Your connection to the server is monitored and you are warned if there is a problem
+- Your connection to the server is monitored and you are warned if there is a
+  problem
 
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* a list of all wikis currently being served
