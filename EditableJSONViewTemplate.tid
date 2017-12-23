@@ -78,9 +78,7 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
     state=<<thisNewItemState>>
     text=editing
   >
-    <$button
-      class='tc-btn-invisible'
-    >
+    <$button>
       {{$:/core/images/new-button}}
       <$action-setfield
         $tiddler=<<thisNewItemState>>
