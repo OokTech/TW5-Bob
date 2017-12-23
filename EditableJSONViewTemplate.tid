@@ -85,6 +85,7 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
       <$action-setfield
         $tiddler=<<thisNewItemState>>
         text=editing
+        item_type=Field
       />
     </$button>
   </$reveal>
@@ -111,11 +112,17 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
     >
       Field
     </$radio>
-    <$edit-text
-      tiddler=<<thisNewItemState>>
-      field='new_value'
-      class='tc-edit-texteditor'
-    />
+    <$list
+      filter='[<thisNewItemState>item_type[Field]]'
+      variable=dummy
+      emptyMessage="<br>"
+    >
+      <$edit-text
+        tiddler=<<thisNewItemState>>
+        field='new_value'
+        class='tc-edit-texteditor'
+      />
+    </$list>
     <$button
       class='tc-btn-invisible'
     >

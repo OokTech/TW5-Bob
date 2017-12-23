@@ -184,7 +184,7 @@ it will overwrite this file.
       setTimeout(function () {
         $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
       }, $tw.settings.heartbeat.interval);
-      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, 1.5*Number($tw.settings.heartbeat.interval));
+      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, 2*Number($tw.settings.heartbeat.interval));
     }
   }
 

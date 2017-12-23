@@ -248,8 +248,12 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
 $tw.nodeMessageHandlers.startWiki = function(data) {
   if ($tw.node) {
     if (data.wikiName) {
-      if ($tw.settings.wikis[data.wikiName]) {
-        console.log('Switch wiki to ', data.wikiName);
+      // We want to support more than one level where you list wikis, so we
+      // need to walk though the wiki tree to get the desired one here.
+      var pathParts = data.wikiName.split('##');
+      var wikiPathInfo = getWikiPathInfo(pathParts, $tw.settings.wikis, '');
+      if (wikiPathInfo) {
+        console.log('Switch wiki to ', wikiPathInfo.wikiName);
         // TODO figure out how to make sure that the tiddlywiki.info file
         // exists before moving to this point
 
@@ -261,7 +265,7 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         // cut off the old wiki argument
         process.argv.shift();
         // Add the new wiki argument.
-        process.argv.unshift($tw.settings.wikis[data.wikiName]);
+        process.argv.unshift(wikiPathInfo.wikiPath);
         // the fork command uses the same node command to start the wiki and
         // we can use the returned object forked to send and received messages // to and from the new process. This can be used to wait until the
         // wiki is fully booted before switching to it. And other stuff.
@@ -273,7 +277,38 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         //forked.send({server: $tw.httpServer});
 
         //console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));
+      } else {
+        console.log('Bad wiki path');
       }
+    }
+  }
+}
+
+function getWikiPathInfo (wikiName, currentLevel, route) {
+  if (typeof currentLevel === 'object') {
+    route = route + '/' + wikiName[0];
+    console.log('currentLevel: ', currentLevel)
+    currentLevel = currentLevel[wikiName[0]];
+    wikiName.shift();
+    if (currentLevel) {
+      //recurse!
+      return getWikiPathInfo(wikiName, currentLevel, route);
+    } else {
+      // If the next level doesn't exist return false
+      return false;
+    }
+  } else {
+    if (!fs) {
+      var fs = require('fs');
+      var path = require('path');
+    }
+    console.log('route: ', route)
+    var infoPath = path.join(currentLevel, 'tiddlywiki.info');
+    if (fs.existsSync(infoPath)) {
+      //at the end!
+      return {wikiPath: currentLevel, wikiName: route};
+    } else {
+      return false;
     }
   }
 }
@@ -304,6 +339,11 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
       console.log(err);
     }
   });
+  // Update the $tw.settings object
+  // First clear the settings
+  $tw.settings = {};
+  // Put the updated version in.
+  $tw.updateSettings($tw.settings, JSON.parse(settings));
 }
 
 function buildSettings (tiddler) {
