@@ -89,10 +89,13 @@ var Command = function(params,commander,callback) {
   $tw.loadSettings($tw.settings,userSettingsPath);
   $tw.SendPath = function(m) {
     if (m.type === 'requestRoot') {
+      if (m.mountPoint) {
+        $tw.settings.MountPoint = m.mountPoint;
+      }
       // Next add the appropriate path here for the current wiki
       var reply = {
     		method: "GET",
-        path: $tw.settings.MountPoint,
+        path: new RegExp($tw.settings.MountPoint),
     		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
     	}
       process.send({type: 'updateRoot', route: reply});
@@ -100,7 +103,7 @@ var Command = function(params,commander,callback) {
   }
   // add handler replying to the parent
   process.on('message', $tw.SendPath);
-  console.log(`Serving on /${$tw.settings.MountPoint}`);
+  console.log(`Serving on ${$tw.settings.MountPoint}`);
 };
 
 Command.prototype.execute = function() {

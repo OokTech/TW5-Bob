@@ -67,7 +67,7 @@ function updateBase () {
     // Next add the appropriate path here for the current wiki
     var reply = {
   		method: "GET",
-      path: $tw.settings.MountPoint,
+      path: new RegExp($tw.settings.MountPoint),
   		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
   	}
     process.send({type: 'updateRoot', route: reply});
@@ -308,7 +308,7 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         });
         console.log('Data ', data);
         // Ask the new process for stuff
-        forked.send({type: 'requestRoot'});
+        forked.send({type: 'requestRoot', mountPoint: `^\/${data.wikiPath}\/?&`});
         // Add the path for this process.
         forked.on('message', function (message) {
           var route = {

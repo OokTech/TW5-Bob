@@ -275,11 +275,11 @@ function addRoutesThing(inputObject, prefix) {
   if (typeof inputObject === 'object') {
     Object.keys(inputObject).forEach(function (wikiName) {
       if (typeof inputObject[wikiName] === 'string') {
-        console.log(`Added route ^${prefix}/${wikiName}\/?$`)
+        console.log(`Added route ^${wikiName}\/?$`)
         // Make route handler
         $tw.httpServer.addRoute({
           method: "GET",
-          path: new RegExp(`^${prefix}/${wikiName}\/?$`),
+          path: new RegExp(`^\/${wikiName}\/?$`),
           handler: function(request, response, state) {
             console.log('start ', wikiName);
             $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
