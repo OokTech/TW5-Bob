@@ -30,6 +30,7 @@ $tw.nodeMessageHandlers.browserTiddlerList = function(data) {
   // Save the list of tiddlers in the browser as part of the $tw object so it
   // can be used elsewhere.
   $tw.BrowserTiddlerList[data.source_connection] = data.titles;
+  updateBase();
 }
 
 /*
@@ -54,6 +55,23 @@ $tw.nodeMessageHandlers.ping = function(data) {
   // When the server receives a ping it sends back a pong.
   var response = JSON.stringify(message);
   $tw.connections[data.source_connection].socket.send(response);
+}
+
+/*
+  This updates the wiki that is sent in response to an http GET
+  It is needed only if the current wiki is a child process
+*/
+function updateBase () {
+  if ($tw.WikiIsChild) {
+    process.removeListener('message', $tw.SendPath);
+    // Next add the appropriate path here for the current wiki
+    var reply = {
+  		method: "GET",
+      path: $tw.settings.MountPoint,
+  		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
+  	}
+    process.send({type: 'updateRoot', route: reply});
+  }
 }
 
 /*
@@ -107,6 +125,8 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
       }
     }
   }
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 /*
@@ -118,6 +138,8 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
 */
 $tw.nodeMessageHandlers.clearStatus = function(data) {
   delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 /*
@@ -132,6 +154,8 @@ $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     delete $tw.MultiUser.EditingTiddlers[data.tiddler];
     $tw.MultiUser.UpdateEditingTiddlers(false);
   }
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 /*
@@ -141,6 +165,8 @@ $tw.nodeMessageHandlers.editingTiddler = function(data) {
   // Add the tiddler to the list of tiddlers being edited to prevent multiple
   // people from editing it at the same time.
   $tw.MultiUser.UpdateEditingTiddlers(data.tiddler);
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 /*
@@ -167,6 +193,8 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
     delete $tw.MultiUser.EditingTiddlers[title];
     $tw.MultiUser.UpdateEditingTiddlers(false);
   }
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 /*
@@ -189,6 +217,8 @@ $tw.nodeMessageHandlers.updateSettings = function(data) {
         console.log(err);
       }
     });
+    // Update the wiki sent for a GET
+    updateBase();
   }
 }
 
@@ -203,14 +233,6 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
     $tw.wss.close(function () {
       console.log('Closed WSS');
     });
-    // Close http server.
-    // TODO figure out how to do this properly.  we have to close all open
-    // connections or it will wait to timeout before actualy closing. And the
-    // socket is left open for some reason.
-    $tw.httpServer.close(function () {
-      console.log('Closed http server');
-    });
-    console.log('Restarting Server');
     // This bit of magic restarts whatever node process is running. In this
     // case the tiddlywiki server.
     require('child_process').spawn(process.argv.shift(), process.argv, {
@@ -260,23 +282,51 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         // This bit of magic starts a new server with the wiki given in
         // data.wikiName
         // Get our commands (node and tiddlywiki)
-        var nodeCommand = process.argv.shift();
-        var tiddlyWikiCommand = process.argv.shift();
+        //var nodeCommand = process.argv.shift();
+        //var tiddlyWikiCommand = process.argv.shift();
+        var tiddlyWikiCommand = process.argv[1];
         // cut off the old wiki argument
-        process.argv.shift();
+        //process.argv.shift();
+        // if the old argument was wsserver replace it with wsserver-child
+        /*
+        if (process.argv.indexOf('--wsserver') !== -1) {
+          process.argv[process.argv.indexOf('--wsserver')] = '--wsserver-child';
+        }
+        */
         // Add the new wiki argument.
-        process.argv.unshift(wikiPathInfo.wikiPath);
+        //process.argv.unshift(wikiPathInfo.wikiPath);
+
+        var args = [wikiPathInfo.wikiPath, '--wsserver-child'];
         // the fork command uses the same node command to start the wiki and
         // we can use the returned object forked to send and received messages // to and from the new process. This can be used to wait until the
         // wiki is fully booted before switching to it. And other stuff.
-        var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
+        //var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
+        var forked = require('child_process').fork(tiddlyWikiCommand, args, {
           cwd: process.cwd(),
           detached: false,
           stdio: "inherit"
         });
-        //forked.send({server: $tw.httpServer});
-
-        //console.log($tw.loadTiddlersFromPath($tw.settings.wikis[data.wikiName]));
+        console.log('Data ', data);
+        // Ask the new process for stuff
+        forked.send({type: 'requestRoot'});
+        // Add the path for this process.
+        forked.on('message', function (message) {
+          var route = {
+        		method: "GET",
+            path: new RegExp(`^\/${data.wikiPath}\/?$`),
+        		handler: function(request,response,state) {
+        			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+        			var text = message.route.text;
+        			response.end(text,"utf8");
+        		}
+        	};
+          $tw.httpServer.updateRoute(route);
+          /*
+          if (message.type === 'updateRoot') {
+            $tw.httpServer.updateRoute(route);
+          }
+          */
+        });
       } else {
         console.log('Bad wiki path');
       }
@@ -287,7 +337,6 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
 function getWikiPathInfo (wikiName, currentLevel, route) {
   if (typeof currentLevel === 'object') {
     route = route + '/' + wikiName[0];
-    console.log('currentLevel: ', currentLevel)
     currentLevel = currentLevel[wikiName[0]];
     wikiName.shift();
     if (currentLevel) {
@@ -302,7 +351,6 @@ function getWikiPathInfo (wikiName, currentLevel, route) {
       var fs = require('fs');
       var path = require('path');
     }
-    console.log('route: ', route)
     var infoPath = path.join(currentLevel, 'tiddlywiki.info');
     if (fs.existsSync(infoPath)) {
       //at the end!
@@ -344,6 +392,8 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
   $tw.settings = {};
   // Put the updated version in.
   $tw.updateSettings($tw.settings, JSON.parse(settings));
+  // Update the wiki sent for a GET
+  updateBase();
 }
 
 function buildSettings (tiddler) {

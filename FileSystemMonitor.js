@@ -256,6 +256,20 @@ if (fs) {
       } else {
         console.log('No filename given!');
       }
+      /*
+        This updates the wiki that is sent in response to an http GET
+        It is needed only if the current wiki is a child process
+      */
+      if ($tw.WikiIsChild) {
+        process.removeListener('message', $tw.SendPath);
+        // Next add the appropriate path here for the current wiki
+        var reply = {
+      		method: "GET",
+          path: $tw.settings.MountPoint,
+      		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
+      	}
+        process.send({type: 'updateRoot', route: reply});
+      }
     });
   }
 

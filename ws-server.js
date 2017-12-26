@@ -95,6 +95,16 @@ SimpleServer.prototype.addRoute = function(route) {
 	this.routes.push(route);
 };
 
+// Add route but make sure it isn't a duplicate.
+SimpleServer.prototype.updateRoute = function (route) {
+  // Remove any routes that have the same path as the input
+  this.routes = this.routes.filter(function(thisRoute) {
+    return String(thisRoute.path) !== String(route.path);
+  });
+  // Push on the new route.
+  this.routes.push(route);
+}
+
 SimpleServer.prototype.findMatchingRoute = function(request,state) {
 	var pathprefix = this.get("pathprefix") || "";
 	for(var t=0; t<this.routes.length; t++) {
@@ -110,7 +120,9 @@ SimpleServer.prototype.findMatchingRoute = function(request,state) {
 				match = false;
 			}
 		} else {
-			match = potentialRoute.path.exec(pathname);
+      if (typeof potentialRoute.path.exec === 'function') {
+		    match = potentialRoute.path.exec(pathname);
+      }
 		}
 		if(match && request.method === potentialRoute.method) {
 			state.params = [];
@@ -194,13 +206,13 @@ SimpleServer.prototype.requestHandler = function(request,response) {
 */
 SimpleServer.prototype.listen = function(port,host) {
   var self = this;
-  $tw.httpServer = http.createServer(this.requestHandler.bind(this));
-  $tw.httpServer.on('error', function (e) {
+  var httpServer = http.createServer(this.requestHandler.bind(this));
+  httpServer.on('error', function (e) {
     if (e.code === 'EADDRINUSE') {
       self.listen(Number(port)+1, host);
     }
   });
-  $tw.httpServer.listen(port,host, function (e) {
+  httpServer.listen(port,host, function (e) {
     if (!e) {
       $tw.httpServerPort = port;
       console.log("Serving on " + host + ":" + $tw.httpServerPort);
@@ -225,21 +237,20 @@ var Command = function(params,commander,callback) {
   var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
   $tw.loadSettings($tw.settings,userSettingsPath);
 	// Set up server
-	this.server = new SimpleServer({
+	$tw.httpServer = new SimpleServer({
 		wiki: this.commander.wiki
 	});
 	// Add route handlers
-	this.server.addRoute({
+	$tw.httpServer.addRoute({
 		method: "GET",
 		path: /^\/$/,
-    //path: new RegExp(`^\/${$tw.settings.MountPoint}\/$`),
 		handler: function(request,response,state) {
 			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
 			var text = state.wiki.renderTiddler(state.server.get("renderType"),state.server.get("rootTiddler"));
 			response.end(text,"utf8");
 		}
 	});
-	this.server.addRoute({
+	$tw.httpServer.addRoute({
 		method: "GET",
 		path: /^\/favicon.ico$/,
 		handler: function(request,response,state) {
@@ -248,7 +259,40 @@ var Command = function(params,commander,callback) {
 			response.end(buffer,"base64");
 		}
 	});
+  // Add placeholders for other routes that load the wikis associated with each
+  // route.
+  this.addOtherRoutes();
 };
+
+/*
+  Walk through the $tw.settings.wikis object and add a route for each listed wiki. The routes should make the wiki boot if it hasn't already.
+*/
+Command.prototype.addOtherRoutes = function () {
+  addRoutesThing($tw.settings.wikis, '');
+}
+
+function addRoutesThing(inputObject, prefix) {
+  if (typeof inputObject === 'object') {
+    Object.keys(inputObject).forEach(function (wikiName) {
+      if (typeof inputObject[wikiName] === 'string') {
+        console.log(`Added route ^${prefix}/${wikiName}\/?$`)
+        // Make route handler
+        $tw.httpServer.addRoute({
+          method: "GET",
+          path: new RegExp(`^${prefix}/${wikiName}\/?$`),
+          handler: function(request, response, state) {
+            console.log('start ', wikiName);
+            $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
+          }
+        });
+      } else {
+        // recurse!
+        prefix = prefix + '/' + wikiName;
+        addRoutesThing(inputObject[wikiName], prefix);
+      }
+    })
+  }
+}
 
 Command.prototype.execute = function() {
 	if(!$tw.boot.wikiTiddlersPath) {
@@ -262,7 +306,7 @@ Command.prototype.execute = function() {
 		password = $tw.settings['ws-server'].password,
 		host = $tw.settings['ws-server'].host || "127.0.0.1",
 		pathprefix = $tw.settings['ws-server'].pathprefix;
-	this.server.set({
+	$tw.httpServer.set({
 		rootTiddler: rootTiddler,
 		renderType: renderType,
 		serveType: serveType,
@@ -271,7 +315,7 @@ Command.prototype.execute = function() {
 		pathprefix: pathprefix
 	});
 
-  this.server.listen(port,host);
+  $tw.httpServer.listen(port,host);
 	return null;
 };
 
