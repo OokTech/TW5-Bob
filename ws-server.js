@@ -275,7 +275,7 @@ function addRoutesThing(inputObject, prefix) {
   if (typeof inputObject === 'object') {
     Object.keys(inputObject).forEach(function (wikiName) {
       if (typeof inputObject[wikiName] === 'string') {
-        console.log(`Added route ^${wikiName}\/?$`)
+        console.log(`Added route ^${wikiName}\/`)
         // Make route handler
         $tw.httpServer.addRoute({
           method: "GET",

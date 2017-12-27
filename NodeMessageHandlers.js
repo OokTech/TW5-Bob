@@ -64,12 +64,14 @@ $tw.nodeMessageHandlers.ping = function(data) {
 function updateBase () {
   if ($tw.WikiIsChild) {
     process.removeListener('message', $tw.SendPath);
+    console.log(`^\/${$tw.settings.MountPoint}\/?$`)
     // Next add the appropriate path here for the current wiki
     var reply = {
   		method: "GET",
-      path: new RegExp($tw.settings.MountPoint),
+      path: new RegExp(`^\/${$tw.settings.MountPoint}\/?$`),
   		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
   	}
+    console.log('Sent Text ', reply.text.length)
     process.send({type: 'updateRoot', route: reply});
   }
 }
@@ -308,9 +310,10 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         });
         console.log('Data ', data);
         // Ask the new process for stuff
-        forked.send({type: 'requestRoot', mountPoint: `^\/${data.wikiPath}\/?&`});
+        forked.send({type: 'requestRoot', mountPoint: data.wikiPath});
         // Add the path for this process.
         forked.on('message', function (message) {
+          console.log('Receive ', data.wikiPath, ' ', message.route.text.length);
           var route = {
         		method: "GET",
             path: new RegExp(`^\/${data.wikiPath}\/?$`),
