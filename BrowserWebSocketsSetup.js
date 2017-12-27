@@ -30,7 +30,6 @@ socket server, but it can be extended for use with other web socket servers.
     function setup() {
       $tw.Syncer.isDirty = false;
       var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
-      //var IPAddress = IPTiddler.fields.text;
       var IPAddress = window.location.hostname;
       var WSSPort = IPTiddler.fields.wss_port;
       $tw.socket = new WebSocket(`ws://${IPAddress}:${WSSPort}`);
