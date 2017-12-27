@@ -192,29 +192,6 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
 }
 
 /*
-  This function sets values in the settings files.
-*/
-$tw.nodeMessageHandlers.updateSettings = function(data) {
-  if ($tw.node && !fs) {
-    var fs = require('fs');
-    var path = require('path');
-  }
-  // This should have some sort of validation
-  if (typeof data === 'object') {
-    // Update the settings
-    $tw.updateSettings($tw.settings, JSON.parse(data.body));
-    // Save the updated settings
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    var settingsFileString = JSON.stringify($tw.settings, null, 2);
-    fs.writeFile(userSettingsPath, settingsFileString, {encoding: "utf8"}, function (err) {
-      if (err) {
-        console.log(err);
-      }
-    });
-  }
-}
-
-/*
   This lets us restart the tiddlywiki server without having to use the command
   line.
 */
@@ -359,6 +336,7 @@ function getWikiPathInfo (wikiName, currentLevel, route) {
   in the browser.
 */
 $tw.nodeMessageHandlers.saveSettings = function(data) {
+  console.log('Save Settings');
   if (!path) {
     var path = require('path');
     var fs = require('fs');

@@ -314,7 +314,8 @@ if (fs) {
         var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName});
         // Send the message to each connected browser
         $tw.MultiUser.SendToBrowsers(message);
-        // Try this
+        // TODO figure out if this is enough or if we also need to delete
+        // from the $tw.boot.files object also.
         $tw.wiki.deleteTiddler(tiddlerName);
       }
     });
