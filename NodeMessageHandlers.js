@@ -139,7 +139,10 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
   new tiddler as a change.
 */
 $tw.nodeMessageHandlers.clearStatus = function(data) {
-  delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+  $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
+  if ($tw.MultiUser.WaitingList[data.source_connection][data.title]) {
+    delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+  }
 }
 
 /*
