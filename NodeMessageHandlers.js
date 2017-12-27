@@ -30,7 +30,6 @@ $tw.nodeMessageHandlers.browserTiddlerList = function(data) {
   // Save the list of tiddlers in the browser as part of the $tw object so it
   // can be used elsewhere.
   $tw.BrowserTiddlerList[data.source_connection] = data.titles;
-  updateBase();
 }
 
 /*
@@ -61,17 +60,20 @@ $tw.nodeMessageHandlers.ping = function(data) {
   This updates the wiki that is sent in response to an http GET
   It is needed only if the current wiki is a child process
 */
-function updateBase () {
+$tw.nodeMessageHandlers.updateBase = function (data) {
+  /*
+    This updates the wiki that is sent in response to an http GET
+    It is needed only if the current wiki is a child process
+  */
   if ($tw.WikiIsChild) {
     process.removeListener('message', $tw.SendPath);
-    console.log(`^\/${$tw.settings.MountPoint}\/?$`)
     // Next add the appropriate path here for the current wiki
     var reply = {
-  		method: "GET",
+      method: "GET",
       path: new RegExp(`^\/${$tw.settings.MountPoint}\/?$`),
-  		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
-  	}
-    console.log('Sent Text ', reply.text.length)
+      text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
+    }
+    console.log(String(reply.path), ' sent length ', reply.text.length)
     process.send({type: 'updateRoot', route: reply});
   }
 }
@@ -102,7 +104,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           // normally.
           console.log('Node Save Tiddler');
           if (!$tw.boot.files[data.tiddler.fields.title]) {
-            $tw.syncadaptor.saveTiddler(data.tiddler);
+            $tw.syncadaptor.saveTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
           } else {
             // If changed send tiddler
             var changed = true;
@@ -113,7 +115,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
               console.log(e);
             }
             if (changed) {
-              $tw.syncadaptor.saveTiddler(data.tiddler);
+              $tw.syncadaptor.saveTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
             }
           }
         } else {
@@ -127,8 +129,6 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
       }
     }
   }
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 /*
@@ -140,8 +140,6 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
 */
 $tw.nodeMessageHandlers.clearStatus = function(data) {
   delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 /*
@@ -150,14 +148,12 @@ $tw.nodeMessageHandlers.clearStatus = function(data) {
 $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   console.log('Node Delete Tiddler');
   // Delete the tiddler file from the file system
-  $tw.syncadaptor.deleteTiddler(data.tiddler);
+  $tw.syncadaptor.deleteTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
   // Remove the tiddler from the list of tiddlers being edited.
   if ($tw.MultiUser.EditingTiddlers[data.tiddler]) {
     delete $tw.MultiUser.EditingTiddlers[data.tiddler];
     $tw.MultiUser.UpdateEditingTiddlers(false);
   }
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 /*
@@ -167,8 +163,6 @@ $tw.nodeMessageHandlers.editingTiddler = function(data) {
   // Add the tiddler to the list of tiddlers being edited to prevent multiple
   // people from editing it at the same time.
   $tw.MultiUser.UpdateEditingTiddlers(data.tiddler);
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 /*
@@ -195,8 +189,6 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
     delete $tw.MultiUser.EditingTiddlers[title];
     $tw.MultiUser.UpdateEditingTiddlers(false);
   }
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 /*
@@ -219,8 +211,6 @@ $tw.nodeMessageHandlers.updateSettings = function(data) {
         console.log(err);
       }
     });
-    // Update the wiki sent for a GET
-    updateBase();
   }
 }
 
@@ -313,7 +303,7 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         forked.send({type: 'requestRoot', mountPoint: data.wikiPath});
         // Add the path for this process.
         forked.on('message', function (message) {
-          console.log('Receive ', data.wikiPath, ' ', message.route.text.length);
+          console.log('Receive ', String(new RegExp(`^\/${data.wikiPath}\/?$`)), ' ', message.route.text.length);
           var route = {
         		method: "GET",
             path: new RegExp(`^\/${data.wikiPath}\/?$`),
@@ -395,8 +385,6 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
   $tw.settings = {};
   // Put the updated version in.
   $tw.updateSettings($tw.settings, JSON.parse(settings));
-  // Update the wiki sent for a GET
-  updateBase();
 }
 
 function buildSettings (tiddler) {

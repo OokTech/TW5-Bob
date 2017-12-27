@@ -210,7 +210,7 @@ if (fs) {
                 // Put the tiddler object in the correct form
                 var newTiddler = {fields: tiddlerObject.tiddlers[0]};
                 // Save the new file
-                $tw.syncadaptor.saveTiddler(newTiddler);
+                $tw.syncadaptor.saveTiddler(newTiddler, $tw.nodeMessageHandlers.updateBase);
                 if (itemPath !== theFilepath) {
                   // Delete the old file, the normal delete action takes care of
                   // the rest.
@@ -242,6 +242,11 @@ if (fs) {
                   $tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title] = true;
                 }
               });
+              // Make sure the node process has the current tiddler listed with
+              // any new changes.
+              $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerObject.tiddlers[0]));
+              // TODO this is a bad solution. Find a better one.
+              $tw.nodeMessageHandlers.updateBase();
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');
@@ -255,20 +260,6 @@ if (fs) {
         }
       } else {
         console.log('No filename given!');
-      }
-      /*
-        This updates the wiki that is sent in response to an http GET
-        It is needed only if the current wiki is a child process
-      */
-      if ($tw.WikiIsChild) {
-        process.removeListener('message', $tw.SendPath);
-        // Next add the appropriate path here for the current wiki
-        var reply = {
-      		method: "GET",
-          path: $tw.settings.MountPoint,
-      		text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
-      	}
-        process.send({type: 'updateRoot', route: reply});
       }
     });
   }
