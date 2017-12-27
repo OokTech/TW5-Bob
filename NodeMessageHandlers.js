@@ -350,12 +350,15 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
     text: settings,
     type: 'application/json'
   };
+  console.log(tiddlerFields);
   $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   // Save the updated settings
   var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
   fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
     if (err) {
       console.log(err);
+    } else {
+      console.log('Wrote settings file')
     }
   });
   // Update the $tw.settings object
