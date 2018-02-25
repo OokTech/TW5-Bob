@@ -59,6 +59,9 @@ the file system
 - Adds a new command `wsserver` that starts up a minimal http server so the
   websockets work and so that the node process can spawn child processses which
   serve other wikis.
+  - If the `autoIncrementPort` setting is set to `true` than it will start at the
+    given port and if it is in use than it will try the next port until an open
+    port is found.
 - Is compatible with the `NodeSettings` plugin.
 - Allows you to reset the tiddlywiki server from the browser using a websocket
   message.

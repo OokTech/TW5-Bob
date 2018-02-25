@@ -66,27 +66,43 @@ var setup = function () {
   */
   var server;
   function makeWSS () {
-    try {
+    if ($tw.settings['ws-server'].autoIncrementPort) {
+      // If we try to autoincrement the web socket ports
+      try {
+        server = http.createServer(function (request, response) {
+          // We don't need anything here, this is just for websockets.
+        });
+        server.on('error', function (e) {
+          if (e.code === 'EADDRINUSE') {
+            WSS_SERVER_PORT = WSS_SERVER_PORT + 1;
+            makeWSS();
+          }
+        });
+        server.listen(WSS_SERVER_PORT, function (e) {
+          if (!e) {
+            console.log('Websockets listening on ', WSS_SERVER_PORT);
+            finishSetup();
+          } else {
+            console.log('Port ', WSS_SERVER_PORT, ' in use trying ', WSS_SERVER_PORT + 1);
+          }
+        });
+      } catch (e) {
+        WSS_SERVER_PORT += 1;
+        makeWSS();
+      }
+    } else {
+      // Otherwise fail if a used port is listed
       server = http.createServer(function (request, response) {
         // We don't need anything here, this is just for websockets.
-      });
-      server.on('error', function (e) {
-        if (e.code === 'EADDRINUSE') {
-          WSS_SERVER_PORT = WSS_SERVER_PORT + 1;
-          makeWSS();
-        }
       });
       server.listen(WSS_SERVER_PORT, function (e) {
         if (!e) {
           console.log('Websockets listening on ', WSS_SERVER_PORT);
           finishSetup();
         } else {
-          console.log('Port ', WSS_SERVER_PORT, ' in use trying ', WSS_SERVER_PORT + 1);
+          console.log('Error port used for websockets in use probably: ', e);
         }
       });
-    } catch (e) {
-      WSS_SERVER_PORT += 1;
-      makeWSS();
     }
   }
   // Stat trying with the next port from the one used by the http process
