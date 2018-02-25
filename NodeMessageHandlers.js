@@ -139,7 +139,10 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
   new tiddler as a change.
 */
 $tw.nodeMessageHandlers.clearStatus = function(data) {
-  delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+  $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
+  if ($tw.MultiUser.WaitingList[data.source_connection][data.title]) {
+    delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+  }
 }
 
 /*
@@ -188,29 +191,6 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
   if ($tw.MultiUser.EditingTiddlers[title]) {
     delete $tw.MultiUser.EditingTiddlers[title];
     $tw.MultiUser.UpdateEditingTiddlers(false);
-  }
-}
-
-/*
-  This function sets values in the settings files.
-*/
-$tw.nodeMessageHandlers.updateSettings = function(data) {
-  if ($tw.node && !fs) {
-    var fs = require('fs');
-    var path = require('path');
-  }
-  // This should have some sort of validation
-  if (typeof data === 'object') {
-    // Update the settings
-    $tw.updateSettings($tw.settings, JSON.parse(data.body));
-    // Save the updated settings
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    var settingsFileString = JSON.stringify($tw.settings, null, 2);
-    fs.writeFile(userSettingsPath, settingsFileString, {encoding: "utf8"}, function (err) {
-      if (err) {
-        console.log(err);
-      }
-    });
   }
 }
 
@@ -372,12 +352,17 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
     text: settings,
     type: 'application/json'
   };
+  // Add the tiddler
   $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+  // Push changes out to the browsers
+  $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
   // Save the updated settings
   var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
   fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
     if (err) {
       console.log(err);
+    } else {
+      console.log('Wrote settings file')
     }
   });
   // Update the $tw.settings object
