@@ -180,7 +180,7 @@ it will overwrite this file.
       $tw.settings.heartbeat = $tw.settings.heartbeat || {};
 
       if (!$tw.settings.heartbeat.interval) {
-        var heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {text: "{}"};
+        var heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
         var heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
       }
