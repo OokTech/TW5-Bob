@@ -288,13 +288,19 @@ function addRoutesThing(inputObject, prefix) {
           method: "GET",
           path: new RegExp(`^\/${wikiName}\/?$`),
           handler: function(request, response, state) {
-            console.log('start ', wikiName);
+            // Make sure we aren't already trying to start a wiki before trying
+            // to restart it.
             $tw.MultiUser = $tw.MultiUser || {};
-            $tw.MultiUser.ActiveWikis = $tw.MultiUser.ActiveWikis || {};
-            if (!$tw.MultiUser.ActiveWikis[wikiName]) {
-              $tw.MultiUser.ActiveWikis[wikiName] = true;
+            $tw.MultiUser.WikiState = $tw.MultiUser.WikiState || {};
+            if ($tw.MultiUser.WikiState[wikiName] !== 'booting' && $tw.MultiUser.WikiState[wikiName] !== 'running') {
+              console.log('start ', wikiName);
+              $tw.MultiUser.WikiState[wikiName] = 'booting';
               $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
             }
+            // While waiting for the wiki to boot send a page saying that the
+            // wiki is booting. The page automatically reloads after a few
+            // seconds. If the wiki has booted it loads the wiki if not it
+            // reloads the same page.
             response.writeHead(200, {"Content-Type": state.server.get("serveType")});
             var text = `<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>`;
             response.end(text,"utf8");

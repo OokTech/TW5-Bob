@@ -221,6 +221,8 @@ $tw.nodeMessageHandlers.restartServer = function(data) {
 $tw.nodeMessageHandlers.shutdownServer = function(data) {
   console.log('Shutting down server.');
   // TODO figure out if there are any cleanup tasks we should do here.
+  // Sennd message to parent saying server is shutting down
+  process.send('type': 'shutdown');
   process.exit();
 }
 
@@ -283,22 +285,51 @@ $tw.nodeMessageHandlers.startWiki = function(data) {
         forked.send({type: 'requestRoot', mountPoint: data.wikiPath});
         // Add the path for this process.
         forked.on('message', function (message) {
-          console.log('Receive ', String(new RegExp(`^\/${data.wikiPath}\/?$`)), ' ', message.route.text.length);
-          var route = {
-        		method: "GET",
-            path: new RegExp(`^\/${data.wikiPath}\/?$`),
-        		handler: function(request,response,state) {
-        			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-        			var text = message.route.text;
-        			response.end(text,"utf8");
-        		}
-        	};
-          $tw.httpServer.updateRoute(route);
-          /*
-          if (message.type === 'updateRoot') {
+          if (message.type === 'shutdown') {
+            var wikiName = data.wikiPath;
+            $tw.MultiUser = $tw.MultiUser || {};
+            $tw.MultiUser.WikiState = $tw.MultiUser.WikiState || {};
+            $tw.MultiUser.WikiState[wikiName] = 'closed';
+            var route = {
+              method: "GET",
+              path: new RegExp(`^\/${wikiName}\/?$`),
+              handler: function(request, response, state) {
+                // Make sure we aren't already trying to start a wiki before trying
+                // to restart it.
+                $tw.MultiUser = $tw.MultiUser || {};
+                $tw.MultiUser.WikiState = $tw.MultiUser.WikiState || {};
+                if ($tw.MultiUser.WikiState[wikiName] !== 'booting' && $tw.MultiUser.WikiState[wikiName] !== 'running') {
+                  console.log('start ', wikiName);
+                  $tw.MultiUser.WikiState[wikiName] = 'booting';
+                  $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
+                }
+                // While waiting for the wiki to boot send a page saying that the
+                // wiki is booting. The page automatically reloads after a few
+                // seconds. If the wiki has booted it loads the wiki if not it
+                // reloads the same page.
+                response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+                var text = `<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>`;
+                response.end(text,"utf8");
+              }
+            }
+          } else {
+            console.log('Receive ', String(new RegExp(`^\/${data.wikiPath}\/?$`)), ' ', message.route.text.length);
+            var route = {
+          		method: "GET",
+              path: new RegExp(`^\/${data.wikiPath}\/?$`),
+          		handler: function(request,response,state) {
+          			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+          			var text = message.route.text;
+          			response.end(text,"utf8");
+          		}
+          	};
             $tw.httpServer.updateRoute(route);
+            /*
+            if (message.type === 'updateRoot') {
+              $tw.httpServer.updateRoute(route);
+            }
+            */
           }
-          */
         });
       } else {
         console.log('Bad wiki path');
