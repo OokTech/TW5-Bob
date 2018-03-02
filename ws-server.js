@@ -292,7 +292,7 @@ function addRoutesThing(inputObject, prefix) {
             $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
             // TODO test this!
             response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-            var text = `<html><script>setTimeout(function(){location.reload();}, 1000);</script><a href='./${wikiName}'>Click Me!</a></html>`;
+            var text = `<html><head><meta http-equiv:'refresh' content='1'></head><a href='./${wikiName}'>Click Me!</a></html>`;
             response.end(text,"utf8");
           }
         });
