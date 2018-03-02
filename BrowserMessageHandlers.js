@@ -183,6 +183,7 @@ it will overwrite this file.
         var heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
         var heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
+        $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
 
 
@@ -192,7 +193,7 @@ it will overwrite this file.
       setTimeout(function () {
         $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
       }, $tw.settings.heartbeat.interval);
-      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, 2*Number($tw.settings.heartbeat.interval));
+      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
     }
   }
 
