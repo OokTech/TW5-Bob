@@ -208,7 +208,7 @@ SimpleServer.prototype.listen = function(port,host) {
   var self = this;
   var httpServer = http.createServer(this.requestHandler.bind(this));
   httpServer.on('error', function (e) {
-    if ($tw.settings['ws-server'].autoIncrementPort) {
+    if ($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
       if (e.code === 'EADDRINUSE') {
         self.listen(Number(port)+1, host);
       }
@@ -222,7 +222,7 @@ SimpleServer.prototype.listen = function(port,host) {
       console.log("Serving on " + host + ":" + $tw.httpServerPort);
       console.log("(press ctrl-C to exit)");
     } else {
-      if ($tw.settings['ws-server'].autoIncrementPort) {
+      if ($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
         console.log('Port ', port, ' in use, trying ', port+1);
       } else {
         console.log(e);

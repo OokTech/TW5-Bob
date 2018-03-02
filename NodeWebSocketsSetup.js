@@ -66,7 +66,7 @@ var setup = function () {
   */
   var server;
   function makeWSS () {
-    if ($tw.settings['ws-server'].autoIncrementPort) {
+    if ($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
       // If we try to autoincrement the web socket ports
       try {
         server = http.createServer(function (request, response) {
@@ -91,7 +91,7 @@ var setup = function () {
         makeWSS();
       }
     } else {
-      // Otherwise fail if a used port is listed
+      // Otherwise fail if a
       server = http.createServer(function (request, response) {
         // We don't need anything here, this is just for websockets.
       });
