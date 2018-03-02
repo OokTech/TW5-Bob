@@ -291,9 +291,11 @@ function addRoutesThing(inputObject, prefix) {
             console.log('start ', wikiName);
             $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
             // TODO test this!
+            /*
             response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-            var text = `<html><script>setTimeout(function(){location.reload();}, 1000);</script><a href='./${wikiName}'>Click Me!</a></html>`;
+            var text = `<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>`;
             response.end(text,"utf8");
+            */
           }
         });
         console.log(`Added route ${String(new RegExp(`^\/${wikiName}\/?$`))}`)
