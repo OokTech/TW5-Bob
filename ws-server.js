@@ -290,6 +290,9 @@ function addRoutesThing(inputObject, prefix) {
           handler: function(request, response, state) {
             console.log('start ', wikiName);
             $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
+            // TODO test this!
+            response.writeHead(302, {'location': `/${wikiName}`});
+            response.end();
           }
         });
         console.log(`Added route ${String(new RegExp(`^\/${wikiName}\/?$`))}`)
