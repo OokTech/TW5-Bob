@@ -289,13 +289,15 @@ function addRoutesThing(inputObject, prefix) {
           path: new RegExp(`^\/${wikiName}\/?$`),
           handler: function(request, response, state) {
             console.log('start ', wikiName);
-            $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
-            // TODO test this!
-            /*
+            $tw.MultiUser = $tw.MultiUser || {};
+            $tw.MultiUser.ActiveWikis = $tw.MultiUser.ActiveWikis || {};
+            if (!$tw.MultiUser.ActiveWikis[wikiName]) {
+              $tw.MultiUser.ActiveWikis[wikiName] = true;
+              $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
+            }
             response.writeHead(200, {"Content-Type": state.server.get("serveType")});
             var text = `<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>`;
             response.end(text,"utf8");
-            */
           }
         });
         console.log(`Added route ${String(new RegExp(`^\/${wikiName}\/?$`))}`)
