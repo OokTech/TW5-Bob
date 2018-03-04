@@ -1,0 +1,7 @@
+title: $:/core/save/single
+
+\define saveTiddlerFilter()
+ [[$:/core]] [[$:/library/sjcl.js]] [[$:/ServerIP]] $(wikiTiddlers)$ -[prefix[$:/state/popup/]] -[[$:/HistoryList]] -[[$:/boot/boot.css]] -[type[application/javascript]library[yes]] -[[$:/boot/boot.js]] -[[$:/boot/bootprefix.js]] +[sort[title]]
+\end
+
+{{$:/core/templates/multiwiki-tiddlywiki5.html}}

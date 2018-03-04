@@ -54,25 +54,50 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.makeTiddler = function(data) {
     // console.log('Make Tiddler')
-    // The title must exist and must be a string, everything else is optional
-    if (data.fields) {
-      if (typeof data.fields.title === 'string') {
-        // if the tiddler exists already only update it if the update is
-        // different than the existing one.
-        var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));
-        if (changed) {
-          console.log('Create Tiddler ', data.fields.title);
-          $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
+    // Ignore the message if it isn't for this wiki
+    if (data.wiki === $tw.wikiName) {
+      // The title must exist and must be a string, everything else is optional
+      if (data.fields) {
+        if (typeof data.fields.title === 'string') {
+          // if the tiddler exists already only update it if the update is
+          // different than the existing one.
+          var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));
+          if (changed) {
+            console.log('Create Tiddler ', data.fields.title);
+            $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
+          } else {
+            // Respond that we already have this tiddler synced
+            var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title});
+            $tw.socket.send(message);
+          }
         } else {
-          // Respond that we already have this tiddler synced
-          var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title});
-          $tw.socket.send(message);
+          console.log('Invalid tiddler title');
         }
       } else {
-        console.log('Invalid tiddler title');
+        console.log("No tiddler fields given");
       }
+    }
+  }
+
+  /*
+    This is for updating the tiddlers currently being edited. It needs a
+    special handler to support multi-wikis.
+  */
+  $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
+    // make sure there is actually a list sent
+    if (data.list) {
+        // remove the prefix for the current wiki from anything listed with
+        // that prefix.
+        for (var i = 0; i < data.list.length; i++) {
+          data.list[i] = data.list[i].replace(new RegExp(`^\{${$tw.wikiName}\}`),'');
+        }
+        var listField = $tw.utils.stringifyList(data.list);
+        // Make the tiddler fields
+        var tiddlerFields = {title: "$:/state/MultiUser/EditingTiddlers", list: listField};
+        // Add the tiddler
+        $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
-      console.log("No tiddler fields given");
+      console.log("No tiddler list given");
     }
   }
 
@@ -127,11 +152,14 @@ it will overwrite this file.
     If you are running without node than this function is equavalient to deleting the tiddler.
   */
   $tw.browserMessageHandlers.removeTiddler = function(data) {
-    // The data object passed must have at least a title
-    if (data.title) {
-      $tw.wiki.deleteTiddler(data.title);
-    } else {
-      console.log("No tiddler title give.");
+    // Ignore the message it if isn't for the current wiki
+    if (data.wiki === $tw.wikiName) {
+      // The data object passed must have at least a title
+      if (data.title) {
+        $tw.wiki.deleteTiddler(data.title);
+      } else {
+        console.log("No tiddler title give.");
+      }
     }
   }
 

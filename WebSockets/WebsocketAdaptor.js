@@ -21,7 +21,7 @@ function WebsocketAdaptor(options) {
 	this.wiki = options.wiki;
 	this.logger = new $tw.utils.Logger("WebsocketAdaptor",{colour: "blue"});
 	// Create the <wiki>/tiddlers folder if it doesn't exist
-	$tw.utils.createDirectory($tw.boot.wikiTiddlersPath);
+	//$tw.utils.createDirectory($tw.boot.wikiTiddlersPath);
 }
 
 WebsocketAdaptor.prototype.name = "WebsocketAdaptor";
@@ -45,7 +45,8 @@ The boot process populates $tw.boot.files for each of the tiddler files that it 
 
 It is the responsibility of the filesystem adaptor to update $tw.boot.files for new files that are created.
 */
-WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler,callback) {
+WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
+  prefix = prefix || '';
   if (!callback) {
     callback = function (err, fileInfo) {
       if (err) {
@@ -57,8 +58,14 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler,callback) {
   }
   // See if we've already got information about this file
   var self = this,
-    title = tiddler.fields.title,
-    fileInfo = $tw.boot.files[title];
+    title = tiddler.fields.title;
+  if (title.startsWith(`{${prefix}}`)) {
+    var internalTitle = title;
+    title = title.replace(`{${prefix}}`, '');
+  } else {
+    var internalTitle = `{${prefix}}${title}`;
+  }
+  var fileInfo = $tw.boot.files[internalTitle];
   if(fileInfo) {
     // If so, just invoke the callback
     callback(null,fileInfo);
@@ -78,7 +85,9 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler,callback) {
       extension = ".tid";
     }
     // Generate the base filepath and ensure the directories exist
-    var baseFilepath = path.resolve($tw.boot.wikiTiddlersPath, self.generateTiddlerBaseFilepath(title));
+    console.log(prefix)
+    var tiddlersPath = prefix === ''? $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath:$tw.MultiUser.Wikis[prefix].wikiTiddlersPath
+    var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title));
     $tw.utils.createFileDirectories(baseFilepath);
     // Start by getting a list of the existing files in the directory
     fs.readdir(path.dirname(baseFilepath),function(err,files) {
@@ -101,7 +110,7 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler,callback) {
       // Set the final fileInfo
       fileInfo.filepath = filepath;
 console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
-      $tw.boot.files[title] = fileInfo;
+      $tw.boot.files[internalTitle] = fileInfo;
       // Pass it to the callback
       callback(null,fileInfo);
     });
@@ -152,15 +161,26 @@ WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title) {
 /*
 Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
 */
-WebsocketAdaptor.prototype.saveTiddler = function(tiddler,callback) {
+WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
+  if (typeof prefix === 'function') {
+    callback = prefix;
+    prefix = '';
+  }
   if (typeof callback !== 'function') {
     callback = function () {
 
     }
   }
+  prefix = prefix || '';
+  var internalName = prefix === '' ? tiddler.fields.title:`{${prefix}}${tiddler.fields.title}`;
   if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
     var self = this;
-    self.getTiddlerFileInfo(tiddler, function(err,fileInfo) {
+    var tempTiddlerFields = {};
+    Object.keys(tiddler.fields).forEach(function(fieldName) {
+      tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
+    });
+    tempTiddlerFields.title = internalName;
+    self.getTiddlerFileInfo({fields:tempTiddlerFields}, prefix, function(err,fileInfo) {
       if(err) {
         return callback(err);
       }
@@ -183,7 +203,13 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler,callback) {
             }
             // Save with metadata
             console.log('saved file with metadata', filepath)
-            $tw.wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
+            // addTiddler needs the prefixed title!!
+            var tempTiddlerFields = tiddler.fields;
+            tempTiddlerFields.title = internalName;
+            $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+            $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
+            // TODO fix this! It may break some stuff when multiple wikis have
+            // tiddlers with the same name.
             Object.keys($tw.connections).forEach(function(connection) {
               $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
             });
@@ -199,7 +225,16 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler,callback) {
             return callback(err);
           }
           console.log('saved file', filepath)
-          $tw.wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
+          // addTiddler needs the prefixed title!!
+          var tempTiddlerFields = {};
+          Object.keys(tiddler.fields).forEach(function(fieldName) {
+            tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
+          });
+          tempTiddlerFields.title = internalName;
+          $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+          $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
+          // TODO fix this! It may break some stuff when multiple wikis have
+          // tiddlers with the same name.
           Object.keys($tw.connections).forEach(function(connection) {
             $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
             $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
@@ -245,7 +280,7 @@ WebsocketAdaptor.prototype.loadTiddler = function(title,callback) {
 /*
 Delete a tiddler and invoke the callback with (err)
 */
-WebsocketAdaptor.prototype.deleteTiddler = function(title,callback,options) {
+WebsocketAdaptor.prototype.deleteTiddler = function(title, callback, options) {
   if (!callback) {
     callback = function () {
       // Just a blank function to prevent errors

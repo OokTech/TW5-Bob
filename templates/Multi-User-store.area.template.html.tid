@@ -1,0 +1,18 @@
+title: $:/core/templates/multiwiki-store.area.template.html
+
+<$reveal type="nomatch" state="$:/isEncrypted" text="yes">
+`<div id="storeArea" style="display:none;">`
+`<!--~~ Wiki Name Tiddler for MultiUser and Websockets stuff ~~-->`
+`<div title="$:/WikiName">
+<pre>`<<wikiName>>`</pre>
+</div>`
+`<!--~~ Normal Tiddlers ~~-->`
+<$list filter=<<saveTiddlerFilter>> template="$:/core/templates/multiwiki-html-div-tiddler"/>
+`</div>`
+</$reveal>
+<$reveal type="match" state="$:/isEncrypted" text="yes">
+`<!--~~ Encrypted tiddlers ~~-->`
+`<pre id="encryptedStoreArea" type="text/plain" style="display:none;">`
+<$encrypt filter=<<saveTiddlerFilter>>/>
+`</pre>`
+</$reveal>

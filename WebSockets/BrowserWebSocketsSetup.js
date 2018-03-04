@@ -37,6 +37,14 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.socket.onmessage = parseMessage;
       $tw.socket.binaryType = "arraybuffer";
 
+      // Get the name for this wiki for websocket messages
+      var tiddler = $tw.wiki.getTiddler("$:/WikiName");
+      if (tiddler) {
+        $tw.wikiName = tiddler.fields.text;
+      } else {
+        $tw.wikiName = '';
+      }
+
       addHooks();
     }
     /*
@@ -73,14 +81,14 @@ socket server, but it can be extended for use with other web socket servers.
     var addHooks = function() {
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         // console.log('Editing tiddler event: ', event);
-        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle});
+        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName});
         $tw.socket.send(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         // console.log("cancel editing event: ",event);
-        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle});
+        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName});
         $tw.socket.send(message);
         // Do the normal handling
         return event;
@@ -104,11 +112,11 @@ socket server, but it can be extended for use with other web socket servers.
             if (changes[tiddlerTitle].modified) {
               // console.log('Modified/Created Tiddler');
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
-              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler});
+              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName});
               $tw.socket.send(message);
             } else if (changes[tiddlerTitle].deleted) {
               // console.log('Deleted Tiddler');
-              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle});
+              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName});
               $tw.socket.send(message);
             }
           }

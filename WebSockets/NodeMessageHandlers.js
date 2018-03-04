@@ -57,31 +57,14 @@ $tw.nodeMessageHandlers.ping = function(data) {
 }
 
 /*
-  This updates the wiki that is sent in response to an http GET
-  It is needed only if the current wiki is a child process
-*/
-$tw.nodeMessageHandlers.updateBase = function (data) {
-  /*
-    This updates the wiki that is sent in response to an http GET
-    It is needed only if the current wiki is a child process
-  */
-  if ($tw.WikiIsChild) {
-    process.removeListener('message', $tw.SendPath);
-    // Next add the appropriate path here for the current wiki
-    var reply = {
-      method: "GET",
-      path: new RegExp(`^\/${$tw.settings.MountPoint}\/?$`),
-      text: $tw.wiki.renderTiddler("text/plain","$:/core/save/all")
-    }
-    console.log(String(reply.path), ' sent length ', reply.text.length)
-    process.send({type: 'updateRoot', route: reply});
-  }
-}
-
-/*
   This handles saveTiddler messages sent from the browser.
 
   TODO: Determine if we always want to ignore draft tiddlers.
+
+  Waiting lists are per-connection so use regular titles.
+  Editing lists are global so need prefixes
+  Saving uses normal titles
+  $tw.boot uses prefixed titles
 */
 $tw.nodeMessageHandlers.saveTiddler = function(data) {
   // Make sure there is actually a tiddler sent
@@ -90,10 +73,12 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
     if (data.tiddler.fields) {
       // Ignore draft tiddlers
       if (!data.tiddler.fields['draft.of']) {
+        var prefix = data.wiki || '';
+        var internalTitle = prefix === ''?data.tiddler.fields.title:`{${prefix}}${data.tiddler.fields.title}`;
         // Set the saved tiddler as no longer being edited. It isn't always
         // being edited but checking eacd time is more complex than just always
         // setting it this way and doesn't benifit us.
-        $tw.nodeMessageHandlers.cancelEditingTiddler({data:data.tiddler.fields.title});
+        $tw.nodeMessageHandlers.cancelEditingTiddler({data:internalTitle, wiki: prefix});
         // Make sure that the waitinhg list object has an entry for this
         // connection
         $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
@@ -103,19 +88,22 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           // If we are not expecting a save tiddler event than save the tiddler
           // normally.
           console.log('Node Save Tiddler');
-          if (!$tw.boot.files[data.tiddler.fields.title]) {
-            $tw.syncadaptor.saveTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
+          if (!$tw.boot.files[internalTitle]) {
+            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+            $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
           } else {
             // If changed send tiddler
             var changed = true;
             try {
-              var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[data.tiddler.fields.title].filepath);
+              var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath);
+              // The file has the normal title so use the normal title here.
               changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
             } catch (e) {
               console.log(e);
             }
             if (changed) {
-              $tw.syncadaptor.saveTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
+              $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+              $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
             }
           }
         } else {
@@ -126,6 +114,10 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           // update loops.
           $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
         }
+        delete $tw.MultiUser.EditingTiddlers[internalTitle];
+        console.log(internalTitle)
+        console.log($tw.MultiUser.EditingTiddlers);
+        $tw.MultiUser.UpdateEditingTiddlers(false);
       }
     }
   }
@@ -150,8 +142,11 @@ $tw.nodeMessageHandlers.clearStatus = function(data) {
 */
 $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   console.log('Node Delete Tiddler');
+  // Make the internal name
+  data.wiki = data.wiki || '';
+  data.tiddler = data.wiki === ''?data.tiddler:`{${data.wiki}}${data.tiddler}`;
   // Delete the tiddler file from the file system
-  $tw.syncadaptor.deleteTiddler(data.tiddler, $tw.nodeMessageHandlers.updateBase);
+  $tw.syncadaptor.deleteTiddler(data.tiddler);
   // Remove the tiddler from the list of tiddlers being edited.
   if ($tw.MultiUser.EditingTiddlers[data.tiddler]) {
     delete $tw.MultiUser.EditingTiddlers[data.tiddler];
@@ -163,9 +158,11 @@ $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   This is the handler for when a browser sends the editingTiddler message.
 */
 $tw.nodeMessageHandlers.editingTiddler = function(data) {
+  data.wiki = data.wiki || '';
+  var internalName = data.wiki === ''?data.tiddler:`{${data.wiki}}${data.tiddler}`;
   // Add the tiddler to the list of tiddlers being edited to prevent multiple
   // people from editing it at the same time.
-  $tw.MultiUser.UpdateEditingTiddlers(data.tiddler);
+  $tw.MultiUser.UpdateEditingTiddlers(internalName);
 }
 
 /*
@@ -187,11 +184,17 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
       var title = data.tiddler;
     }
   }
+  data.wiki = data.wiki || '';
+  var internalName = data.wiki === ''?title:`{${data.wiki}}${title}`;
   // Remove the current tiddler from the list of tiddlers being edited.
-  if ($tw.MultiUser.EditingTiddlers[title]) {
-    delete $tw.MultiUser.EditingTiddlers[title];
-    $tw.MultiUser.UpdateEditingTiddlers(false);
+  if ($tw.MultiUser.EditingTiddlers[internalName]) {
+    delete $tw.MultiUser.EditingTiddlers[internalName];
   }
+  console.log('here')
+  console.log(internalName)
+  console.log($tw.MultiUser.EditingTiddlers)
+  console.log('there')
+  $tw.MultiUser.UpdateEditingTiddlers(false);
 }
 
 /*
