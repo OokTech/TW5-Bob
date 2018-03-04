@@ -379,8 +379,15 @@ var Command = function(params,commander,callback) {
       if (!$tw.MultiUser.Wikis.RootWiki.State) {
         $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-          console.log(name, /^\{.+\}.&/.test(name))
           return !/^\{.+\}.&/.test(name);
+        });
+        // Add tiddlers to the node process
+        var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
+        $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
+          return `$:/plugins/${name}`;
+        });
+        $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
+          return `$:/themes/${name}`;
         });
       }
       // This makes the wikiTiddlers variable a filter that lists all the
@@ -388,10 +395,8 @@ var Command = function(params,commander,callback) {
       var options = {
         variables: {
           wikiTiddlers:
-            $tw.MultiUser.Wikis.RootWiki.tiddlers.map(function(tidInfo) {
-              if (!/^\{.+\}.&/.test(tidInfo)) {
-                return `[[${tidInfo}]]`;
-              }
+            $tw.MultiUser.Wikis.RootWiki.tiddlers.concat($tw.MultiUser.Wikis.RootWiki.plugins.concat($tw.MultiUser.Wikis.RootWiki.themes)).map(function(tidInfo) {
+              return `[[${tidInfo}]]`;
             }).join(' '),
           wikiName: ''
         }
@@ -499,6 +504,12 @@ function addRoutesThing(inputObject, prefix) {
               $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
               $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
                 return !/^\{.+\}.&/.test(name);
+              });
+              $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
+                return `$:/plugins/${name}`;
+              });
+              $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
+                return `$:/themes/${name}`;
               });
             }
             if (!$tw.MultiUser.Wikis[fullName].State) {
