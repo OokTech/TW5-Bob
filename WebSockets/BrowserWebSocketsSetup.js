@@ -79,6 +79,9 @@ socket server, but it can be extended for use with other web socket servers.
       the future if they are needed.
     */
     var addHooks = function() {
+      if (!$tw.wikiName) {
+        $tw.wikiName = '';
+      }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         // console.log('Editing tiddler event: ', event);
         var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName});

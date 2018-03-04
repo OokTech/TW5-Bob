@@ -190,10 +190,6 @@ $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
   if ($tw.MultiUser.EditingTiddlers[internalName]) {
     delete $tw.MultiUser.EditingTiddlers[internalName];
   }
-  console.log('here')
-  console.log(internalName)
-  console.log($tw.MultiUser.EditingTiddlers)
-  console.log('there')
   $tw.MultiUser.UpdateEditingTiddlers(false);
 }
 

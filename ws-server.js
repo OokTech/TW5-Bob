@@ -119,8 +119,8 @@ if($tw.node) {
   	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
   	// Load the wiki files, registering them as writable
   	var resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
-  	$tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath),function(tiddlerFile) {
-      if (options.prefix !== '') {
+  	$tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
+      if (!options.prefix || options.prefix !== '') {
         for (var i = 0; i < tiddlerFile.tiddlers.length; i++) {
           tiddlerFile.tiddlers[i].title = `{${options.prefix}}${tiddlerFile.tiddlers[i].title}`
         }
@@ -476,15 +476,20 @@ function addRoutesThing(inputObject, prefix) {
   if (typeof inputObject === 'object') {
     Object.keys(inputObject).forEach(function (wikiName) {
       if (typeof inputObject[wikiName] === 'string') {
+        if (prefix === '') {
+          var fullName = wikiName;
+        } else {
+          fullName = `${prefix}/${wikiName}`;
+        }
         $tw.MultiUser = $tw.MultiUser || {};
         $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-        $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
-        $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = inputObject[wikiName];
+        $tw.MultiUser.Wikis[fullName] = $tw.MultiUser.Wikis[fullName] || {};
+        $tw.MultiUser.Wikis[fullName].wikiTiddlersPath = inputObject[wikiName];
 
         // Make route handler
         $tw.httpServer.addRoute({
           method: "GET",
-          path: new RegExp(`^\/${wikiName}\/?$`),
+          path: new RegExp(`^\/${fullName}\/?$`),
           handler: function(request, response, state) {
             // Make sure we haven't already loaded the wiki.
 
@@ -496,31 +501,27 @@ function addRoutesThing(inputObject, prefix) {
                 return !/^\{.+\}.&/.test(name);
               });
             }
-            if (!$tw.MultiUser.Wikis[wikiName].State) {
-              $tw.MultiUser.Wikis[wikiName].State = 'loaded';
+            if (!$tw.MultiUser.Wikis[fullName].State) {
+              $tw.MultiUser.Wikis[fullName].State = 'loaded';
               // Get the correct path to the tiddlywiki.info file
-              //var wikiPathThing = path.join('/home/inmysocks/TiddlyWiki/Wikis', wikiName);
-
-              //$tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = wikiPathThing;
-              createDirectory($tw.MultiUser.Wikis[wikiName].wikiTiddlersPath);
+              createDirectory($tw.MultiUser.Wikis[fullName].wikiTiddlersPath);
 
               // Recursively build the folder tree structure
-              $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
+              $tw.MultiUser.Wikis[fullName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[fullName].wikiTiddlersPath, {});
 
               // Watch the root tiddlers folder for chanegs
-              $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, wikiName);
+              $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, wikiName);
 
               // Add tiddlers to the node process
-              //var wikiInfo = $tw.MultiUser.loadWikiTiddlers(wikiPathThing, {prefix: wikiName});
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: wikiName});
               // Get the list of tiddlers for this wiki
-              $tw.MultiUser.Wikis[wikiName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
-                return title.startsWith(`{${wikiName}}`);
+              $tw.MultiUser.Wikis[fullName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
+                return title.startsWith(`{${fullName}}`);
               });
-              $tw.MultiUser.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+              $tw.MultiUser.Wikis[fullName].plugins = wikiInfo.plugins.map(function(name) {
                 return `$:/plugins/${name}`;
               });
-              $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+              $tw.MultiUser.Wikis[fullName].themes = wikiInfo.themes.map(function(name) {
                 return `$:/themes/${name}`;
               });
             }
@@ -529,10 +530,10 @@ function addRoutesThing(inputObject, prefix) {
             var options = {
               variables: {
                 wikiTiddlers:
-                  $tw.MultiUser.Wikis[wikiName].tiddlers.concat($tw.MultiUser.Wikis[wikiName].plugins.concat($tw.MultiUser.Wikis[wikiName].themes)).map(function(tidInfo) {
+                  $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
                     return `[[${tidInfo}]]`;
                   }).join(' '),
-                wikiName: wikiName
+                wikiName: fullName
               }
             };
             var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/single", options);
@@ -540,10 +541,10 @@ function addRoutesThing(inputObject, prefix) {
             response.end(text,"utf8");
           }
         });
-        console.log(`Added route ${String(new RegExp(`^\/${wikiName}\/?$`))}`)
+        console.log(`Added route ${String(new RegExp(`^\/${fullName}\/?$`))}`)
       } else {
         // recurse!
-        prefix = prefix + '/' + wikiName;
+        prefix = prefix===''?wikiName:prefix + '/' + wikiName;
         addRoutesThing(inputObject[wikiName], prefix);
       }
     })

@@ -1,0 +1,33 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-refreshWikiList
+tags: [[Websocket Message]] [[Human Usable]]
+caption: restartWikiList
+description: Depreciated and no longer useful.
+
+''NOTE:'' This is only useful if the serever is running and you don't want to
+edit `settings.json` manually. Once the wiki is listed in `settings.json` this
+isn't needed.
+
+This message lets you add a new existing wiki to the list of wikis served from
+within tiddlywiki. The location of the named wiki must be listed in the `wikis`
+section of the `Node Settings` tab in the $:/ControlPanel.
+
+You can have the wikis grouped in the wikis listing like this:
+
+```
+{
+  wikis: {
+    group1: {
+      someWiki: /path/to/someWiki
+    },
+    wikiHere: /path/to/wikiHere,
+    group2: {
+      otherWiki: /path/to/otherOne,
+      wiki2: /path/to/wiki2
+    }
+  }
+}
+```
+
+!!Usage
+
+`<$action-websocketmessage $type='refreshWikiList'/>`
