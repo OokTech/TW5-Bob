@@ -240,12 +240,12 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
           $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
           // This may help
           if (prefix !== '') {
-            if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
-              $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+            if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) !== -1) {
+              $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
             }
           } else {
-            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1) {
-              $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
+            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) !== -1) {
+              $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
             }
           }
           //$tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
