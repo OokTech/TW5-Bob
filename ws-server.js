@@ -527,7 +527,7 @@ function addRoutesThing(inputObject, prefix) {
               $tw.MultiUser.Wikis[fullName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[fullName].wikiTiddlersPath, {});
 
               // Watch the root tiddlers folder for chanegs
-              $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, wikiName);
+              $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, fullName);
 
               // Add tiddlers to the node process
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: wikiName});
