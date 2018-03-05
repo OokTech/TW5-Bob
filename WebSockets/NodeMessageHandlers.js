@@ -142,6 +142,10 @@ $tw.nodeMessageHandlers.deleteTiddler = function(data) {
   console.log('Node Delete Tiddler');
   // Make the internal name
   data.wiki = data.wiki || '';
+  // Send the delete message to the browsers
+  var message = JSON.stringify({type: 'removeTiddler', wiki: data.wiki, tiddler: data.tiddler});
+  $tw.MultiUser.SendToBrowsers(message);
+
   data.tiddler = data.wiki === ''?data.tiddler:`{${data.wiki}}${data.tiddler}`;
   // Delete the tiddler file from the file system
   $tw.syncadaptor.deleteTiddler(data.tiddler);
