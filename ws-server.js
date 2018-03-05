@@ -147,8 +147,12 @@ if($tw.node) {
   	}
   	// Save the path to the tiddlers folder for the filesystemadaptor
     if (options.prefix !== '') {
+      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+      $tw.MultiUser.Wikis[options.prefix] = $tw.MultiUser.Wikis[options.prefix] || {};
       $tw.MultiUser.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
     } else {
+      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+      $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
       $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath = path.resolve($tw.boot.wikiPath,config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
     }
   	// Load any plugins within the wiki folder
