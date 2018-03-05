@@ -58,7 +58,7 @@ it will overwrite this file.
     if (data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
       if (data.fields) {
-        if (typeof data.fields.title === 'string') {
+        if (typeof data.fields.title === 'string' && !data.fields.title.startsWith(`{${$tw.wikiName}}`)) {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
           var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));

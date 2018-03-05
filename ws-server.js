@@ -530,7 +530,7 @@ function addRoutesThing(inputObject, prefix) {
               $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, fullName);
 
               // Add tiddlers to the node process
-              var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: wikiName});
+              var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
               // Get the list of tiddlers for this wiki
               $tw.MultiUser.Wikis[fullName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
                 return title.startsWith(`{${fullName}}`);
