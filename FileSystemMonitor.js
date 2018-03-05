@@ -179,7 +179,7 @@ if (fs) {
               // So internalTitle is the title used by everything in the $tw
               // object.
               // The normal title is tiddlerObject.tiddlers[0].title
-              var internalTitle = (prefix === '')?tiddlerObject.tiddlers[0].title:`{${prefix}}${tiddlerObject.tiddlers[0].title}`;
+              var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`))?tiddlerObject.tiddlers[0].title:`{${prefix}}${tiddlerObject.tiddlers[0].title}`;
 
               var tiddler = $tw.wiki.getTiddler(internalTitle);
 
@@ -293,7 +293,7 @@ if (fs) {
   $tw.MultiUser.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
     var title = tiddlerObject.tiddlers[0].title;
     // Everything here should use the internal title
-    if (prefix && prefix !== '') {
+    if (prefix && prefix !== '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`)) {
       tiddlerObject.tiddlers[0].title = `{${prefix}}${title}`;
     }
     var itemPath = path.join(folder, filename);
@@ -323,15 +323,16 @@ if (fs) {
     // isn't tested in this context).
     $tw.wiki.addTiddlers(tiddlerObject);
     $tw.wiki.addTiddler(tiddlerObject);
+    var tidTitle = title.startsWith(`{${prefix}}`)?title:`{${prefix}}${title}`;
     if (prefix && prefix !== '') {
       console.log(prefix)
-      $tw.MultiUser.Wikis[prefix].tiddlers.push(`{${prefix}}${title}`);
+      $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
     } else {
       $tw.MultiUser = $tw.MultiUser || {};
       $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
       $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
       $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlerss || [];
-      $tw.MultiUser.Wikis.RootWiki.tiddlers.push(`{${prefix}}${title}`);
+      $tw.MultiUser.Wikis.RootWiki.tiddlers.push(tidTitle);
     }
   }
 
