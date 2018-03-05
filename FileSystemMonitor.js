@@ -140,9 +140,7 @@ if (fs) {
   }
 
   /*
-    TODO right now this misses when a tiddler is renamed on the file system.
-    I believe that I need to make it check to see if the filename doesn't match
-    the title in the tiddlerObject and if so do something to handle it.
+    This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
   */
   $tw.MultiUser.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
@@ -233,7 +231,6 @@ if (fs) {
                 // This check needs the prefixed title (everything in $tw.boot
                 // uses the internalTitle)
                 // This is a new tiddler, so just save the tiddler info
-                // TODO figure out what we need to do with the prefix stuff here!!
                 $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
               }
               // Make a tiddler object if one doesn't exist. It uses the
@@ -383,6 +380,7 @@ if (fs) {
 
     TODO: CReate what is necessary so that we can have wikis only sync to
     specific folders
+    This is sort of implemented but I want more control.
   */
   $tw.MultiUser.WatchAllFolders = function (folderTree, prefix) {
     // Watch the current folder after making sure that the path exists
