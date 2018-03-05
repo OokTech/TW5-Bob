@@ -493,7 +493,7 @@ function addRoutesThing(inputObject, prefix) {
         $tw.MultiUser = $tw.MultiUser || {};
         $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
         $tw.MultiUser.Wikis[fullName] = $tw.MultiUser.Wikis[fullName] || {};
-        $tw.MultiUser.Wikis[fullName].wikiTiddlersPath = inputObject[wikiName];
+        $tw.MultiUser.Wikis[fullName].wikiTiddlersPath = path.resolve(inputObject[wikiName], 'tiddlers');
 
         // Make route handler
         $tw.httpServer.addRoute({
