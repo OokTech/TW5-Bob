@@ -1,11 +1,16 @@
 title: $:/plugins/OokTech/MultiUser/A note about ports
 
-The wsserver command ensures that there aren't port conflicts when opening up
-multiple wikis. A result of this is that if you say to use a port that is taken
-than it will increment the port number until an available port is found.
-Because of this the wiki may not be on the same port that you expect, so look
-at the commandline output to see which port it is being served on.
+As long as the key `ws-server.autoIncrementPort` is not set to false, the
+`wsserver` command ensures that there aren't port conflicts when starting up.
+A result of this is that if you say to use a port that is taken than it will
+increment the port number until an available port is found. Because of this the
+wiki may not be on the same port that you expect, so look at the commandline
+output to see which port it is being served on.
 
 The websocket server needs to be on a separate port. It tries to use the next
-port above the http server port, but if that doesn't work it increments until
-it finds an available port to use.
+port above the http server port. As long as `ws-server.autoIncrementPort` is
+not false than it will increment until it finds an available port to use.
+
+If `ws-server.autoIncrementPort` is set to false than the server will try using
+the ports given (`8080` for http and `8081` for websockets) and the process
+will fail and exit if either port is in use.

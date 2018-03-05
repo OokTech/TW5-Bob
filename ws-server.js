@@ -542,6 +542,18 @@ function addRoutesThing(inputObject, prefix) {
                 return `$:/themes/${name}`;
               });
             }
+            // By default the normal file system plugins removed and the
+            // multi-user plugin added instead so that they all work the same.
+            // The wikis aren't actually modified, this is just hov they are
+            // served.
+            if (!$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false) {
+              $tw.MultiUser.Wikis[fullName].plugins = $tw.MultiUser.Wikis[fullName].plugins.filter(function(plugin) {
+                return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
+              });
+              if ($tw.MultiUser.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/MultiUser') === -1) {
+                $tw.MultiUser.Wikis[fullName].plugins.push('$:/plugins/OokTech/MultiUser');
+              }
+            }
             // This makes the wikiTiddlers variable a filter that lists all the
             // tiddlers for this wiki.
             var options = {

@@ -1,14 +1,18 @@
 # TW5-MultiUser
 
-BIG DISCLAMER OF DOOM - Back up your data. Do it. This has been tested but there may be bugs that I don't know about.
+BIG DISCLAMER OF DOOM - Back up your data. Do it. This has been tested but
+there may be bugs that I don't know about.
 
-This plugin is only usable on the node version of tiddlywiki. The plugin includes the npm modules ip and ws, these are included in the plugin so you don't need to install them separately.
+A lot of the documentation is in the tiddler files in the Documentation folder
+of the plugin, or in the wiki in the plugin information on the control panel.
 
-A lot of the documentation is in the tiddler files in the Documentation folder of the plugin, or in the wiki in the plugin information on the control panel.
+With the node modules included you can now use the globally installed
+tiddlywiki version. To do this you either need to place the plugin tiddler
+files in the plugins sub-folder of the folder that contains the tiddlywiki.info
+file
 
-With the node modules included you can now use the globally installed tiddlywiki version. To do this you either need to place the plugin tiddler files in the plugins sub-folder of the folder that contains the tiddlywiki.info file
-
-If you want to use a fresh local install of tiddlywiki here are command line instructions:
+If you want to use a fresh local install of tiddlywiki here are command line
+instructions:
 
 Clone the tiddlywiki repo and get the plugin:
 ```
@@ -21,7 +25,27 @@ In a terminal navigate to the TiddlyWiki5 folder and type:
 
 `node ./tiddlywiki.js editions/MultiUserWiki  --wsserver`
 
-In a browser go to `127.0.0.1:8080` and the wiki should load. From here any tiddlers you create should have .tid files created in the `editions/MultiUserWiki/tiddlers` folder, any edits you do to those files should be immediately reflected in the browser. Open the tiddler called `$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the browser of another computer on the network to access the wiki). Now any changes you make to tiddlers on one computer will be reflected almost immediately on the other, and any chaneges you make to tiddlers or the file system will be almost immediately reflected in all connected wikis.
+In a browser go to `127.0.0.1:8080` and the wiki should load. From here any
+tiddlers you create should have .tid files created in the
+`editions/MultiUserWiki/tiddlers` folder, any edits you do to those files
+should be immediately reflected in the browser. Open the tiddler called
+`$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine
+right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the
+browser of another computer on the network to access the wiki). Now any changes
+you make to tiddlers on one computer will be reflected almost immediately on
+the other, and any chaneges you make to tiddlers or the file system will be
+almost immediately reflected in all connected wikis.
+
+If you want to use the global tiddlywiki install you have to set the
+environment variable `TIDDLYWIKI_PLUGIN_PATH` and `TIDDLYWIKI_EDITION_PATH` to
+the folder where you have your plugins. On OSX or Linux you open a terminal and
+type these commands:
+
+```
+export TIDDLYWIKI_PLUGIN_PATH="/path/to/your/plugins"
+export TIDDLYWIKI_EDITION_PATH="/path/to/your/editions"
+tiddlywiki editions/MultiUserWiki  --wsserver
+```
 
 *A note about command line arguments and configuration:*
 I am terrible with command line arguments.
@@ -59,9 +83,9 @@ the file system
 - Adds a new command `wsserver` that starts up a minimal http server so the
   websockets work and so that the node process can spawn child processses which
   serve other wikis.
-  - If the `autoIncrementPort` setting is set to `true` than it will start at the
-    given port and if it is in use than it will try the next port until an open
-    port is found.
+  - If the `autoIncrementPort` setting is set to `true` than it will start at
+    the given port and if it is in use than it will try the next port until an
+    open port is found.
 - Is compatible with the `NodeSettings` plugin.
 - Allows you to reset the tiddlywiki server from the browser using a websocket
   message.
@@ -73,10 +97,20 @@ the file system
 
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* a list of all wikis currently being served
-- *coming soon* each new wiki is made as a child process which allows messages to be passed between the different wikis. I need to find how to use this to make sure each wiki is accessible to all the others.
+- *coming soon* each new wiki is made as a child process which allows messages
+to be passed between the different wikis. I need to find how to use this to
+make sure each wiki is accessible to all the others.
 
 Some notes:
 
-There will be a lot of messages in the terminal where you started the node process. Messages saying `Cancel Editing Tiddler`, `Node Delete Tiddler`, the messages come from every connected browser so the more connections there are the more times they will be repeated. I am leaving them in for now for debugging but they can be safely ignored.
+There will be a lot of messages in the terminal where you started the node
+process. Messages saying `Cancel Editing Tiddler`, `Node Delete Tiddler`, the
+messages come from every connected browser so the more connections there are
+the more times they will be repeated. I am leaving them in for now for
+debugging but they can be safely ignored.
 
-As soon as you edit anything the browser will make the save button turn red, this doesn't mean anything. I need to look at how to change the dirty status of the wiki because there are ways to tell if changes have been saved or not using this. Changes are saved very quickly so the red save button can be safely ignored for now.
+As soon as you edit anything the browser will make the save button turn red,
+this doesn't mean anything. I need to look at how to change the dirty status of
+the wiki because there are ways to tell if changes have been saved or not using
+this. Changes are saved very quickly so the red save button can be safely
+ignored for now.

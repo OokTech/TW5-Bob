@@ -22,9 +22,9 @@ To fit with tiddlywiki as much as possible each level is separated by ##
 
 Given the above JSON you could use this:
 
-<<getSetting key="First##Second##Item">>
+`<<getSetting key="First##Second##Item">>`
 
-which would return Value
+which would return `Value`
 
 Note that this returns the first leaf reached. If you add extra levels that
 don't exit to the end of the key they are ignored. So in the example if you
