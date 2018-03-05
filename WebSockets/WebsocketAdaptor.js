@@ -115,6 +115,7 @@ console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " has
           $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
         }
       } else {
+        $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
         if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1) {
           $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
         }
