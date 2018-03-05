@@ -213,9 +213,6 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
             tempTiddlerFields.title = internalName;
             $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
             $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-            Object.keys($tw.connections).forEach(function(connection) {
-              $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
-            });
             return callback(null);
           });
         });
@@ -247,10 +244,6 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
               $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
             }
           }
-          Object.keys($tw.connections).forEach(function(connection) {
-            $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
-            $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
-          });
           return callback(null);
         });
       }
@@ -272,7 +265,7 @@ function makeTiddlerFile(tiddler) {
   if (tiddler.fields.text) {
     output += `\n${tiddler.fields.text}\n`;
   }
-  return output;
+  return output.trim();
 }
 
 /*

@@ -91,7 +91,6 @@ if (fs) {
     // Create a json object representing the tiddler that lists which tiddlers
     // are currently being edited.
     var message = JSON.stringify({type: 'updateEditingTiddlers', list: Object.keys($tw.MultiUser.EditingTiddlers)});
-    console.log(message)
     // Send the tiddler info to each connected browser
     $tw.MultiUser.SendToBrowsers(message);
   }
@@ -251,7 +250,6 @@ if (fs) {
                 }
                 // If the current tiddler on the current connection isn't on // the waiting list
                 if (!$tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
-                //if (!$tw.MultiUser.WaitingList[connectionIndex][tiddler.fields.title]) {
                   // Update the list of tiddlers currently in the browser
                   var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0], wiki: prefix});
                   // TODO make it consistent so that connection is always the
@@ -292,13 +290,17 @@ if (fs) {
 
   $tw.MultiUser.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
     var title = tiddlerObject.tiddlers[0].title;
+    var tempTidObject = {};
+    Object.keys(tiddlerObject.tiddlers[0]).forEach(function(field) {
+      tempTidObject[field] = tiddlerObject.tiddlers[0][field];
+    })
     // Everything here should use the internal title
-    if (prefix && prefix !== '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`)) {
-      tiddlerObject.tiddlers[0].title = `{${prefix}}${title}`;
+    if (prefix && prefix !== '' && !tempTidObject.title.startsWith(`{${prefix}}`)) {
+      tempTidObject.title = `{${prefix}}${title}`;
     }
     var itemPath = path.join(folder, filename);
     // If the tiddler doesn't exits yet, create it.
-    var tiddler = new $tw.Tiddler({fields:tiddlerObject.tiddlers[0]});
+    var tiddler = new $tw.Tiddler({fields:tempTidObject});
 
 
     // Create the file info also
@@ -321,22 +323,20 @@ if (fs) {
 
     // Add the newly cretaed tiddler. Allow multi-tid files (This
     // isn't tested in this context).
-    $tw.wiki.addTiddlers(tiddlerObject);
-    $tw.wiki.addTiddler(tiddlerObject);
-    var tidTitle = title.startsWith(`{${prefix}}`)?title:`{${prefix}}${title}`;
+    $tw.wiki.addTiddlers(tempTidObject);
+    $tw.wiki.addTiddler(tempTidObject);
     if (prefix && prefix !== '') {
-      console.log(prefix)
+      var tidTitle = title.startsWith(`{${prefix}}`)?title:`{${prefix}}${title}`;
       $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
     } else {
       $tw.MultiUser = $tw.MultiUser || {};
       $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
       $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
       $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlerss || [];
-      $tw.MultiUser.Wikis.RootWiki.tiddlers.push(tidTitle);
+      $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
     }
   }
 
-  // TODO update prefix part here!!
   $tw.MultiUser.DeleteTiddler = function (folder, filename, prefix) {
     console.log(`Deleted tiddler file ${filename}`)
     var itemPath = path.join(folder, filename);
@@ -354,15 +354,13 @@ if (fs) {
         // Remove the tiddler info from $tw.boot.files
         console.log(`Deleting Tiddler "${tiddlerName}"`);
         delete $tw.boot.files[tiddlerName]
+        $tw.wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler
         // Remove the prefix from the tiddler
         tiddlerName = tiddlerName.replace(new RegExp(`^\{${prefix}\}`),'');
         var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName, wiki: prefix});
         // Send the message to each connected browser
         $tw.MultiUser.SendToBrowsers(message);
-        // TODO figure out if this is enough or if we also need to delete
-        // from the $tw.boot.files object also.
-        $tw.wiki.deleteTiddler(tiddlerName);
       }
     });
   }
