@@ -180,7 +180,7 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
     }
   }
   prefix = prefix || '';
-  var internalName = prefix === '' ? tiddler.fields.title:`{${prefix}}${tiddler.fields.title}`;
+  var internalName = (prefix === '' && !tiddler.fields.title.startsWith(`{${prefix}}`)) ? tiddler.fields.title:`{${prefix}}${tiddler.fields.title}`;
   if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
     var self = this;
     var tempTiddlerFields = {};
