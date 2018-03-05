@@ -184,14 +184,6 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
   var internalName = (prefix === '' || tiddler.fields.title.startsWith(`{${prefix}}`)) ? tiddler.fields.title:`{${prefix}}${tiddler.fields.title}`;
   if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
     var self = this;
-    /*
-    var tempTiddlerFields = {};
-    Object.keys(tiddler.fields).forEach(function(fieldName) {
-      tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
-    });
-    tempTiddlerFields.title = internalName;
-    */
-    //self.getTiddlerFileInfo({fields:tempTiddlerFields}, prefix,
     self.getTiddlerFileInfo(tiddler, prefix,
      function(err,fileInfo) {
       if(err) {
@@ -243,6 +235,8 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
           });
           tempTiddlerFields.title = internalName;
           $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+          var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
+          $tw.MultiUser.SendToBrowsers(message);
           // This may help
           if (prefix !== '') {
             if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) !== -1) {
@@ -253,7 +247,6 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
               $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
             }
           }
-          //$tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
           Object.keys($tw.connections).forEach(function(connection) {
             $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
             $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;

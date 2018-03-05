@@ -115,8 +115,6 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
         }
         delete $tw.MultiUser.EditingTiddlers[internalTitle];
-        console.log(internalTitle)
-        console.log($tw.MultiUser.EditingTiddlers);
         $tw.MultiUser.UpdateEditingTiddlers(false);
       }
     }
