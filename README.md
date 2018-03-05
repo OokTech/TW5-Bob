@@ -97,9 +97,9 @@ the file system
 
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* a list of all wikis currently being served
-- *coming soon* each new wiki is made as a child process which allows messages
-to be passed between the different wikis. I need to find how to use this to
-make sure each wiki is accessible to all the others.
+- *coming soon* each wiki is part of the same node process so communication and
+  sharing tiddlers between the wikis is possible, I just haven't written the UI
+  yet.
 
 Some notes:
 
@@ -108,9 +108,3 @@ process. Messages saying `Cancel Editing Tiddler`, `Node Delete Tiddler`, the
 messages come from every connected browser so the more connections there are
 the more times they will be repeated. I am leaving them in for now for
 debugging but they can be safely ignored.
-
-As soon as you edit anything the browser will make the save button turn red,
-this doesn't mean anything. I need to look at how to change the dirty status of
-the wiki because there are ways to tell if changes have been saved or not using
-this. Changes are saved very quickly so the red save button can be safely
-ignored for now.
