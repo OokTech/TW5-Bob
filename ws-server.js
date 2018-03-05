@@ -505,6 +505,8 @@ function addRoutesThing(inputObject, prefix) {
               $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
                 return !/^\{.+\}.&/.test(name);
               });
+              // Add tiddlers to the node process
+              var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
               $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
                 return `$:/plugins/${name}`;
               });
