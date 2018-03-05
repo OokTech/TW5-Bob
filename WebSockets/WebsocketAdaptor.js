@@ -85,7 +85,6 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callba
       extension = ".tid";
     }
     // Generate the base filepath and ensure the directories exist
-    console.log(prefix)
     var tiddlersPath = prefix === ''? $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath:$tw.MultiUser.Wikis[prefix].wikiTiddlersPath
     var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title));
     $tw.utils.createFileDirectories(baseFilepath);
@@ -111,6 +110,15 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callba
       fileInfo.filepath = filepath;
 console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
       $tw.boot.files[internalTitle] = fileInfo;
+      if (prefix !== '') {
+        if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
+          $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+        }
+      } else {
+        if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1) {
+          $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
+        }
+      }
       // Pass it to the callback
       callback(null,fileInfo);
     });
@@ -208,8 +216,6 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
             tempTiddlerFields.title = internalName;
             $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
             $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-            // TODO fix this! It may break some stuff when multiple wikis have
-            // tiddlers with the same name.
             Object.keys($tw.connections).forEach(function(connection) {
               $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
             });
@@ -232,9 +238,17 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
           });
           tempTiddlerFields.title = internalName;
           $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-          $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-          // TODO fix this! It may break some stuff when multiple wikis have
-          // tiddlers with the same name.
+          // This may help
+          if (prefix !== '') {
+            if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
+              $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+            }
+          } else {
+            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1) {
+              $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
+            }
+          }
+          //$tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
           Object.keys($tw.connections).forEach(function(connection) {
             $tw.MultiUser.WaitingList[connection] = $tw.MultiUser.WaitingList[connection] || {};
             $tw.MultiUser.WaitingList[connection][tiddler.fields.title] = true;
