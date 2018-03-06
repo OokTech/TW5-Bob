@@ -223,7 +223,6 @@ $tw.nodeMessageHandlers.shutdownServer = function(data) {
   console.log('Shutting down server.');
   // TODO figure out if there are any cleanup tasks we should do here.
   // Sennd message to parent saying server is shutting down
-  process.send({'type': 'shutdown'});
   process.exit();
 }
 
