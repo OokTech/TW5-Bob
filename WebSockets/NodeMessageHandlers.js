@@ -90,7 +90,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
           console.log('Node Save Tiddler');
           if (!$tw.boot.files[internalTitle]) {
             $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-            $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
+            $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
           } else {
             // If changed send tiddler
             var changed = true;
@@ -103,7 +103,7 @@ $tw.nodeMessageHandlers.saveTiddler = function(data) {
             }
             if (changed) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
+              $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
             }
           }
         } else {

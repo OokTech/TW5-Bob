@@ -419,6 +419,51 @@ var Command = function(params,commander,callback) {
       response.end(buffer,"base64");
     }
   });
+  if ($tw.settings.filePathRoot) {
+    // Add the external files route handler
+    $tw.httpServer.addRoute({
+      method: "GET",
+      path: /^\/file\/.+$/,
+      handler: function(request, response, state) {
+        var pathname = path.join($tw.settings.filePathRoot, request.url.replace(/^\/file/, ''));
+        // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
+        if (pathname.startsWith($tw.settings.filePathRoot)) {
+          fs.exists(pathname, function(exists) {
+            if (!exists || fs.statSync(pathname).isDirectory()) {
+              response.statusCode = 404;
+              response.end();
+            }
+            fs.readFile(pathname, function(err, data) {
+              if (err) {
+                console.log(err)
+                response.statusCode = 500;
+                response.end();
+              } else {
+                var ext = path.parse(pathname).ext;
+                var mimeMap = {
+                  '.ico': 'image/x-icon',
+                  '.html': 'text/html',
+                  '.js': 'text/javascript',
+                  '.json': 'application/json',
+                  '.css': 'text/css',
+                  '.png': 'image/png',
+                  '.jpg': 'image/jpeg',
+                  '.wav': 'audio/wav',
+                  '.mp3': 'audio/mpeg',
+                  '.svg': 'image/svg+xml',
+                  '.pdf': 'application/pdf',
+                  '.doc': 'application/msword',
+                  '.gif': 'image/gif'
+                };
+                response.writeHead(200, {"Content-type": mimeMap[ext]});
+                response.end(data);
+              }
+            })
+          })
+        }
+      }
+    });
+  }
   // Add placeholders for other routes that load the wikis associated with each
   // route.
   this.addOtherRoutes();
