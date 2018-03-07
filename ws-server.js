@@ -577,6 +577,7 @@ function addRoutesThing(inputObject, prefix) {
 
               // Add tiddlers to the node process
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
+              console.log(wikiInfo)
               // Add plugins, themes and languages
               $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
               $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
@@ -591,6 +592,7 @@ function addRoutesThing(inputObject, prefix) {
               $tw.MultiUser.Wikis[fullName].themes = wikiInfo.themes.map(function(name) {
                 return `$:/themes/${name}`;
               });
+              console.log($tw.MultiUser.Wikis[fullName])
             }
             // By default the normal file system plugins removed and the
             // multi-user plugin added instead so that they all work the same.
@@ -615,6 +617,7 @@ function addRoutesThing(inputObject, prefix) {
                 wikiName: fullName
               }
             };
+            console.log(options)
             var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/single", options);
             response.writeHead(200, {"Content-Type": state.server.get("serveType")});
             response.end(text,"utf8");
