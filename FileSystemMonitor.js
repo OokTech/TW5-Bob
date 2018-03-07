@@ -155,119 +155,124 @@ if (fs) {
           if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
-            // Test to see if the filename matches what the wiki says it should
-            // be. If not rename the file to match the rules set by the wiki.
-            // TODO this assumes that the filename ends with .tid, that may not
-            // always be the case. Figure out if we need to fix that for
-            // tiddlres with meta files.
-            var rename = false;
-            if (tiddlerObject.tiddlers[0].title) {
-              var tiddlerFileTitle = filename.slice(0,-4);
-              if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
-                rename = true;
+
+            // Make sure that it at least has a title
+            if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
+
+              // Test to see if the filename matches what the wiki says it should
+              // be. If not rename the file to match the rules set by the wiki.
+              // TODO this assumes that the filename ends with .tid, that may not
+              // always be the case. Figure out if we need to fix that for
+              // tiddlres with meta files.
+              var rename = false;
+              if (tiddlerObject.tiddlers[0].title) {
+                var tiddlerFileTitle = filename.slice(0,-4);
+                if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
+                  rename = true;
+                }
               }
-            }
 
-            // Don't update tiddlers on the exclude list or draft tiddlers
-            if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
-              // Internally tiddlywiki may have a prefix on the tiddler title
-              // that we don't want in the file. This is used to define
-              // namespaces when serving multiple wikis.
-              // So internalTitle is the title used by everything in the $tw
-              // object.
-              // The normal title is tiddlerObject.tiddlers[0].title
-              var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`))?tiddlerObject.tiddlers[0].title:`{${prefix}}${tiddlerObject.tiddlers[0].title}`;
+              // Don't update tiddlers on the exclude list or draft tiddlers
+              if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
+                // Internally tiddlywiki may have a prefix on the tiddler title
+                // that we don't want in the file. This is used to define
+                // namespaces when serving multiple wikis.
+                // So internalTitle is the title used by everything in the $tw
+                // object.
+                // The normal title is tiddlerObject.tiddlers[0].title
+                var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`))?tiddlerObject.tiddlers[0].title:`{${prefix}}${tiddlerObject.tiddlers[0].title}`;
 
-              var tiddler = $tw.wiki.getTiddler(internalTitle);
+                var tiddler = $tw.wiki.getTiddler(internalTitle);
 
-              // We need to check if the title listed in $tw.boot.files thing
-              // no longer matches.
+                // We need to check if the title listed in $tw.boot.files thing
+                // no longer matches.
 
-              // If the tiddler with that title doesn't exist, check if a
-              // tiddler is listed with that file path in $tw.boot.files with a
-              // different title. If so than remove the old tiddler and add the
-              // new one. Also remove the old file and make the new one.
-              var tiddlerName = Object.keys($tw.boot.files).filter(function (item) {
-                // A lot of this is to handle some weird edge cases I ran into
-                // while making it.
-                // TODO figure out why this happens.
-                if (typeof item === 'string') {
-                  if (item === 'undefined') {
-                    delete $tw.boot.files[item];
+                // If the tiddler with that title doesn't exist, check if a
+                // tiddler is listed with that file path in $tw.boot.files with a
+                // different title. If so than remove the old tiddler and add the
+                // new one. Also remove the old file and make the new one.
+                var tiddlerName = Object.keys($tw.boot.files).filter(function (item) {
+                  // A lot of this is to handle some weird edge cases I ran into
+                  // while making it.
+                  // TODO figure out why this happens.
+                  if (typeof item === 'string') {
+                    if (item === 'undefined') {
+                      delete $tw.boot.files[item];
+                      return false;
+                    }
+                    return ($tw.boot.files[item].filepath === itemPath) && (internalTitle !== item)
+                  } else {
                     return false;
                   }
-                  return ($tw.boot.files[item].filepath === itemPath) && (internalTitle !== item)
-                } else {
-                  return false;
+                })[0];
+                if (rename || (!tiddler && tiddlerName)) {
+                  if (rename) {
+                    // translate tiddler title into filepath
+                    // here we want the non-prefixed title to make the filepath.
+                    var theFilepath = path.join(folder, $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
+                  } else {
+                    var theFilepath = $tw.boot.files[tiddlerName].filepath;
+                  }
+                  // This should be when a tiddler is renamed.
+                  // So create the new one and delete the old one.
+                  // Make the new file path
+                  // Use the non-prefixed title
+                  var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
+                  console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                  // Create the new tiddler
+                  $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
+                  // Put the tiddler object in the correct form
+                  // This gets saved to the file sysetm so non-prefixed title
+                  var newTiddler = {fields: tiddlerObject.tiddlers[0]};
+                  // Save the new file
+                  $tw.syncadaptor.saveTiddler(newTiddler, prefix);
+                  if (itemPath !== theFilepath) {
+                    // Delete the old file, the normal delete action takes care of
+                    // the rest.
+                    fs.unlinkSync(itemPath);
+                  }
+                } else if (!tiddler || !$tw.boot.files[internalTitle]) {
+                  // This check needs the prefixed title (everything in $tw.boot
+                  // uses the internalTitle)
+                  // This is a new tiddler, so just save the tiddler info
+                  $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
                 }
-              })[0];
-              if (rename || (!tiddler && tiddlerName)) {
-                if (rename) {
-                  // translate tiddler title into filepath
-                  // here we want the non-prefixed title to make the filepath.
-                  var theFilepath = path.join(folder, $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
-                } else {
-                  var theFilepath = $tw.boot.files[tiddlerName].filepath;
+                // Make a tiddler object if one doesn't exist. It uses the
+                // non-prefixed name because it gets sent to the browsers.
+                if (!tiddler) {
+                  tiddler = {fields: tiddlerObject.tiddlers[0]};
                 }
-                // This should be when a tiddler is renamed.
-                // So create the new one and delete the old one.
-                // Make the new file path
-                // Use the non-prefixed title
-                var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
-                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
-                // Create the new tiddler
-                $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
-                // Put the tiddler object in the correct form
-                // This gets saved to the file sysetm so non-prefixed title
-                var newTiddler = {fields: tiddlerObject.tiddlers[0]};
-                // Save the new file
-                $tw.syncadaptor.saveTiddler(newTiddler, prefix);
-                if (itemPath !== theFilepath) {
-                  // Delete the old file, the normal delete action takes care of
-                  // the rest.
-                  fs.unlinkSync(itemPath);
-                }
-              } else if (!tiddler || !$tw.boot.files[internalTitle]) {
-                // This check needs the prefixed title (everything in $tw.boot
-                // uses the internalTitle)
-                // This is a new tiddler, so just save the tiddler info
-                $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
+                // Check if we should send it to each of the connected browsers
+                Object.keys($tw.connections).forEach(function(connectionIndex) {
+                  // If the waiting list entry for this connection doesn't exist
+                  // than create it as an empty object.
+                  if (!$tw.MultiUser.WaitingList[connectionIndex]) {
+                    $tw.MultiUser.WaitingList[connectionIndex] = {};
+                  }
+                  // If the current tiddler on the current connection isn't on // the waiting list
+                  if (!$tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
+                    // Update the list of tiddlers currently in the browser
+                    var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0], wiki: prefix});
+                    // TODO make it consistent so that connection is always the
+                    // object instead of sometimes just teh index.
+                    $tw.MultiUser.SendToBrowser($tw.connections[connectionIndex], message);
+                    // Put this tiddler on this connection on the wait list.
+                    $tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title] = true;
+                  }
+                });
+                // Make sure the node process has the current tiddler listed with
+                // any new changes.
+                var tempTiddlerFields = {};
+                Object.keys(tiddlerObject.tiddlers[0]).forEach(function(fieldName) {
+                  tempTiddlerFields[fieldName] = tiddlerObject.tiddlers[0][fieldName];
+                });
+                tempTiddlerFields.title = internalTitle;
+                $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+                $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+                $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+                $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
+                $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
               }
-              // Make a tiddler object if one doesn't exist. It uses the
-              // non-prefixed name because it gets sent to the browsers.
-              if (!tiddler) {
-                tiddler = {fields: tiddlerObject.tiddlers[0]};
-              }
-              // Check if we should send it to each of the connected browsers
-              Object.keys($tw.connections).forEach(function(connectionIndex) {
-                // If the waiting list entry for this connection doesn't exist
-                // than create it as an empty object.
-                if (!$tw.MultiUser.WaitingList[connectionIndex]) {
-                  $tw.MultiUser.WaitingList[connectionIndex] = {};
-                }
-                // If the current tiddler on the current connection isn't on // the waiting list
-                if (!$tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
-                  // Update the list of tiddlers currently in the browser
-                  var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0], wiki: prefix});
-                  // TODO make it consistent so that connection is always the
-                  // object instead of sometimes just teh index.
-                  $tw.MultiUser.SendToBrowser($tw.connections[connectionIndex], message);
-                  // Put this tiddler on this connection on the wait list.
-                  $tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title] = true;
-                }
-              });
-              // Make sure the node process has the current tiddler listed with
-              // any new changes.
-              var tempTiddlerFields = {};
-              Object.keys(tiddlerObject.tiddlers[0]).forEach(function(fieldName) {
-                tempTiddlerFields[fieldName] = tiddlerObject.tiddlers[0][fieldName];
-              });
-              tempTiddlerFields.title = internalTitle;
-              $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-              $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-              $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
-              $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-              $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');
@@ -292,9 +297,7 @@ if (fs) {
       tempTidObject[field] = tiddlerObject.tiddlers[0][field];
     })
     // Everything here should use the internal title
-    if (prefix && prefix !== '' && !tempTidObject.title.startsWith(`{${prefix}}`)) {
-      tempTidObject.title = `{${prefix}}${title}`;
-    }
+    tempTidObject.title = `{${prefix}}` === '{}'?title:`{${prefix}}${title}`;
     var itemPath = path.join(folder, filename);
     // If the tiddler doesn't exits yet, create it.
     var tiddler = new $tw.Tiddler({fields:tempTidObject});
@@ -329,7 +332,7 @@ if (fs) {
       $tw.MultiUser = $tw.MultiUser || {};
       $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
       $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlerss || [];
+      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
       $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
     }
   }

@@ -60,11 +60,9 @@ WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callba
   var self = this,
     title = tiddler.fields.title;
   if (title.startsWith(`{${prefix}}`)) {
-    var internalTitle = title;
     title = title.replace(`{${prefix}}`, '');
-  } else {
-    var internalTitle = `{${prefix}}${title}`;
   }
+  var internalTitle = `{${prefix}}` ==='{}'?title:`{${prefix}}${title}`;
   var fileInfo = $tw.boot.files[internalTitle];
   if(fileInfo) {
     // If so, just invoke the callback
@@ -236,11 +234,13 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
           $tw.MultiUser.SendToBrowsers(message);
           // This may help
           if (prefix !== '') {
-            if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) !== -1) {
+            if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
               $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
             }
           } else {
-            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) !== -1) {
+            $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
+            $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
+            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1) {
               $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
             }
           }

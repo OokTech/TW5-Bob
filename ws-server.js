@@ -122,7 +122,7 @@ if($tw.node) {
   	$tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
       if (!options.prefix || options.prefix !== '') {
         for (var i = 0; i < tiddlerFile.tiddlers.length; i++) {
-          tiddlerFile.tiddlers[i].title = `{${options.prefix}}${tiddlerFile.tiddlers[i].title}`
+          tiddlerFile.tiddlers[i].title = `{${options.prefix}}` === '{}'?tiddlerFile.tiddlers[i].title:`{${options.prefix}}${tiddlerFile.tiddlers[i].title}`
         }
       }
   		if(!options.readOnly && tiddlerFile.filepath) {
@@ -162,7 +162,7 @@ if($tw.node) {
   		for(var t=0; t<pluginFolders.length; t++) {
   			pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
   			if(pluginFields) {
-          pluginFields.title = options.prefix!==''? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+          pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
   				$tw.wikis.addTiddler(pluginFields);
   			}
   		}
@@ -174,7 +174,7 @@ if($tw.node) {
   		for(var t=0; t<themeFolders.length; t++) {
   			pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
   			if(pluginFields) {
-          pluginFields.title = options.prefix!==''? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+          pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
   				$tw.wikis.addTiddler(pluginFields);
   			}
   		}
@@ -186,7 +186,7 @@ if($tw.node) {
   		for(var t=0; t<languageFolders.length; t++) {
   			pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
   			if(pluginFields) {
-          pluginFields.title = options.prefix!==''? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+          pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
   				$tw.wikis.addTiddler(pluginFields);
   			}
   		}
@@ -383,7 +383,7 @@ var Command = function(params,commander,callback) {
       if (!$tw.MultiUser.Wikis.RootWiki.State) {
         $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-          return !/^\{.+\}.&/.test(name);
+          return !/^\{.+\}.$/.test(name);
         });
         // Add tiddlers to the node process
         var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
@@ -552,7 +552,7 @@ function addRoutesThing(inputObject, prefix) {
             if (!$tw.MultiUser.Wikis.RootWiki.State) {
               $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
               $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-                return !/^\{.+\}.&/.test(name);
+                return !/^\{.+\}.$/.test(name);
               });
               // Add tiddlers to the node process
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
