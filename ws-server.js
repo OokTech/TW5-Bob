@@ -387,10 +387,6 @@ var Command = function(params,commander,callback) {
         });
         // Add tiddlers to the node process
         var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
-        // Add plugins, themes and languages
-        $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
-        $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
-      	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
         $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
           return `$:/plugins/${name}`;
         });
@@ -581,6 +577,10 @@ function addRoutesThing(inputObject, prefix) {
 
               // Add tiddlers to the node process
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
+              // Add plugins, themes and languages
+              $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+              $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
+            	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
               // Get the list of tiddlers for this wiki
               $tw.MultiUser.Wikis[fullName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
                 return title.startsWith(`{${fullName}}`);
