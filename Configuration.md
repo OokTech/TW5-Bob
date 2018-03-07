@@ -25,7 +25,8 @@ used. If the json isn't formatted correctly than default values will be used.
   "ws-server": {
     "port": 8080,
     "host": "127.0.0.1",
-    "autoIncrementPort": false
+    "autoIncrementPort": false,
+    "servePlugin": true
   },
   "heartbeat": {
     "interval": 1000
@@ -49,13 +50,16 @@ used. If the json isn't formatted correctly than default values will be used.
   `localhost:8080/OokTech/TestWiki`. You may have as many levels and wikis as
   you want.
 - `ws-server` settings for the `wsserver` command. It takes the same arguments
-  as the normal `server` command with the exception of `autoIncrementPort`, if
-  `autoIncrementPort` is not set to false than the server will try using the
-  given port (`8080` by default) and if it is in use it will try the next port
-  up and continue until it finds an open port to use. It will do the same for
-  the websockets port. If this is set to false than if the given port is in use
-  an error is given and the process fails. The default websocket port is one
-  higher than the http port used.
+  as the normal `server` command with the exception of `autoIncrementPort` and
+  `servePlugin`, if `autoIncrementPort` is not set to false than the server
+  will try using the given port (`8080` by default) and if it is in use it will
+  try the next port up and continue until it finds an open port to use. It will
+  do the same for the websockets port. If this is set to false than if the
+  given port is in use an error is given and the process fails. The default
+  websocket port is one higher than the http port used. If `servePlugin` is not
+  false than any child wiki served will include the MultiUser plugin. So you
+  can serve wikis that don't normally have the plugin and edit them as though
+  they did.
 - `heartbeat` settings for the heartbeat that makes sure the browser and server
   are still connected. You can almost certainly ignore this setting. The only
   setting is `interval`, the heartbeat message is sent every `interval`
