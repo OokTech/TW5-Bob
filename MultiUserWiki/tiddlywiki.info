@@ -1,7 +1,7 @@
 {
 	"description": "This is the demo edition for the MultiUser plugin created by OokTech",
 	"plugins": [
-    "OokTech/TW5-MultiUser"
+    "OokTech/MultiUser"
 	],
 	"themes": [
 		"tiddlywiki/vanilla",

@@ -18,7 +18,7 @@ Clone the tiddlywiki repo and get the plugin:
 ```
 git clone --depth=1 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-MultiUser.git TiddlyWiki5/plugins/OokTech/MultiUser
-cp -r TiddlyWiki5/plugins/OokTech/TW5-MultiUser/MultiUserWiki TiddlyWiki5/editions/
+cp -r TiddlyWiki5/plugins/OokTech/MultiUser/MultiUserWiki TiddlyWiki5/editions/
 ```
 
 In a terminal navigate to the TiddlyWiki5 folder and type:
