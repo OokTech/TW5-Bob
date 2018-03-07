@@ -380,13 +380,17 @@ var Command = function(params,commander,callback) {
       $tw.MultiUser = $tw.MultiUser || {};
       $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
       $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-      if (!$tw.MultiUser.Wikis.RootWiki.State) {
+      if (!$tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
         $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
           return !/^\{.+\}.$/.test(name);
         });
         // Add tiddlers to the node process
         var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
+        // Add plugins, themes and languages
+        $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+        $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
+      	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
         $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
           return `$:/plugins/${name}`;
         });
@@ -456,7 +460,7 @@ var Command = function(params,commander,callback) {
                   '.doc': 'application/msword',
                   '.gif': 'image/gif'
                 };
-                response.writeHead(200, {"Content-type": mimeMap[ext]});
+                response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
                 response.end(data);
               }
             })
