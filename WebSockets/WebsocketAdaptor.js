@@ -114,7 +114,7 @@ console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " has
         }
       } else {
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-        if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1) {
+        if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1 && !internalTitle.startsWith('{')) {
           $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
         }
       }
@@ -240,7 +240,7 @@ WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
           } else {
             $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
             $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1) {
+            if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1 && !internalTitle.startsWith('{')) {
               $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
             }
           }

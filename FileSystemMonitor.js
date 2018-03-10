@@ -269,9 +269,17 @@ if (fs) {
                 tempTiddlerFields.title = internalTitle;
                 $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
                 $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-                $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
-                $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-                $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+                if (prefix !== '') {
+                  $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+                  $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
+                  $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+                } else {
+                  if(!internalTitle.startsWith('{')) {
+                    $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
+                    $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
+                    $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
+                  }
+                }
               }
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
@@ -329,11 +337,13 @@ if (fs) {
       var tidTitle = title.startsWith(`{${prefix}}`)?title:`{${prefix}}${title}`;
       $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
     } else {
-      $tw.MultiUser = $tw.MultiUser || {};
-      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-      $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-      $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
+      if (!title.startsWith('{')) {
+        $tw.MultiUser = $tw.MultiUser || {};
+        $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+        $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
+        $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
+        $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
+      }
     }
   }
 

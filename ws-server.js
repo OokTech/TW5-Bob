@@ -380,7 +380,7 @@ var Command = function(params,commander,callback) {
       $tw.MultiUser = $tw.MultiUser || {};
       $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
       $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-      if (!$tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
+      if ($tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
         $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
           return !name.startsWith('{');
@@ -550,7 +550,7 @@ function addRoutesThing(inputObject, prefix) {
 
             // Make sure that the root wiki tiddlers are listed!
             $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-            if (!$tw.MultiUser.Wikis.RootWiki.State) {
+            if ($tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
               $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
               $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
                 return !name.startsWith('{');
@@ -564,7 +564,7 @@ function addRoutesThing(inputObject, prefix) {
                 return `$:/themes/${name}`;
               });
             }
-            if (!$tw.MultiUser.Wikis[fullName].State) {
+            if ($tw.MultiUser.Wikis[fullName].State !== 'loaded') {
               $tw.MultiUser.Wikis[fullName].State = 'loaded';
               // Get the correct path to the tiddlywiki.info file
               createDirectory($tw.MultiUser.Wikis[fullName].wikiTiddlersPath);
