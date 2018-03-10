@@ -394,6 +394,10 @@ var Command = function(params,commander,callback) {
           return `$:/themes/${name}`;
         });
       }
+      // Use an even bigger sledge hammer then
+      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers.filter(function(name) {
+        return !name.startsWith('{');
+      })
       // This makes the wikiTiddlers variable a filter that lists all the
       // tiddlers for this wiki.
       var options = {
