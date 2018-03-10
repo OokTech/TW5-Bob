@@ -383,7 +383,7 @@ var Command = function(params,commander,callback) {
       if (!$tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
         $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-          return !/^\{.+\}.$/.test(name);
+          return !name.startsWith('{');
         });
         // Add tiddlers to the node process
         var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
@@ -553,7 +553,7 @@ function addRoutesThing(inputObject, prefix) {
             if (!$tw.MultiUser.Wikis.RootWiki.State) {
               $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
               $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-                return !/^\{.+\}.$/.test(name);
+                return !name.startsWith('{');
               });
               // Add tiddlers to the node process
               var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
