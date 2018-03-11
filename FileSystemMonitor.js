@@ -24,6 +24,7 @@ for changes to files.
 
 exports.name = 'FileSystemMonitor';
 exports.after = ["load-modules"];
+exports.platforms = ["node"];
 exports.synchronous = true;
 
 if ($tw.node) {
@@ -180,7 +181,7 @@ if ($tw.node) {
                 // So internalTitle is the title used by everything in the $tw
                 // object.
                 // The normal title is tiddlerObject.tiddlers[0].title
-                var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith(`{${prefix}}`))?tiddlerObject.tiddlers[0].title:`{${prefix}}${tiddlerObject.tiddlers[0].title}`;
+                var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith("{" + prefix + "}"))?tiddlerObject.tiddlers[0].title:"{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
 
                 var tiddler = $tw.wiki.getTiddler(internalTitle);
 
@@ -305,7 +306,7 @@ if ($tw.node) {
       tempTidObject[field] = tiddlerObject.tiddlers[0][field];
     })
     // Everything here should use the internal title
-    tempTidObject.title = `{${prefix}}` === '{}'?title:`{${prefix}}${title}`;
+    tempTidObject.title = "{" + prefix + "}" === '{}'?title:"{" + prefix + "}" + title;
     var itemPath = path.join(folder, filename);
     // If the tiddler doesn't exits yet, create it.
     var tiddler = new $tw.Tiddler({fields:tempTidObject});
@@ -334,7 +335,7 @@ if ($tw.node) {
     $tw.wiki.addTiddlers(tempTidObject);
     $tw.wiki.addTiddler(tempTidObject);
     if (prefix && prefix !== '') {
-      var tidTitle = title.startsWith(`{${prefix}}`)?title:`{${prefix}}${title}`;
+      var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
       $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
     } else {
       if (!title.startsWith('{')) {
@@ -348,7 +349,7 @@ if ($tw.node) {
   }
 
   $tw.MultiUser.DeleteTiddler = function (folder, filename, prefix) {
-    console.log(`Deleted tiddler file ${filename}`)
+    console.log("Deleted tiddler file " + filename);
     var itemPath = path.join(folder, filename);
     // Get the file name because it isn't always the same as the tiddler
     // title.
@@ -362,12 +363,12 @@ if ($tw.node) {
     Object.keys($tw.boot.files).forEach(function(tiddlerName) {
       if ($tw.boot.files[tiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.boot.files
-        console.log(`Deleting Tiddler "${tiddlerName}"`);
+        console.log('Deleting Tiddler "' + tiddlerName + '"');
         delete $tw.boot.files[tiddlerName]
         $tw.wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler
         // Remove the prefix from the tiddler
-        tiddlerName = tiddlerName.replace(new RegExp(`^\{${prefix}\}`),'');
+        tiddlerName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
         var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName, wiki: prefix});
         // Send the message to each connected browser
         $tw.MultiUser.SendToBrowsers(message);

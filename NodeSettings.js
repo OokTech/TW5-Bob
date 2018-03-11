@@ -60,17 +60,17 @@ if ($tw.node) {
   	try {
   		rawSettings = fs.readFileSync(newSettingsPath);
   	} catch (err) {
-  		console.log(`NodeSettings - Failed to load settings file.`);
+  		console.log('NodeSettings - Failed to load settings file.');
       rawSettings = '{}';
   	}
 
   	// Try to parse the JSON after loading the file.
   	try {
   		newSettings = JSON.parse(rawSettings);
-  		console.log(`NodeSettings - Parsed raw settings.`);
+  		console.log('NodeSettings - Parsed raw settings.');
   	} catch (err) {
-  		console.log(`NodeSettings - Malformed settings. Using empty default.`);
-  		console.log(`NodeSettings - Check settings. Maybe comma error?`);
+  		console.log('NodeSettings - Malformed settings. Using empty default.');
+  		console.log('NodeSettings - Check settings. Maybe comma error?');
   		// Create an empty default settings.
   		newSettings = {};
   	}

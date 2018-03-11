@@ -17,6 +17,8 @@ exports.info = {
   synchronous: true
 };
 
+exports.platforms = ["node"];
+
 if($tw.node) {
   var util = require("util"),
     fs = require("fs"),
@@ -53,7 +55,7 @@ if($tw.node) {
     try {
       rawSettings = fs.readFileSync(newSettingsPath);
     } catch (err) {
-      console.log(`ws-server - Failed to load settings file.`);
+      console.log('ws-server - Failed to load settings file.');
       rawSettings = '{}';
     }
 
@@ -61,8 +63,8 @@ if($tw.node) {
     try {
       newSettings = JSON.parse(rawSettings);
     } catch (err) {
-      console.log(`ws-server - Malformed Settings. Using empty default.`);
-      console.log(`ws-server - Check Settings. Maybe comma error?`);
+      console.log('ws-server - Malformed Settings. Using empty default.');
+      console.log('ws-server - Check Settings. Maybe comma error?');
       // Create an empty default Settings.
       newSettings = {};
     }
@@ -121,7 +123,7 @@ if($tw.node) {
     	$tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
         if (!options.prefix || options.prefix !== '') {
           for (var i = 0; i < tiddlerFile.tiddlers.length; i++) {
-            tiddlerFile.tiddlers[i].title = `{${options.prefix}}` === '{}'?tiddlerFile.tiddlers[i].title:`{${options.prefix}}${tiddlerFile.tiddlers[i].title}`
+            tiddlerFile.tiddlers[i].title = '{' + options.prefix + '}' === '{}'?tiddlerFile.tiddlers[i].title:'{' + options.prefix + '}' + tiddlerFile.tiddlers[i].title;
           }
         }
     		if(!options.readOnly && tiddlerFile.filepath) {
@@ -161,7 +163,7 @@ if($tw.node) {
     		for(var t=0; t<pluginFolders.length; t++) {
     			pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
     			if(pluginFields) {
-            pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
     				$tw.wikis.addTiddler(pluginFields);
     			}
     		}
@@ -173,7 +175,7 @@ if($tw.node) {
     		for(var t=0; t<themeFolders.length; t++) {
     			pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
     			if(pluginFields) {
-            pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
     				$tw.wikis.addTiddler(pluginFields);
     			}
     		}
@@ -185,7 +187,7 @@ if($tw.node) {
     		for(var t=0; t<languageFolders.length; t++) {
     			pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
     			if(pluginFields) {
-            pluginFields.title = `{${options.prefix}}`!=='{}'? `{${options.prefix}}${pluginFields.title}`:pluginFields.title;
+            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
     				$tw.wikis.addTiddler(pluginFields);
     			}
     		}
@@ -387,10 +389,10 @@ if($tw.node) {
           // Add tiddlers to the node process
           var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
           $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
-            return `$:/plugins/${name}`;
+            return '$:/plugins/' + name;
           });
           $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
-            return `$:/themes/${name}`;
+            return '$:/themes/' + name;
           });
         }
         // This makes the wikiTiddlers variable a filter that lists all the
@@ -399,7 +401,7 @@ if($tw.node) {
           variables: {
             wikiTiddlers:
               $tw.MultiUser.Wikis.RootWiki.tiddlers.concat($tw.MultiUser.Wikis.RootWiki.plugins.concat($tw.MultiUser.Wikis.RootWiki.themes)).map(function(tidInfo) {
-                return `[[${tidInfo}]]`;
+                return '[[' + tidInfo + ']]';
               }).join(' '),
             wikiName: ''
           }
@@ -533,7 +535,7 @@ if($tw.node) {
           if (prefix === '') {
             var fullName = wikiName;
           } else {
-            fullName = `${prefix}/${wikiName}`;
+            fullName = prefix + '/' + wikiName;
           }
           $tw.MultiUser = $tw.MultiUser || {};
           $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
@@ -543,7 +545,7 @@ if($tw.node) {
           // Make route handler
           $tw.httpServer.addRoute({
             method: "GET",
-            path: new RegExp(`^\/${fullName}\/?$`),
+            path: new RegExp('^\/' + fullName + '\/?$'),
             handler: function(request, response, state) {
               // Make sure we haven't already loaded the wiki.
 
@@ -557,10 +559,10 @@ if($tw.node) {
                 // Add tiddlers to the node process
                 var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
                 $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
-                  return `$:/plugins/${name}`;
+                  return '$:/plugins/' + name;
                 });
                 $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
-                  return `$:/themes/${name}`;
+                  return '$:/themes/' + name;
                 });
               }
               if ($tw.MultiUser.Wikis[fullName].State !== 'loaded') {
@@ -582,13 +584,13 @@ if($tw.node) {
               	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
                 // Get the list of tiddlers for this wiki
                 $tw.MultiUser.Wikis[fullName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
-                  return title.startsWith(`{${fullName}}`);
+                  return title.startsWith('{' + fullName + '}');
                 });
                 $tw.MultiUser.Wikis[fullName].plugins = wikiInfo.plugins.map(function(name) {
-                  return `$:/plugins/${name}`;
+                  return '$:/plugins/' + name;
                 });
                 $tw.MultiUser.Wikis[fullName].themes = wikiInfo.themes.map(function(name) {
-                  return `$:/themes/${name}`;
+                  return '$:/themes/' + name;
                 });
               }
               // By default the normal file system plugins removed and the
@@ -609,7 +611,7 @@ if($tw.node) {
                 variables: {
                   wikiTiddlers:
                     $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
-                      return `[[${tidInfo}]]`;
+                      return '[[' + tidInfo + ']]';
                     }).join(' '),
                   wikiName: fullName
                 }
@@ -619,7 +621,7 @@ if($tw.node) {
               response.end(text,"utf8");
             }
           });
-          console.log(`Added route ${String(new RegExp(`^\/${fullName}\/?$`))}`)
+          console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
         } else {
           // recurse!
           prefix = prefix===''?wikiName:prefix + '/' + wikiName;

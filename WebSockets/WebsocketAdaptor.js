@@ -12,6 +12,8 @@ A sync adaptor module for synchronising using Websockets
 /*global $tw: false */
 "use strict";
 
+exports.platforms = ["node"];
+
 // Get a reference to the file system
 var fs = $tw.node ? require("fs") : null,
 	path = $tw.node ? require("path") : null;
@@ -61,10 +63,10 @@ if($tw.node) {
     // See if we've already got information about this file
     var self = this,
       title = tiddler.fields.title;
-    if (title.startsWith(`{${prefix}}`)) {
-      title = title.replace(`{${prefix}}`, '');
+    if (title.startsWith('{' + prefix + '}')) {
+      title = title.replace('{' + prefix + '}', '');
     }
-    var internalTitle = `{${prefix}}` ==='{}'?title:`{${prefix}}${title}`;
+    var internalTitle = '{' + prefix + '}' ==='{}'?title:'{' + prefix + '}' + title;
     var fileInfo = $tw.boot.files[internalTitle];
     if(fileInfo) {
       // If so, just invoke the callback
@@ -181,7 +183,7 @@ if($tw.node) {
       }
     }
     prefix = prefix || '';
-    var internalName = (prefix === '' || tiddler.fields.title.startsWith(`{${prefix}}`)) ? tiddler.fields.title:`{${prefix}}${tiddler.fields.title}`;
+    var internalName = (prefix === '' || tiddler.fields.title.startsWith('{' + prefix + '}')) ? tiddler.fields.title:'{' + prefix + '}' + tiddler.fields.title;
     if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       var self = this;
       self.getTiddlerFileInfo(tiddler, prefix,
@@ -257,15 +259,15 @@ if($tw.node) {
     var output = "";
     Object.keys(tiddler.fields).forEach(function(fieldName, index) {
       if (fieldName === 'created' || fieldName === 'modified') {
-        output += `${fieldName}: ${$tw.utils.stringifyDate(new Date(tiddler.fields[fieldName]))}\n`;
+        output += fieldName+": ${$tw.utils.stringifyDate(new Date(tiddler.fields[fieldName]))}\n";
       } else if (fieldName === 'list' || fieldName === 'tags'){
-        output += `${fieldName}: ${$tw.utils.stringifyList(tiddler.fields[fieldName])}\n`;
+        output += fieldName+": ${$tw.utils.stringifyList(tiddler.fields[fieldName])}\n";
       } else if (fieldName !== 'text') {
-        output += `${fieldName}: ${tiddler.fields[fieldName]}\n`;
+        output += fieldName+": ${tiddler.fields[fieldName]}\n";
       }
     })
     if (tiddler.fields.text) {
-      output += `\n${tiddler.fields.text}\n`;
+      output += "\n" + tiddler.fields.text + "\n";
     }
     return output.trim();
   }

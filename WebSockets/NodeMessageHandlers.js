@@ -14,6 +14,8 @@ This handles messages sent to the node process.
 /*global $tw: false */
 "use strict";
 
+exports.platforms = ["node"];
+
 if ($tw.node) {
   // This lets you add to the $tw.nodeMessageHandlers object without overwriting
   // existing handler functions
@@ -75,7 +77,7 @@ if ($tw.node) {
         // Ignore draft tiddlers
         if (!data.tiddler.fields['draft.of']) {
           var prefix = data.wiki || '';
-          var internalTitle = prefix === ''?data.tiddler.fields.title:`{${prefix}}${data.tiddler.fields.title}`;
+          var internalTitle = prefix === ''?data.tiddler.fields.title:'{' + prefix + '}' + data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just always
           // setting it this way and doesn't benifit us.
@@ -144,7 +146,7 @@ if ($tw.node) {
     // Make the internal name
     data.wiki = data.wiki || '';
 
-    data.tiddler = data.wiki === ''?data.tiddler:`{${data.wiki}}${data.tiddler}`;
+    data.tiddler = data.wiki === ''?data.tiddler:'{' + data.wiki + '}' + data.tiddler;
     // Delete the tiddler file from the file system
     $tw.syncadaptor.deleteTiddler(data.tiddler);
     // Remove the tiddler from the list of tiddlers being edited.
@@ -159,7 +161,7 @@ if ($tw.node) {
   */
   $tw.nodeMessageHandlers.editingTiddler = function(data) {
     data.wiki = data.wiki || '';
-    var internalName = data.wiki === ''?data.tiddler:`{${data.wiki}}${data.tiddler}`;
+    var internalName = data.wiki === ''?data.tiddler:'{' + data.wiki + '}' + data.tiddler;
     // Add the tiddler to the list of tiddlers being edited to prevent multiple
     // people from editing it at the same time.
     $tw.MultiUser.UpdateEditingTiddlers(internalName);
@@ -185,7 +187,7 @@ if ($tw.node) {
       }
     }
     data.wiki = data.wiki || '';
-    var internalName = data.wiki === ''?title:`{${data.wiki}}${title}`;
+    var internalName = data.wiki === ''?title:'{' + data.wiki + '}' + title;
     // Remove the current tiddler from the list of tiddlers being edited.
     if ($tw.MultiUser.EditingTiddlers[internalName]) {
       delete $tw.MultiUser.EditingTiddlers[internalName];
@@ -290,7 +292,7 @@ if ($tw.node) {
               $tw.MultiUser.WikiState[wikiName] = 'closed';
               var route = {
                 method: "GET",
-                path: new RegExp(`^\/${wikiName}\/?$`),
+                path: new RegExp('^\/' + wikiName + '\/?$'),
                 handler: function(request, response, state) {
                   // Make sure we aren't already trying to start a wiki before trying
                   // to restart it.
@@ -299,22 +301,22 @@ if ($tw.node) {
                   if ($tw.MultiUser.WikiState[wikiName] !== 'booting' && $tw.MultiUser.WikiState[wikiName] !== 'running') {
                     console.log('start ', wikiName);
                     $tw.MultiUser.WikiState[wikiName] = 'booting';
-                    $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: `${wikiName}`});
+                    $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: wikiName});
                   }
                   // While waiting for the wiki to boot send a page saying that the
                   // wiki is booting. The page automatically reloads after a few
                   // seconds. If the wiki has booted it loads the wiki if not it
                   // reloads the same page.
                   response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-                  var text = `<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>`;
+                  var text = "<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>";
                   response.end(text,"utf8");
                 }
               }
             } else {
-              console.log('Receive ', String(new RegExp(`^\/${data.wikiPath}\/?$`)), ' ', message.route.text.length);
+              console.log('Receive ', String(new RegExp('^\/' + data.wikiPath + '\/?$')), ' ', message.route.text.length);
               var route = {
             		method: "GET",
-                path: new RegExp(`^\/${data.wikiPath}\/?$`),
+                path: new RegExp('^\/' + data.wikiPath + '\/?$'),
             		handler: function(request,response,state) {
             			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
             			var text = message.route.text;
@@ -467,6 +469,6 @@ if ($tw.node) {
       }
     }
   }
-  
+
 }
 })()
