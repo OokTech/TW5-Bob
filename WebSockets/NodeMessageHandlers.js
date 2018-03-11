@@ -384,6 +384,11 @@ $tw.nodeMessageHandlers.saveSettings = function(data) {
   $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   // Push changes out to the browsers
   $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
+  // Make sure the settings folder exists
+  if (!fs.existsSync(path.join($tw.boot.wikiPath, 'settings'))) {
+    // Create the settings folder
+    fs.mkdirSync(path.join($tw.boot.wikiPath, 'settings'))
+  }
   // Save the updated settings
   var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
   fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {

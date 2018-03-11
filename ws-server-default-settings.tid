@@ -4,7 +4,7 @@ type: application/json
 {
   "ws-server": {
     "port": "8080",
-		"rootTiddler": "$:/core/save/all",
+		"rootTiddler": "$:/core/save/single",
 		"renderType": "text/plain",
 		"serveType": "text/html",
 		"username": "",
