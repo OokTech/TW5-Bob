@@ -259,11 +259,11 @@ if($tw.node) {
     var output = "";
     Object.keys(tiddler.fields).forEach(function(fieldName, index) {
       if (fieldName === 'created' || fieldName === 'modified') {
-        output += fieldName+": ${$tw.utils.stringifyDate(new Date(tiddler.fields[fieldName]))}\n";
+        output += fieldName+": " + $tw.utils.stringifyDate(new Date(tiddler.fields[fieldName])) + "\n";
       } else if (fieldName === 'list' || fieldName === 'tags'){
-        output += fieldName+": ${$tw.utils.stringifyList(tiddler.fields[fieldName])}\n";
+        output += fieldName+": " +  $tw.utils.stringifyList(tiddler.fields[fieldName]) + "\n";
       } else if (fieldName !== 'text') {
-        output += fieldName+": ${tiddler.fields[fieldName]}\n";
+        output += fieldName+": " + tiddler.fields[fieldName] + "\n";
       }
     })
     if (tiddler.fields.text) {
