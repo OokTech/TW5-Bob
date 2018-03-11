@@ -35,6 +35,13 @@ it will overwrite this file.
   exports.after = ["render"];
   exports.synchronous = true;
 
+  // Polyfill because IE uses old javascript
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(search, pos) {
+      return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+    };
+  }
+
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
 
   /*
@@ -58,7 +65,7 @@ it will overwrite this file.
     if (data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
       if (data.fields) {
-        if (typeof data.fields.title === 'string' && !data.fields.title.startsWith(`{${$tw.wikiName}}`)) {
+        if (typeof data.fields.title === 'string' && !data.fields.title.startsWith('{' + $tw.wikiName + '}')) {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
           var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));
@@ -89,7 +96,7 @@ it will overwrite this file.
         // remove the prefix for the current wiki from anything listed with
         // that prefix.
         for (var i = 0; i < data.list.length; i++) {
-          data.list[i] = data.list[i].replace(new RegExp(`^\{${$tw.wikiName}\}`),'');
+          data.list[i] = data.list[i].replace(new RegExp("^\{" + $tw.wikiName + "\}"),'');
         }
         var listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields

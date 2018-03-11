@@ -21,6 +21,13 @@ socket server, but it can be extended for use with other web socket servers.
 
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
 
+  // This is needed for IE compatibility
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(search, pos) {
+      return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+    };
+  }
+
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.MultiUser = $tw.MultiUser || {};

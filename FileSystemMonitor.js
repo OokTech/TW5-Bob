@@ -26,11 +26,11 @@ exports.name = 'FileSystemMonitor';
 exports.after = ["load-modules"];
 exports.synchronous = true;
 
-// require the fs module if we are running node
-var fs = $tw.node ? require("fs"): undefined;
-var path = $tw.node ? require("path"): undefined;
+if ($tw.node) {
+  // require the fs module if we are running node
+  var fs = require("fs");
+  var path = require("path");
 
-if (fs) {
   // Initialise objects
   $tw.MultiUser = $tw.MultiUser || {};
   $tw.MultiUser.WaitingList = $tw.MultiUser.WaitingList || {};
