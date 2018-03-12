@@ -346,6 +346,7 @@ if($tw.node) {
         $tw.httpServerPort = port;
         console.log("Serving on " + host + ":" + $tw.httpServerPort);
         console.log("(press ctrl-C to exit)");
+        $tw.settings['ws-server'].port = $tw.httpServerPort;
       } else {
         if ($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
           console.log('Port ', port, ' in use, trying ', port+1);
@@ -624,8 +625,10 @@ if($tw.node) {
           console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
         } else {
           // recurse!
-          prefix = prefix===''?wikiName:prefix + '/' + wikiName;
-          addRoutesThing(inputObject[wikiName], prefix);
+          // This needs to be a new variable or else the rest of the wikis at
+          // this level will get the longer prefix as well.
+          var nextPrefix = prefix===''?wikiName:prefix + '/' + wikiName;
+          addRoutesThing(inputObject[wikiName], nextPrefix);
         }
       })
     }
