@@ -199,24 +199,28 @@ if($tw.node) {
         if(fileInfo.hasMetaFile) {
           // Save the tiddler as a separate body and meta file
           var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
+          var content = makeTiddlerFile(tiddler, true);
+          fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
             }
-            var content = makeTiddlerFile(tiddler);
-            fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
-              if(err) {
-                return callback(err);
-              }
-              // Save with metadata
-              console.log('saved file with metadata', filepath)
-              // addTiddler needs the prefixed title!!
-              var tempTiddlerFields = tiddler.fields;
-              tempTiddlerFields.title = internalName;
-              $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-              $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-              return callback(null);
-            });
+            // TODO figure out why renaming inside the wiki isn't working here
+            //if (tiddler.fields.text) {
+              fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
+                if(err) {
+                  return callback(err);
+                }
+                // Save with metadata
+                console.log('saved file with metadata', filepath)
+                internalSave(tiddler, internalName, prefix);
+                return callback(null);
+              });
+            /*
+            } else {
+              console.log('saved metadata file', filepath)
+              internalSave(tiddler, internalName, prefix);
+            }
+            */
           });
         } else {
           // Save the tiddler as a self contained templated file
@@ -227,27 +231,7 @@ if($tw.node) {
               return callback(err);
             }
             console.log('saved file', filepath)
-            // addTiddler needs the prefixed title!!
-            var tempTiddlerFields = {};
-            Object.keys(tiddler.fields).forEach(function(fieldName) {
-              tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
-            });
-            tempTiddlerFields.title = internalName;
-            $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-            var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
-            $tw.MultiUser.SendToBrowsers(message);
-            // This may help
-            if (prefix !== '') {
-              if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
-                $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-              }
-            } else {
-              $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-              $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-              if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1 && !internalTitle.startsWith('{')) {
-                $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
-              }
-            }
+            internalSave(tiddler, internalName, prefix);
             return callback(null);
           });
         }
@@ -255,7 +239,35 @@ if($tw.node) {
     }
   };
 
-  function makeTiddlerFile(tiddler) {
+  // After the tiddler file is saved this takes care of the internal part
+  function internalSave (tiddler, internalName, prefix) {
+    // addTiddler needs the prefixed title!!
+    var tempTiddlerFields = {};
+    Object.keys(tiddler.fields).forEach(function(fieldName) {
+      tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
+    });
+    tempTiddlerFields.title = internalName;
+    $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+    var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
+    $tw.MultiUser.SendToBrowsers(message);
+    // This may help
+    if (prefix !== '') {
+      if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
+        $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
+      }
+    } else {
+      $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
+      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
+      if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1 && !internalName.startsWith('{')) {
+        $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
+      }
+    }
+  }
+
+  // This transforms a tiddler into the form needed for a .tid file.
+  // TODO figure out if we can replace this with the built-in function. We need
+  // to look at the isMeta part
+  function makeTiddlerFile(tiddler, isMeta) {
     var output = "";
     Object.keys(tiddler.fields).forEach(function(fieldName, index) {
       if (fieldName === 'created' || fieldName === 'modified') {
@@ -266,7 +278,7 @@ if($tw.node) {
         output += fieldName+": " + tiddler.fields[fieldName] + "\n";
       }
     })
-    if (tiddler.fields.text) {
+    if (tiddler.fields.text && !isMeta) {
       output += "\n" + tiddler.fields.text + "\n";
     }
     return output.trim();

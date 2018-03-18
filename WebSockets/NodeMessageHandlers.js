@@ -98,7 +98,11 @@ if ($tw.node) {
               // If changed send tiddler
               var changed = true;
               try {
-                var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath);
+                if (data.tiddler.fields._canonical_uri) {
+                  var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath+'.meta');
+                } else {
+                  var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath);
+                }
                 // The file has the normal title so use the normal title here.
                 changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
               } catch (e) {

@@ -26,6 +26,7 @@ exports.synchronous = true;
 var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/MultiUser/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
 var http = $tw.node ? require("http") : undefined;
+var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
 
@@ -44,7 +45,13 @@ if ($tw.node) {
     // the plugin.
     var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
     var ipAddress = ip.address();
+
+    // Make sure that $tw.settings exists.
     $tw.settings = $tw.settings || {};
+    // Get user settings, if any
+    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    $tw.loadSettings($tw.settings,userSettingsPath);
+
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
     var host = $tw.settings['ws-server'].host || '127.0.0.1';

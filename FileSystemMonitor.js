@@ -152,7 +152,7 @@ if ($tw.node) {
         var itemPath = path.join(folder, filename);
         // If the event is that the file has been deleted than it won't exist
         // but we still need to act here.
-        if(fs.existsSync(itemPath)) {
+        if(fs.existsSync(itemPath) && (itemPath.endsWith('.tid') || itemPath.endsWith('.meta'))) {
           if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
@@ -167,7 +167,7 @@ if ($tw.node) {
               // tiddlres with meta files.
               var rename = false;
               if (tiddlerObject.tiddlers[0].title) {
-                var tiddlerFileTitle = filename.slice(0,-4);
+                var tiddlerFileTitle = filename.endsWith('.tid')?filename.slice(0,-4):filename.slice(0,-5);
                 if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
                   rename = true;
                 }
@@ -289,7 +289,8 @@ if ($tw.node) {
             $tw.MultiUser.WatchFolder(folder);
 
           }
-        } else {
+        } else if (itemPath.endsWith('.tid') || itemPath.endsWith('.meta')) {
+          filename = filename.endsWith('.meta')?filename.slice(0,-5):filename;
           console.log('Delete Tiddler ', folder, '/', filename)
           $tw.MultiUser.DeleteTiddler(folder, filename, prefix);
         }
@@ -348,6 +349,7 @@ if ($tw.node) {
     }
   }
 
+  // TODO make this handle deleting .meta files
   $tw.MultiUser.DeleteTiddler = function (folder, filename, prefix) {
     console.log("Deleted tiddler file " + filename);
     var itemPath = path.join(folder, filename);

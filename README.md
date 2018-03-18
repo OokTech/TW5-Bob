@@ -73,10 +73,11 @@ If you want to change settings see
 
 ### Notes
 
-*NOTE 1 - .meta files:* Something is currently broken with how .meta files are
-handled. So external images that use `_canonical_uri` aren't working correctly.
-Probably also other things but I don't use .meta files so I am not sure what to
-test. I have been using `img` tags for external images without trouble.
+*NOTE 1 - .meta files:* there isn't full support for .meta files. The only
+currently known limitation is that when you rename either the .meta file or the
+file it describes the changes aren't correctly reflected in the browsers.
+Renaming in the browser works as expected. Also empty .meta files are created for any
+file with a `_canonical_uri` field. This has no effect on the wiki.
 
 *NOTE 2 - command line arguments and configuration:*
 I am terrible with command line arguments.
