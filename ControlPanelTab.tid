@@ -59,6 +59,10 @@ Wiki Name:
     wikiName={{$:/temp/NewWiki!!wiki_name}}
     edition={{$:/temp/NewWiki!!edition}}
   />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    wiki_name=''
+  />
 </$button>
 
 ---

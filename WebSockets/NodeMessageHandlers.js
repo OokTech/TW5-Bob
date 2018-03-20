@@ -384,7 +384,6 @@ if ($tw.node) {
       var editionName = data.edition?data.edition:"empty";
       // Check the edition exists
       var editionPath = $tw.findLibraryItem(editionName,$tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar));
-      console.log(editionPath)
       if(!$tw.utils.isDirectory(editionPath)) {
         console.log("Edition '" + editionName + "' not found");
       }
@@ -412,8 +411,6 @@ if ($tw.node) {
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
       // Push changes out to the browsers
       $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
-
-      console.log(tiddlerFields)
 
       $tw.nodeMessageHandlers.saveSettings({wiki: ''});
 
