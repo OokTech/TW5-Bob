@@ -1,0 +1,33 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-createNewWiki
+tags: [[Websocket Message]]
+caption: createNewWiki
+description: A message used to make new wikis
+
+This message is used to create a new wiki using an edition.
+
+''Location note:'' By default new wikis are created in the same folder as the
+root wiki. So if you have a folder `Wikis` and your root wiki in a subfolder
+`RootWiki` than new wikis created using this will also be in the `Wikis`
+folder.
+
+Example folder structure:
+
+```
+Wikis
+ |
+ |-RootWiki
+ |
+ |-NewWiki
+```
+
+!!Usage
+
+|!Name |!Description |
+|!path |The path to the wiki relative to the main folder |
+|!edition |The edition to use to make the new wiki. If it is left out 'empty' is used. |
+|!wikiName |The name to give the new wiki. This is used to make the URL path to the new wiki. |
+|!basePath |OPTIONAL Use this if you want the wiki created somewhere other than the default location (see location note above) |
+
+```
+<$action-websocketmessage $type='createNewWiki' path='wikiFolderPath' edition='editionName' wikiName='newWikiName' basePath='basePath'/>
+```

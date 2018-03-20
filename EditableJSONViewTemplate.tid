@@ -14,7 +14,10 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
     class='tc-btn-invisible'
   >
     "<$view index=<<item>>/>"
-    <$action-setfield $tiddler=<<thisEditingState>> text=editing/>
+    <$action-setfield
+      $tiddler=<<thisEditingState>>
+      text=editing
+    />
   </$button>
 </$reveal>
 <$reveal
@@ -30,8 +33,13 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
   />
   <$button>
     Done
-    <$action-setfield $tiddler=<<thisEditingState>> text=''/>
-    <$action-deletetiddler $tiddler=<<thisEditingState>>/>
+    <$action-setfield
+      $tiddler=<<thisEditingState>>
+      text=''
+    />
+    <$action-deletetiddler
+      $tiddler=<<thisEditingState>>
+    />
   </$button>
   <$button
     class='tc-btn-invisible'

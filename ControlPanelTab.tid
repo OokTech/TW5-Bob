@@ -28,6 +28,41 @@ discard the new property.
 
 ---
 
+You can create new wikis here. It will be created in the folder with the same
+name as you give the wiki here.
+
+Wiki Edition:
+<$select
+  tiddler='$:/temp/NewWiki'
+  field='edition'
+>
+  <$list
+    filter='empty d3demo de-AT de-DE dev es-ES fr-FR full highlightdemo introduction ja-JP katexdemo ko-KR markdowndemo resumebuilder zh-Hans zh-Hant'
+  >
+    <option>
+      <<currentTiddler>>
+    </option>
+  </$list>
+</$select>
+
+Wiki Name:
+<$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='wiki_name'
+/>
+
+<$button>
+  Make Wiki
+  <$action-websocketmessage
+    $type='createNewWiki'
+    path={{$:/temp/NewWiki!!wiki_name}}
+    wikiName={{$:/temp/NewWiki!!wiki_name}}
+    edition={{$:/temp/NewWiki!!edition}}
+  />
+</$button>
+
+---
+
 This button will restart the wiki server, you will have to reload the wiki
 after the server has restarted to reconnect.
 This may not be a full restart in the same way as stopping the process and

@@ -351,5 +351,78 @@ if ($tw.node) {
     }
   }
 
+  // This is just a copy of the init command modified to work in this context
+  $tw.nodeMessageHandlers.createNewWiki = function (data) {
+    if (data.wiki === '') {
+      var fs = require("fs"),
+    		path = require("path");
+
+      var name = data.wikiName || 'newWiki';
+
+      var currentWikis = JSON.parse($tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis'));
+      if (currentWikis[name]) {
+        i = 0;
+        var newName = name;
+        while (currentWikis[newName]) {
+          i = i + 1;
+          newName = name + i;
+        }
+        name = name + i;
+      }
+
+      // Paths are relative to the root wiki path
+      var basePath = data.basePath || path.join($tw.boot.wikiPath, '..')
+      var relativePath = data.path
+      var fullPath = path.join(basePath, relativePath)
+      var tiddlersPath = path.join(fullPath, 'tiddlers')
+    	// Check that we don't already have a valid wiki folder
+    	if(tiddlersPath || ($tw.utils.isDirectory(fullPath) && !$tw.utils.isDirectoryEmpty(fullPath))) {
+    		console.log("Wiki folder is not empty");
+    	}
+      // For now we only support creating wikis with one edition, multi edition
+      // things like in the normal init command can come later.
+      var editionName = data.edition?data.edition:"empty";
+      // Check the edition exists
+      var editionPath = $tw.findLibraryItem(editionName,$tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar));
+      console.log(editionPath)
+      if(!$tw.utils.isDirectory(editionPath)) {
+        console.log("Edition '" + editionName + "' not found");
+      }
+      // Copy the edition content
+      var err = $tw.utils.copyDirectory(editionPath,fullPath);
+      if(!err) {
+        console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+      } else {
+        console.log(err);
+      }
+    	// Tweak the tiddlywiki.info to remove any included wikis
+    	var packagePath = fullPath + "/tiddlywiki.info",
+    		packageJson = JSON.parse(fs.readFileSync(packagePath));
+    	delete packageJson.includeWikis;
+    	fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+
+      currentWikis[name] = fullPath;
+
+      var tiddlerFields = {
+        title: '$:/WikiSettings/split/wikis',
+        text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
+        type: 'application/json'
+      };
+      // Add the tiddler
+      $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+      // Push changes out to the browsers
+      $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
+
+      console.log(tiddlerFields)
+
+      $tw.nodeMessageHandlers.saveSettings({wiki: ''});
+
+      // Then clear all the routes to the non-root wiki
+      $tw.httpServer.clearRoutes();
+      // The re-add all the routes from the settings
+      // This reads the settings so we don't need to give it any arguments
+      $tw.httpServer.addOtherRoutes();
+    }
+  }
 }
 })()
