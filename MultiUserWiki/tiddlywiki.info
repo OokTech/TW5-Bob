@@ -5,8 +5,7 @@
 	],
 	"themes": [
 		"tiddlywiki/vanilla",
-		"tiddlywiki/snowwhite",
-    "OokTech/Mobile"
+		"tiddlywiki/snowwhite"
 	],
 	"build": {
 		"index": [

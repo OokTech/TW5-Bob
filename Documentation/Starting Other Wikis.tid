@@ -13,16 +13,22 @@ the `wikis` section like this:
 
 `'otherwiki': ~/Documents/TiddlyWiki/Wikis/MultiUser`
 
-then click the `Update Settings` button under the list. After this you need to
-restart the wiki for the changes to take effect. Afterward you will be able to
-go to `localhost:8080/otherwiki` to open the wiki (assuming that you are using
-default settings)
+then click the `Update Settings` button under the list. Wait a moment for the
+save button to turn back to grey and then click on the `Update Routes` button
+and your changes should take effect. It may take a few seconds for the server
+to finish processing the requests.
 
+Afterward you will be able to go to `localhost:8080/otherwiki` to open the wiki
+(assuming that you are using default settings)
+
+''Note:'' This does not create the wiki. If the wiki doesn't exist this won't
+do anything. To create a new wiki from within the wiki see the example for the
+[[runScript message|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]].
+
+<!--
 !! Serving wikis using a script (Advanced)
-
-This is a bit advanced so if you don't know what this means don't worry about
-it.
 
 Using the [[runScript|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]]
 websocket message you can run shell commands, so you can do this to start
 serving other wikis normally from within a wiki.
+-->

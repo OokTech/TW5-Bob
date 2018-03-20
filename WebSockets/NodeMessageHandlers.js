@@ -231,159 +231,22 @@ if ($tw.node) {
   }
 
   /*
-    TODO a note here about how to get a list of used ports on a linux or mac
-    machine. I have no idea how to do this in windows.
-
-    linux:
-    ss -lntu | awk '{print $5}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
-    osx:
-    lsof -PiUDP -PiTCP -sTCP:LISTEN | awk '{print $9}' | grep ':' | grep -o '[^:]*$' | sort -g | uniq
-    windows:
-    ????
-  */
-
-  /*
-    This starts a new tiddlywiki server and loads a different wiki.
-  */
-  $tw.nodeMessageHandlers.startWiki = function(data) {
-    if ($tw.node) {
-      if (data.wikiName) {
-        // We want to support more than one level where you list wikis, so we
-        // need to walk though the wiki tree to get the desired one here.
-        var pathParts = data.wikiName.split('##');
-        var wikiPathInfo = getWikiPathInfo(pathParts, $tw.settings.wikis, '');
-        if (wikiPathInfo) {
-          console.log('Switch wiki to ', wikiPathInfo.wikiName);
-          // TODO figure out how to make sure that the tiddlywiki.info file
-          // exists before moving to this point
-
-          // This bit of magic starts a new server with the wiki given in
-          // data.wikiName
-          // Get our commands (node and tiddlywiki)
-          //var nodeCommand = process.argv.shift();
-          //var tiddlyWikiCommand = process.argv.shift();
-          var tiddlyWikiCommand = process.argv[1];
-          // cut off the old wiki argument
-          //process.argv.shift();
-          // if the old argument was wsserver replace it with wsserver-child
-          /*
-          if (process.argv.indexOf('--wsserver') !== -1) {
-            process.argv[process.argv.indexOf('--wsserver')] = '--wsserver-child';
-          }
-          */
-          // Add the new wiki argument.
-          //process.argv.unshift(wikiPathInfo.wikiPath);
-
-          var args = [wikiPathInfo.wikiPath, '--wsserver-child'];
-          // the fork command uses the same node command to start the wiki and
-          // we can use the returned object forked to send and received messages // to and from the new process. This can be used to wait until the
-          // wiki is fully booted before switching to it. And other stuff.
-          //var forked = require('child_process').fork(tiddlyWikiCommand, process.argv, {
-          var forked = require('child_process').fork(tiddlyWikiCommand, args, {
-            cwd: process.cwd(),
-            detached: false,
-            stdio: "inherit"
-          });
-          console.log('Data ', data);
-          // Ask the new process for stuff
-          forked.send({type: 'requestRoot', mountPoint: data.wikiPath});
-          // Add the path for this process.
-          forked.on('message', function (message) {
-            if (message.type === 'shutdown') {
-              var wikiName = data.wikiPath;
-              $tw.MultiUser = $tw.MultiUser || {};
-              $tw.MultiUser.WikiState = $tw.MultiUser.WikiState || {};
-              $tw.MultiUser.WikiState[wikiName] = 'closed';
-              var route = {
-                method: "GET",
-                path: new RegExp('^\/' + wikiName + '\/?$'),
-                handler: function(request, response, state) {
-                  // Make sure we aren't already trying to start a wiki before trying
-                  // to restart it.
-                  $tw.MultiUser = $tw.MultiUser || {};
-                  $tw.MultiUser.WikiState = $tw.MultiUser.WikiState || {};
-                  if ($tw.MultiUser.WikiState[wikiName] !== 'booting' && $tw.MultiUser.WikiState[wikiName] !== 'running') {
-                    console.log('start ', wikiName);
-                    $tw.MultiUser.WikiState[wikiName] = 'booting';
-                    $tw.nodeMessageHandlers.startWiki({wikiName: wikiName.split('/').join('##'), wikiPath: wikiName});
-                  }
-                  // While waiting for the wiki to boot send a page saying that the
-                  // wiki is booting. The page automatically reloads after a few
-                  // seconds. If the wiki has booted it loads the wiki if not it
-                  // reloads the same page.
-                  response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-                  var text = "<html><script>setTimeout(function(){location.reload();}, 5000);</script>Booting up the wiki. The page will reload in a few seconds.<br> Click <a href='./${wikiName}'>here</a> to try refreshing manually.</html>";
-                  response.end(text,"utf8");
-                }
-              }
-            } else {
-              console.log('Receive ', String(new RegExp('^\/' + data.wikiPath + '\/?$')), ' ', message.route.text.length);
-              var route = {
-            		method: "GET",
-                path: new RegExp('^\/' + data.wikiPath + '\/?$'),
-            		handler: function(request,response,state) {
-            			response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-            			var text = message.route.text;
-            			response.end(text,"utf8");
-            		}
-            	};
-              $tw.httpServer.updateRoute(route);
-              /*
-              if (message.type === 'updateRoot') {
-                $tw.httpServer.updateRoute(route);
-              }
-              */
-            }
-          });
-        } else {
-          console.log('Bad wiki path');
-        }
-      }
-    }
-  }
-
-  function getWikiPathInfo (wikiName, currentLevel, route) {
-    if (typeof currentLevel === 'object') {
-      route = route + '/' + wikiName[0];
-      currentLevel = currentLevel[wikiName[0]];
-      wikiName.shift();
-      if (currentLevel) {
-        //recurse!
-        return getWikiPathInfo(wikiName, currentLevel, route);
-      } else {
-        // If the next level doesn't exist return false
-        return false;
-      }
-    } else {
-      if (!fs) {
-        var fs = require('fs');
-        var path = require('path');
-      }
-      var infoPath = path.join(currentLevel, 'tiddlywiki.info');
-      if (fs.existsSync(infoPath)) {
-        //at the end!
-        return {wikiPath: currentLevel, wikiName: route};
-      } else {
-        return false;
-      }
-    }
-  }
-
-  /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
+    TODO update this to work with child wikis
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     if (!path) {
       var path = require('path');
       var fs = require('fs');
     }
+    var prefix = data.wiki === ''?'':'{'+data.wiki+'}';
     // Get first tiddler to start out
-    var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
-    var settings = JSON.stringify(buildSettings(tiddler), "", 2);
+    var tiddler = $tw.wiki.getTiddler(prefix + '$:/WikiSettings/split');
+    var settings = JSON.stringify(buildSettings(tiddler, ''), "", 2);
     // Update the settings tiddler in the wiki.
     var tiddlerFields = {
-      title: '$:/WikiSettings',
+      title: prefix + '$:/WikiSettings',
       text: settings,
       type: 'application/json'
     };
@@ -391,13 +254,15 @@ if ($tw.node) {
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
     $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
+    // Get the wiki path
+    var wikiPath = data.wiki === ''?$tw.boot.wikiPath:$tw.MultiUser.Wikis[data.wiki].wikiPath;
     // Make sure the settings folder exists
-    if (!fs.existsSync(path.join($tw.boot.wikiPath, 'settings'))) {
+    if (!fs.existsSync(path.join(wikiPath, 'settings'))) {
       // Create the settings folder
-      fs.mkdirSync(path.join($tw.boot.wikiPath, 'settings'))
+      fs.mkdirSync(path.join(wikiPath, 'settings'))
     }
     // Save the updated settings
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    var userSettingsPath = path.join(wikiPath, 'settings', 'settings.json');
     fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
       if (err) {
         console.log(err);
@@ -412,15 +277,15 @@ if ($tw.node) {
     $tw.updateSettings($tw.settings, JSON.parse(settings));
   }
 
-  function buildSettings (tiddler) {
+  function buildSettings (tiddler, prefix) {
     var settings = {};
     var object = JSON.parse(tiddler.fields.text);
     Object.keys(object).forEach(function (field) {
       if (typeof object[field] === 'string' || typeof object[field] === 'number') {
-        if (String(object[field]).startsWith('$:/WikiSettings/split')) {
+        if (String(object[field]).startsWith(prefix + '$:/WikiSettings/split')) {
           // Recurse!
-          var newTiddler = $tw.wiki.getTiddler(object[field]);
-          settings[field] = buildSettings(newTiddler);
+          var newTiddler = $tw.wiki.getTiddler(prefix + object[field]);
+          settings[field] = buildSettings(newTiddler, prefix);
         } else {
           // Actual thingy!
           settings[field] = object[field];
@@ -471,6 +336,18 @@ if ($tw.node) {
           }
         }
       }
+    }
+  }
+
+  // This updates what wikis are being served and where they are being served
+  $tw.nodeMessageHandlers.updateRoutes = function (data) {
+    // This is only usable on the root wiki!
+    if (data.wiki === '') {
+      // Then clear all the routes to the non-root wiki
+      $tw.httpServer.clearRoutes();
+      // The re-add all the routes from the settings
+      // This reads the settings so we don't need to give it any arguments
+      $tw.httpServer.addOtherRoutes();
     }
   }
 

@@ -1,0 +1,49 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-updateRoutes
+tags: [[Websocket Message]] [[Human Usable]]
+caption: updateRoutes
+description: Add new wikis to server or update the URL of wikis currently being served.
+
+This message lets you start serving a new wiki from within tiddlywiki. The
+location of the named wiki must be listed in the `wikis` section of the
+`Node Settings` tab in the $:/ControlPanel.
+
+Note this is for wikis that already exist. If you wish to create a new wiki
+see the example for the
+[[runScript message|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]]
+
+!!! Example wikis settings
+
+You can have the wikis grouped in the wikis listing like this:
+
+```
+{
+  wikis: {
+    wikiHere: /path/to/wikiHere,
+    group1: {
+      someWiki: /path/to/someWiki
+    },
+    group2: {
+      otherWiki: /path/to/otherOne,
+      wiki2: /path/to/wiki2
+    }
+  }
+}
+```
+
+Assuming default settings, this means that 5 wikis will be served, the root
+wiki and the 4 child wikis listed. The urls would be:
+
+* For wikiHere the url is `localhost:8080/wikiHere`
+* For someWiki the url is `localhost:8080/group1/someWiki`
+* For otherWiki the url is `localhost:8080/group2/otherWiki`
+* For wiki2 the url is `localhost:8080/group2/wiki2`
+
+
+!!Usage
+
+`<$action-websocketmessage $type='updateRoutes'/>`
+
+''NOTE:'' This message only works from the root wiki. That is the wiki served
+on `localhost:8080` by default (the wiki that opens up when you start the
+application if you are using the single executable version). It is ignored if
+it comes from any child wiki.

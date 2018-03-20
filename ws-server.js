@@ -230,6 +230,14 @@ if($tw.node) {
     this.routes.push(route);
   }
 
+  // This removes all but the root wiki from the routes
+  SimpleServer.prototype.clearRoutes = function () {
+    // Remove any routes that don't match the root path
+    this.routes = this.routes.filter(function(thisRoute) {
+      return String(thisRoute.path) === String(/^\/$/) || String(thisRoute.path) === String(/^\/favicon.ico$/);
+    });
+  }
+
   SimpleServer.prototype.findMatchingRoute = function(request,state) {
     var pathprefix = this.get("pathprefix") || "";
     for(var t=0; t<this.routes.length; t++) {
@@ -469,13 +477,13 @@ if($tw.node) {
     }
     // Add placeholders for other routes that load the wikis associated with each
     // route.
-    this.addOtherRoutes();
+    $tw.httpServer.addOtherRoutes();
   };
 
   /*
     Walk through the $tw.settings.wikis object and add a route for each listed wiki. The routes should make the wiki boot if it hasn't already.
   */
-  Command.prototype.addOtherRoutes = function () {
+  SimpleServer.prototype.addOtherRoutes = function () {
     addRoutesThing($tw.settings.wikis, '');
   }
 
@@ -541,6 +549,7 @@ if($tw.node) {
           $tw.MultiUser = $tw.MultiUser || {};
           $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
           $tw.MultiUser.Wikis[fullName] = $tw.MultiUser.Wikis[fullName] || {};
+          $tw.MultiUser.Wikis[fullName].wikiPath = inputObject[wikiName];
           $tw.MultiUser.Wikis[fullName].wikiTiddlersPath = path.resolve(inputObject[wikiName], 'tiddlers');
 
           // Make route handler
@@ -620,6 +629,16 @@ if($tw.node) {
               var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/single", options);
               response.writeHead(200, {"Content-Type": state.server.get("serveType")});
               response.end(text,"utf8");
+            }
+          });
+          // And add the favicon route for the child wikis
+          $tw.httpServer.addRoute({
+            method: "GET",
+            path: new RegExp('^\/' + fullName + '\/favicon.ico$'),
+            handler: function(request,response,state) {
+              response.writeHead(200, {"Content-Type": "image/x-icon"});
+              var buffer = state.wiki.getTiddlerText("{" + fullName + "}" + "$:/favicon.ico","");
+              response.end(buffer,"base64");
             }
           });
           console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))

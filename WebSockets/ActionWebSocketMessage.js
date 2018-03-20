@@ -76,6 +76,11 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // Add in the message type and param, if they exist
   message.messageType = this.type;
   message.param = this.param;
+
+  // This is needed for when you serve multiple wikis
+  var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
+  message.wiki = wikiName?wikiName:'';
+  
   // For any other attributes passed to the widget add them to the message as
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {

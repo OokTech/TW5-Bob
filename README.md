@@ -5,9 +5,11 @@ there may be bugs that I don't know about. Also see notes below.
 
 ## What does it do?
 
+- Multi-User support for using/editing the same wiki(s) simultaneously
+- Multi-Wiki support - run it once and server multiple wikis
 - Two-way real-time syncing between the browser and file system
-- Multi-User support for using/editing the same wikis simultaneously
-- Multi-Wiki support - server multiple wikis at once
+- All configuration can be done from inside the wiki
+- Server external files (like images) so you can include them in your wikis
 - Allows you to run shell scripts and commands from inside the wiki
 
 A lot of the documentation is in the tiddler files in the Documentation folder
@@ -15,7 +17,26 @@ of the plugin, or in the wiki in the plugin information on the control panel.
 
 ## How do I set it up?
 
-### Quick Version
+### Easiest Version (Bundled Application)
+
+To make this more accessible to people I made it so you can download a single
+file and then run it and everything should work. When you run it it should even
+open the wiki in your default browser.
+
+To do use this go here
+(https://github.com/OokTech/TW5-SingleExecutable/releases) and download the
+file for your system (tiddlyLinux for linux, tiddlyWin.exe for windows and
+tiddlyOSX for mac). Then run the file.
+
+- On windows it may ask if you want to allow node through your firewall. Say
+  yes.
+
+It will create an index wiki in the same folder where you run the file, so if
+you want you can copy the file somewhere else. If you want to move it after you
+have run it the first time just be sure to copy the `IndexWiki` folder to the
+same location or it will create a new one without any changes you have made.
+
+### Manual Version
 
 If you are familiar with using tiddlywiki on node than you just need to put
 the plugin into your plugins folder and include it in your `tiddlywiki.info`
@@ -26,7 +47,7 @@ instead of the `server` command.
 
 Also see <a href='./Configuration.md'>Configuration.md</a>.
 
-### Step by step instructions
+#### Step by step instructions (using Node)
 
 If you want to use a fresh local install of tiddlywiki here are command line
 instructions:
@@ -76,8 +97,9 @@ If you want to change settings see
 *NOTE 1 - .meta files:* there isn't full support for .meta files. The only
 currently known limitation is that when you rename either the .meta file or the
 file it describes the changes aren't correctly reflected in the browsers.
-Renaming in the browser works as expected. Also empty .meta files are created for any
-file with a `_canonical_uri` field. This has no effect on the wiki.
+Renaming in the browser works as expected. Also empty .tid files are created
+for any tiddler with a `_canonical_uri` field in addition to the .meta file.
+This has no effect on the wiki.
 
 *NOTE 2 - command line arguments and configuration:*
 I am terrible with command line arguments.
@@ -106,8 +128,8 @@ Here is a more detailed list of things added or changed by this plugin
 - Two-way real-time syncing between the browser and file system
   - Makes tiddlywiki watch the tiddlers folder and updates any tiddlers in the
     wiki when there are changes to any tiddler files.
-    - Makes tiddlywiki save any changes to tiddlers made in the wiki immediately to
-    the file system
+    - Makes tiddlywiki save any changes to tiddlers made in the wiki
+    immediately to the file system
   - Uses an exclude list to ignore certain tiddlers when syncing in the browser
 - Multi-User support
   - Allows any number of people or computers to connect to the wiki server and
@@ -118,12 +140,12 @@ Here is a more detailed list of things added or changed by this plugin
   - MultiUser ability on multiple wikis simultaneously
 - Websockets!! (used on the back-end, can be used by other plugins in the
   future)
-  - Adds a websocket interface to tiddlywiki (currently only used by this plugin,
-    a git plugin is currently being developed as well as plugins to run scripts
-    on the local computer from tiddlywiki)
-  - Adds an action widget that allows you to send arbitrary websocket messages to
-    the server. This can be used to do things like trigger shell scripts from
-    inside the wiki.
+  - Adds a websocket interface to tiddlywiki (currently only used by this
+    plugin, a git plugin is currently being developed as well as plugins to run
+    scripts on the local computer from tiddlywiki)
+  - Adds an action widget that allows you to send arbitrary websocket messages
+    to the server. This can be used to do things like trigger shell scripts
+    from inside the wiki.
 - Adds a new command `wsserver` that starts up a minimal http server so the
   websockets work and so that the node process can spawn child processses which
   serve other wikis.
