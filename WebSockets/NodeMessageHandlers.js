@@ -359,7 +359,10 @@ if ($tw.node) {
 
       var name = data.wikiName || 'newWiki';
 
-      var currentWikis = JSON.parse($tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis'));
+      var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
+
+      tiddlerText = tiddlerText?tiddlerText:"{}";
+      var currentWikis = JSON.parse(tiddlerText);
       if (currentWikis[name]) {
         i = 0;
         var newName = name;
@@ -371,6 +374,7 @@ if ($tw.node) {
       }
 
       // Paths are relative to the root wiki path
+      //console.log($tw.boot.wikiPath)
       var basePath = data.basePath || path.join($tw.boot.wikiPath, '..')
       var relativePath = data.path
       var fullPath = path.join(basePath, relativePath)
