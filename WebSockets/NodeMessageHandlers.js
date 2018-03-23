@@ -375,9 +375,23 @@ if ($tw.node) {
       }
 
       // Paths are relative to the root wiki path
-      //console.log($tw.boot.wikiPath)
+      if (process.pkg) {
+        // This is for handling when it is a single executable
+        // Base path is where the executable is by default
+        data.basePath = data.basePath || path.dirname(process.argv[0]);
+        data.wikisFolder = data.wikisFolder || 'Wikis';
+      }
+      data.wikisFolder = data.wikisFolder || '';
+      // If no basepath is given than the default is to make the folder a
+      // sibling of the index wiki folder
       var basePath = data.basePath || path.join($tw.boot.wikiPath, '..')
-      var relativePath = data.path
+      // This is the path given by the person making the wiki, it needs to be
+      // relative to the basePath
+      // data.wikisFolder is an optional sub-folder to use. If it is set to
+      // Wikis than wikis created will be in the basepath/Wikis/relativePath
+      // folder
+      // I need better names here.
+      var relativePath = path.join(data.wikisFolder, data.path);
       var fullPath = path.join(basePath, relativePath)
       var tiddlersPath = path.join(fullPath, 'tiddlers')
     	// Check that we don't already have a valid wiki folder
@@ -447,7 +461,10 @@ if ($tw.node) {
         name = name + i;
       }
 
-      currentWikis[name] = fullPath;
+      // Use relative paths here.
+      // Note this that is dependent on process.cwd()!!
+      var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      currentWikis[name] = '.' + path.sep + path.relative(rootPath, fullPath);
 
       var tiddlerFields = {
         title: '$:/WikiSettings/split/wikis',
