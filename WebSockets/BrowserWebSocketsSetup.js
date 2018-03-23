@@ -31,7 +31,7 @@ socket server, but it can be extended for use with other web socket servers.
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.MultiUser = $tw.MultiUser || {};
-    $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
+    $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import', '$:/plugins/OokTech/MultiUser/Server Warning'];
 
     // Do all actions on startup.
     function setup() {

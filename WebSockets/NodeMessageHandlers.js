@@ -385,6 +385,13 @@ if ($tw.node) {
       // If no basepath is given than the default is to make the folder a
       // sibling of the index wiki folder
       var basePath = data.basePath || path.join($tw.boot.wikiPath, '..')
+
+      try {
+        fs.mkdirSync(path.join(basePath, data.wikisFolder));
+        console.log('Created Wikis Folder');
+      } catch (e) {
+        console.log('Wikis Folder Exists');
+      }
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath
       // data.wikisFolder is an optional sub-folder to use. If it is set to
@@ -394,10 +401,6 @@ if ($tw.node) {
       var relativePath = path.join(data.wikisFolder, data.path);
       var fullPath = path.join(basePath, relativePath)
       var tiddlersPath = path.join(fullPath, 'tiddlers')
-    	// Check that we don't already have a valid wiki folder
-    	if(!$tw.utils.isDirectoryEmpty(tiddlersPath) || ($tw.utils.isDirectory(fullPath) && !$tw.utils.isDirectoryEmpty(fullPath))) {
-    		console.log("Wiki folder is not empty");
-    	}
       // For now we only support creating wikis with one edition, multi edition
       // things like in the normal init command can come later.
       var editionName = data.edition?data.edition:"empty";
@@ -441,7 +444,7 @@ if ($tw.node) {
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/WikiSettings/split', text:tidText, type: 'application/json'}));
-      $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:tidText}});
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText), type: 'application/json'}, wiki: ''}));
 
       var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
 
