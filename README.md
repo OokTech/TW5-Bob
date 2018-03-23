@@ -7,6 +7,7 @@ there may be bugs that I don't know about. Also see notes below.
 
 - Multi-User support for using/editing the same wiki(s) simultaneously
 - Multi-Wiki support - run it once and server multiple wikis
+- Create new wikis from inside the root wiki
 - Two-way real-time syncing between the browser and file system
 - All configuration can be done from inside the wiki
 - Server external files (like images) so you can include them in your wikis

@@ -1,0 +1,21 @@
+title: $:/plugins/OokTech/MultiUser/Creating New Wikis
+caption: Creating New Wikis
+tags: [[MultiUser Documentation]]
+description: Create and serve new wikis from inside a wiki.
+
+''Note:'' This is about how to create and start serving a new wiki. If you want
+to add an existing wiki to the list of wikis served than you should refer to
+[[starting other wikis|$:/plugins/OokTech/MultiUser/Starting Other Wikis]].
+
+To create a new wiki go to the `Node Settings` tab of the $:/ControlPanel and
+scroll down below the settings interface to where it says you can create a new
+wiki.
+
+Select the edition you want to use as the base and then give the wiki a name
+in the text field, then click the `Make Wiki` button.
+
+After that the new wiki should be available on `localhost:8080/WikiName`
+(assuming you called the wiki WikiName and your wiki is served on port 8080
+using the default settings). If you are not on the computer running the server
+or have changed the settings than the url is the url of your root wiki with
+`/WikiName` added to the end.

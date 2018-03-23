@@ -1,0 +1,26 @@
+title: $:/plugins/OokTech/MultiUser/ManualSettingsTab
+caption: Manual Settings
+
+Click on a value to edit it. After clicking on a value the trashcan icon will
+delete that field.
+To add a new value click on the
+<$button class='tc-btn-invisible'>{{$:/core/images/new-button}}</$button> then
+select if you want to add a simple property or an object that can hold further
+properties, then give a name to the property and if it is a simple property
+also give a value. When you are done click
+<$button class='tc-btn-invisible'>{{$:/core/images/save-button}}</$button> to
+save it, or click
+<$button class='tc-btn-invisible'>{{$:/core/images/cancel-button}}</$button> to
+discard the new property.
+
+{{$:/WikiSettings/split||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}}
+
+<$button>
+  Update Settings
+  <$action-websocketmessage $type=saveSettings/>
+</$button>
+
+<$button>
+  Update Routes
+  <$action-websocketmessage $type=updateRoutes/>
+</$button>

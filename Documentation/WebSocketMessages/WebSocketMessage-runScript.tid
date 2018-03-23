@@ -21,6 +21,11 @@ See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/MultiUser/Runn
 
 ! Usage
 
+''Note:'' This is just an example shell script. You can create new wikis much
+more easily using the built-in tool. See
+[[creating new wikis|$:/plugins/OokTech/MultiUser/Creating New Wikis]] for
+more.
+
 Assuming that you have a script defined in the settings as:
 
 `"NewWiki": "tiddlywiki #wikiName --init #editionName"`

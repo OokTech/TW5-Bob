@@ -1,0 +1,43 @@
+title: $:/plugins/OokTech/MultiUser/Wiki Listing
+caption: Wiki Listing
+
+\define thisMakeURL() ./$(PathPrefix)$$(WikiName)$
+
+\define thisMakeWikiListing()
+<$list
+  filter='[<currentLevel>indexes[]]'
+  variable='WikiName'
+  emptyMessage='No child wikis listed.'
+>
+  <$list
+    filter='[<currentLevel>getindex<WikiName>!prefix<currentLevel>]'
+    variable='Path'
+  >
+    <li>
+      <a href=<<thisMakeURL>> target='_blank'><$text text=<<PathPrefix>>/><$text text=<<WikiName>>/></a>
+    </li>
+  </$list>
+  <$list
+    filter='[<currentLevel>getindex<WikiName>prefix<currentLevel>]'
+    variable=currentLevel
+  >
+    <$set
+      name=PathPrefix
+      filter='[<PathPrefix>addsuffix<WikiName>addsuffix[/]]'
+    >
+      <<thisMakeWikiListing>>
+    </$set>
+  </$list>
+</$list>
+\end
+
+Available Wikis:
+
+<ul>
+  <$vars
+    currentLevel='$:/WikiSettings/split/wikis'
+    PathPrefix=''
+  >
+    <<thisMakeWikiListing>>
+  </$vars>
+</ul>

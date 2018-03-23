@@ -1,0 +1,42 @@
+title: $:/plugins/OokTech/MultiUser/AvailableWikisTab
+caption: Available Wikis
+
+You can create new wikis here. Select the edition and then enter a name.
+
+Names should only have numbers and letters and no spaces or special characters.
+
+Wiki Edition:
+<$select
+  tiddler='$:/temp/NewWiki'
+  field='edition'
+>
+  <$list
+    filter='empty d3demo de-AT de-DE dev es-ES fr-FR full highlightdemo introduction ja-JP katexdemo ko-KR markdowndemo resumebuilder zh-Hans zh-Hant'
+  >
+    <option>
+      <<currentTiddler>>
+    </option>
+  </$list>
+</$select>
+
+Wiki Name:
+<$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='wiki_name'
+/>
+
+<$button>
+  Make Wiki
+  <$action-websocketmessage
+    $type='createNewWiki'
+    path={{$:/temp/NewWiki!!wiki_name}}
+    wikiName={{$:/temp/NewWiki!!wiki_name}}
+    edition={{$:/temp/NewWiki!!edition}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    wiki_name=''
+  />
+</$button>
+
+{{$:/plugins/OokTech/MultiUser/Wiki Listing}}
