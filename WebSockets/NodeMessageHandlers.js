@@ -279,7 +279,7 @@ if ($tw.node) {
 
   function buildSettings (tiddler, prefix) {
     var settings = {};
-    var object = JSON.parse(tiddler.fields.text);
+    var object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
     Object.keys(object).forEach(function (field) {
       if (typeof object[field] === 'string' || typeof object[field] === 'number') {
         if (String(object[field]).startsWith(prefix + '$:/WikiSettings/split')) {
@@ -357,20 +357,21 @@ if ($tw.node) {
       var fs = require("fs"),
     		path = require("path");
 
-      var name = data.wikiName || 'newWiki';
-
-      var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
-
-      tiddlerText = tiddlerText?tiddlerText:"{}";
-      var currentWikis = JSON.parse(tiddlerText);
-      if (currentWikis[name]) {
-        i = 0;
-        var newName = name;
-        while (currentWikis[newName]) {
-          i = i + 1;
-          newName = name + i;
-        }
-        name = name + i;
+      function specialCopy (source, destination) {
+        fs.mkdirSync(destination);
+        var currentDir = fs.readdirSync(source)
+        currentDir.forEach(function (item) {
+          if (fs.statSync(path.join(source, item)).isFile()) {
+            var fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
+            fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
+          } else {
+            //Recurse!! Because it is a folder.
+            // But make sure it is a directory first.
+            if (fs.statSync(path.join(source, item)).isDirectory()) {
+              specialCopy(path.join(source, item), path.join(destination, item));
+            }
+          }
+        });
       }
 
       // Paths are relative to the root wiki path
@@ -380,29 +381,71 @@ if ($tw.node) {
       var fullPath = path.join(basePath, relativePath)
       var tiddlersPath = path.join(fullPath, 'tiddlers')
     	// Check that we don't already have a valid wiki folder
-    	if(tiddlersPath || ($tw.utils.isDirectory(fullPath) && !$tw.utils.isDirectoryEmpty(fullPath))) {
+    	if(!$tw.utils.isDirectoryEmpty(tiddlersPath) || ($tw.utils.isDirectory(fullPath) && !$tw.utils.isDirectoryEmpty(fullPath))) {
     		console.log("Wiki folder is not empty");
     	}
       // For now we only support creating wikis with one edition, multi edition
       // things like in the normal init command can come later.
       var editionName = data.edition?data.edition:"empty";
-      // Check the edition exists
-      var editionPath = $tw.findLibraryItem(editionName,$tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar));
-      if(!$tw.utils.isDirectory(editionPath)) {
-        console.log("Edition '" + editionName + "' not found");
-      }
-      // Copy the edition content
-      var err = $tw.utils.copyDirectory(editionPath,fullPath);
-      if(!err) {
-        console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+      var searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
+      if (process.pkg) {
+        var editionPath = undefined
+    		var pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
+    		if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
+    			editionPath = pluginPath;
+    		}
+        if (editionPath) {
+          specialCopy(editionPath, fullPath);
+          console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+        } else {
+          console.log("Edition not found");
+        }
       } else {
-        console.log(err);
+        // Check the edition exists
+        var editionPath = $tw.findLibraryItem(editionName,searchPaths);
+        if(!$tw.utils.isDirectory(editionPath)) {
+          console.log("Edition '" + editionName + "' not found");
+        }
+        // Copy the edition content
+        var err = $tw.utils.copyDirectory(editionPath,fullPath);
+        if(!err) {
+          console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+        } else {
+          console.log(err);
+        }
       }
     	// Tweak the tiddlywiki.info to remove any included wikis
-    	var packagePath = fullPath + "/tiddlywiki.info",
-    		packageJson = JSON.parse(fs.readFileSync(packagePath));
+    	var packagePath = path.join(fullPath, "tiddlywiki.info");
+    	var packageJson = JSON.parse(fs.readFileSync(packagePath));
     	delete packageJson.includeWikis;
     	fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+
+      // We need to make sure that the wikis entry is in the root settings
+      // thing.
+      var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
+      var tidText = tiddler?JSON.parse(tiddler.fields.text):{};
+      tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
+
+      $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/WikiSettings/split', text:tidText, type: 'application/json'}));
+      $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:tidText}});
+
+      var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
+
+      tiddlerText = tiddlerText?tiddlerText:"{}";
+      var currentWikis = JSON.parse(tiddlerText);
+      // Get desired name for the new wiki
+      var name = data.wikiName || 'newWiki';
+      // Make sure we have a unique name by appending a number to the wiki name
+      // if it exists.
+      if (currentWikis[name]) {
+        i = 0;
+        var newName = name;
+        while (currentWikis[newName]) {
+          i = i + 1;
+          newName = name + i;
+        }
+        name = name + i;
+      }
 
       currentWikis[name] = fullPath;
 
@@ -414,7 +457,7 @@ if ($tw.node) {
       // Add the tiddler
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
       // Push changes out to the browsers
-      $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields, wiki: ''}));
 
       $tw.nodeMessageHandlers.saveSettings({wiki: ''});
 

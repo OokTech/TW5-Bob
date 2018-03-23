@@ -60,7 +60,7 @@ it will overwrite this file.
     }
   */
   $tw.browserMessageHandlers.makeTiddler = function(data) {
-    // console.log('Make Tiddler')
+    //console.log('Make Tiddler')
     // Ignore the message if it isn't for this wiki
     if (data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
