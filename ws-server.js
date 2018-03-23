@@ -587,7 +587,10 @@ if($tw.node) {
                 $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, fullName);
 
                 // Add tiddlers to the node process
-                var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
+                var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+                var fullPath = path.join(basePath, inputObject[wikiName]);
+                //var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
+                var wikiInfo = $tw.MultiUser.loadWikiTiddlers(fullPath, {prefix: fullName});
                 // Add plugins, themes and languages
                 $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
                 $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
