@@ -24,7 +24,14 @@ if($tw.node) {
     fs = require("fs"),
     url = require("url"),
     path = require("path"),
-    http = require("http");
+    http = require("http"),
+    qs = require("querystring");
+
+  // If we are using JWT authentication than we need to check the token in each
+  // message received.
+  if ($tw.settings.UseJWT) {
+    var jwt = require("jsonwebtoken");
+  }
 
   /*
     Commands are loaded before plugins so the updateSettings function may not exist
@@ -317,6 +324,7 @@ if($tw.node) {
     // Dispatch the appropriate method
     switch(request.method) {
       case "GET": // Intentional fall-through
+      case "POST": // Intentional fall-through
       case "DELETE":
         route.handler(request,response,state);
         break;
@@ -332,6 +340,34 @@ if($tw.node) {
         break;
     }
   };
+
+  /*
+    This function adds the authentication route to the server.
+    It takes a POST with the credentials
+  */
+  SimpleServer.prototype.addAuthenticationRoute = function () {
+    $tw.httpServer.addRoute({
+      method: "POST",
+      path: /^\/authenticate$/,
+      handler: function(request,response,state) {
+        var requestBody = '';
+        request.on('data', function (data) {
+          requestBody += data;
+        })
+        request.on('end', function () {
+          var formData = qs.parse(requestBody);
+          console.log(formData)
+          //formData.field
+          //response.writeHead()
+          //response.write()
+          //response.end()
+        })
+        response.writeHead(200, {"Content-Type": "image/x-icon"});
+        var buffer = state.wiki.getTiddlerText("$:/favicon.ico","");
+        response.end(buffer,"base64");
+      }
+    });
+  }
 
   /*
     This function will try the default port, if that port is in use than it will
@@ -475,8 +511,10 @@ if($tw.node) {
         }
       });
     }
-    // Add placeholders for other routes that load the wikis associated with each
-    // route.
+    // Add the authentication route
+    $tw.httpServer.addAuthenticationRoute();
+    // Add placeholders for other routes that load the wikis associated with
+    // each route.
     $tw.httpServer.addOtherRoutes();
   };
 

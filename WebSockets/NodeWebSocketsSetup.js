@@ -29,6 +29,12 @@ var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
+  // If we are using JWT authentication than we need to check the token in each
+  // message received.
+  if ($tw.settings.UseJWT) {
+    var jwt = require("jsonwebtoken");
+  }
+
 
   /*
     This sets up the websocket server and attaches it to the $tw object
@@ -39,12 +45,6 @@ if ($tw.node) {
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
     // Initialise connections array
     $tw.connections = [];
-    // We need to get the ip address of the node process so that we can connect
-    // to the websocket server from the browser
-    // This is the node ip module wrapped in a tiddler so it can be packaged with
-    // the plugin.
-    var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
-    var ipAddress = ip.address();
 
     // Make sure that $tw.settings exists.
     $tw.settings = $tw.settings || {};
@@ -124,7 +124,7 @@ if ($tw.node) {
     function finishSetup () {
       $tw.wss = new WebSocketServer({server: server});
       // Put all the port and host info into a tiddler so the browser can use it
-      $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: ipAddress, port: ServerPort, host: host, wss_port: WSS_SERVER_PORT}));
+      $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT}));
 
       // Set the onconnection function
       $tw.wss.on('connection', handleConnection);

@@ -17,12 +17,27 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if ($tw.node) {
+  // If we are using JWT authentication than we need to check the token in each
+  // message received.
+  if ($tw.settings.UseJWT) {
+    var jwt = require("jsonwebtoken");
+  }
+
   // This lets you add to the $tw.nodeMessageHandlers object without overwriting
   // existing handler functions
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   // Ensure that the browser tiddler list object exists without overwriting an
   // existing copy.
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
+
+  /*
+    This checks if the token is valid
+  */
+  var checkToken = function(data) {
+    //data.username
+    //data.password
+
+  }
 
   /*
     This handles when the browser sends the list of all tiddlers that currently
