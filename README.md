@@ -164,8 +164,10 @@ Here is a more detailed list of things added or changed by this plugin
   problem
 - Serve files from the local file system (like images) so that they can be
   used in the wiki.
+- Build a single file version of any served wikis from within the wiki.
 - *coming soon* Security and authentication to limit access and editing
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* each wiki is part of the same node process so communication and
   sharing tiddlers between the wikis is possible, I just haven't written the UI
   yet.
+- *coming soon* Build single file wikis that take tiddlers from different wikis

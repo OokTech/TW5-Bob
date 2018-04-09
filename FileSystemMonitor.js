@@ -439,6 +439,7 @@ if ($tw.node) {
   	return null;
   };
 
+/*
   // Create the folder for the main wiki
   $tw.MultiUser = $tw.MultiUser || {};
   $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
@@ -451,6 +452,7 @@ if ($tw.node) {
 
   // Watch the root tiddlers folder for chanegs
   $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis.RootWiki.FolderTree, '');
+*/
 }
 
 })();

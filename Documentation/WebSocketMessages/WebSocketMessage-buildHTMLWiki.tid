@@ -1,0 +1,22 @@
+title: $:/plugins/OokTech/MultiUser/WebSocketMessage-buildHTMLWiki
+tags: [[Websocket Message]]
+caption: buildHTMLWiki
+description: A message used to build the single file version of a wiki
+
+This message is used to create a single html file version of the wiki.
+
+!!Usage
+
+Note: all parameters for this are optional.
+
+|!Name |!Description |
+|!buildWiki |The name of the wiki to build. Defaults to the current wiki if no value is given. |
+|!outputFolder |The folder to store the output html file in. Can be absolute or relative to the wiki folder. (Default: `output`) |
+|!outputName |The to give the output html file. (Default: `index.html`) |
+
+
+Example: Build the current wiki in the default location
+
+```
+<$action-websocketmessage $type='buildHTMLWiki'/>
+```

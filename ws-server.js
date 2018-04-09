@@ -27,181 +27,11 @@ if($tw.node) {
     http = require("http"),
     qs = require("querystring");
 
-  // If we are using JWT authentication than we need to check the token in each
-  // message received.
-  if ($tw.settings.UseJWT) {
-    var jwt = require("jsonwebtoken");
-  }
+  // Commands that are just for the server
+  $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
 
-  /*
-    Commands are loaded before plugins so the updateSettings function may not exist
-    yet.
-  */
-  $tw.updateSettings = $tw.updateSettings || function (globalSettings, localSettings) {
-    //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
-    Object.keys(localSettings).forEach(function(key,index){
-      if (typeof localSettings[key] === 'object') {
-        if (!globalSettings[key]) {
-          globalSettings[key] = {};
-        }
-        //do this again!
-        $tw.updateSettings(globalSettings[key], localSettings[key]);
-      } else {
-        globalSettings[key] = localSettings[key];
-      }
-    });
-  }
-  $tw.loadSettings = function(settings, newSettingsPath) {
-    if ($tw.node && !fs) {
-      var fs = require('fs')
-    }
-    var rawSettings;
-    var newSettings;
-
-    // try/catch in case defined path is invalid.
-    try {
-      rawSettings = fs.readFileSync(newSettingsPath);
-    } catch (err) {
-      console.log('ws-server - Failed to load settings file.');
-      rawSettings = '{}';
-    }
-
-    // Try to parse the JSON after loading the file.
-    try {
-      newSettings = JSON.parse(rawSettings);
-    } catch (err) {
-      console.log('ws-server - Malformed Settings. Using empty default.');
-      console.log('ws-server - Check Settings. Maybe comma error?');
-      // Create an empty default Settings.
-      newSettings = {};
-    }
-
-    $tw.updateSettings(settings,newSettings);
-  }
-
-  /*
-  path: path of wiki directory
-  options:
-  	parentPaths: array of parent paths that we mustn't recurse into
-  	readOnly: true if the tiddler file paths should not be retained
-  */
-  // Only add this if we are running node
-  if($tw.node) {
-    $tw.MultiUser.loadWikiTiddlers = function(wikiPath,options) {
-    	options = options || {};
-      options.prefix = options.prefix || '';
-    	var parentPaths = options.parentPaths || [],
-    		wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo),
-    		wikiInfo,
-    		pluginFields;
-    	// Bail if we don't have a wiki info file
-    	if(fs.existsSync(wikiInfoPath)) {
-    		wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
-    	} else {
-    		return null;
-    	}
-    	// Load any parent wikis
-    	if(wikiInfo.includeWikis) {
-    		parentPaths = parentPaths.slice(0);
-    		parentPaths.push(wikiPath);
-    		$tw.utils.each(wikiInfo.includeWikis,function(info) {
-    			if(typeof info === "string") {
-    				info = {path: info};
-    			}
-    			var resolvedIncludedWikiPath = path.resolve(wikiPath,info.path);
-    			if(parentPaths.indexOf(resolvedIncludedWikiPath) === -1) {
-    				var subWikiInfo = $tw.MultiUser.loadWikiTiddlers(resolvedIncludedWikiPath,{
-    					parentPaths: parentPaths,
-    					readOnly: info["read-only"]
-    				});
-    				// Merge the build targets
-    				wikiInfo.build = $tw.utils.extend([],subWikiInfo.build,wikiInfo.build);
-    			} else {
-    				$tw.utils.error("Cannot recursively include wiki " + resolvedIncludedWikiPath);
-    			}
-    		});
-    	}
-    	// Load any plugins, themes and languages listed in the wiki info file
-    	$tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
-    	$tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
-    	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
-    	// Load the wiki files, registering them as writable
-    	var resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
-    	$tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
-        if (!options.prefix || options.prefix !== '') {
-          for (var i = 0; i < tiddlerFile.tiddlers.length; i++) {
-            tiddlerFile.tiddlers[i].title = '{' + options.prefix + '}' === '{}'?tiddlerFile.tiddlers[i].title:'{' + options.prefix + '}' + tiddlerFile.tiddlers[i].title;
-          }
-        }
-    		if(!options.readOnly && tiddlerFile.filepath) {
-    			$tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
-    				$tw.boot.files[tiddler.title] = {
-    					filepath: tiddlerFile.filepath,
-    					type: tiddlerFile.type,
-    					hasMetaFile: tiddlerFile.hasMetaFile
-    				};
-    			});
-    		}
-        $tw.wiki.addTiddlers(tiddlerFile.tiddlers);
-    	});
-    	// Save the original tiddler file locations if requested
-    	var config = wikiInfo.config || {};
-    	if(config["retain-original-tiddler-path"]) {
-    		var output = {};
-    		for(var title in $tw.boot.files) {
-    			output[title] = path.relative(resolvedWikiPath,$tw.boot.files[title].filepath);
-    		}
-    		$tw.wiki.addTiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)});
-    	}
-    	// Save the path to the tiddlers folder for the filesystemadaptor
-      if (options.prefix !== '') {
-        $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-        $tw.MultiUser.Wikis[options.prefix] = $tw.MultiUser.Wikis[options.prefix] || {};
-        $tw.MultiUser.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-      } else {
-        $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-        $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-        $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath = path.resolve($tw.boot.wikiPath,config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-      }
-    	// Load any plugins within the wiki folder
-    	var wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
-    	if(fs.existsSync(wikiPluginsPath)) {
-    		var pluginFolders = fs.readdirSync(wikiPluginsPath);
-    		for(var t=0; t<pluginFolders.length; t++) {
-    			pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
-    			if(pluginFields) {
-            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
-    				$tw.wikis.addTiddler(pluginFields);
-    			}
-    		}
-    	}
-    	// Load any themes within the wiki folder
-    	var wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
-    	if(fs.existsSync(wikiThemesPath)) {
-    		var themeFolders = fs.readdirSync(wikiThemesPath);
-    		for(var t=0; t<themeFolders.length; t++) {
-    			pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
-    			if(pluginFields) {
-            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
-    				$tw.wikis.addTiddler(pluginFields);
-    			}
-    		}
-    	}
-    	// Load any languages within the wiki folder
-    	var wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
-    	if(fs.existsSync(wikiLanguagesPath)) {
-    		var languageFolders = fs.readdirSync(wikiLanguagesPath);
-    		for(var t=0; t<languageFolders.length; t++) {
-    			pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
-    			if(pluginFields) {
-            pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
-    				$tw.wikis.addTiddler(pluginFields);
-    			}
-    		}
-    	}
-    	return wikiInfo;
-    };
-  }
+  // Make sure that $tw.settings is available.
+  var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 
   /*
   A simple HTTP server with regexp-based routes
@@ -342,34 +172,6 @@ if($tw.node) {
   };
 
   /*
-    This function adds the authentication route to the server.
-    It takes a POST with the credentials
-  */
-  SimpleServer.prototype.addAuthenticationRoute = function () {
-    $tw.httpServer.addRoute({
-      method: "POST",
-      path: /^\/authenticate$/,
-      handler: function(request,response,state) {
-        var requestBody = '';
-        request.on('data', function (data) {
-          requestBody += data;
-        })
-        request.on('end', function () {
-          var formData = qs.parse(requestBody);
-          console.log(formData)
-          //formData.field
-          //response.writeHead()
-          //response.write()
-          //response.end()
-        })
-        response.writeHead(200, {"Content-Type": "image/x-icon"});
-        var buffer = state.wiki.getTiddlerText("$:/favicon.ico","");
-        response.end(buffer,"base64");
-      }
-    });
-  }
-
-  /*
     This function will try the default port, if that port is in use than it will
     increment port numbers until it finds an unused port.
   */
@@ -423,39 +225,16 @@ if($tw.node) {
       method: "GET",
       path: /^\/$/,
       handler: function(request,response,state) {
-        $tw.MultiUser = $tw.MultiUser || {};
-        $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-        $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-        if ($tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
-          $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
-          $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-            return !name.startsWith('{');
-          });
-          // Add tiddlers to the node process
-          var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
-          $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
-            return '$:/plugins/' + name;
-          });
-          $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
-            return '$:/themes/' + name;
-          });
-        }
-        // This makes the wikiTiddlers variable a filter that lists all the
-        // tiddlers for this wiki.
-        var options = {
-          variables: {
-            wikiTiddlers:
-              $tw.MultiUser.Wikis.RootWiki.tiddlers.concat($tw.MultiUser.Wikis.RootWiki.plugins.concat($tw.MultiUser.Wikis.RootWiki.themes)).map(function(tidInfo) {
-                return '[[' + tidInfo + ']]';
-              }).join(' '),
-            wikiName: ''
-          }
-        };
+        // Load the wiki
+        $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+        // Get the raw html to send
+        var text = $tw.ServerSide.prepareWiki('RootWiki', true);
+        // Send the html to the server
         response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-        var text = state.wiki.renderTiddler(state.server.get("renderType"),state.server.get("rootTiddler"), options);
         response.end(text,"utf8");
       }
     });
+    // Add favicon route
     $tw.httpServer.addRoute({
       method: "GET",
       path: /^\/favicon.ico$/,
@@ -511,8 +290,6 @@ if($tw.node) {
         }
       });
     }
-    // Add the authentication route
-    $tw.httpServer.addAuthenticationRoute();
     // Add placeholders for other routes that load the wikis associated with
     // each route.
     $tw.httpServer.addOtherRoutes();
@@ -525,55 +302,7 @@ if($tw.node) {
     addRoutesThing($tw.settings.wikis, '');
   }
 
-  /*
-    Determine which sub-folders are in the current folder
-  */
-  var getDirectories = function(source) {
-    return fs.readdirSync(source).map(function(name) {
-      return path.join(source,name)
-    }).filter(function (source) {
-      return fs.lstatSync(source).isDirectory();
-    });
-  }
-  /*
-    This recursively builds a tree of all of the subfolders in the tiddlers
-    folder.
-    This can be used to selectively watch folders of tiddlers.
-  */
-  var buildTree = function(location, parent) {
-    var folders = getDirectories(path.join(parent,location));
-    var parentTree = {'path': path.join(parent,location), folders: {}};
-    if (folders.length > 0) {
-      folders.forEach(function(folder) {
-        var apex = folder.split(path.sep).pop();
-        parentTree.folders[apex] = {};
-        parentTree.folders[apex] = buildTree(apex, path.join(parent,location));
-      })
-    }
-    return parentTree;
-  }
-  var isDirectory = function(dirPath) {
-    return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
-  };
-  var createDirectory = function(dirPath) {
-    if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
-      dirPath = dirPath + path.sep;
-    }
-    var pos = 1;
-    pos = dirPath.indexOf(path.sep,pos);
-    while(pos !== -1) {
-      var subDirPath = dirPath.substr(0,pos);
-      if(!isDirectory(subDirPath)) {
-        try {
-          fs.mkdirSync(subDirPath);
-        } catch(e) {
-          return "Error creating directory '" + subDirPath + "'";
-        }
-      }
-      pos = dirPath.indexOf(path.sep,pos + 1);
-    }
-    return null;
-  };
+
 
   function addRoutesThing(inputObject, prefix) {
     if (typeof inputObject === 'object') {
@@ -584,90 +313,22 @@ if($tw.node) {
           } else {
             fullName = prefix + '/' + wikiName;
           }
-          $tw.MultiUser = $tw.MultiUser || {};
-          $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-          $tw.MultiUser.Wikis[fullName] = $tw.MultiUser.Wikis[fullName] || {};
-          $tw.MultiUser.Wikis[fullName].wikiPath = inputObject[wikiName];
-          $tw.MultiUser.Wikis[fullName].wikiTiddlersPath = path.resolve(inputObject[wikiName], 'tiddlers');
 
           // Make route handler
           $tw.httpServer.addRoute({
             method: "GET",
             path: new RegExp('^\/' + fullName + '\/?$'),
             handler: function(request, response, state) {
-              // Make sure we haven't already loaded the wiki.
+              // Make sure we have loaded the wiki tiddlers.
+              // This does nothing if the wiki is already loaded.
+              $tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
+              // If servePlugin is not false than we strip out the filesystem
+              // and tiddlyweb plugins if they are there and add in the
+              // multiuser plugin.
+              var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
+              // Get the full text of the html wiki to send as the response.
+              var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
 
-              // Make sure that the root wiki tiddlers are listed!
-              $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-              if ($tw.MultiUser.Wikis.RootWiki.State !== 'loaded') {
-                $tw.MultiUser.Wikis.RootWiki.State = 'loaded';
-                $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.wiki.allTitles().filter(function(name) {
-                  return !name.startsWith('{');
-                });
-                // Add tiddlers to the node process
-                var wikiInfo = $tw.MultiUser.loadWikiTiddlers($tw.boot.wikiPath);
-                $tw.MultiUser.Wikis.RootWiki.plugins = wikiInfo.plugins.map(function(name) {
-                  return '$:/plugins/' + name;
-                });
-                $tw.MultiUser.Wikis.RootWiki.themes = wikiInfo.themes.map(function(name) {
-                  return '$:/themes/' + name;
-                });
-              }
-              if ($tw.MultiUser.Wikis[fullName].State !== 'loaded') {
-                $tw.MultiUser.Wikis[fullName].State = 'loaded';
-                // Get the correct path to the tiddlywiki.info file
-                createDirectory($tw.MultiUser.Wikis[fullName].wikiTiddlersPath);
-
-                // Recursively build the folder tree structure
-                $tw.MultiUser.Wikis[fullName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[fullName].wikiTiddlersPath, {});
-
-                // Watch the root tiddlers folder for chanegs
-                $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[fullName].FolderTree, fullName);
-
-                // Add tiddlers to the node process
-                var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-                var fullPath = path.join(basePath, inputObject[wikiName]);
-                //var wikiInfo = $tw.MultiUser.loadWikiTiddlers(inputObject[wikiName], {prefix: fullName});
-                var wikiInfo = $tw.MultiUser.loadWikiTiddlers(fullPath, {prefix: fullName});
-                // Add plugins, themes and languages
-                $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
-                $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
-              	$tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
-                // Get the list of tiddlers for this wiki
-                $tw.MultiUser.Wikis[fullName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
-                  return title.startsWith('{' + fullName + '}');
-                });
-                $tw.MultiUser.Wikis[fullName].plugins = wikiInfo.plugins.map(function(name) {
-                  return '$:/plugins/' + name;
-                });
-                $tw.MultiUser.Wikis[fullName].themes = wikiInfo.themes.map(function(name) {
-                  return '$:/themes/' + name;
-                });
-              }
-              // By default the normal file system plugins removed and the
-              // multi-user plugin added instead so that they all work the same.
-              // The wikis aren't actually modified, this is just hov they are
-              // served.
-              if (!$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false) {
-                $tw.MultiUser.Wikis[fullName].plugins = $tw.MultiUser.Wikis[fullName].plugins.filter(function(plugin) {
-                  return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
-                });
-                if ($tw.MultiUser.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/MultiUser') === -1) {
-                  $tw.MultiUser.Wikis[fullName].plugins.push('$:/plugins/OokTech/MultiUser');
-                }
-              }
-              // This makes the wikiTiddlers variable a filter that lists all the
-              // tiddlers for this wiki.
-              var options = {
-                variables: {
-                  wikiTiddlers:
-                    $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
-                      return '[[' + tidInfo + ']]';
-                    }).join(' '),
-                  wikiName: fullName
-                }
-              };
-              var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/single", options);
               response.writeHead(200, {"Content-Type": state.server.get("serveType")});
               response.end(text,"utf8");
             }

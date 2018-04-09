@@ -366,11 +366,185 @@ if ($tw.node) {
     }
   }
 
+  // This builds a single file html version of the current wiki.
+  // This is a simplifed version of the renderTiddler command because I
+  // couldn't figure out how to just call that command here.
+  // TODO let people pass a custom exclude filter here.
+  // TODO let people give an include filter that can build a wiki from tiddlers
+  // drawn from any of the served wikis.
+  $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
+    console.log('Build Wiki')
+    var path = require('path')
+    var fs = require('fs')
+    var wikiPath, fullName;
+    if (data.buildWiki) {
+      var exists = $tw.httpServer.loadWiki(data.buildWiki);
+      if (exists) {
+        wikiPath = $tw.MultiUser.Wikis[data.buildWiki].wikiPath || undefined;
+        fullName = data.buildWiki;
+      }
+    } else if (data.wiki === '') {
+      wikiPath = $tw.boot.wikiPath;
+      fullName = 'RootWiki'
+    } else {
+      wikiPath = $tw.MultiUser.Wikis[data.wiki].wikiPath;
+      fullName = data.wiki
+    }
+    if (wikiPath) {
+      var outputFolder = data.outputFolder || 'output';
+      var outputName = data.outputName || 'index.html';
+      var outputFile = path.resolve(wikiPath, outputFolder, 'index.html');
+      $tw.utils.createFileDirectories(outputFile);
+      // We want to ignore the server-specific plugins to keep things small.
+      var excludeList = ['$:/plugins/OokTech/MultiUser', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+      // tiddlers for this wiki.
+      var options = {
+        variables: {
+          wikiTiddlers:
+            $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
+              // This prevents the MultiUser plugin from being added to the wiki
+              // It also strips out the filesystem and tiddlyweb plugins
+              if (excludeList.indexOf(tidInfo) === -1) {
+                return '[[' + tidInfo + ']]';
+              } else {
+                return '';
+              }
+            }).join(' '),
+          wikiName: fullName
+        }
+      };
+      fs.writeFile(outputFile,$tw.wiki.renderTiddler('text/plain','$:/core/save/single', options),"utf8",function(err) {
+        if (err) {
+            console.log(err);
+          } else {
+            console.log('Built Wiki: ', outputFile);
+          }
+      });
+    } else {
+      console.log("Can't find wiki ", fullName, ", is it listed in the node settings tab?");
+    }
+  }
+
+  /*
+    This lets you select a wiki html file and split it into individual tiddlers
+    and create a new node wiki for it.
+    It also adds the new wiki to the list of wikis served.
+
+    Rather than mess around with parsing html in node I am going to have this
+    parse the html file into tiddlers in the browser and then send them to this
+    message. This also means that this can be used to make a wiki out of a sub-set of tiddlers from an existing wiki, or from different wikis.
+    TODO make this keep track of where the original wiki is so we can overwrite
+    the original wiki when saving this one.
+
+    inputs:
+    data.filePath - the path to the single file html wiki to split up.
+    data.wikisPath - the path to where the node wiki should be saved.
+    data.wikiFolder - the folder to hold the wikis
+    data.wikiName - the name to give the node version of the wiki
+  */
+  $tw.nodeMessageHandlers.newWikiFromTiddlers = function (data) {
+    // Do nothing unless there is an input file path given
+//    if (data.filePath) {
+    if (data.tiddlers) {
+      var path = require('path');
+      var wikiName, wikiTiddlersPath, basePath;
+      var wikiFolder = data.wikiFolder || "Wikis";
+      // If there is no wikiname given create one
+      if (data.wikiName) {
+        // If a name is given use it
+        wikiName = GetWikiName(data.wikiName, 0);
+      } else {
+        // Otherwise create a new wikiname
+        wikiName = GetWikiName("NewWiki", 0);
+      }
+      // If there is no output path given use a default one
+      if (data.wikisPath) {
+        basePath = data.wikisPath;
+      } else {
+        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      }
+      // To do this we may need to load the html file and render it inside a
+      // fakedom and then parse that to get the tiddlers.
+      var fake = $tw.fakeDocument.createElement('div');
+      console.log(fake)
+      // Look in boot.js starting line 1437
+
+      // First copy the empty edition to the wikiPath to make the
+      // tiddlywiki.info
+      var params = {"wiki": "", "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName}
+      console.log('1')
+      $tw.nodeMessageHandlers.createNewWiki(params)
+      console.log('2')
+      // Get the folder for the wiki tiddlers
+      wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
+      console.log('3')
+      // Then split the wiki into separate tidders
+      //var tiddlers = $tw.loadTiddlersFromFile(data.filePath),
+      var count = 0;
+      $tw.utils.each(data.tiddlers,function(tiddlerInfo) {
+        console.log('4')
+        console.log(tiddlerInfo)
+        $tw.utils.each(tiddlerInfo.tiddlers,function(tiddler) {
+          // Save each tiddler in the correct folder
+          // Get the tiddler file title
+          var tiddlerFileName = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddler.title);
+          // Output file name
+          var outputFile = path.join(wikiTiddlersPath, tiddlerFileName);
+          var options = {
+            "currentTiddler": tiddler.title
+          };
+          // Save each tiddler as a file in the appropriate place
+          fs.writeFile(outputFile,$tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options),"utf8",function(err) {
+            if (err) {
+              console.log(err);
+            }
+          });
+          count++;
+        });
+      });
+      if(!count) {
+        console.log("No tiddlers found in the input file");
+      } else {
+        // Add the new wiki to the list of served wikis
+        // TODO this!!
+      }
+    } else {
+      console.log('No path given!');
+    }
+  }
+
+  /*
+    This ensures that the wikiName used is unique by appending a number to the
+    end of the name and incrementing the number if needed until an unused name
+    is created.
+  */
+  function GetWikiName (wikiName, count) {
+    // If the wikiName is usused than return it
+    if (!$tw.settings.wikis[wikiName]) {
+      return wikiName;
+    } else {
+      // Try the next name and recurse
+      if (wikiName.endsWith(count)) {
+        // If the name ends in a number increment it
+        wikiName = wikiName.slice(0, -1*String(count).length);
+        count = Number(count) + 1;
+        updatedName = wikiName + String(count);
+      } else {
+        // If the name doesn't end in a number than add a 1 to start out.
+        count = Number(count) + 1;
+        updatedName = wikiName + String(count);
+      }
+      return GetWikiName(updatedName, count);
+    }
+  }
+
   // This is just a copy of the init command modified to work in this context
   $tw.nodeMessageHandlers.createNewWiki = function (data) {
     if (data.wiki === '') {
       var fs = require("fs"),
-    		path = require("path");
+        path = require("path");
+
+        console.log(data)
 
       function specialCopy (source, destination) {
         fs.mkdirSync(destination);
@@ -422,10 +596,10 @@ if ($tw.node) {
       var searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
       if (process.pkg) {
         var editionPath = undefined
-    		var pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
-    		if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
-    			editionPath = pluginPath;
-    		}
+        var pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
+        if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
+          editionPath = pluginPath;
+        }
         if (editionPath) {
           specialCopy(editionPath, fullPath);
           console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
@@ -446,11 +620,11 @@ if ($tw.node) {
           console.log(err);
         }
       }
-    	// Tweak the tiddlywiki.info to remove any included wikis
-    	var packagePath = path.join(fullPath, "tiddlywiki.info");
-    	var packageJson = JSON.parse(fs.readFileSync(packagePath));
-    	delete packageJson.includeWikis;
-    	fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+      // Tweak the tiddlywiki.info to remove any included wikis
+      var packagePath = path.join(fullPath, "tiddlywiki.info");
+      var packageJson = JSON.parse(fs.readFileSync(packagePath));
+      delete packageJson.includeWikis;
+      fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
 
       // We need to make sure that the wikis entry is in the root settings
       // thing.
@@ -470,7 +644,7 @@ if ($tw.node) {
       // Make sure we have a unique name by appending a number to the wiki name
       // if it exists.
       if (currentWikis[name]) {
-        i = 0;
+        var i = 0;
         var newName = name;
         while (currentWikis[newName]) {
           i = i + 1;

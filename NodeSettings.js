@@ -60,7 +60,7 @@ if ($tw.node) {
   	try {
   		rawSettings = fs.readFileSync(newSettingsPath);
   	} catch (err) {
-  		console.log('NodeSettings - Failed to load settings file.');
+  		console.log('NodeSettings - No settings file, creating one with default values.');
       rawSettings = '{}';
   	}
 

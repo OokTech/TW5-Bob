@@ -70,10 +70,8 @@ socket server, but it can be extended for use with other web socket servers.
     */
     var parseMessage = function(event) {
       var eventData = JSON.parse(event.data);
-      // console.log("Event data: ",event.data)
       if (eventData.type) {
         if (typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
-          // console.log(Object.keys($tw.browserMessageHandlers))
           $tw.browserMessageHandlers[eventData.type](eventData);
         }
       }
@@ -118,7 +116,10 @@ socket server, but it can be extended for use with other web socket servers.
         with titles starting with $:/temp/ or $:/state/
       */
     	$tw.wiki.addEventListener("change",function(changes) {
-        Object.keys(changes).forEach(function(tiddlerTitle) {
+        // TODO test this a bit, using for (prop in obj) is supposed to be
+        // faster than object.keys().forEach() and this part runs a lot.
+        //Object.keys(changes).forEach(function(tiddlerTitle) {
+        for (var tiddlerTitle in changes) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
               // console.log('Modified/Created Tiddler');
@@ -131,7 +132,8 @@ socket server, but it can be extended for use with other web socket servers.
               $tw.socket.send(message);
             }
           }
-        });
+        //});
+        }
     	});
       /*
         Below here are skeletons for adding new actions to existing hooks.
