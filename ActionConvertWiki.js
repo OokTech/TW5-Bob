@@ -65,15 +65,16 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     console.log(file.type);
     // Read the file and pass it to the parsing stuff
     $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
-      console.log(output);
+      if (output.length > 0) {
+        var message = {
+          "messageType": "newWikiFromTiddlers",
+          "tiddlers": output
+        }
+        $tw.socket.send(JSON.stringify(message));
+      } else {
+        console.log("No tiddlers found in input file!");
+      }
     })
-    /*
-    $tw.wiki.readFile(file, function (input) {
-      console.log(input)
-      var message = {};
-    })
-    */
-    //console.log(fileElement.value)
     /*
     // Take the output wikis and send them to the node process using
     // the appropriate websocket message

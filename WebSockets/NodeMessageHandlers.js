@@ -448,6 +448,7 @@ if ($tw.node) {
 //    if (data.filePath) {
     if (data.tiddlers) {
       var path = require('path');
+      var fs = require('fs')
       var wikiName, wikiTiddlersPath, basePath;
       var wikiFolder = data.wikiFolder || "Wikis";
       // If there is no wikiname given create one
@@ -464,45 +465,40 @@ if ($tw.node) {
       } else {
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       }
-      // To do this we may need to load the html file and render it inside a
-      // fakedom and then parse that to get the tiddlers.
-      var fake = $tw.fakeDocument.createElement('div');
-      console.log(fake)
-      // Look in boot.js starting line 1437
 
       // First copy the empty edition to the wikiPath to make the
       // tiddlywiki.info
-      var params = {"wiki": "", "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName}
-      console.log('1')
-      $tw.nodeMessageHandlers.createNewWiki(params)
-      console.log('2')
+      var params = {"wiki": "", "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName, "wikiName": wikiName};
+      $tw.nodeMessageHandlers.createNewWiki(params);
       // Get the folder for the wiki tiddlers
       wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
-      console.log('3')
+      // Make sure tiddlers folder exists
+      try {
+        fs.mkdirSync(wikiTiddlersPath);
+        console.log('Created Tiddlers Folder ', wikiTiddlersPath);
+      } catch (e) {
+        console.log('Tiddlers Folder Exists');
+      }
       // Then split the wiki into separate tidders
       //var tiddlers = $tw.loadTiddlersFromFile(data.filePath),
       var count = 0;
-      $tw.utils.each(data.tiddlers,function(tiddlerInfo) {
-        console.log('4')
-        console.log(tiddlerInfo)
-        $tw.utils.each(tiddlerInfo.tiddlers,function(tiddler) {
-          // Save each tiddler in the correct folder
-          // Get the tiddler file title
-          var tiddlerFileName = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddler.title);
-          // Output file name
-          var outputFile = path.join(wikiTiddlersPath, tiddlerFileName);
-          var options = {
-            "currentTiddler": tiddler.title
-          };
-          var text = $tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options);
-          // Save each tiddler as a file in the appropriate place
-          fs.writeFile(outputFile,text,"utf8",function(err) {
-            if (err) {
-              console.log(err);
-            }
-          });
-          count++;
+      $tw.utils.each(data.tiddlers,function(tiddler) {
+        // Save each tiddler in the correct folder
+        // Get the tiddler file title
+        var tiddlerFileName = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddler.title);
+        // Output file name
+        var outputFile = path.join(wikiTiddlersPath, tiddlerFileName);
+        var options = {
+          "currentTiddler": tiddler.title
+        };
+        var text = $tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options);
+        // Save each tiddler as a file in the appropriate place
+        fs.writeFile(outputFile,text,"utf8",function(err) {
+          if (err) {
+            console.log(err);
+          }
         });
+        count++;
       });
       if(!count) {
         console.log("No tiddlers found in the input file");
@@ -521,6 +517,7 @@ if ($tw.node) {
     is created.
   */
   function GetWikiName (wikiName, count) {
+    var updatedName;
     // If the wikiName is usused than return it
     if (!$tw.settings.wikis[wikiName]) {
       return wikiName;
@@ -581,7 +578,7 @@ if ($tw.node) {
         fs.mkdirSync(path.join(basePath, data.wikisFolder));
         console.log('Created Wikis Folder');
       } catch (e) {
-        console.log('Wikis Folder Exists');
+        console.log('Wikis Folder Exists', e);
       }
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath
