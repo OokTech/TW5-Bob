@@ -413,7 +413,8 @@ if ($tw.node) {
           wikiName: fullName
         }
       };
-      fs.writeFile(outputFile,$tw.wiki.renderTiddler('text/plain','$:/core/save/single', options),"utf8",function(err) {
+      var text = $tw.wiki.renderTiddler('text/plain','$:/core/save/single', options);
+      fs.writeFile(outputFile,text,"utf8",function(err) {
         if (err) {
             console.log(err);
           } else {
@@ -493,8 +494,9 @@ if ($tw.node) {
           var options = {
             "currentTiddler": tiddler.title
           };
+          var text = $tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options);
           // Save each tiddler as a file in the appropriate place
-          fs.writeFile(outputFile,$tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options),"utf8",function(err) {
+          fs.writeFile(outputFile,text,"utf8",function(err) {
             if (err) {
               console.log(err);
             }

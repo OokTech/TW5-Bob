@@ -321,13 +321,17 @@ if($tw.node) {
             handler: function(request, response, state) {
               // Make sure we have loaded the wiki tiddlers.
               // This does nothing if the wiki is already loaded.
-              $tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
-              // If servePlugin is not false than we strip out the filesystem
-              // and tiddlyweb plugins if they are there and add in the
-              // multiuser plugin.
-              var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
-              // Get the full text of the html wiki to send as the response.
-              var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
+              var exists = $tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
+              if (exists) {
+                // If servePlugin is not false than we strip out the filesystem
+                // and tiddlyweb plugins if they are there and add in the
+                // multiuser plugin.
+                var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
+                // Get the full text of the html wiki to send as the response.
+                var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
+              } else {
+                var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+              }
 
               response.writeHead(200, {"Content-Type": state.server.get("serveType")});
               response.end(text,"utf8");

@@ -439,20 +439,6 @@ if ($tw.node) {
   	return null;
   };
 
-/*
-  // Create the folder for the main wiki
-  $tw.MultiUser = $tw.MultiUser || {};
-  $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-  $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-  $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath = $tw.boot.wikiTiddlersPath;
-  createDirectory($tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath);
-
-  // Recursively build the folder tree structure
-  $tw.MultiUser.Wikis.RootWiki.FolderTree = buildTree('.', $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath, {});
-
-  // Watch the root tiddlers folder for chanegs
-  $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis.RootWiki.FolderTree, '');
-*/
 }
 
 })();

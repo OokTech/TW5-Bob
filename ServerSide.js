@@ -21,43 +21,67 @@ var fs = require('fs')
   This function loads a wiki that has a route listed.
 */
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
-  $tw.MultiUser = $tw.MultiUser || {};
-  $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-  $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
-  $tw.MultiUser.Wikis[wikiName].wikiPath = wikiFolder;
-  $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
-  // Make sure it isn't loaded already
-  if ($tw.MultiUser.Wikis[wikiName].State !== 'loaded') {
-    $tw.MultiUser.Wikis[wikiName].State = 'loaded';
-    // Get the correct path to the tiddlywiki.info file
-    createDirectory($tw.MultiUser.Wikis[wikiName].wikiTiddlersPath);
-
-    // Recursively build the folder tree structure
-    $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
-
-    // Watch the root tiddlers folder for chanegs
-    var prefix = wikiName === 'RootWiki'?'':wikiName;
-    $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, prefix);
-
-    // Add tiddlers to the node process
-    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath); //inputObject[wikiName]);
-    var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
-    // Add plugins, themes and languages
-    $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
-    $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
-    $tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
-    // Get the list of tiddlers for this wiki
-    $tw.MultiUser.Wikis[wikiName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
-      return title.startsWith('{' + wikiName + '}');
-    });
-    $tw.MultiUser.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
-      return '$:/plugins/' + name;
-    });
-    $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
-      return '$:/themes/' + name;
-    });
+  // First make sure that the wiki is listed
+  var listed = false;
+  if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
+    listed = true;
+  } else {
+    var parts = wikiName.split('/');
+    var obj = $tw.wikis
+    for (var i = 0; i < parts.length; i++) {
+      if (obj[parts[i]]) {
+        if (i === parts.length - 1) {
+          listed = true;
+        } else {
+          obj = obj[parts[i]];
+        }
+      } else {
+        listed = false;
+        break;
+      }
+    }
   }
+  var exists = fs.existsSync(path.join(wikiFolder, 'tiddlywiki.info'))
+  if (listed && exists) {
+    $tw.MultiUser = $tw.MultiUser || {};
+    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+    $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
+    $tw.MultiUser.Wikis[wikiName].wikiPath = wikiFolder;
+    $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+    // Make sure it isn't loaded already
+    if ($tw.MultiUser.Wikis[wikiName].State !== 'loaded') {
+      $tw.MultiUser.Wikis[wikiName].State = 'loaded';
+      // Get the correct path to the tiddlywiki.info file
+      createDirectory($tw.MultiUser.Wikis[wikiName].wikiTiddlersPath);
+
+      // Recursively build the folder tree structure
+      $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
+
+      // Watch the root tiddlers folder for chanegs
+      var prefix = wikiName === 'RootWiki'?'':wikiName;
+      $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, prefix);
+
+      // Add tiddlers to the node process
+      var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath); //inputObject[wikiName]);
+      var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
+      // Add plugins, themes and languages
+      $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+      $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
+      $tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
+      // Get the list of tiddlers for this wiki
+      $tw.MultiUser.Wikis[wikiName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
+        return title.startsWith('{' + wikiName + '}');
+      });
+      $tw.MultiUser.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+        return '$:/plugins/' + name;
+      });
+      $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+        return '$:/themes/' + name;
+      });
+    }
+  }
+  return listed && exists;
 }
 
 /*
