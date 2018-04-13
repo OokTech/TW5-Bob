@@ -27,7 +27,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     listed = true;
   } else {
     var parts = wikiName.split('/');
-    var obj = $tw.wikis
+    var obj = $tw.settings.wikis
     for (var i = 0; i < parts.length; i++) {
       if (obj[parts[i]]) {
         if (i === parts.length - 1) {
