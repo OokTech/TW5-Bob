@@ -92,7 +92,8 @@ if ($tw.node) {
         // Ignore draft tiddlers
         if (!data.tiddler.fields['draft.of']) {
           var prefix = data.wiki || '';
-          var internalTitle = prefix === ''?data.tiddler.fields.title:'{' + prefix + '}' + data.tiddler.fields.title;
+          //var internalTitle = prefix === ''?data.tiddler.fields.title:'{' + prefix + '}' + data.tiddler.fields.title;
+          var internalTitle = '{' + prefix + '}' + data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just always
           // setting it this way and doesn't benifit us.
@@ -255,7 +256,8 @@ if ($tw.node) {
       var path = require('path');
       var fs = require('fs');
     }
-    var prefix = data.wiki === ''?'':'{'+data.wiki+'}';
+    //var prefix = data.wiki === ''?'':'{'+data.wiki+'}';
+    var prefix = '{'+data.wiki+'}';
     // Get first tiddler to start out
     var tiddler = $tw.wiki.getTiddler(prefix + '$:/WikiSettings/split');
     var settings = JSON.stringify(buildSettings(tiddler, ''), "", 2);

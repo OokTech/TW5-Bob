@@ -181,7 +181,9 @@ if ($tw.node) {
                 // So internalTitle is the title used by everything in the $tw
                 // object.
                 // The normal title is tiddlerObject.tiddlers[0].title
-                var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith("{" + prefix + "}"))?tiddlerObject.tiddlers[0].title:"{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
+
+                //var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith("{" + prefix + "}"))?tiddlerObject.tiddlers[0].title:"{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
+                var internalTitle = "{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
 
                 var tiddler = $tw.wiki.getTiddler(internalTitle);
 
@@ -270,10 +272,11 @@ if ($tw.node) {
                 tempTiddlerFields.title = internalTitle;
                 $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
                 $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-                if (prefix !== '') {
-                  $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
-                  $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-                  $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+                //if (prefix !== '') {
+                $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+                $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
+                $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+                /*
                 } else {
                   if(!internalTitle.startsWith('{')) {
                     $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
@@ -281,6 +284,7 @@ if ($tw.node) {
                     $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
                   }
                 }
+                */
               }
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
@@ -307,7 +311,7 @@ if ($tw.node) {
       tempTidObject[field] = tiddlerObject.tiddlers[0][field];
     })
     // Everything here should use the internal title
-    tempTidObject.title = "{" + prefix + "}" === '{}'?title:"{" + prefix + "}" + title;
+    tempTidObject.title = "{" + prefix + "}" + title;
     var itemPath = path.join(folder, filename);
     // If the tiddler doesn't exits yet, create it.
     var tiddler = new $tw.Tiddler({fields:tempTidObject});
@@ -335,10 +339,10 @@ if ($tw.node) {
     // isn't tested in this context).
     $tw.wiki.addTiddlers(tempTidObject);
     $tw.wiki.addTiddler(tempTidObject);
-    if (prefix && prefix !== '') {
+    //if (prefix && prefix !== '') {
       var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
       $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
-    } else {
+    /*} else {
       if (!title.startsWith('{')) {
         $tw.MultiUser = $tw.MultiUser || {};
         $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
@@ -346,7 +350,7 @@ if ($tw.node) {
         $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
         $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
       }
-    }
+    }*/
   }
 
   // TODO make this handle deleting .meta files
