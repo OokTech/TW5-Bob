@@ -182,7 +182,6 @@ if ($tw.node) {
                 // object.
                 // The normal title is tiddlerObject.tiddlers[0].title
 
-                //var internalTitle = (prefix === '' && !tiddlerObject.tiddlers[0].title.startsWith("{" + prefix + "}"))?tiddlerObject.tiddlers[0].title:"{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
                 var internalTitle = "{" + prefix + "}" + tiddlerObject.tiddlers[0].title;
 
                 var tiddler = $tw.wiki.getTiddler(internalTitle);
@@ -272,25 +271,15 @@ if ($tw.node) {
                 tempTiddlerFields.title = internalTitle;
                 $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
                 $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-                //if (prefix !== '') {
                 $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
                 $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
                 $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
-                /*
-                } else {
-                  if(!internalTitle.startsWith('{')) {
-                    $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-                    $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-                    $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
-                  }
-                }
-                */
               }
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');
             console.log(itemPath)
-            $tw.MultiUser.WatchFolder(folder);
+            $tw.MultiUser.WatchFolder(folder, prefix);
 
           }
         } else if (itemPath.endsWith('.tid') || itemPath.endsWith('.meta')) {
@@ -339,18 +328,8 @@ if ($tw.node) {
     // isn't tested in this context).
     $tw.wiki.addTiddlers(tempTidObject);
     $tw.wiki.addTiddler(tempTidObject);
-    //if (prefix && prefix !== '') {
-      var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
-      $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
-    /*} else {
-      if (!title.startsWith('{')) {
-        $tw.MultiUser = $tw.MultiUser || {};
-        $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-        $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-        $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-        $tw.MultiUser.Wikis.RootWiki.tiddlers.push(title);
-      }
-    }*/
+    var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
+    $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
   }
 
   // TODO make this handle deleting .meta files

@@ -58,13 +58,11 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
 
       // Watch the root tiddlers folder for chanegs
-      //var prefix = wikiName === 'RootWiki'?'':wikiName;
-      var prefix = wikiName;
-      $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, prefix);
+      $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, wikiName);
 
       // Add tiddlers to the node process
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath); //inputObject[wikiName]);
+      var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath);
       var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
       // Add plugins, themes and languages
       $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
@@ -158,15 +156,9 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     $tw.wiki.addTiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)});
   }
   // Save the path to the tiddlers folder for the filesystemadaptor
-  //if (options.prefix !== '') {
-    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-    $tw.MultiUser.Wikis[options.prefix] = $tw.MultiUser.Wikis[options.prefix] || {};
-    $tw.MultiUser.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-  /*} else {
-    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-    $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-    $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath = path.resolve($tw.boot.wikiPath,config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-  }*/
+  $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+  $tw.MultiUser.Wikis[options.prefix] = $tw.MultiUser.Wikis[options.prefix] || {};
+  $tw.MultiUser.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
   // Load any plugins within the wiki folder
   var wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
   if(fs.existsSync(wikiPluginsPath)) {
@@ -174,7 +166,6 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     for(var t=0; t<pluginFolders.length; t++) {
       pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
       if(pluginFields) {
-        //pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
         pluginFields.title = '{' + options.prefix + '}' + pluginFields.title;
         $tw.wikis.addTiddler(pluginFields);
       }
@@ -187,7 +178,6 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     for(var t=0; t<themeFolders.length; t++) {
       pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
       if(pluginFields) {
-        //pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
         pluginFields.title = '{' + options.prefix + '}' + pluginFields.title;
         $tw.wikis.addTiddler(pluginFields);
       }
@@ -200,7 +190,6 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     for(var t=0; t<languageFolders.length; t++) {
       pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
       if(pluginFields) {
-        //pluginFields.title = '{' + options.prefix + '}'!=='{}'? '{' + options.prefix + '}' + pluginFields.title:pluginFields.title;
         pluginFields.title = '{' + options.prefix + '}' + pluginFields.title;
         $tw.wikis.addTiddler(pluginFields);
       }
@@ -224,7 +213,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
   }
   // This makes the wikiTiddlers variable a filter that lists all the
   // tiddlers for this wiki.
-  var wikiName = fullName;// === 'RootWiki'?'':fullName;
+  var wikiName = fullName;
   var options = {
     variables: {
       wikiTiddlers:
