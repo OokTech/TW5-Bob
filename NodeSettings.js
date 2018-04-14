@@ -27,6 +27,7 @@ if ($tw.node) {
   */
   var defaultSettingsTiddler = '$:/plugins/OokTech/NodeSettings/DefaultSettings';
   var startup = function () {
+    /*
     if ($tw.node) {
     	var fs = require("fs"),
     		path = require("path");
@@ -41,6 +42,7 @@ if ($tw.node) {
 
       $tw.loadSettings($tw.settings, userSettingsPath);
     }
+    */
   }
 
   /*
@@ -118,7 +120,15 @@ if ($tw.node) {
       text: settingsString,
       type: 'application/json'
     };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    var message = {
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: 'RootWiki',
+      source_connection: -1
+    };
+    $tw.nodeMessageHandlers.saveTiddler(message);
+    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split");
   }
@@ -140,7 +150,15 @@ if ($tw.node) {
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    var message = {
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: 'RootWiki',
+      source_connection: -1
+    };
+    $tw.nodeMessageHandlers.saveTiddler(message);
+    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   }
 
   startup();
