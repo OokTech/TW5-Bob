@@ -46,13 +46,13 @@ if ($tw.node) {
     // Initialise connections array
     $tw.connections = [];
 
-    if (!$tw.settings) {
+    //if (!$tw.settings) {
       // Make sure that $tw.settings exists.
       $tw.settings = $tw.settings || {};
       // Get user settings, if any
       var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
       $tw.loadSettings($tw.settings,userSettingsPath);
-    }
+    //}
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
@@ -136,8 +136,9 @@ if ($tw.node) {
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
       }
+      $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
       // Put all the port and host info into a tiddler so the browser can use it
-      $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix}));
+      //$tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix}));
 
       // I don't know how to set up actually closing a connection, so this doesn't
       // do anything useful yet

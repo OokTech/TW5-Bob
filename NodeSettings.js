@@ -109,36 +109,28 @@ if ($tw.node) {
         globalSettings[key] = localSettings[key];
       }
     });
-    CreateSettingsTiddlers();
   }
 
-  function CreateSettingsTiddlers () {
+  $tw.CreateSettingsTiddlers = function (wiki) {
+    wiki = wiki === ''?'RootWiki':wiki;
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
-      title: '$:/WikiSettings',
+      title: '{' + wiki + '}' + '$:/WikiSettings',
       text: settingsString,
       type: 'application/json'
     };
-    var message = {
-      tiddler: {
-        fields: tiddlerFields
-      },
-      wiki: 'RootWiki',
-      source_connection: -1
-    };
-    $tw.nodeMessageHandlers.saveTiddler(message);
-    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
-    doThisLevel($tw.settings, "$:/WikiSettings/split");
+    doThisLevel($tw.settings, "$:/WikiSettings/split", wiki);
   }
 
-  function doThisLevel (inputObject, currentName) {
+  function doThisLevel (inputObject, currentName, wiki) {
     var currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if (typeof inputObject[property] === 'object') {
         // Call recursive function to walk through properties
-        doThisLevel(inputObject[property], currentName + '/' + property);
+        doThisLevel(inputObject[property], currentName + '/' + property, wiki);
         currentLevel[property] = currentName + '/' + property;
       } else {
         // Add it to this one.
@@ -146,19 +138,11 @@ if ($tw.node) {
       }
     });
     var tiddlerFields = {
-      title: currentName,
+      title: '{' + wiki + '}' + currentName,
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
-    var message = {
-      tiddler: {
-        fields: tiddlerFields
-      },
-      wiki: 'RootWiki',
-      source_connection: -1
-    };
-    $tw.nodeMessageHandlers.saveTiddler(message);
-    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   }
 
   startup();

@@ -195,6 +195,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
       }
     }
   }
+  $tw.CreateSettingsTiddlers(options.prefix);
   return wikiInfo;
 };
 
