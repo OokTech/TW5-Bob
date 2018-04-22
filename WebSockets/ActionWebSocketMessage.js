@@ -80,7 +80,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // This is needed for when you serve multiple wikis
   var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   message.wiki = wikiName?wikiName:'';
-  
+
   // For any other attributes passed to the widget add them to the message as
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {
@@ -88,6 +88,8 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
       message[name] = attribute;
 		}
 	});
+  var token = localStorage.getItem('ws-token');
+  message["token"] = token;
   // We need a message type at a minimum to send anything
   if (message.messageType) {
     // Send the message

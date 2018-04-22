@@ -74,7 +74,8 @@ it will overwrite this file.
             $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
           } else {
             // Respond that we already have this tiddler synced
-            var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title});
+            var token = localStorage.getItem('ws-token')
+            var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title, token: token});
             $tw.socket.send(message);
           }
         } else {
@@ -180,7 +181,8 @@ it will overwrite this file.
     // This is an array of tiddler titles, each title is a string.
     var response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
-    $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response}));
+    var token = localStorage.getItem('ws-token')
+    $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response, token: token}));
   }
 
   /*
@@ -189,7 +191,8 @@ it will overwrite this file.
     The pong response also echos back whatever was sent along with the ping.
   */
   $tw.browserMessageHandlers.ping = function (data) {
-    var message = {messageType: 'pong'};
+    var token = localStorage.getItem('ws-token')
+    var message = {messageType: 'pong', token: token};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
@@ -226,7 +229,8 @@ it will overwrite this file.
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       setTimeout(function () {
-        $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
+        var token = localStorage.getItem('ws-token')
+        $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
     }

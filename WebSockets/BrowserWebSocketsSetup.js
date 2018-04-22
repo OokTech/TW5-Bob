@@ -67,8 +67,9 @@ socket server, but it can be extended for use with other web socket servers.
       if the connection to the server gets interrupted.
     */
     var openSocket = function() {
+      var token = localStorage.getItem('ws-token')
       // Start the heartbeat process
-      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true}));
+      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -96,15 +97,17 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.wikiName = '';
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
+        var token = localStorage.getItem('ws-token')
         // console.log('Editing tiddler event: ', event);
-        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName});
+        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
         $tw.socket.send(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
+        var token = localStorage.getItem('ws-token')
         // console.log("cancel editing event: ",event);
-        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName});
+        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
         $tw.socket.send(message);
         // Do the normal handling
         return event;
@@ -129,13 +132,15 @@ socket server, but it can be extended for use with other web socket servers.
         for (var tiddlerTitle in changes) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
+              var token = localStorage.getItem('ws-token')
               // console.log('Modified/Created Tiddler');
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
-              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName});
+              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             } else if (changes[tiddlerTitle].deleted) {
+              var token = localStorage.getItem('ws-token')
               // console.log('Deleted Tiddler');
-              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName});
+              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             }
           }
