@@ -31,12 +31,11 @@ socket server, but it can be extended for use with other web socket servers.
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.MultiUser = $tw.MultiUser || {};
-    $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import', '$:/plugins/OokTech/MultiUser/Server Warning'];
+    $tw.MultiUser.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ExcludeSync');
 
     // Do all actions on startup.
     function setup() {
       $tw.Syncer.isDirty = false;
-      //var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
       var IPTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/ws-server");
       try {
         var output = JSON.parse(IPTiddler.fields.text);
@@ -44,7 +43,6 @@ socket server, but it can be extended for use with other web socket servers.
         var output = {};
       }
       var IPAddress = window.location.hostname;
-      //var WSSPort = IPTiddler.fields.wss_port;
       var WSSPort = output.wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
       $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
@@ -67,7 +65,8 @@ socket server, but it can be extended for use with other web socket servers.
       if the connection to the server gets interrupted.
     */
     var openSocket = function() {
-      var token = localStorage.getItem('ws-token')
+      console.log('Opened socket');
+      var token = localStorage.getItem('ws-token');
       // Start the heartbeat process
       $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
     }
@@ -122,29 +121,31 @@ socket server, but it can be extended for use with other web socket servers.
         Listen out for changes to tiddlers
         This handles tiddlers that are edited directly or made using things
         like the setfield widget.
-        This ignores tiddlers that are in the exclude list as well as tiddlers
-        with titles starting with $:/temp/ or $:/state/
+        This ignores tiddlers that are in the exclude filter
       */
     	$tw.wiki.addEventListener("change",function(changes) {
-        // TODO test this a bit, using for (prop in obj) is supposed to be
-        // faster than object.keys().forEach() and this part runs a lot.
-        //Object.keys(changes).forEach(function(tiddlerTitle) {
         for (var tiddlerTitle in changes) {
-          if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
+          // If the changed tiddler is the one that holds the exclude filter
+          // than update the exclude filter.
+          if (tiddlerTitle === '$:/plugins/OokTech/MultiUser/ExcludeSync') {
+            $tw.MultiUser.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ExcludeSync');
+          }
+          var list = $tw.wiki.filterTiddlers($tw.MultiUser.ExcludeFilter);
+          if (list.indexOf(tiddlerTitle) === -1) {
             if (changes[tiddlerTitle].modified) {
               var token = localStorage.getItem('ws-token')
-              // console.log('Modified/Created Tiddler');
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
               var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
-              // console.log('Deleted Tiddler');
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             }
+          } else {
+            // Stop the dirty indicator from turning on.
+            $tw.utils.toggleClass(document.body,"tc-dirty",false);
           }
-        //});
         }
     	});
       /*

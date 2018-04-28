@@ -17,12 +17,6 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if ($tw.node) {
-  // If we are using JWT authentication than we need to check the token in each
-  // message received.
-  if ($tw.settings.UseJWT) {
-    var jwt = require("jsonwebtoken");
-  }
-
   // This lets you add to the $tw.nodeMessageHandlers object without overwriting
   // existing handler functions
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
@@ -69,6 +63,9 @@ if ($tw.node) {
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
+    if (data.heartbeat) {
+      message.heartbeat = true;
+    }
     // When the server receives a ping it sends back a pong.
     var response = JSON.stringify(message);
     $tw.connections[data.source_connection].socket.send(response);
@@ -106,7 +103,6 @@ if ($tw.node) {
           if (!$tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title]) {
             // If we are not expecting a save tiddler event than save the tiddler
             // normally.
-            console.log('Node Save Tiddler');
             if (!$tw.boot.files[internalTitle]) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
               $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
@@ -162,7 +158,7 @@ if ($tw.node) {
     This is the handler for when the browser sends the deleteTiddler message.
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
-    console.log('Node Delete Tiddler');
+    //console.log('Node Delete Tiddler');
     // Make the internal name
     data.tiddler = '{' + data.wiki + '}' + data.tiddler;
     // Delete the tiddler file from the file system

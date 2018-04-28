@@ -228,6 +228,8 @@ it will overwrite this file.
       $tw.utils.toggleClass(document.body,"tc-dirty",false);
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
+      // Clear the retry timeout.
+      clearTimeout($tw.settings.heartbeat.retry);
       setTimeout(function () {
         var token = localStorage.getItem('ws-token')
         $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
@@ -245,6 +247,10 @@ it will overwrite this file.
     var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
     var tiddler = {title: '$:/plugins/OokTech/MultiUser/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
+    $tw.settings.heartbeat.retry = setInterval(function () {
+      var token = localStorage.getItem('ws-token')
+      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
+    }, $tw.settings.heartbeat.interval);
   }
 
 })();

@@ -207,15 +207,8 @@ if($tw.node) {
     this.params = params;
     this.commander = commander;
     this.callback = callback;
-    // Get default Settings
-    var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
-    // Make sure that $tw.settings exists.
-    $tw.settings = $tw.settings || {};
-    // Add Settings to the global $tw.settings
-    $tw.updateSettings($tw.settings, settings);
-    // Get user settings, if any
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    $tw.loadSettings($tw.settings,userSettingsPath);
+    // Make sure that $tw.settings is available.
+    var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
     // Set up server
     $tw.httpServer = new SimpleServer({
       wiki: this.commander.wiki

@@ -29,13 +29,6 @@ var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
-  // If we are using JWT authentication than we need to check the token in each
-  // message received.
-  if ($tw.settings.UseJWT) {
-    var jwt = require("jsonwebtoken");
-  }
-
-
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
@@ -46,13 +39,10 @@ if ($tw.node) {
     // Initialise connections array
     $tw.connections = [];
 
-    //if (!$tw.settings) {
-      // Make sure that $tw.settings exists.
-      $tw.settings = $tw.settings || {};
-      // Get user settings, if any
-      var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-      $tw.loadSettings($tw.settings,userSettingsPath);
-    //}
+    if (!$tw.settings) {
+      // Make sure that $tw.settings is available.
+      var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
+    }
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;

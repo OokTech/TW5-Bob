@@ -27,7 +27,6 @@ if ($tw.node) {
   */
   var defaultSettingsTiddler = '$:/plugins/OokTech/NodeSettings/DefaultSettings';
   var startup = function () {
-    /*
     if ($tw.node) {
     	var fs = require("fs"),
     		path = require("path");
@@ -42,7 +41,6 @@ if ($tw.node) {
 
       $tw.loadSettings($tw.settings, userSettingsPath);
     }
-    */
   }
 
   /*

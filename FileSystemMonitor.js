@@ -36,7 +36,6 @@ if ($tw.node) {
   $tw.MultiUser = $tw.MultiUser || {};
   $tw.MultiUser.WaitingList = $tw.MultiUser.WaitingList || {};
   $tw.MultiUser.EditingTiddlers = $tw.MultiUser.EditingTiddlers || {};
-  $tw.MultiUser.FolderTree = $tw.MultiUser.FolderTree || {};
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
