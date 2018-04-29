@@ -182,7 +182,7 @@ it will overwrite this file.
     var response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
-    $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response, token: token}));
+    $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
   }
 
   /*

@@ -113,13 +113,6 @@ settings wouldn't take effect until the wiki server is reset, so I made a way
 to reset the wiki server from inside the wiki. You can also shutdown the wiki
 server from inside the wiki.
 
-*NOTE 3 - Terminal output:*
-There will be a lot of messages in the terminal where you started the node
-process. Messages saying `Cancel Editing Tiddler`, `Node Delete Tiddler`, the
-messages come from every connected browser so the more connections there are
-the more times they will be repeated. I am leaving them in for now for
-debugging but they can be safely ignored.
-
 ---
 
 ## More Details
@@ -127,18 +120,16 @@ debugging but they can be safely ignored.
 Here is a more detailed list of things added or changed by this plugin
 
 - Two-way real-time syncing between the browser and file system
-  - Makes tiddlywiki watch the tiddlers folder and updates any tiddlers in the
-    wiki when there are changes to any tiddler files.
-    - Makes tiddlywiki save any changes to tiddlers made in the wiki
-    immediately to the file system
-  - Uses an exclude list to ignore certain tiddlers when syncing in the browser
+  - Updates the wiki in the browser immediately when any changes are made to the file system
+  - Immediately save changes to tiddlers made in the browser to the file system
+  - Syncing can ignore tiddlers based on an editable exclude filter
 - Multi-User support
-  - Allows any number of people or computers to connect to the wiki server and
-    use or edit the same wiki simultaneously.
+  - Allows any number of people/computers/browser tabs to connect to the wiki
+    server and use or edit the same wiki(s) simultaneously.
   - Prevents multiple people from editing the same tiddler at the same time by
     disabling the edit button for tiddlers currently being edited
-- Multi-Wiki support
-  - MultiUser ability on multiple wikis simultaneously
+- Multi-Wiki support, the plugin can serve multiple wikis at once, each served
+  wiki has all the features listed here.
 - Websockets!! (used on the back-end, can be used by other plugins in the
   future)
   - Adds a websocket interface to tiddlywiki (currently only used by this
@@ -147,19 +138,14 @@ Here is a more detailed list of things added or changed by this plugin
   - Adds an action widget that allows you to send arbitrary websocket messages
     to the server. This can be used to do things like trigger shell scripts
     from inside the wiki.
-- Adds a new command `wsserver` that starts up a minimal http server so the
-  websockets work and so that the node process can spawn child processses which
-  serve other wikis.
-  - If the `autoIncrementPort` setting is set to `true` than it will start at
-    the given port and if it is in use than it will try the next port until an
-    open port is found.
-- Adds some new hooks to the navigator widget that were needed (this doesn't
-  change anything about how the navigator widget acts, it just adds some new
-  places for hooks)
+- Adds a new command `wsserver` that starts up a minimal http and websocket
+  server used for the real-time communication between the browser and server.
+- Adds a new command `externalserver` which starts up the wiki without a server
+  so that you can use an external server, like an expressjs server.
 - Allows you to reset the tiddlywiki server from the browser using a websocket
   message.
-- Adds a way to run shell scripts from the wiki
-- Adds a utility to configure everything from inside the wiki
+- Lets you run shell scripts from inside the wiki
+- Everything is configurable from inside the wiki
 - Your connection to the server is monitored and you are warned if there is a
   problem
 - Serve files from the local file system (like images) so that they can be

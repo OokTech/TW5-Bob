@@ -25,15 +25,6 @@ if ($tw.node) {
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
   /*
-    This checks if the token is valid
-  */
-  var checkToken = function(data) {
-    //data.username
-    //data.password
-
-  }
-
-  /*
     This handles when the browser sends the list of all tiddlers that currently
     exist in the browser version of the wiki. This is different than the list of
     all tiddlers in files.
@@ -42,6 +33,7 @@ if ($tw.node) {
     // Save the list of tiddlers in the browser as part of the $tw object so it
     // can be used elsewhere.
     $tw.BrowserTiddlerList[data.source_connection] = data.titles;
+   $tw.CreateSettingsTiddlers(data.wiki);
   }
 
   /*
@@ -251,7 +243,7 @@ if ($tw.node) {
     var prefix = '{'+data.wiki+'}';
     // Get first tiddler to start out
     var tiddler = $tw.wiki.getTiddler(prefix + '$:/WikiSettings/split');
-    var settings = JSON.stringify(buildSettings(tiddler, ''), "", 2);
+    var settings = JSON.stringify(buildSettings(tiddler, prefix), "", 2);
     // Update the settings tiddler in the wiki.
     var tiddlerFields = {
       title: prefix + '$:/WikiSettings',
@@ -261,7 +253,12 @@ if ($tw.node) {
     // Add the tiddler
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
-    $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
+    var tiddlerFields2 = {
+      title: '$:/WikiSettings',
+      text: settings,
+      type: 'application/json'
+    };
+    $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields2});
     // Get the wiki path
     var wikiPath = $tw.MultiUser.Wikis[data.wiki].wikiPath;
     // Make sure the settings folder exists
@@ -283,6 +280,8 @@ if ($tw.node) {
     $tw.settings = {};
     // Put the updated version in.
     $tw.updateSettings($tw.settings, JSON.parse(settings));
+
+    $tw.CreateSettingsTiddlers();
   }
 
   function buildSettings (tiddler, prefix) {
@@ -292,7 +291,7 @@ if ($tw.node) {
         var object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
         Object.keys(object).forEach(function (field) {
           if (typeof object[field] === 'string' || typeof object[field] === 'number') {
-            if (String(object[field]).startsWith(prefix + '$:/WikiSettings/split')) {
+            if (String(object[field]).startsWith('$:/WikiSettings/split')) {
               // Recurse!
               var newTiddler = $tw.wiki.getTiddler(prefix + object[field]);
               settings[field] = buildSettings(newTiddler, prefix);
@@ -537,8 +536,6 @@ if ($tw.node) {
       var fs = require("fs"),
         path = require("path");
 
-        console.log(data)
-
       function specialCopy (source, destination) {
         fs.mkdirSync(destination);
         var currentDir = fs.readdirSync(source)
@@ -621,14 +618,14 @@ if ($tw.node) {
 
       // We need to make sure that the wikis entry is in the root settings
       // thing.
-      var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
+      var tiddler = $tw.wiki.getTiddler('{RootWiki}$:/WikiSettings/split');
       var tidText = tiddler?JSON.parse(tiddler.fields.text):{};
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
-      $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/WikiSettings/split', text:tidText, type: 'application/json'}));
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText), type: 'application/json'}, wiki: 'RootWiki'}));
+      $tw.wiki.addTiddler(new $tw.Tiddler({title:'{RootWiki}$:/WikiSettings/split', text:tidText, type: 'application/json'}));
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}, wiki: 'RootWiki'}));
 
-      var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
+      var tiddlerText = $tw.wiki.getTiddlerText('{RootWiki}$:/WikiSettings/split/wikis')
 
       tiddlerText = tiddlerText?tiddlerText:"{}";
       var currentWikis = JSON.parse(tiddlerText);
@@ -652,14 +649,19 @@ if ($tw.node) {
       currentWikis[name] = '.' + path.sep + path.relative(rootPath, fullPath);
 
       var tiddlerFields = {
-        title: '$:/WikiSettings/split/wikis',
+        title: '{RootWiki}$:/WikiSettings/split/wikis',
         text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
         type: 'application/json'
       };
       // Add the tiddler
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
       // Push changes out to the browsers
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields, wiki: 'RootWiki'}));
+      var tiddlerFields2 = {
+        title: '$:/WikiSettings/split/wikis',
+        text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
+        type: 'application/json'
+      };
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2, wiki: 'RootWiki'}));
 
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 

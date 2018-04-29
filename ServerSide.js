@@ -63,6 +63,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       // Add tiddlers to the node process
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath);
+
       var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
       // Add plugins, themes and languages
       $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
@@ -78,6 +79,8 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
         return '$:/themes/' + name;
       });
+      // Create the settings tiddlers for this wiki
+      //$tw.nodeMessageHandlers.saveSettings({wiki: wikiName})
     }
   }
   return listed && exists;

@@ -127,8 +127,6 @@ if ($tw.node) {
         $tw.wss.on('connection', handleConnection);
       }
       $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
-      // Put all the port and host info into a tiddler so the browser can use it
-      //$tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix}));
 
       // I don't know how to set up actually closing a connection, so this doesn't
       // do anything useful yet

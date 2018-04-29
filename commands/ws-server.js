@@ -1,5 +1,5 @@
 /*\
-title: $:/core/modules/commands/wsserver.js
+title: $:/plugins/OokTech/MultiUser/commands/wsserver.js
 type: application/javascript
 module-type: command
 
@@ -26,12 +26,6 @@ if($tw.node) {
     path = require("path"),
     http = require("http"),
     qs = require("querystring");
-
-  // Commands that are just for the server
-  $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
-
-  // Make sure that $tw.settings is available.
-  var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 
   /*
   A simple HTTP server with regexp-based routes
@@ -207,6 +201,9 @@ if($tw.node) {
     this.params = params;
     this.commander = commander;
     this.callback = callback;
+    // Commands that are just for the server
+    $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
+
     // Make sure that $tw.settings is available.
     var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
     // Set up server
@@ -318,7 +315,7 @@ if($tw.node) {
               if (exists) {
                 // If servePlugin is not false than we strip out the filesystem
                 // and tiddlyweb plugins if they are there and add in the
-                // multiuser plugin.
+                // MultiUser plugin.
                 var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
                 // Get the full text of the html wiki to send as the response.
                 var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
