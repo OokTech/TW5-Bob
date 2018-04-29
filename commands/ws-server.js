@@ -205,7 +205,7 @@ if($tw.node) {
     $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
 
     // Make sure that $tw.settings is available.
-    var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
+    //var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
     // Set up server
     $tw.httpServer = new SimpleServer({
       wiki: this.commander.wiki

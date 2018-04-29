@@ -17,6 +17,9 @@ var ServerSide = {}
 var path = require('path')
 var fs = require('fs')
 
+// Make sure that $tw.settings is available.
+var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
+
 /*
   This function loads a wiki that has a route listed.
 */

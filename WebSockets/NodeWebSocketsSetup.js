@@ -109,7 +109,7 @@ if ($tw.node) {
     // Stat trying with the next port from the one used by the http process
     // We want this one to start at the +1 place so that the webserver has a
     // chance to be in the desired port.
-    var WSS_SERVER_PORT = Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
+    var WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
 
     var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
     // This makes the server and returns the actual port used
