@@ -1,0 +1,23 @@
+title: $:/plugins/OokTech/MultiUser/Selective Syncing
+caption: Selective Syncing
+tags: [[MultiUser Documentation]]
+description: Select which tiddlers are synced with the server
+
+''Note:'' This feature in new and relatively untested. Changing the filter
+changes what can be saved and may have unintended concequences.
+
+You can change the filter listed in [[$:/plugins/OokTech/MultiUser/ExcludeSync]]
+to change what is saved by the wiki. The filter returns tiddlers that won't be
+saved by the wiki.
+
+So anything you change in a tiddler returned by that filter is not saved
+between wiki refreshes and isn't sent to the server.
+
+The default filter is:
+
+```
+[has[draft.of]][prefix[$:/state/]][prefix[$:/temp/]][[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][[$:/plugins/OokTech/MultiUser/Server Warning]]
+```
+
+''Note 2:'' The server has a corresponding filter for what gets sent to
+browsers but I haven't made an interface to edit that filter yet.

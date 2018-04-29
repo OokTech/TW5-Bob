@@ -2,4 +2,40 @@ title: $:/plugins/OokTech/MultiUser/ControlPanelTab
 tags: $:/tags/ControlPanel
 caption: Node Settings
 
+<$reveal
+  type='match'
+  state='$:/WikiName'
+  text='RootWiki'
+>
+
+<$checkbox
+  tiddler='$:/plugins/OokTech/MultiUser/Wiki Listing'
+  tag='$:/tags/SideBar'
+>
+  List available wikis in sidebar
+</$checkbox>
+
 <<tabs "[[$:/plugins/OokTech/MultiUser/AvailableWikisTab]][[$:/plugins/OokTech/MultiUser/ManualSettingsTab]][[$:/plugins/OokTech/MultiUser/ServerActionsTab]]" "$:/plugins/OokTech/MultiUser/AvailableWikisTab">>
+
+</$reveal>
+
+<$reveal
+  type='nomatch'
+  state='$:/WikiName'
+  text='RootWiki'
+>
+
+!! Available Wikis
+
+<$checkbox
+  tiddler='$:/plugins/OokTech/MultiUser/Wiki Listing'
+  tag='$:/tags/SideBar'
+>
+  List available wikis in sidebar
+</$checkbox>
+
+Other settings should only be changed from the root wiki.
+
+{{$:/plugins/OokTech/MultiUser/Wiki Listing}}
+
+</$reveal>

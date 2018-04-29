@@ -1,0 +1,49 @@
+title: $:/plugins/OokTech/MultiUser/Changelog
+
+!! Version 0.1.12
+
+- The node settings tab only has contents on the root wiki.
+
+!! Version 0.1.11
+
+- Improved handling for setting the websockets port number
+- Make all wikis use the settings from the root wiki (otherwise all served wikis would have to have the same port and host information set individually)
+- The dirty indicator no longer flashes on and off when it doesn't need to. It isn't perfect yet.
+
+!! Initial State
+
+This is working as the initial state
+
+- Two-way real-time syncing between the browser and file system
+  - Updates the wiki in the browser immediately when any changes are made to the file system
+  - Immediately save changes to tiddlers made in the browser to the file system
+  - Syncing can ignore tiddlers based on an editable exclude filter
+- Multi-User support
+  - Allows any number of people/computers/browser tabs to connect to the wiki
+    server and use or edit the same wiki(s) simultaneously.
+  - Prevents multiple people from editing the same tiddler at the same time by
+    disabling the edit button for tiddlers currently being edited
+- Multi-Wiki support, the plugin can serve multiple wikis at once, each served
+  wiki has all the features listed here.
+- Websockets!! (used on the back-end, can be used by other plugins in the
+  future)
+  - Adds a websocket interface to tiddlywiki (currently only used by this
+    plugin, a git plugin is currently being developed as well as plugins to run
+    scripts on the local computer from tiddlywiki)
+  - Adds an action widget that allows you to send arbitrary websocket messages
+    to the server. This can be used to do things like trigger shell scripts
+    from inside the wiki.
+- Adds a new command `wsserver` that starts up a minimal http and websocket
+  server used for the real-time communication between the browser and server.
+- Adds a new command `externalserver` which starts up the wiki without a server
+  so that you can use an external server, like an expressjs server.
+- Allows you to reset the tiddlywiki server from the browser using a websocket
+  message.
+- Lets you run shell scripts from inside the wiki
+- Everything is configurable from inside the wiki
+- Your connection to the server is monitored and you are warned if there is a
+  problem
+- Serve files from the local file system (like images) so that they can be
+  used in the wiki.
+- Build a single file version of any served wikis from within the wiki.
+- Websocket messages send a token from localstorage if one exists for authentication.
