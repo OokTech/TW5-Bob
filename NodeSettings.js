@@ -20,6 +20,7 @@ exports.synchronous = true;
 
 // Initialise the $tw.settings object
 $tw.settings = $tw.settings || {};
+$tw.settings.wikis = $tw.settings.wikis || {};
 
 if ($tw.node) {
   /*
