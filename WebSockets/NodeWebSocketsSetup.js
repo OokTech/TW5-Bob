@@ -43,6 +43,10 @@ if ($tw.node) {
       // Make sure that $tw.settings is available.
       var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
     }
+    // Get the ip address to display to make it easier for other computers to
+    // connect.
+    var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
+    var ipAddress = ip.address();
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
@@ -127,6 +131,13 @@ if ($tw.node) {
         $tw.wss.on('connection', handleConnection);
       }
       $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
+
+      $tw.settings.serverInfo = {
+        ipAddress: ipAddress,
+        port: ServerPort,
+        host: host,
+        wssPort: WSS_SERVER_PORT
+      };
 
       // I don't know how to set up actually closing a connection, so this doesn't
       // do anything useful yet

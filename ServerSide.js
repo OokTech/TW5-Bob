@@ -82,8 +82,6 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
         return '$:/themes/' + name;
       });
-      // Create the settings tiddlers for this wiki
-      //$tw.nodeMessageHandlers.saveSettings({wiki: wikiName})
     }
   }
   return listed && exists;

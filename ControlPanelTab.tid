@@ -2,6 +2,11 @@ title: $:/plugins/OokTech/MultiUser/ControlPanelTab
 tags: $:/tags/ControlPanel
 caption: Node Settings
 
+Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>not </$reveal>available on local network):
+
+<pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
+</pre>
+
 <$reveal
   type='match'
   state='$:/WikiName'

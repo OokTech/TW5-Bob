@@ -112,6 +112,8 @@ if ($tw.node) {
 
   $tw.CreateSettingsTiddlers = function (wiki) {
     wiki = wiki === ''?'RootWiki':wiki;
+    // Create the $:/ServerIP tiddler
+    $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host, wss_port: $tw.settings.serverInfo.wssPort}));
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
