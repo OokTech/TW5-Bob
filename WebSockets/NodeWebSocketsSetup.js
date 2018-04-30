@@ -29,13 +29,6 @@ var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
-  // If we are using JWT authentication than we need to check the token in each
-  // message received.
-  if ($tw.settings.UseJWT) {
-    var jwt = require("jsonwebtoken");
-  }
-
-
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
@@ -47,11 +40,8 @@ if ($tw.node) {
     $tw.connections = [];
 
     if (!$tw.settings) {
-      // Make sure that $tw.settings exists.
-      $tw.settings = $tw.settings || {};
-      // Get user settings, if any
-      var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-      $tw.loadSettings($tw.settings,userSettingsPath);
+      // Make sure that $tw.settings is available.
+      var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
     }
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
@@ -119,17 +109,24 @@ if ($tw.node) {
     // Stat trying with the next port from the one used by the http process
     // We want this one to start at the +1 place so that the webserver has a
     // chance to be in the desired port.
-    var WSS_SERVER_PORT = Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
+    var WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
+
+    var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
     // This makes the server and returns the actual port used
-    makeWSS();
+    if (!$tw.settings['ws-server'].useExternalWSS) {
+      makeWSS();
+    } else {
+      WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || WSS_SERVER_PORT;
+      finishSetup();
+    }
 
     function finishSetup () {
-      $tw.wss = new WebSocketServer({server: server});
-      // Put all the port and host info into a tiddler so the browser can use it
-      $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT}));
-
-      // Set the onconnection function
-      $tw.wss.on('connection', handleConnection);
+      if (!$tw.settings['ws-server'].useExternalWSS) {
+        $tw.wss = new WebSocketServer({server: server});
+        // Set the onconnection function
+        $tw.wss.on('connection', handleConnection);
+      }
+      $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
 
       // I don't know how to set up actually closing a connection, so this doesn't
       // do anything useful yet
@@ -191,7 +188,6 @@ if ($tw.node) {
 
   // Only act if we are running on node. Otherwise WebSocketServer will be
   // undefined.
-
   setup();
 }
 

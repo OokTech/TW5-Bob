@@ -66,9 +66,11 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     // Read the file and pass it to the parsing stuff
     $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
       if (output.length > 0) {
+        var token = localStorage.getItem('ws-token')
         var message = {
           "messageType": "newWikiFromTiddlers",
-          "tiddlers": output
+          "tiddlers": output,
+          "token": token
         }
         $tw.socket.send(JSON.stringify(message));
       } else {

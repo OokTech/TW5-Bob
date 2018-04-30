@@ -66,7 +66,7 @@ if($tw.node) {
     if (title.startsWith('{' + prefix + '}')) {
       title = title.replace('{' + prefix + '}', '');
     }
-    var internalTitle = '{' + prefix + '}' ==='{}'?title:'{' + prefix + '}' + title;
+    var internalTitle = '{' + prefix + '}' + title;
     var fileInfo = $tw.boot.files[internalTitle];
     if(fileInfo) {
       // If so, just invoke the callback
@@ -87,7 +87,13 @@ if($tw.node) {
         extension = ".tid";
       }
       // Generate the base filepath and ensure the directories exist
-      var tiddlersPath = prefix === ''? $tw.MultiUser.Wikis.RootWiki.wikiTiddlersPath:$tw.MultiUser.Wikis[prefix].wikiTiddlersPath
+      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+      $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+      // A cludge to make things work
+      if (prefix === 'RootWiki') {
+        $tw.MultiUser.Wikis[prefix].wikiTiddlersPath = $tw.MultiUser.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
+      }
+      var tiddlersPath = $tw.MultiUser.Wikis[prefix].wikiTiddlersPath;
       var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
@@ -112,15 +118,9 @@ if($tw.node) {
         fileInfo.filepath = filepath;
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
         $tw.boot.files[internalTitle] = fileInfo;
-        if (prefix !== '') {
-          if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
-            $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
-          }
-        } else {
-          $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-          if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalTitle) !== -1 && !internalTitle.startsWith('{')) {
-            $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalTitle);
-          }
+        $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
+        if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
+          $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
         }
         // Pass it to the callback
         callback(null,fileInfo);
@@ -145,6 +145,12 @@ if($tw.node) {
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
   WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title) {
+    if (title.startsWith('{')) {
+      var ending = title.indexOf('}');
+      // If ending is -1 than this just returns the title, otherwise it cuts
+      // off the prefix.
+      title = title.slice(ending+1)
+    }
     var baseFilename;
     // Check whether the user has configured a tiddler -> pathname mapping
     var pathNameFilters = this.wiki.getTiddlerText("$:/config/FileSystemPaths");
@@ -182,7 +188,7 @@ if($tw.node) {
 
       }
     }
-    prefix = prefix || '';
+    prefix = prefix || 'RootWiki';
     var internalName = (prefix === '' || tiddler.fields.title.startsWith('{' + prefix + '}')) ? tiddler.fields.title:'{' + prefix + '}' + tiddler.fields.title;
     if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       var self = this;
@@ -244,17 +250,11 @@ if($tw.node) {
     var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
     $tw.MultiUser.SendToBrowsers(message);
     // This may help
-    if (prefix !== '') {
-      if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
-        $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
-      }
-    } else {
-      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-      $tw.MultiUser.Wikis.RootWiki = $tw.MultiUser.Wikis.RootWiki || {};
-      $tw.MultiUser.Wikis.RootWiki.tiddlers = $tw.MultiUser.Wikis.RootWiki.tiddlers || [];
-      if ($tw.MultiUser.Wikis.RootWiki.tiddlers.indexOf(internalName) === -1 && !internalName.startsWith('{')) {
-        $tw.MultiUser.Wikis.RootWiki.tiddlers.push(internalName);
-      }
+    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
+    $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+    $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
+    if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
+      $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
     }
   }
 

@@ -1,9 +1,9 @@
 {
   "title": "$:/plugins/OokTech/MultiUser",
-  "description": "A plugin that lets multiple people use a wiki simultaneously",
+  "description": "A plugin that real-time syncing between wiki and server, among other things",
   "author": "inmysocks",
-  "version": "0.1.9",
-  "core-version": ">=5.1.15",
+  "version": "0.1.11",
+  "core-version": ">=5.1.16",
   "source": "",
   "plugin-type": "plugin",
   "list": "readme WebSocketMessages ActionWebSocketMessage"
