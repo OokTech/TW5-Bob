@@ -234,7 +234,7 @@ if($tw.node) {
         response.end(buffer,"base64");
       }
     });
-    if ($tw.settings.filePathRoot) {
+    if (typeof $tw.settings.filePathRoot !== 'undefined') {
       // Add the external files route handler
       $tw.httpServer.addRoute({
         method: "GET",

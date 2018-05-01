@@ -81,7 +81,6 @@ if ($tw.node) {
         // Ignore draft tiddlers
         if (!data.tiddler.fields['draft.of']) {
           var prefix = data.wiki || '';
-          //var internalTitle = prefix === ''?data.tiddler.fields.title:'{' + prefix + '}' + data.tiddler.fields.title;
           var internalTitle = '{' + prefix + '}' + data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just always
@@ -259,15 +258,12 @@ if ($tw.node) {
       type: 'application/json'
     };
     $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields2});
-    // Get the wiki path
-    var wikiPath = $tw.MultiUser.Wikis[data.wiki].wikiPath;
-    // Make sure the settings folder exists
-    if (!fs.existsSync(path.join(wikiPath, 'settings'))) {
-      // Create the settings folder
-      fs.mkdirSync(path.join(wikiPath, 'settings'))
-    }
     // Save the updated settings
-    var userSettingsPath = path.join(wikiPath, 'settings', 'settings.json');
+    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    if (!fs.existsSync(userSettingsPath)) {
+      // Create the settings folder
+      fs.mkdirSync(userSettingsPath);
+    }
     fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
       if (err) {
         console.log(err);
