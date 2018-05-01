@@ -2,7 +2,7 @@
   "title": "$:/plugins/OokTech/MultiUser",
   "description": "A plugin that real-time syncing between wiki and server, among other things",
   "author": "inmysocks",
-  "version": "0.1.11",
+  "version": "0.1.13",
   "core-version": ">=5.1.16",
   "source": "",
   "plugin-type": "plugin",
