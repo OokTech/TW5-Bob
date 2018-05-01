@@ -1,6 +1,7 @@
 title: $:/plugins/OokTech/MultiUser/ServerActionsTab
 caption: Server Actions
 
+<!--
 This button will restart the wiki server, you will have to reload the wiki
 after the server has restarted to reconnect.
 This may not be a full restart in the same way as stopping the process and
@@ -16,6 +17,8 @@ just requires a page reload, not restarting the server.
 </$button>
 
 ---
+
+-->
 
 WARNING: This button will shutdown this wiki. If you are running multiple wikis
 simultaneously this only shuts down the current wiki.

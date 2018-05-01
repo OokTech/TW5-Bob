@@ -40,6 +40,7 @@ title: What is this?
   to set the host to `0.0.0.0`.
 </$reveal>
 
+<!--
 Clicking this button restarts the tiddlywiki server. You will have to reload
 the page to reconnect to the websockets server. I am hoping to make a reconnect
 button soon.
@@ -48,7 +49,7 @@ button soon.
   Test Restart
   <$action-websocketmessage $type='restartServer'/>
 </$button>
-
+-->
 Warning! This button shuts down the server. You have to restart from the
 command line.
 
