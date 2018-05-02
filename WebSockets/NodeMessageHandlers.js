@@ -614,8 +614,16 @@ if ($tw.node) {
 
       // We need to make sure that the wikis entry is in the root settings
       // thing.
+      var tidText = {};
       var tiddler = $tw.wiki.getTiddler('{RootWiki}$:/WikiSettings/split');
-      var tidText = tiddler?JSON.parse(tiddler.fields.text):{};
+      if (tiddler) {
+        if (typeof tiddler.fields.text === 'object') {
+          // Clone object to make it writable
+          tidText = JSON.parse(JSON.stringify(tiddler.fields.text));
+        } else {
+          tidText = JSON.parse(tiddler.fields.text);
+        }
+      }
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'{RootWiki}$:/WikiSettings/split', text:tidText, type: 'application/json'}));
