@@ -56,16 +56,17 @@ instructions:
 Clone the tiddlywiki repo and get the plugin (Only do this the first time to
 install everything):
 ```
-git clone --depth=1 https://github.com/Jermolene/TiddlyWiki5.git
+git clone --depth=1 --branch v5.1.16 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-MultiUser.git TiddlyWiki5/plugins/OokTech/MultiUser
-cp -r TiddlyWiki5/plugins/OokTech/MultiUser/MultiUserWiki TiddlyWiki5/editions/
+mkdir TiddlyWiki5/Wikis
+cp -r TiddlyWiki5/plugins/OokTech/MultiUser/MultiUserWiki TiddlyWiki5/Wikis/MultiUserWiki/
 ```
 
 After that is finished, and to start up tiddlywiki later type:
 
 ```
 cd TiddlyWiki5
-node ./tiddlywiki.js editions/MultiUserWiki  --wsserver
+node ./tiddlywiki.js Wikis/MultiUserWiki  --wsserver
 ```
 
 In a browser go to `127.0.0.1:8080` and the wiki should load. From here any
