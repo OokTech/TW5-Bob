@@ -330,8 +330,6 @@ if ($tw.node) {
   // next script in the queue.
   function processScriptQueue (queue) {
     if (!scriptActive[queue] && scriptQueue[queue].length > 0) {
-      console.log(scriptQueue[queue][0])
-      console.log(scriptQueue[queue][0].command)
       var childproc = require('child_process').spawn(scriptQueue[queue][0].command, scriptQueue[queue][0].args, scriptQueue[queue][0].options);
       scriptActive[queue] = true;
       childproc.on('exit', function () {
