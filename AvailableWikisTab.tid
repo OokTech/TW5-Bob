@@ -5,13 +5,13 @@ You can create new wikis here. Select the edition and then enter a name.
 
 Names should only have numbers and letters and no spaces or special characters.
 
-Wiki Edition:
+Select Wiki Edition:
 <$select
   tiddler='$:/temp/NewWiki'
   field='edition'
 >
   <$list
-    filter='empty d3demo de-AT de-DE dev es-ES fr-FR full highlightdemo introduction ja-JP katexdemo ko-KR markdowndemo resumebuilder zh-Hans zh-Hant'
+    filter='[[$:/EditionsList]indexes[]]'
   >
     <option>
       <<currentTiddler>>
@@ -19,7 +19,7 @@ Wiki Edition:
   </$list>
 </$select>
 
-Wiki Name:
+Give the wiki a name:
 <$edit-text
   tiddler='$:/temp/NewWiki'
   field='wiki_name'

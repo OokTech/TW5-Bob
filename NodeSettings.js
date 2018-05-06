@@ -112,6 +112,18 @@ if ($tw.node) {
 
   $tw.CreateSettingsTiddlers = function (wiki) {
     wiki = wiki === ''?'RootWiki':wiki;
+    // Set the environment variable for the editions path from the settings.
+    // Because we cheat and don't use command line arguments.
+    if (typeof $tw.settings.editionsPath === 'string') {
+      process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
+    }
+    // Create the $:/EditionsList tiddler
+    var editionsList = $tw.utils.getEditionInfo();
+    $tw.editionsInfo = {};
+    Object.keys(editionsList).forEach(function(index) {
+      $tw.editionsInfo[index] = editionsList[index].description;
+    });
+    $tw.wiki.addTiddler(new $tw.Tiddler({title: "{" + wiki + "}$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}));
     // Create the $:/ServerIP tiddler
     $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host, wss_port: $tw.settings.serverInfo.wssPort}));
     // Save the settings to a tiddler.

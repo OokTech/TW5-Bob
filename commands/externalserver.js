@@ -29,8 +29,6 @@ if($tw.node) {
     this.callback = callback;
     // Commands that are just for the server
     $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
-    // Make sure that $tw.settings is available.
-    //var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
   };
 
   Command.prototype.execute = function() {

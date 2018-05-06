@@ -1,59 +1,83 @@
 creator: inmysocks
 title: What is this?
 
-<$reveal
-  type='match'
-  state='$:/ServerIP!!host'
-  text='0.0.0.0'
->
-  To open this wiki on other computers on the same network open this address in your browser.
+!Welcome to the ~MultiUser ~TiddlyWiki.
 
-  IP to connect to the server (copy this into the browser on another computer):
+!! Connecting other computers to the wiki
 
-  <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
-  </pre>
+''BIG NOTE OF DOOM or what is the local network?:'' The local network is anyone
+using the same router as you. This means anyone on the same wifi network or
+using a wired connection on the same router. So when you are at starbucks or a
+library on the wifi anyone else who is on that wifi is on the local network.
 
-  When you open the wiki on another computer as well here are a few things to try:
+By default the wiki is only availble on `localhost` on the computer you are
+running the node process on. If you want to make it availble to other computers
+than you need to set the host to `0.0.0.0`. But this means that anyone on the
+local network will be able to access the wiki. To do this go to the
+`Node Settings` tab on the $:/ControlPanel and click on the value listed for
+`host` under `ws-server`, it is `127.0.0.1` by default. If you set it to
+`0.0.0.0` then click `Done` and then click on `Update Settings`. Then you need
+to restart the wiki server.
 
-  Make a new tiddler on the other computer and save it. It will appear here. Draft tiddlers are not saved and no tiddlers with titles that start with `$:/temp/` or `$:/state/` are pushed to other browsers either.
-
-  I am planning on making a setting where you can set which tiddlers are ignored for saving and pushing to wikis in other browsers.
-
-  If you delete the tiddler you have created than it will also be deleted on the other wikis.
-  Edits to tiddlers made using the tiddler edit interface are propagated when the tiddler is saved. If you edit a tiddler using an edit text widget or something like that than the edits are pushed immediately. This can cause problems because the changes are pushed on every keypress and that can make the wiki slow down a bit.
-
-  I need to make it so that different browsers with the wikis open can have different usernames. Then I need to make it so that each browser can be viewing a different wiki.
-
-  I should make the tiddlerList message also send the username given in a wiki to let me add some very simple authentication.
-</$reveal>
 <$reveal
   type='nomatch'
-  state='$:/ServerIP!!host'
+  state='$:/ServerIP'
   text='0.0.0.0'
 >
   Host has to be set to `0.0.0.0` in order to connect from other computers.
-
+  <br><br>
   <$button>
     Click here
-    <$action-websocketmessage $type='updateSettings' body="""{"ws-server":{"host":"0.0.0.0"}}"""/>
+    <$action-setfield
+      $tiddler='$:/WikiSettings/split/ws-server'
+      $index=host
+      $value="0.0.0.0"
+    />
+    <$action-websocketmessage
+      $type=saveSettings
+    />
   </$button>
-  to set the host to `0.0.0.0`.
+  to set the host to `0.0.0.0`
+
+  Then wait a moment for the settings files to be updated on the server (the
+  save icon shold turn back to grey) and stop then restart the server to make
+  this wiki accessible to other computers on the network.
+
+  After setting the host and restarting you can connect to this wiki from another
+  computer on the same network by entering the above into the address bar of a
+  browser.
+
+  You can then create and edit tiddlers in any connected wiki.
 </$reveal>
 
-<!--
-Clicking this button restarts the tiddlywiki server. You will have to reload
-the page to reconnect to the websockets server. I am hoping to make a reconnect
-button soon.
+<$reveal
+  type='match'
+  state='$:/ServerIP'
+  text='0.0.0.0'
+>
+  The wiki server ip address and port is:
 
-<$button>
-  Test Restart
-  <$action-websocketmessage $type='restartServer'/>
-</$button>
--->
-Warning! This button shuts down the server. You have to restart from the
-command line.
+  <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}</pre>
 
-<$button>
-  Shutdown Server
-  <$action-websocketmessage $type='shutdownServer'/>
-</$button>
+  The host is set to `0.0.0.0`, this means that this wiki is available to
+  anyone on the local network. See the big note of doom above.
+  <br><br>
+  <$button>
+    Click here
+    <$action-setfield
+      $tiddler='$:/WikiSettings/split/ws-server'
+      $index=host
+      $value="127.0.0.1"
+    />
+    <$action-websocketmessage
+      $type=saveSettings
+    />
+  </$button>
+  to set the host to `127.0.0.1`.
+
+  Then wait a moment for the settings files to be updated on the server (the
+  save icon shold turn back to grey) and stop then restart the server to make
+  this wiki only accessible on the computer running it.
+</$reveal>
+
+More multiuser documentation [[$:/plugins/OokTech/MultiUser/readme]]
