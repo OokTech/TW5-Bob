@@ -11,13 +11,25 @@ when you send the message. To do this you put an attribute that has the same
 name as the placeholder in the script (or the actual argument in the script)
 and the argument in the script will be replaced with the value given. See the
 example below for clarification. The placeholders here start with # to make
-them obvious.
+them obvious but they can be anything you want to use.
 
 See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages]]
 
 |!Parameter |!Description |
 |name |The name given to a script listed in the `Node Settings` |
+|sequential |Scripts with this set to true will run in order and only start after the previous script with sequential set finishes. See note below. (Default: `false`) |
+|queue | ''OPTIONAL'' This only affects scripts that have sequential set to `true`, see note below. Default: `0`. |
 |//{any parameter not starting with $}// |Any other parameters passed are assumed to be the names for placeholders. |
+
+''About the `sequential` and `queue` parameters:''
+these option only matter to scripts that have sequential set to true. Scripts
+with sequential set to true will not wait for scripts without it set to finish
+before starting.
+
+You can have multiple independent queues for scripts as well. Scripts a queue
+will only wait for the previous script in the same queue to finish before
+starting. If no queue is listed everything goes into the default queue called
+`0`.
 
 ! Usage
 

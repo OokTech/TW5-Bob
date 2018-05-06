@@ -317,7 +317,33 @@ if ($tw.node) {
 
     it would be easiest to write a script and then just call the script using
     this.
+
+    If sequential is set to true than each script will only run after the
+    previous script has finished in the order they are received.
+    It is possible to run non-sequential scripts and sequential scripts
+    simultaneously.
   */
+  // This holds
+  var scriptQueue = {};
+  var scriptActive = {};
+  // This function checks if a script is currently running, if not it runs the
+  // next script in the queue.
+  function processScriptQueue (queue) {
+    if (!scriptActive[queue] && scriptQueue[queue].length > 0) {
+      console.log(scriptQueue[queue][0])
+      console.log(scriptQueue[queue][0].command)
+      var childproc = require('child_process').spawn(scriptQueue[queue][0].command, scriptQueue[queue][0].args, scriptQueue[queue][0].options);
+      scriptActive[queue] = true;
+      childproc.on('exit', function () {
+        // Remove the finished task from the queue
+        scriptQueue[queue].shift();
+        // Set the queue as inactive
+        scriptActive[queue] = false;
+        // Process the next task in the queue, if any.
+        processScriptQueue(queue);
+      });
+    }
+  }
   $tw.nodeMessageHandlers.runScript = function (data) {
     if (data.name) {
       if ($tw.settings.scripts) {
@@ -338,8 +364,18 @@ if ($tw.node) {
               if (index !== -1) {
                 args[index] = data[item];
               }
-            })
-            require('child_process').spawn(command, args, options);
+            });
+            if (data.sequential) {
+              data.queue = data.queue || 0;
+              scriptActive[data.queue] = scriptActive[data.queue] || false;
+              scriptQueue[data.queue] = scriptQueue[data.queue] || [];
+              // Add the current script to the queue
+              scriptQueue[data.queue].push({command: command, args: args, options: options, queue: data.queue});
+              // Process the queue to run a command
+              processScriptQueue(data.queue);
+            } else {
+              require('child_process').spawn(command, args, options);
+            }
           }
         }
       }
