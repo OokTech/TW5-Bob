@@ -233,12 +233,28 @@ if($tw.node) {
       }
     });
     if (typeof $tw.settings.filePathRoot !== 'undefined') {
+      if (typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+        if ($tw.settings.fileURLPrefix === '') {
+          var pathRegExp = new RegExp('^/.+$');
+          var replace = false;
+        } else {
+          var pathRegExp = new RegExp('^\/' + $tw.settings.fileURLPrefix + '\/.+$');
+          var replace = new RegExp('^\/' + $tw.settings.fileURLPrefix);
+        }
+      } else {
+        var pathRegExp = new RegExp('^\/file\/.+$');
+        var replace = new RegExp('^\/file')
+      }
       // Add the external files route handler
       $tw.httpServer.addRoute({
         method: "GET",
-        path: /^\/file\/.+$/,
+        path: pathRegExp,
         handler: function(request, response, state) {
-          var pathname = path.join($tw.settings.filePathRoot, request.url.replace(/^\/file/, ''));
+          if (replace === false) {
+            var pathname = path.join($tw.settings.filePathRoot, request.url);
+          } else {
+            var pathname = path.join($tw.settings.filePathRoot, request.url.replace(replace, ''));
+          }
           // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
           if (pathname.startsWith($tw.settings.filePathRoot)) {
             fs.exists(pathname, function(exists) {
@@ -253,12 +269,9 @@ if($tw.node) {
                   response.end();
                 } else {
                   var ext = path.parse(pathname).ext;
-                  var mimeMap = {
+                  var mimeMap = $tw.settings.mimeMap || {
                     '.ico': 'image/x-icon',
                     '.html': 'text/html',
-                    '.js': 'text/javascript',
-                    '.json': 'application/json',
-                    '.css': 'text/css',
                     '.png': 'image/png',
                     '.jpg': 'image/jpeg',
                     '.jpeg': 'image/jpeg',
@@ -269,8 +282,13 @@ if($tw.node) {
                     '.doc': 'application/msword',
                     '.gif': 'image/gif'
                   };
-                  response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
-                  response.end(data);
+                  if (mimeMap[ext]) {
+                    response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
+                    response.end(data);
+                  } else {
+                    response.writeHead(403);
+                    response.end();
+                  }
                 }
               })
             })

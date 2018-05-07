@@ -14,6 +14,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
   "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
   "suppressBrowser": false,
+  "fileURLPrefix": "file"
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -32,6 +33,22 @@ used. If the json isn't formatted correctly than default values will be used.
   },
   "heartbeat": {
     "interval": 1000
+  },
+  "mimeMap": {
+    ".ico": "image/x-icon",
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".json": "application/json",
+    ".css": "text/css",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".wav": "audio/wav",
+    ".mp3": "audio/mpeg",
+    ".svg": "image/svg+xml",
+    ".pdf": "application/pdf",
+    ".doc": "application/msword",
+    ".gif": "image/gif"
   }
 }
 ```
@@ -47,6 +64,15 @@ version.
   want to use an external image from your computer in your wiki than you need
   to set this to a parent folder of where the pictures are. If none is given
   than local files aren't served.
+- `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
+  has the normal restrictions on names as any URL, so avoid special characters.
+  This defaults to `file` and only have an affect if you have also set
+  `filePathRoot`.
+  Note: If you set this to an empty string it will use the default value of
+  `file` unless you set the `acceptance` value described below. This will break
+  things and no tech support will be provided.
+- `mimeMap` lists the file extensions and their associated mime-types that the
+  server is allowed to serve. This only has an effect if `filePathRoot` is set.
 - `editionsPath` is the folder that holds any custom editions you want to be
   able to use when making wikis using the control panel.
 - `suppressBrowser` is only used if you are using the single executable
@@ -77,6 +103,11 @@ version.
   setting is `interval`, the heartbeat message is sent every `interval`
   milliseconds (1000 milliseconds = 1 second). On slower hardware a longer
   heartbeat may be needed to prevent error messages when there is no error.
+- `acceptance` this is a setting for accepting that you will get no help if you
+  do something that requires it to be set. These are things that are either
+  insecure or have a very good chance of breaking your wiki. You will get no
+  tech support if you do any of them. If you want to do it anyway than you need
+  to give this the value `I Will Not Get Tech Support For This`.
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the
