@@ -282,7 +282,7 @@ if($tw.node) {
                     '.doc': 'application/msword',
                     '.gif': 'image/gif'
                   };
-                  if (mimeMap[ext]) {
+                  if (mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
                     response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
                     response.end(data);
                   } else {
