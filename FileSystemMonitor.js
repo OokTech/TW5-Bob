@@ -325,8 +325,8 @@ if ($tw.node) {
 
     // Add the newly cretaed tiddler. Allow multi-tid files (This
     // isn't tested in this context).
-    $tw.wiki.addTiddlers(tempTidObject);
-    $tw.wiki.addTiddler(tempTidObject);
+    //$tw.wiki.addTiddlers(tempTidObject);
+    $tw.wiki.addTiddler(new Tiddler(tempTidObject));
     var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
     $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
   }
