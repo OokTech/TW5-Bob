@@ -6,11 +6,11 @@ there may be bugs that I don't know about. Also see notes below.
 ## What does it do?
 
 - Multi-User support for using/editing the same wiki(s) simultaneously
-- Multi-Wiki support - run it once and server multiple wikis
-- Create new wikis from inside the root wiki
+- Multi-Wiki support - run it once and serve multiple wikis
+- Create and configure new wikis from inside the root wiki
 - Two-way real-time syncing between the browser and file system
 - All configuration can be done from inside the wiki
-- Server external files (like images) so you can include them in your wikis
+- Serve external files (like images) so you can include them in your wikis
 - Allows you to run shell scripts and commands from inside the wiki
 
 A lot of the documentation is in the tiddler files in the Documentation folder
@@ -30,7 +30,8 @@ file for your system (tiddlyLinux for linux, tiddlyWin.exe for windows and
 tiddlyOSX for mac). Then run the file.
 
 - On windows it may ask if you want to allow node through your firewall. Say
-  yes.
+  yes. If you have anti-virus software it will probably say that it is from an
+  untrusted developer and suggest that you don't use it.
 
 It will create an index wiki in the same folder where you run the file, so if
 you want you can copy the file somewhere else. If you want to move it after you
@@ -152,9 +153,9 @@ Here is a more detailed list of things added or changed by this plugin
 - Serve files from the local file system (like images) so that they can be
   used in the wiki.
 - Build a single file version of any served wikis from within the wiki.
-- *coming soon* Security and authentication to limit access and editing
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *coming soon* each wiki is part of the same node process so communication and
   sharing tiddlers between the wikis is possible, I just haven't written the UI
   yet.
 - *coming soon* Build single file wikis that take tiddlers from different wikis
+- *under consideration* Security and authentication to limit access and editing

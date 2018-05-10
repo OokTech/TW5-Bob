@@ -149,9 +149,10 @@ if ($tw.node) {
       // Make sure that the file name isn't undefined
       if (filename) {
         var itemPath = path.join(folder, filename);
+        var fileExtension = path.extname(filename);
         // If the event is that the file has been deleted than it won't exist
         // but we still need to act here.
-        if(fs.existsSync(itemPath) && (itemPath.endsWith('.tid') || itemPath.endsWith('.meta'))) {
+        if(fs.existsSync(itemPath)) {
           if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
@@ -166,7 +167,7 @@ if ($tw.node) {
               // tiddlres with meta files.
               var rename = false;
               if (tiddlerObject.tiddlers[0].title) {
-                var tiddlerFileTitle = filename.endsWith('.tid')?filename.slice(0,-4):filename.slice(0,-5);
+                var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
                 if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
                   rename = true;
                 }
@@ -210,7 +211,7 @@ if ($tw.node) {
                   if (rename) {
                     // translate tiddler title into filepath
                     // here we want the non-prefixed title to make the filepath.
-                    var theFilepath = path.join(folder, $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + '.tid');
+                    var theFilepath = path.join(folder, $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title) + fileExtension);
                   } else {
                     var theFilepath = $tw.boot.files[tiddlerName].filepath;
                   }
@@ -281,8 +282,8 @@ if ($tw.node) {
             $tw.MultiUser.WatchFolder(folder, prefix);
 
           }
-        } else if (itemPath.endsWith('.tid') || itemPath.endsWith('.meta')) {
-          filename = filename.endsWith('.meta')?filename.slice(0,-5):filename;
+        } else {
+          filename = filename.slice(0,-1*fileExtension.length);
           console.log('Delete Tiddler ', folder, '/', filename)
           $tw.MultiUser.DeleteTiddler(folder, filename, prefix);
         }
@@ -325,8 +326,7 @@ if ($tw.node) {
 
     // Add the newly cretaed tiddler. Allow multi-tid files (This
     // isn't tested in this context).
-    //$tw.wiki.addTiddlers(tempTidObject);
-    $tw.wiki.addTiddler(new Tiddler(tempTidObject));
+    $tw.wiki.addTiddler(new $tw.Tiddler(tempTidObject));
     var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
     $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
   }

@@ -257,7 +257,7 @@ if ($tw.node) {
       text: settings,
       type: 'application/json'
     };
-    $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields2});
+    $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2}));
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     if (!fs.existsSync(userSettingsPath)) {

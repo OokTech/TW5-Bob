@@ -160,7 +160,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     for(var title in $tw.boot.files) {
       output[title] = path.relative(resolvedWikiPath,$tw.boot.files[title].filepath);
     }
-    $tw.wiki.addTiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)});
+    $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
   }
   // Save the path to the tiddlers folder for the filesystemadaptor
   $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};

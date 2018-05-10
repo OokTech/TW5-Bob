@@ -1,0 +1,9 @@
+title: $:/plugins/OokTech/MultiUser/templates/tiddler-metadata
+
+<!--
+
+This template is used for saving tiddler metadata *.meta files
+
+-->title: <$list filter='[is[current]get[title]splitbefore[}]]' variable=prefix><$list filter='[is[current]get[title]removeprefix<prefix>]' emptyMessage=<<prefix>>/></$list>`
+`<$fields exclude='text bag title' template='$name$: $value$
+'></$fields>

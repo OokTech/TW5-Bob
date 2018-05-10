@@ -1,0 +1,10 @@
+title: $:/plugins/OokTech/MultiUser/templates/tid-tiddler
+
+<!--
+
+This template is used for saving tiddlers in TiddlyWeb *.tid format
+
+-->title: <$list filter='[is[current]get[title]splitbefore[}]]' variable=prefix><$list filter='[is[current]get[title]removeprefix<prefix>]' emptyMessage=<<prefix>>/></$list>`
+`<$fields exclude='text bag title' template='$name$: $value$
+'></$fields>`
+`<$view field="text" format="text" />

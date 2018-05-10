@@ -135,8 +135,19 @@ socket server, but it can be extended for use with other web socket servers.
             if (changes[tiddlerTitle].modified) {
               var token = localStorage.getItem('ws-token')
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
-              var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName, token: token});
-              $tw.socket.send(message);
+              if (tiddler) {
+                var tempTid = {fields:{}};
+                Object.keys(tiddler.fields).forEach(function (field) {
+                    if (field !== 'created' && field !== 'modified') {
+                      tempTid.fields[field] = tiddler.fields[field];
+                    } else {
+                      tempTid.fields[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
+                    }
+                  }
+                );
+                var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token});
+                $tw.socket.send(message);
+              }
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});

@@ -202,35 +202,49 @@ if($tw.node) {
         if(error) {
           return callback(error);
         }
+        // Save the tiddler in memory.
+        internalSave(tiddler, internalName, prefix);
+        // Handle saving to the file system
         if(fileInfo.hasMetaFile) {
+          var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title
           // Save the tiddler as a separate body and meta file
           var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          var content = makeTiddlerFile(tiddler, true);
+          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/MultiUser/templates/tiddler-metadata", {variables: {currentTiddler: title}});
           fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
             }
-            // TODO figure out why renaming inside the wiki isn't working here
-            fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
-              if(err) {
-                return callback(err);
-              }
-              // Save with metadata
+            // TODO figure out why this gets stuck in an infinite saving loop
+            // from connected browsers when renaming if this part isn't done
+            // always
+            // It is because the internalSave keeps waiting for a response about
+            // the non-.meta file and it dosen't exist. I don't have a fix for
+            // it yet.
+            if (tiddler.fields.text && tiddler.fields.text !== '' || true) {
+              // TODO figure out why renaming inside the wiki isn't working here
+              fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
+                if(err) {
+                  return callback(err);
+                }
+                // Save with metadata
+                console.log('saved file with metadata', filepath);
+                return callback(null);
+              });
+            } else {
               console.log('saved file with metadata', filepath)
-              internalSave(tiddler, internalName, prefix);
               return callback(null);
-            });
+            }
           });
         } else {
+          var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title;
           // Save the tiddler as a self contained templated file
-          var content = makeTiddlerFile(tiddler);
+          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/MultiUser/templates/tid-tiddler", {variables: {currentTiddler: title}});
           // If we aren't passed a path
           fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
             }
             console.log('saved file', filepath)
-            internalSave(tiddler, internalName, prefix);
             return callback(null);
           });
         }
@@ -256,28 +270,6 @@ if($tw.node) {
     if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
       $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
     }
-  }
-
-  // This transforms a tiddler into the form needed for a .tid file.
-  // TODO figure out if we can replace this with the built-in function. We need
-  // to look at the isMeta part
-  // NOTE the built in version isn't fixing the part where modified and created
-  // aren't valid data if the text field is empty. I still have no idea why
-  function makeTiddlerFile(tiddler, isMeta) {
-    var output = "";
-    Object.keys(tiddler.fields).forEach(function(fieldName, index) {
-      if (fieldName === 'created' || fieldName === 'modified') {
-        output += fieldName+": " + $tw.utils.stringifyDate(new Date(tiddler.fields[fieldName])) + "\n";
-      } else if (fieldName === 'list' || fieldName === 'tags'){
-        output += fieldName+": " +  $tw.utils.stringifyList(tiddler.fields[fieldName]) + "\n";
-      } else if (fieldName !== 'text') {
-        output += fieldName+": " + tiddler.fields[fieldName] + "\n";
-      }
-    })
-    if (tiddler.fields.text && !isMeta) {
-      output += "\n" + tiddler.fields.text + "\n";
-    }
-    return output.trim();
   }
 
   /*

@@ -53,10 +53,15 @@ used. If the json isn't formatted correctly than default values will be used.
 }
 ```
 
-''Note:'' All can be either absolute or relative. Relative paths are relative
-to the folder with tiddlywiki.js in it if you are using the normal version or
-the folder with the executable file if you are using the single executable
-version.
+''Note:'' All paths can be either absolute or relative. Relative paths are
+relative to the folder with tiddlywiki.js in it if you are using the normal
+version or the folder with the executable file if you are using the single
+executable version.
+
+''Note for windows:'' All the example paths here are how they would appear on
+linux or osx. On windows the paths would look like
+`C:\Users\inmysocks\TiddlyWiki\Wikis`. To make the examples what you would use
+in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 
 ## What each part is
 
