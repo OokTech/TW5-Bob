@@ -162,11 +162,8 @@ if ($tw.node) {
 
               // Test to see if the filename matches what the wiki says it should
               // be. If not rename the file to match the rules set by the wiki.
-              // TODO this assumes that the filename ends with .tid, that may not
-              // always be the case. Figure out if we need to fix that for
-              // tiddlres with meta files.
               var rename = false;
-              if (tiddlerObject.tiddlers[0].title) {
+              if (tiddlerObject.tiddlers[0].title && (fileExtension === '.tid' || fileExtension === '.meta')) {
                 var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
                 if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
                   rename = true;
@@ -229,8 +226,8 @@ if ($tw.node) {
                   // Save the new file
                   $tw.syncadaptor.saveTiddler(newTiddler, prefix);
                   if (itemPath !== theFilepath) {
-                    // Delete the old file, the normal delete action takes care of
-                    // the rest.
+                    // Delete the old file, the normal delete action takes care
+                    // of the rest.
                     fs.unlinkSync(itemPath);
                   }
                 } else if (!tiddler || !$tw.boot.files[internalTitle]) {
