@@ -33,7 +33,7 @@ if ($tw.node) {
     // Save the list of tiddlers in the browser as part of the $tw object so it
     // can be used elsewhere.
     $tw.BrowserTiddlerList[data.source_connection] = data.titles;
-   $tw.CreateSettingsTiddlers(data.wiki);
+    $tw.CreateSettingsTiddlers(data.wiki);
   }
 
   /*

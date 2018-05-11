@@ -195,6 +195,9 @@ if ($tw.node) {
         console.log(err);
       }
     });
+    // Make sure that the new connection has the correct list of tiddlers being
+    // edited.
+    $tw.MultiUser.UpdateEditingTiddlers();
   }
 
   // Only act if we are running on node. Otherwise WebSocketServer will be
