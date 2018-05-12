@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
+title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
 
 \define thisEditingState() $:/state/$(currentTiddler)$/$(item)$/editing
 
@@ -64,7 +64,7 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
       filter='[<currentTiddler>getindex<item>type[application/json]]'
       emptyMessage="""<<EditButton>>,"""
     >
-      {{||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}},
+      {{||$:/plugins/OokTech/Bob/EditableJSONViewTemplate}},
     </$list>
     <br>
   </$list>
@@ -77,7 +77,7 @@ title: $:/plugins/OokTech/MultiUser/EditableJSONViewTemplate
       filter='[<currentTiddler>getindex<item>type[application/json]]'
       emptyMessage="""<<EditButton>>"""
     >
-      {{||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}}
+      {{||$:/plugins/OokTech/Bob/EditableJSONViewTemplate}}
     </$list>
     <br>
   </$list>

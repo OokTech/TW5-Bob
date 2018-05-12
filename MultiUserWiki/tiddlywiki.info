@@ -1,7 +1,7 @@
 {
-	"description": "This is the demo edition for the MultiUser plugin created by OokTech",
+	"description": "This is the demo edition for the Bob plugin created by OokTech",
 	"plugins": [
-    "OokTech/MultiUser"
+    "OokTech/Bob"
 	],
 	"themes": [
 		"tiddlywiki/vanilla",

@@ -1,20 +1,20 @@
-title: $:/plugins/OokTech/MultiUser/Starting Other Wikis
+title: $:/plugins/OokTech/Bob/Starting Other Wikis
 caption: Starting Other Wikis
-tags: [[MultiUser Documentation]]
+tags: [[Bob Documentation]]
 description: Serve multiple wikis at the same time.
 
 This works using the `wsserver` command included in this plugin.
 
-''Note:'' This describes how to make the MultiUser plugin serve existing wikis.
+''Note:'' This describes how to make the Bob plugin serve existing wikis.
 If you want to create the wiki and start serving it you should look at
-[[creating new wikis|$:/plugins/OokTech/MultiUser/Creating New Wikis]] instead.
+[[creating new wikis|$:/plugins/OokTech/Bob/Creating New Wikis]] instead.
 
 You can start serving other wikis from within the wiki. First you need to give
-the wiki a name and list its path in the settings. Go to the `Node Settings`
+the wiki a name and list its path in the settings. Go to the `Bob Settings`
 tab in the [[$:/ControlPanel]] and give the wiki a name and list its path in
 the `wikis` section like this:
 
-`'otherwiki': ~/Documents/TiddlyWiki/Wikis/MultiUser`
+`'otherwiki': ~/Documents/TiddlyWiki/Wikis/Bob`
 
 then click the `Update Settings` button under the list. Wait a moment for the
 save button to turn back to grey and then click on the `Update Routes` button
@@ -26,12 +26,12 @@ Afterward you will be able to go to `localhost:8080/otherwiki` to open the wiki
 
 ''Note:'' This does not create the wiki. If the wiki doesn't exist this won't
 do anything. To create a new wiki from within the wiki see the example for the
-[[runScript message|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]].
+[[runScript message|$:/plugins/OokTech/Bob/WebSocketMessage-runScript]].
 
 <!--
 !! Serving wikis using a script (Advanced)
 
-Using the [[runScript|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]]
+Using the [[runScript|$:/plugins/OokTech/Bob/WebSocketMessage-runScript]]
 websocket message you can run shell commands, so you can do this to start
 serving other wikis normally from within a wiki.
 -->

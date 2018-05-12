@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/Ultron/Ultron.js
+title: $:/plugins/OokTech/Bob/Ultron/Ultron.js
 type: application/javascript
 module-type: library
 

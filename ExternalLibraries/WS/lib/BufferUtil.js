@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/BufferUtil.js
+title: $:/plugins/OokTech/Bob/WS/BufferUtil.js
 type: application/javascript
 module-type: library
 
@@ -19,7 +19,7 @@ This is part of the websockets module
 
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/MultiUser/safe-buffer/safeBuffer.js');
+const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
 
 const Buffer = safeBuffer.Buffer;
 

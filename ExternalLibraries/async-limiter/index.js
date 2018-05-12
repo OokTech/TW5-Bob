@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/async-limiter/async-limiter.js
+title: $:/plugins/OokTech/Bob/async-limiter/async-limiter.js
 type: application/javascript
 module-type: library
 

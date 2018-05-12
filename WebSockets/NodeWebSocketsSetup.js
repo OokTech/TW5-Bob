@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/NodeWebSocketsSetup.js
+title: $:/plugins/OokTech/Bob/NodeWebSocketsSetup.js
 type: application/javascript
 module-type: startup
 
@@ -23,7 +23,7 @@ exports.after = ["node-settings"];
 exports.synchronous = true;
 
 // require the websockets module if we are running node
-var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/MultiUser/WS/ws.js').Server : undefined;
+var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/Bob/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
 var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
@@ -45,7 +45,7 @@ if ($tw.node) {
     }
     // Get the ip address to display to make it easier for other computers to
     // connect.
-    var ip = require('$:/plugins/OokTech/MultiUser/ip.js');
+    var ip = require('$:/plugins/OokTech/Bob/ip.js');
     var ipAddress = ip.address();
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
@@ -57,7 +57,7 @@ if ($tw.node) {
     */
     var MakeWikiListTiddler = function () {
       var tiddlerFields = {
-        title: '$:/plugins/OokTech/MultiUser/WikiList',
+        title: '$:/plugins/OokTech/Bob/WikiList',
         text: JSON.stringify($tw.settings.wikis, "", 2),
         type: 'application/json'
       };
@@ -197,7 +197,7 @@ if ($tw.node) {
     });
     // Make sure that the new connection has the correct list of tiddlers being
     // edited.
-    $tw.MultiUser.UpdateEditingTiddlers();
+    $tw.Bob.UpdateEditingTiddlers();
   }
 
   // Only act if we are running on node. Otherwise WebSocketServer will be

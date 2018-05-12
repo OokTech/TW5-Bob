@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/action-websocketmessage.js
+title: $:/plugins/OokTech/Bob/action-websocketmessage.js
 type: application/javascript
 module-type: widget
 

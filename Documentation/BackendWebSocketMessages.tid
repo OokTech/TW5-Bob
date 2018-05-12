@@ -1,6 +1,6 @@
-title: $:/plugins/OokTech/MultiUser/BackendWebSocketMessages
+title: $:/plugins/OokTech/Bob/BackendWebSocketMessages
 caption: BackendWebSocketMessages
-tags: [[MultiUser Documentation]]
+tags: [[Bob Documentation]]
 description: Back-end messages for developers.
 
 These are the messages available for websockets that are only used by the
@@ -27,4 +27,4 @@ so they are only useful if you are modifying the plugin.
   <br>
 </$list>
 
-For human usable messages see [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]].
+For human usable messages see [[WebSocketMessages|$:/plugins/OokTech/Bob/WebSocketMessages]].

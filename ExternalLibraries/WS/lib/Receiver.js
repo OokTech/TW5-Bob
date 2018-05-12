@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/Receiver.js
+title: $:/plugins/OokTech/Bob/WS/Receiver.js
 type: application/javascript
 module-type: library
 
@@ -19,13 +19,13 @@ This is part of the websockets module
 
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/MultiUser/safe-buffer/safeBuffer.js');
+const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
 
-const PerMessageDeflate = require('$:/plugins/OokTech/MultiUser/WS/PerMessageDeflate');
-const isValidUTF8 = require('$:/plugins/OokTech/MultiUser/WS/Validation');
-const bufferUtil = require('$:/plugins/OokTech/MultiUser/WS/BufferUtil');
-const ErrorCodes = require('$:/plugins/OokTech/MultiUser/WS/ErrorCodes');
-const constants = require('$:/plugins/OokTech/MultiUser/WS/Constants');
+const PerMessageDeflate = require('$:/plugins/OokTech/Bob/WS/PerMessageDeflate');
+const isValidUTF8 = require('$:/plugins/OokTech/Bob/WS/Validation');
+const bufferUtil = require('$:/plugins/OokTech/Bob/WS/BufferUtil');
+const ErrorCodes = require('$:/plugins/OokTech/Bob/WS/ErrorCodes');
+const constants = require('$:/plugins/OokTech/Bob/WS/Constants');
 
 const Buffer = safeBuffer.Buffer;
 

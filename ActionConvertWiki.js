@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/action-convertwiki.js
+title: $:/plugins/OokTech/Bob/action-convertwiki.js
 type: application/javascript
 module-type: widget
 

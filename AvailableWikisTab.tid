@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/AvailableWikisTab
+title: $:/plugins/OokTech/Bob/AvailableWikisTab
 caption: Available Wikis
 
 You can create new wikis here. Select the edition and then enter a name.
@@ -39,4 +39,4 @@ Give the wiki a name:
   />
 </$button>
 
-{{$:/plugins/OokTech/MultiUser/Wiki Listing}}
+{{$:/plugins/OokTech/Bob/Wiki Listing}}

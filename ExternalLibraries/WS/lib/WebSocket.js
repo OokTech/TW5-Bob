@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/WebSocket.js
+title: $:/plugins/OokTech/Bob/WS/WebSocket.js
 type: application/javascript
 module-type: library
 
@@ -21,17 +21,17 @@ This is part of the websockets module
 
 const EventEmitter = require('events');
 const crypto = require('crypto');
-const Ultron = require('$:/plugins/OokTech/MultiUser/Ultron/Ultron.js');
+const Ultron = require('$:/plugins/OokTech/Bob/Ultron/Ultron.js');
 const https = require('https');
 const http = require('http');
 const url = require('url');
 
-const PerMessageDeflate = require('$:/plugins/OokTech/MultiUser/WS/PerMessageDeflate');
-const EventTarget = require('$:/plugins/OokTech/MultiUser/WS/EventTarget');
-const Extensions = require('$:/plugins/OokTech/MultiUser/WS/Extensions');
-const constants = require('$:/plugins/OokTech/MultiUser/WS/Constants');
-const Receiver = require('$:/plugins/OokTech/MultiUser/WS/Receiver');
-const Sender = require('$:/plugins/OokTech/MultiUser/WS/Sender');
+const PerMessageDeflate = require('$:/plugins/OokTech/Bob/WS/PerMessageDeflate');
+const EventTarget = require('$:/plugins/OokTech/Bob/WS/EventTarget');
+const Extensions = require('$:/plugins/OokTech/Bob/WS/Extensions');
+const constants = require('$:/plugins/OokTech/Bob/WS/Constants');
+const Receiver = require('$:/plugins/OokTech/Bob/WS/Receiver');
+const Sender = require('$:/plugins/OokTech/Bob/WS/Sender');
 
 const protocolVersions = [8, 13];
 const closeTimeout = 30 * 1000; // Allow 30 seconds to terminate the connection cleanly.

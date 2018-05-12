@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/ws.js
+title: $:/plugins/OokTech/Bob/WS/ws.js
 type: application/javascript
 module-type: library
 
@@ -20,11 +20,11 @@ This is the ws npm module that adds websockets to the node process.
 
 'use strict';
 
-const WebSocket = require('$:/plugins/OokTech/MultiUser/WS/WebSocket');
+const WebSocket = require('$:/plugins/OokTech/Bob/WS/WebSocket');
 
-WebSocket.Server = require('$:/plugins/OokTech/MultiUser/WS/WebSocketServer');
-WebSocket.Receiver = require('$:/plugins/OokTech/MultiUser/WS/Receiver');
-WebSocket.Sender = require('$:/plugins/OokTech/MultiUser/WS/Sender');
+WebSocket.Server = require('$:/plugins/OokTech/Bob/WS/WebSocketServer');
+WebSocket.Receiver = require('$:/plugins/OokTech/Bob/WS/Receiver');
+WebSocket.Sender = require('$:/plugins/OokTech/Bob/WS/Sender');
 
 module.exports = WebSocket;
 

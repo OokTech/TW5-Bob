@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/NodeMessageHandlers.js
+title: $:/plugins/OokTech/Bob/NodeMessageHandlers.js
 type: application/javascript
 module-type: startup
 
@@ -88,15 +88,15 @@ if ($tw.node) {
           $tw.nodeMessageHandlers.cancelEditingTiddler({data:internalTitle, wiki: prefix});
           // Make sure that the waitinhg list object has an entry for this
           // connection
-          $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
+          $tw.Bob.WaitingList[data.source_connection] = $tw.Bob.WaitingList[data.source_connection] || {};
           // Check to see if we are expecting a save tiddler message from this
           // connection for this tiddler.
-          if (!$tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title]) {
+          if (!$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title]) {
             // If we are not expecting a save tiddler event than save the tiddler
             // normally.
             if (!$tw.boot.files[internalTitle]) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
+              $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
             } else {
               // If changed send tiddler
               var changed = true;
@@ -109,11 +109,11 @@ if ($tw.node) {
                 // The file has the normal title so use the normal title here.
                 changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
               } catch (e) {
-                console.log(e);
+                //console.log(e);
               }
               if (changed) {
                 $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-                $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
+                $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
               }
             }
           } else {
@@ -122,10 +122,10 @@ if ($tw.node) {
             // from the waiting list.
             // This is very important, without this it gets stuck in infitine
             // update loops.
-            $tw.MultiUser.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
+            $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
           }
-          delete $tw.MultiUser.EditingTiddlers[internalTitle];
-          $tw.MultiUser.UpdateEditingTiddlers(false);
+          delete $tw.Bob.EditingTiddlers[internalTitle];
+          $tw.Bob.UpdateEditingTiddlers(false);
         }
       }
     }
@@ -139,9 +139,9 @@ if ($tw.node) {
     new tiddler as a change.
   */
   $tw.nodeMessageHandlers.clearStatus = function(data) {
-    $tw.MultiUser.WaitingList[data.source_connection] = $tw.MultiUser.WaitingList[data.source_connection] || {};
-    if ($tw.MultiUser.WaitingList[data.source_connection][data.title]) {
-      delete $tw.MultiUser.WaitingList[data.source_connection][data.title];
+    $tw.Bob.WaitingList[data.source_connection] = $tw.Bob.WaitingList[data.source_connection] || {};
+    if ($tw.Bob.WaitingList[data.source_connection][data.title]) {
+      delete $tw.Bob.WaitingList[data.source_connection][data.title];
     }
   }
 
@@ -155,9 +155,9 @@ if ($tw.node) {
     // Delete the tiddler file from the file system
     $tw.syncadaptor.deleteTiddler(data.tiddler);
     // Remove the tiddler from the list of tiddlers being edited.
-    if ($tw.MultiUser.EditingTiddlers[data.tiddler]) {
-      delete $tw.MultiUser.EditingTiddlers[data.tiddler];
-      $tw.MultiUser.UpdateEditingTiddlers(false);
+    if ($tw.Bob.EditingTiddlers[data.tiddler]) {
+      delete $tw.Bob.EditingTiddlers[data.tiddler];
+      $tw.Bob.UpdateEditingTiddlers(false);
     }
   }
 
@@ -168,7 +168,7 @@ if ($tw.node) {
     var internalName = '{' + data.wiki + '}' + data.tiddler;
     // Add the tiddler to the list of tiddlers being edited to prevent multiple
     // people from editing it at the same time.
-    $tw.MultiUser.UpdateEditingTiddlers(internalName);
+    $tw.Bob.UpdateEditingTiddlers(internalName);
   }
 
   /*
@@ -192,10 +192,10 @@ if ($tw.node) {
     }
     var internalName = '{' + data.wiki + '}' + title;
     // Remove the current tiddler from the list of tiddlers being edited.
-    if ($tw.MultiUser.EditingTiddlers[internalName]) {
-      delete $tw.MultiUser.EditingTiddlers[internalName];
+    if ($tw.Bob.EditingTiddlers[internalName]) {
+      delete $tw.Bob.EditingTiddlers[internalName];
     }
-    $tw.MultiUser.UpdateEditingTiddlers(false);
+    $tw.Bob.UpdateEditingTiddlers(false);
   }
 
   /*
@@ -257,7 +257,7 @@ if ($tw.node) {
       text: settings,
       type: 'application/json'
     };
-    $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2}));
+    $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2}));
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     if (!fs.existsSync(userSettingsPath)) {
@@ -326,20 +326,29 @@ if ($tw.node) {
   // This holds
   var scriptQueue = {};
   var scriptActive = {};
+  var childproc = false;
   // This function checks if a script is currently running, if not it runs the
   // next script in the queue.
   function processScriptQueue (queue) {
     if (!scriptActive[queue] && scriptQueue[queue].length > 0) {
-      var childproc = require('child_process').spawn(scriptQueue[queue][0].command, scriptQueue[queue][0].args, scriptQueue[queue][0].options);
+      childproc = require('child_process').spawn(scriptQueue[queue][0].command, scriptQueue[queue][0].args, scriptQueue[queue][0].options);
       scriptActive[queue] = true;
       childproc.on('exit', function () {
         // Remove the finished task from the queue
-        scriptQueue[queue].shift();
+        if (scriptQueue[queue].length > 0) {
+          scriptQueue[queue].shift();
+        }
         // Set the queue as inactive
         scriptActive[queue] = false;
         // Process the next task in the queue, if any.
         processScriptQueue(queue);
       });
+    }
+  }
+  function clearQueue (queue) {
+    scriptQueue[queue] = [];
+    if (scriptActive[queue]) {
+      childproc.kill('SIGINT');
     }
   }
   $tw.nodeMessageHandlers.runScript = function (data) {
@@ -379,6 +388,11 @@ if ($tw.node) {
       }
     }
   }
+  // Stop any currently running script queues
+  $tw.nodeMessageHandlers.stopScripts = function (data) {
+    data.queue = data.queue || 0;
+    clearQueue(data.queue);
+  }
 
   // This updates what wikis are being served and where they are being served
   $tw.nodeMessageHandlers.updateRoutes = function (data) {
@@ -406,11 +420,11 @@ if ($tw.node) {
     if (data.buildWiki) {
       var exists = $tw.httpServer.loadWiki(data.buildWiki);
       if (exists) {
-        wikiPath = $tw.MultiUser.Wikis[data.buildWiki].wikiPath || undefined;
+        wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
       }
     } else {
-      wikiPath = $tw.MultiUser.Wikis[data.wiki].wikiPath;
+      wikiPath = $tw.Bob.Wikis[data.wiki].wikiPath;
       fullName = data.wiki
     }
     if (wikiPath) {
@@ -419,13 +433,13 @@ if ($tw.node) {
       var outputFile = path.resolve(wikiPath, outputFolder, 'index.html');
       $tw.utils.createFileDirectories(outputFile);
       // We want to ignore the server-specific plugins to keep things small.
-      var excludeList = ['$:/plugins/OokTech/MultiUser', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+      var excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
       // tiddlers for this wiki.
       var options = {
         variables: {
           wikiTiddlers:
-            $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
-              // This prevents the MultiUser plugin from being added to the wiki
+            $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
+              // This prevents the Bob plugin from being added to the wiki
               // It also strips out the filesystem and tiddlyweb plugins
               if (excludeList.indexOf(tidInfo) === -1) {
                 return '[[' + tidInfo + ']]';
@@ -436,7 +450,7 @@ if ($tw.node) {
           wikiName: fullName
         }
       };
-      var text = $tw.wiki.renderTiddler('text/plain','$:/core/save/single', options);
+      var text = $tw.wiki.renderTiddler('text/plain','$:/plugins/OokTech/Bob/save/single', options);
       fs.writeFile(outputFile,text,"utf8",function(err) {
         if (err) {
             console.log(err);
@@ -445,7 +459,7 @@ if ($tw.node) {
           }
       });
     } else {
-      console.log("Can't find wiki ", fullName, ", is it listed in the node settings tab?");
+      console.log("Can't find wiki ", fullName, ", is it listed in the Bob settings tab?");
     }
   }
 
@@ -661,7 +675,7 @@ if ($tw.node) {
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'{RootWiki}$:/WikiSettings/split', text:tidText, type: 'application/json'}));
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}, wiki: 'RootWiki'}));
+      $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}, wiki: 'RootWiki'}));
 
       var tiddlerText = $tw.wiki.getTiddlerText('{RootWiki}$:/WikiSettings/split/wikis')
 
@@ -699,7 +713,7 @@ if ($tw.node) {
         text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
         type: 'application/json'
       };
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2, wiki: 'RootWiki'}));
+      $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2, wiki: 'RootWiki'}));
 
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 

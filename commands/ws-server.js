@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/commands/wsserver.js
+title: $:/plugins/OokTech/Bob/commands/wsserver.js
 type: application/javascript
 module-type: command
 
@@ -202,7 +202,7 @@ if($tw.node) {
     this.commander = commander;
     this.callback = callback;
     // Commands that are just for the server
-    $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
+    $tw.ServerSide = require('$:/plugins/OokTech/Bob/ServerSide.js');
 
     // Set up server
     $tw.httpServer = new SimpleServer({
@@ -270,17 +270,27 @@ if($tw.node) {
                 } else {
                   var ext = path.parse(pathname).ext;
                   var mimeMap = $tw.settings.mimeMap || {
-                    '.ico': 'image/x-icon',
+                    '.aac': 'audio/aac',
+                    '.avi': 'video/x-msvideo',
+                    '.csv': 'text/csv',
+                    '.doc': 'application/msword',
+                    '.epub': 'application/epub+zip',
+                    '.gif': 'image/gif',
                     '.html': 'text/html',
-                    '.png': 'image/png',
+                    '.htm': 'text/html',
+                    '.ico': 'image/x-icon',
                     '.jpg': 'image/jpeg',
                     '.jpeg': 'image/jpeg',
-                    '.wav': 'audio/wav',
                     '.mp3': 'audio/mpeg',
+                    '.mpeg': 'video/mpeg',
+                    '.oga': 'audio/ogg',
+                    '.ogv': 'video/ogg',
+                    '.ogx': 'application/ogg',
+                    '.png': 'image/png',
                     '.svg': 'image/svg+xml',
-                    '.pdf': 'application/pdf',
-                    '.doc': 'application/msword',
-                    '.gif': 'image/gif'
+                    '.weba': 'audio/weba',
+                    '.webm': 'video/webm',
+                    '.wav': 'audio/wav'
                   };
                   if (mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
                     response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
@@ -331,7 +341,7 @@ if($tw.node) {
               if (exists) {
                 // If servePlugin is not false than we strip out the filesystem
                 // and tiddlyweb plugins if they are there and add in the
-                // MultiUser plugin.
+                // Bob plugin.
                 var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
                 // Get the full text of the html wiki to send as the response.
                 var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
@@ -370,7 +380,7 @@ if($tw.node) {
       $tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
     }
     var port = $tw.settings['ws-server'].port || "8080",
-      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/single",
+      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/plugins/OokTech/Bob/save/single",
       renderType = $tw.settings['ws-server'].renderType || "text/plain",
       serveType = $tw.settings['ws-server'].serveType || "text/html",
       username = $tw.settings['ws-server'].username,

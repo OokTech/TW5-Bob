@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/ServerSide.js
+title: $:/plugins/OokTech/Bob/ServerSide.js
 type: application/javascript
 module-type: library
 
@@ -49,26 +49,26 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
   var wikiFolder = path.resolve(basePath, wikiFolder);
   var exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
   if (listed && exists) {
-    $tw.MultiUser = $tw.MultiUser || {};
-    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-    $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
-    $tw.MultiUser.Wikis[wikiName].wikiPath = wikiFolder;
-    $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+    $tw.Bob = $tw.Bob || {};
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
+    $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
+    $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
     // Make sure it isn't loaded already
-    if ($tw.MultiUser.Wikis[wikiName].State !== 'loaded') {
-      $tw.MultiUser.Wikis[wikiName].State = 'loaded';
+    if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+      $tw.Bob.Wikis[wikiName].State = 'loaded';
       // Get the correct path to the tiddlywiki.info file
-      createDirectory($tw.MultiUser.Wikis[wikiName].wikiTiddlersPath);
+      createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
 
       // Recursively build the folder tree structure
-      $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
+      $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
       // Watch the root tiddlers folder for chanegs
-      $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, wikiName);
+      $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
 
       // Add tiddlers to the node process
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      var fullPath = path.resolve(basePath, $tw.MultiUser.Wikis[wikiName].wikiPath);
+      var fullPath = path.resolve(basePath, $tw.Bob.Wikis[wikiName].wikiPath);
 
       var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
       // Add plugins, themes and languages
@@ -76,13 +76,13 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar);
       $tw.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar);
       // Get the list of tiddlers for this wiki
-      $tw.MultiUser.Wikis[wikiName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
+      $tw.Bob.Wikis[wikiName].tiddlers = $tw.wiki.allTitles().filter(function(title) {
         return title.startsWith('{' + wikiName + '}');
       });
-      $tw.MultiUser.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+      $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
         return '$:/plugins/' + name;
       });
-      $tw.MultiUser.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+      $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
         return '$:/themes/' + name;
       });
     }
@@ -119,7 +119,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
       }
       var resolvedIncludedWikiPath = path.resolve(wikiPath,info.path);
       if(parentPaths.indexOf(resolvedIncludedWikiPath) === -1) {
-        var subWikiInfo = $tw.MultiUser.loadWikiTiddlers(resolvedIncludedWikiPath,{
+        var subWikiInfo = $tw.Bob.loadWikiTiddlers(resolvedIncludedWikiPath,{
           parentPaths: parentPaths,
           readOnly: info["read-only"]
         });
@@ -163,9 +163,9 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
   }
   // Save the path to the tiddlers folder for the filesystemadaptor
-  $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-  $tw.MultiUser.Wikis[options.prefix] = $tw.MultiUser.Wikis[options.prefix] || {};
-  $tw.MultiUser.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
+  $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+  $tw.Bob.Wikis[options.prefix] = $tw.Bob.Wikis[options.prefix] || {};
+  $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
   // Load any plugins within the wiki folder
   var wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
   if(fs.existsSync(wikiPluginsPath)) {
@@ -212,11 +212,11 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
   // The wikis aren't actually modified, this is just hov they are
   // served.
   if (servePlugin) {
-    $tw.MultiUser.Wikis[fullName].plugins = $tw.MultiUser.Wikis[fullName].plugins.filter(function(plugin) {
+    $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
       return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
     });
-    if ($tw.MultiUser.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/MultiUser') === -1) {
-      $tw.MultiUser.Wikis[fullName].plugins.push('$:/plugins/OokTech/MultiUser');
+    if ($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
+      $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
     }
   }
   // This makes the wikiTiddlers variable a filter that lists all the
@@ -225,13 +225,13 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
   var options = {
     variables: {
       wikiTiddlers:
-        $tw.MultiUser.Wikis[fullName].tiddlers.concat($tw.MultiUser.Wikis[fullName].plugins.concat($tw.MultiUser.Wikis[fullName].themes)).map(function(tidInfo) {
+        $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
           return '[[' + tidInfo + ']]';
         }).join(' '),
       wikiName: wikiName
     }
   };
-  return text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/single", options);
+  return text = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/save/single", options);
 }
 
 /*

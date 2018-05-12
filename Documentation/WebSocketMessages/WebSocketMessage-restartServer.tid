@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-restartServer
+title: $:/plugins/OokTech/Bob/WebSocketMessage-restartServer
 tags: [[Websocket Message]] [[Human Usable]]
 caption: restartServer
 description: Restart the current wiki.

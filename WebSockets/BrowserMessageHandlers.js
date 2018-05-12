@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/BrowserMessageHandlers.js
+title: $:/plugins/OokTech/Bob/BrowserMessageHandlers.js
 type: application/javascript
 module-type: startup
 
@@ -101,7 +101,7 @@ it will overwrite this file.
         }
         var listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields
-        var tiddlerFields = {title: "$:/state/MultiUser/EditingTiddlers", list: listField};
+        var tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
         // Add the tiddler
         $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
@@ -211,8 +211,8 @@ it will overwrite this file.
     // another beat in the interval defined in $tw.settings.heartbeat.interval
     // the timeout id is stored in $tw.settings.heartbeat.timeoutid
     if (data.heartbeat) {
-      if ($tw.wiki.tiddlerExists('$:/plugins/OokTech/MultiUser/Server Warning')) {
-        $tw.wiki.deleteTiddler('$:/plugins/OokTech/MultiUser/Server Warning');
+      if ($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
+        $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Server Warning');
       }
 
       $tw.settings.heartbeat = $tw.settings.heartbeat || {};
@@ -245,7 +245,7 @@ it will overwrite this file.
   function handleDisconnected() {
     console.log('Disconnected from server');
     var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
-    var tiddler = {title: '$:/plugins/OokTech/MultiUser/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
+    var tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       var token = localStorage.getItem('ws-token')

@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/Validation.js
+title: $:/plugins/OokTech/Bob/WS/Validation.js
 type: application/javascript
 module-type: library
 

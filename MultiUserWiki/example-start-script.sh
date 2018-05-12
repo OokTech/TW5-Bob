@@ -26,6 +26,6 @@ export TIDDLYWIKI_PLUGIN_PATH="/path/to/TiddlyWiki/Plugins"
 #export TIDDLYWIKI_EDITION_PATH="/path/to/TiddlyWiki/Editions"
 
 # The first argument is the path to the folder that contains the
-# tiddlywiki.info file. The second is the server command for the multiuser
+# tiddlywiki.info file. The second is the server command for the Bob
 # wiki.
 tiddlywiki ~/path/to/wiki/ --wsserver

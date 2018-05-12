@@ -1,6 +1,6 @@
-title: $:/plugins/OokTech/MultiUser/Serving Files
+title: $:/plugins/OokTech/Bob/Serving Files
 caption: Serving Files or Images
-tags: [[MultiUser Documentation]]
+tags: [[Bob Documentation]]
 description: Set up the server to serve static files from the local file system.
 
 ''Big note of doom:'' If you are serving files and you have the host set to
@@ -18,7 +18,7 @@ wiki. This is particularly useful for things like images and pdf files that
 would make the wiki large if they were embedded as tiddlers.
 
 To enable the static file server you need to give a value for `filePathRoot` in
-the node settings. Set this to the path of the folder you have your images or
+the Bob settings. Set this to the path of the folder you have your images or
 other files you want to have available.
 
 By default the urls for files in that folder are prefixed with `file`, so if

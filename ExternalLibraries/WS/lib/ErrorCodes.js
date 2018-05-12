@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/ErrorCodes.js
+title: $:/plugins/OokTech/Bob/WS/ErrorCodes.js
 type: application/javascript
 module-type: library
 

@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/BrowserWebSocketsSetup.js
+title: $:/plugins/OokTech/Bob/BrowserWebSocketsSetup.js
 type: application/javascript
 module-type: startup
 
@@ -30,8 +30,8 @@ socket server, but it can be extended for use with other web socket servers.
 
   exports.startup = function() {
     // Ensure that the needed objects exist
-    $tw.MultiUser = $tw.MultiUser || {};
-    $tw.MultiUser.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ExcludeSync');
+    $tw.Bob = $tw.Bob || {};
+    $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
 
     // Do all actions on startup.
     function setup() {
@@ -127,10 +127,10 @@ socket server, but it can be extended for use with other web socket servers.
         for (var tiddlerTitle in changes) {
           // If the changed tiddler is the one that holds the exclude filter
           // than update the exclude filter.
-          if (tiddlerTitle === '$:/plugins/OokTech/MultiUser/ExcludeSync') {
-            $tw.MultiUser.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ExcludeSync');
+          if (tiddlerTitle === '$:/plugins/OokTech/Bob/ExcludeSync') {
+            $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
           }
-          var list = $tw.wiki.filterTiddlers($tw.MultiUser.ExcludeFilter);
+          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
           if (list.indexOf(tiddlerTitle) === -1) {
             if (changes[tiddlerTitle].modified) {
               var token = localStorage.getItem('ws-token')

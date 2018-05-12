@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/PerMessageDeflate.js
+title: $:/plugins/OokTech/Bob/WS/PerMessageDeflate.js
 type: application/javascript
 module-type: library
 
@@ -13,11 +13,11 @@ This is part of the websockets module
 
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/MultiUser/safe-buffer/safeBuffer.js');
-const Limiter = require('$:/plugins/OokTech/MultiUser/async-limiter/async-limiter.js');
+const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
+const Limiter = require('$:/plugins/OokTech/Bob/async-limiter/async-limiter.js');
 const zlib = require('zlib');
 
-const bufferUtil = require('$:/plugins/OokTech/MultiUser/WS/BufferUtil');
+const bufferUtil = require('$:/plugins/OokTech/Bob/WS/BufferUtil');
 
 const Buffer = safeBuffer.Buffer;
 

@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/Extensions.js
+title: $:/plugins/OokTech/Bob/WS/Extensions.js
 type: application/javascript
 module-type: library
 

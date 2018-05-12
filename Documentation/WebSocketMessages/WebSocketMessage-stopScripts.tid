@@ -1,0 +1,22 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-stopScripts
+tags: [[Websocket Message]] [[Human Usable]]
+caption: stopScripts
+description: Stop currently running shell scipt queue.
+
+This is to stop scripts started using the
+[[runScript message|$:/plugins/OokTech/Bob/WebSocketMessage-runScript]] message
+that have the `sequential` attribute set to true.
+
+The `queue` attribute is only useful if you started any scripts with the queue
+set. If you set the queue attribute here it wil stop any scripts started that
+are in the same queue.
+
+|!Parameter |!Description |
+|queue | ''OPTIONAL'' This only affects scripts that have sequential set to `true`, see note below. Default: `0`. |
+
+```
+<$button>
+  Halt Scripts
+  <$action-websocketmessage $type='stopScripts'/>
+</$button>
+```

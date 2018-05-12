@@ -1,4 +1,4 @@
-title: $:/core/templates/multiwiki-tiddlywiki5.html
+title: $:/plugins/OokTech/Bob/templates/multiwiki-tiddlywiki5.html
 
 \rules only filteredtranscludeinline transcludeinline
 <!doctype html>
@@ -35,7 +35,7 @@ title: $:/core/templates/multiwiki-tiddlywiki5.html
 </div>
 </noscript>
 <!--~~ Ordinary tiddlers ~~-->
-{{$:/core/templates/multiwiki-store.area.template.html}}
+{{$:/plugins/OokTech/Bob/templates/multiwiki-store.area.template.html}}
 <!--~~ Library modules ~~-->
 <div id="libraryModules" style="display:none;">
 {{{ [is[system]type[application/javascript]library[yes]] ||$:/core/templates/javascript-tiddler}}}

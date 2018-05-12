@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/FileSystemMonitor.js
+title: $:/plugins/OokTech/Bob/FileSystemMonitor.js
 type: application/javascript
 module-type: startup
 
@@ -33,16 +33,16 @@ if ($tw.node) {
   var path = require("path");
 
   // Initialise objects
-  $tw.MultiUser = $tw.MultiUser || {};
-  $tw.MultiUser.WaitingList = $tw.MultiUser.WaitingList || {};
-  $tw.MultiUser.EditingTiddlers = $tw.MultiUser.EditingTiddlers || {};
+  $tw.Bob = $tw.Bob || {};
+  $tw.Bob.WaitingList = $tw.Bob.WaitingList || {};
+  $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
     A per-wiki exclude list would be best but that is going to have annoying
     logic so it will come later.
   */
-  $tw.MultiUser.ExcludeList = $tw.MultiUser.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
+  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
 
   /*
     Determine which sub-folders are in the current folder
@@ -81,18 +81,18 @@ if ($tw.node) {
     tiddler title as input it appends that tiddler to the list and sends the
     updated list to all connected browsers.
   */
-  $tw.MultiUser.UpdateEditingTiddlers = function (tiddler) {
+  $tw.Bob.UpdateEditingTiddlers = function (tiddler) {
     // Check if a tiddler title was passed as input and that the tiddler isn't
     // already listed as being edited.
     // If there is a title and it isn't being edited add it to the list.
-    if (tiddler && !$tw.MultiUser.EditingTiddlers[tiddler]) {
-      $tw.MultiUser.EditingTiddlers[tiddler] = true;
+    if (tiddler && !$tw.Bob.EditingTiddlers[tiddler]) {
+      $tw.Bob.EditingTiddlers[tiddler] = true;
     }
     // Create a json object representing the tiddler that lists which tiddlers
     // are currently being edited.
-    var message = JSON.stringify({type: 'updateEditingTiddlers', list: Object.keys($tw.MultiUser.EditingTiddlers)});
+    var message = JSON.stringify({type: 'updateEditingTiddlers', list: Object.keys($tw.Bob.EditingTiddlers)});
     // Send the tiddler info to each connected browser
-    $tw.MultiUser.SendToBrowsers(message);
+    $tw.Bob.SendToBrowsers(message);
   }
 
   /*
@@ -107,14 +107,14 @@ if ($tw.node) {
     checking because if it needs to be changed and sent to multiple browsers
     changing it once here instead of once per browser should be better.
   */
-  $tw.MultiUser.SendToBrowsers = function (message) {
+  $tw.Bob.SendToBrowsers = function (message) {
     // If the message isn't a string try and coerce it into a string
     if (typeof message !== 'string') {
       message = JSON.stringify(message);
     }
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
-      $tw.MultiUser.SendToBrowser(connection, message);
+      $tw.Bob.SendToBrowser(connection, message);
     })
   }
 
@@ -123,7 +123,7 @@ if ($tw.node) {
     browser connection object and the stringifyed message as input.
     If any attempt fails mark the connection as inacive.
   */
-  $tw.MultiUser.SendToBrowser = function (connection, message) {
+  $tw.Bob.SendToBrowser = function (connection, message) {
     // If the message isn't a string try and coerce it into a string
     if (typeof message !== 'string') {
       message = JSON.stringify(message);
@@ -142,7 +142,7 @@ if ($tw.node) {
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
   */
-  $tw.MultiUser.WatchFolder = function (folder, prefix) {
+  $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
     fs.watch(folder, function (eventType, filename) {
@@ -162,11 +162,8 @@ if ($tw.node) {
 
               // Test to see if the filename matches what the wiki says it should
               // be. If not rename the file to match the rules set by the wiki.
-              // TODO this assumes that the filename ends with .tid, that may not
-              // always be the case. Figure out if we need to fix that for
-              // tiddlres with meta files.
               var rename = false;
-              if (tiddlerObject.tiddlers[0].title) {
+              if (tiddlerObject.tiddlers[0].title && (fileExtension === '.tid' || fileExtension === '.meta')) {
                 var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
                 if (tiddlerFileTitle !== $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)) {
                   rename = true;
@@ -174,7 +171,7 @@ if ($tw.node) {
               }
 
               // Don't update tiddlers on the exclude list or draft tiddlers
-              if (tiddlerObject.tiddlers[0].title && $tw.MultiUser.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
+              if (tiddlerObject.tiddlers[0].title && $tw.Bob.ExcludeList.indexOf(tiddlerObject.tiddlers[0].title) === -1 && !tiddlerObject.tiddlers[0]['draft.of']) {
                 // Internally tiddlywiki may have a prefix on the tiddler title
                 // that we don't want in the file. This is used to define
                 // namespaces when serving multiple wikis.
@@ -222,22 +219,22 @@ if ($tw.node) {
                   var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
                   console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
                   // Create the new tiddler
-                  $tw.MultiUser.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
+                  $tw.Bob.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
                   // Put the tiddler object in the correct form
                   // This gets saved to the file sysetm so non-prefixed title
                   var newTiddler = {fields: tiddlerObject.tiddlers[0]};
                   // Save the new file
                   $tw.syncadaptor.saveTiddler(newTiddler, prefix);
                   if (itemPath !== theFilepath) {
-                    // Delete the old file, the normal delete action takes care of
-                    // the rest.
+                    // Delete the old file, the normal delete action takes care
+                    // of the rest.
                     fs.unlinkSync(itemPath);
                   }
                 } else if (!tiddler || !$tw.boot.files[internalTitle]) {
                   // This check needs the prefixed title (everything in $tw.boot
                   // uses the internalTitle)
                   // This is a new tiddler, so just save the tiddler info
-                  $tw.MultiUser.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
+                  $tw.Bob.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
                 }
                 // Make a tiddler object if one doesn't exist. It uses the
                 // non-prefixed name because it gets sent to the browsers.
@@ -248,18 +245,18 @@ if ($tw.node) {
                 Object.keys($tw.connections).forEach(function(connectionIndex) {
                   // If the waiting list entry for this connection doesn't exist
                   // than create it as an empty object.
-                  if (!$tw.MultiUser.WaitingList[connectionIndex]) {
-                    $tw.MultiUser.WaitingList[connectionIndex] = {};
+                  if (!$tw.Bob.WaitingList[connectionIndex]) {
+                    $tw.Bob.WaitingList[connectionIndex] = {};
                   }
                   // If the current tiddler on the current connection isn't on // the waiting list
-                  if (!$tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
+                  if (!$tw.Bob.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
                     // Update the list of tiddlers currently in the browser
                     var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0], wiki: prefix});
                     // TODO make it consistent so that connection is always the
                     // object instead of sometimes just teh index.
-                    $tw.MultiUser.SendToBrowser($tw.connections[connectionIndex], message);
+                    $tw.Bob.SendToBrowser($tw.connections[connectionIndex], message);
                     // Put this tiddler on this connection on the wait list.
-                    $tw.MultiUser.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title] = true;
+                    $tw.Bob.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title] = true;
                   }
                 });
                 // Make sure the node process has the current tiddler listed with
@@ -270,22 +267,22 @@ if ($tw.node) {
                 });
                 tempTiddlerFields.title = internalTitle;
                 $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-                $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-                $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
-                $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-                $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+                $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+                $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
+                $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
+                $tw.Bob.Wikis[prefix].tiddlers.push(internalTitle);
               }
             }
           } else if (fs.lstatSync(itemPath).isDirectory()) {
             console.log('Make a folder');
             console.log(itemPath)
-            $tw.MultiUser.WatchFolder(folder, prefix);
+            $tw.Bob.WatchFolder(folder, prefix);
 
           }
         } else {
           filename = filename.slice(0,-1*fileExtension.length);
-          console.log('Delete Tiddler ', folder, '/', filename)
-          $tw.MultiUser.DeleteTiddler(folder, filename, prefix);
+          console.log('Delete Tiddler ', folder, path.sep, filename);
+          $tw.Bob.DeleteTiddler(folder, filename, prefix);
         }
       } else {
         console.log('No filename given!');
@@ -293,7 +290,7 @@ if ($tw.node) {
     });
   }
 
-  $tw.MultiUser.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
+  $tw.Bob.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
     var title = tiddlerObject.tiddlers[0].title;
     var tempTidObject = {};
     Object.keys(tiddlerObject.tiddlers[0]).forEach(function(field) {
@@ -328,12 +325,11 @@ if ($tw.node) {
     // isn't tested in this context).
     $tw.wiki.addTiddler(new $tw.Tiddler(tempTidObject));
     var tidTitle = title.startsWith("{" + prefix + "}")?title:"{" + prefix + "}" + title;
-    $tw.MultiUser.Wikis[prefix].tiddlers.push(tidTitle);
+    $tw.Bob.Wikis[prefix].tiddlers.push(tidTitle);
   }
 
   // TODO make this handle deleting .meta files
-  $tw.MultiUser.DeleteTiddler = function (folder, filename, prefix) {
-    console.log("Deleted tiddler file " + filename);
+  $tw.Bob.DeleteTiddler = function (folder, filename, prefix) {
     var itemPath = path.join(folder, filename);
     // Get the file name because it isn't always the same as the tiddler
     // title.
@@ -347,7 +343,6 @@ if ($tw.node) {
     Object.keys($tw.boot.files).forEach(function(tiddlerName) {
       if ($tw.boot.files[tiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.boot.files
-        console.log('Deleting Tiddler "' + tiddlerName + '"');
         delete $tw.boot.files[tiddlerName]
         $tw.wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler
@@ -355,7 +350,7 @@ if ($tw.node) {
         tiddlerName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
         var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName, wiki: prefix});
         // Send the message to each connected browser
-        $tw.MultiUser.SendToBrowsers(message);
+        $tw.Bob.SendToBrowsers(message);
       }
     });
   }
@@ -364,7 +359,7 @@ if ($tw.node) {
     This function walks through all the folders listed in the folder tree and
     creates a watcher for each one.
 
-    Each property in the $tw.MultiUser.FolderTree object has this structure:
+    Each property in the $tw.Bob.FolderTree object has this structure:
 
     {
       path: '/path/to/folder'
@@ -380,16 +375,16 @@ if ($tw.node) {
     specific folders
     This is sort of implemented but I want more control.
   */
-  $tw.MultiUser.WatchAllFolders = function (folderTree, prefix) {
+  $tw.Bob.WatchAllFolders = function (folderTree, prefix) {
     // Watch the current folder after making sure that the path exists
     if (typeof folderTree.path === 'string') {
       if (fs.existsSync(folderTree.path)) {
-        $tw.MultiUser.WatchFolder(folderTree.path, prefix);
+        $tw.Bob.WatchFolder(folderTree.path, prefix);
       }
     }
     // Use this same function on each sub-folder listed
     Object.keys(folderTree.folders).forEach(function(folder) {
-      $tw.MultiUser.WatchAllFolders(folderTree.folders[folder], prefix);
+      $tw.Bob.WatchAllFolders(folderTree.folders[folder], prefix);
     });
   }
 

@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/EventTarget.js
+title: $:/plugins/OokTech/Bob/WS/EventTarget.js
 type: application/javascript
 module-type: library
 

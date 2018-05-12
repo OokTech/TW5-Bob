@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/commands/externalserver.js
+title: $:/plugins/OokTech/Bob/commands/externalserver.js
 type: application/javascript
 module-type: command
 
@@ -28,7 +28,7 @@ if($tw.node) {
     this.commander = commander;
     this.callback = callback;
     // Commands that are just for the server
-    $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
+    $tw.ServerSide = require('$:/plugins/OokTech/Bob/ServerSide.js');
   };
 
   Command.prototype.execute = function() {

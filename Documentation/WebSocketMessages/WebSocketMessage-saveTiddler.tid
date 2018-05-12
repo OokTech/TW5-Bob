@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-saveTiddler
+title: $:/plugins/OokTech/Bob/WebSocketMessage-saveTiddler
 tags: [[Websocket Message]]
 caption: saveTiddler
 description: A message for the backend, not human usable.
