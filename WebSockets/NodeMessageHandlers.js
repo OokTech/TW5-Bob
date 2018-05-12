@@ -335,7 +335,9 @@ if ($tw.node) {
       scriptActive[queue] = true;
       childproc.on('exit', function () {
         // Remove the finished task from the queue
-        scriptQueue[queue].shift();
+        if (scriptQueue[queue].length > 0) {
+          scriptQueue[queue].shift();
+        }
         // Set the queue as inactive
         scriptActive[queue] = false;
         // Process the next task in the queue, if any.
@@ -344,7 +346,7 @@ if ($tw.node) {
     }
   }
   function clearQueue (queue) {
-    scriptQueue[queue] = {};
+    scriptQueue[queue] = [];
     if (scriptActive[queue]) {
       childproc.kill('SIGINT');
     }
