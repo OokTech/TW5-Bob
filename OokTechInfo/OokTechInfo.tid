@@ -1,4 +1,5 @@
-title: $:/plugins/OokTech/OokTechInfo
+title: $:/plugins/OokTech/Bob/OokTechInfo
+caption: About OokTech
 
 ~OokTech is a small engineering company based in the USA with an international presence. We work on open software and hardware projects.
 
@@ -8,5 +9,6 @@ title: $:/plugins/OokTech/OokTechInfo
 
 You can support the development of this and other plugins using:
 
-* Patreon: https://www.patreon.com/OokTech
-* LiberaPay: https://liberapay.com/OokTech
+* Patreon: [[Support on Patreon|https://www.patreon.com/OokTech]]
+* PayPal: [[Support using PayPal|https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZG94CTLHTKYRE]]
+* LiberaPay: [[Support on LiberaPay|https://liberapay.com/OokTech]]
