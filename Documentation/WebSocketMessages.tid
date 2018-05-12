@@ -1,9 +1,9 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessages
+title: $:/plugins/OokTech/Bob/WebSocketMessages
 caption: WebSocketMessages
-tags: [[MultiUser Documentation]]
+tags: [[Bob Documentation]]
 description: the different human usable websocket messages avaliable.
 
-You use websocket messages with the [[ActionWebSocketMessage|$:/plugins/OokTech/MultiUser/ActionWebSocketMessage]] widget.
+You use websocket messages with the [[ActionWebSocketMessage|$:/plugins/OokTech/Bob/ActionWebSocketMessage]] widget.
 
 These are the human usable messages currently available for websockets:
 
@@ -24,4 +24,4 @@ These are the human usable messages currently available for websockets:
   <br>
 </$list>
 
-For developers there are also [[messaged used by the back-end|$:/plugins/OokTech/MultiUser/BackendWebSocketMessages]].
+For developers there are also [[messaged used by the back-end|$:/plugins/OokTech/Bob/BackendWebSocketMessages]].

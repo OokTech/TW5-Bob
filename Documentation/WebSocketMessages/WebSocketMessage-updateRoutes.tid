@@ -1,15 +1,15 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-updateRoutes
+title: $:/plugins/OokTech/Bob/WebSocketMessage-updateRoutes
 tags: [[Websocket Message]] [[Human Usable]]
 caption: updateRoutes
 description: Add new wikis to server or update the URL of wikis currently being served.
 
 This message lets you start serving a new wiki from within tiddlywiki. The
 location of the named wiki must be listed in the `wikis` section of the
-`Node Settings` tab in the $:/ControlPanel.
+`Bob Settings` tab in the $:/ControlPanel.
 
 Note this is for wikis that already exist. If you wish to create a new wiki
 see the example for the
-[[runScript message|$:/plugins/OokTech/MultiUser/WebSocketMessage-runScript]]
+[[runScript message|$:/plugins/OokTech/Bob/WebSocketMessage-runScript]]
 
 !!! Example wikis settings
 

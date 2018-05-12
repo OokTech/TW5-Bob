@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WebsocketAdaptor.js
+title: $:/plugins/OokTech/Bob/WebsocketAdaptor.js
 type: application/javascript
 module-type: syncadaptor
 
@@ -87,13 +87,13 @@ if($tw.node) {
         extension = ".tid";
       }
       // Generate the base filepath and ensure the directories exist
-      $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-      $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
+      $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+      $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
       // A cludge to make things work
       if (prefix === 'RootWiki') {
-        $tw.MultiUser.Wikis[prefix].wikiTiddlersPath = $tw.MultiUser.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
+        $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
-      var tiddlersPath = $tw.MultiUser.Wikis[prefix].wikiTiddlersPath;
+      var tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
       var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
@@ -118,9 +118,9 @@ if($tw.node) {
         fileInfo.filepath = filepath;
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
         $tw.boot.files[internalTitle] = fileInfo;
-        $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-        if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
-          $tw.MultiUser.Wikis[prefix].tiddlers.push(internalTitle);
+        $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
+        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
+          $tw.Bob.Wikis[prefix].tiddlers.push(internalTitle);
         }
         // Pass it to the callback
         callback(null,fileInfo);
@@ -190,7 +190,7 @@ if($tw.node) {
     }
     prefix = prefix || 'RootWiki';
     var internalName = (prefix === '' || tiddler.fields.title.startsWith('{' + prefix + '}')) ? tiddler.fields.title:'{' + prefix + '}' + tiddler.fields.title;
-    if (tiddler && $tw.MultiUser.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
+    if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       var self = this;
       self.getTiddlerFileInfo(tiddler, prefix,
        function(err,fileInfo) {
@@ -209,7 +209,7 @@ if($tw.node) {
           var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title
           // Save the tiddler as a separate body and meta file
           var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/MultiUser/templates/tiddler-metadata", {variables: {currentTiddler: title}});
+          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/templates/tiddler-metadata", {variables: {currentTiddler: title}});
           fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
@@ -238,7 +238,7 @@ if($tw.node) {
         } else {
           var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title;
           // Save the tiddler as a self contained templated file
-          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/MultiUser/templates/tid-tiddler", {variables: {currentTiddler: title}});
+          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/templates/tid-tiddler", {variables: {currentTiddler: title}});
           // If we aren't passed a path
           fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
             if(err) {
@@ -262,13 +262,13 @@ if($tw.node) {
     tempTiddlerFields.title = internalName;
     $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
     var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
-    $tw.MultiUser.SendToBrowsers(message);
+    $tw.Bob.SendToBrowsers(message);
     // This may help
-    $tw.MultiUser.Wikis = $tw.MultiUser.Wikis || {};
-    $tw.MultiUser.Wikis[prefix] = $tw.MultiUser.Wikis[prefix] || {};
-    $tw.MultiUser.Wikis[prefix].tiddlers = $tw.MultiUser.Wikis[prefix].tiddlers || [];
-    if ($tw.MultiUser.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
-      $tw.MultiUser.Wikis[prefix].tiddlers.push(internalName);
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
+    $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
+    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
+      $tw.Bob.Wikis[prefix].tiddlers.push(internalName);
     }
   }
 
@@ -299,7 +299,7 @@ if($tw.node) {
       fileInfo = $tw.boot.files[title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
-      console.log('Delete tiddler file ', fileInfo.filepath);
+      //console.log('Delete tiddler file ', fileInfo.filepath);
       // Delete the file
       fs.unlink(fileInfo.filepath,function(err) {
         if(err) {

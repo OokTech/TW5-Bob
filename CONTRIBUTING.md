@@ -12,9 +12,9 @@ respectful environment.
   if the issue persists. If not than don't worry about creating a new issue for
   a resolved problem.
 - Is your question already answered in the documentation? Check the
-  [readme](https://github.com/OokTech/TW5-MultiUser),
-  [configuration documentation](https://github.com/OokTech/TW5-MultiUser/blob/master/Configuration.md)
-  and [general documentation](https://github.com/OokTech/TW5-MultiUser/tree/master/Documentation)
+  [readme](https://github.com/OokTech/TW5-Bob),
+  [configuration documentation](https://github.com/OokTech/TW5-Bob/blob/master/Configuration.md)
+  and [general documentation](https://github.com/OokTech/TW5-Bob/tree/master/Documentation)
 - Are you asking a question that is already part of another issue? If so add to
   the conversation in that issue instead of creating a new one to make it
   easier for people in the future to see progress being made.

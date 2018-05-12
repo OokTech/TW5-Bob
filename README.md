@@ -1,4 +1,4 @@
-# TW5-MultiUser
+# TW5-Bob
 
 BIG DISCLAMER OF DOOM - Back up your data. Do it. This has been tested but
 there may be bugs that I don't know about. Also see notes below.
@@ -42,8 +42,8 @@ same location or it will create a new one without any changes you have made.
 
 If you are familiar with using tiddlywiki on node than you just need to put
 the plugin into your plugins folder and include it in your `tiddlywiki.info`
-file. For the moment this plugin must be located in the `OokTech/MultiUser`
-subfolder of your plugins folder and listed as `OokTech/MultiUser` in the
+file. For the moment this plugin must be located in the `OokTech/Bob`
+subfolder of your plugins folder and listed as `OokTech/Bob` in the
 `tiddlywiki.info` file. You start the server using the `wsserver` command
 instead of the `server` command.
 
@@ -58,21 +58,21 @@ Clone the tiddlywiki repo and get the plugin (Only do this the first time to
 install everything):
 ```
 git clone --depth=1 --branch v5.1.16 https://github.com/Jermolene/TiddlyWiki5.git
-git clone --depth=1 https://github.com/OokTech/TW5-MultiUser.git TiddlyWiki5/plugins/OokTech/MultiUser
+git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
-cp -r TiddlyWiki5/plugins/OokTech/MultiUser/MultiUserWiki TiddlyWiki5/Wikis/MultiUserWiki/
+cp -r TiddlyWiki5/plugins/OokTech/Bob/BobWiki TiddlyWiki5/Wikis/BobWiki/
 ```
 
 After that is finished, and to start up tiddlywiki later type:
 
 ```
 cd TiddlyWiki5
-node ./tiddlywiki.js Wikis/MultiUserWiki  --wsserver
+node ./tiddlywiki.js Wikis/BobWiki  --wsserver
 ```
 
 In a browser go to `127.0.0.1:8080` and the wiki should load. From here any
 tiddlers you create should have .tid files created in the
-`editions/MultiUserWiki/tiddlers` folder, any edits you do to those files
+`editions/BobWiki/tiddlers` folder, any edits you do to those files
 should be immediately reflected in the browser. Open the tiddler called
 `$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine
 right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the
@@ -89,7 +89,7 @@ type these commands:
 ```
 export TIDDLYWIKI_PLUGIN_PATH="/path/to/your/plugins"
 export TIDDLYWIKI_EDITION_PATH="/path/to/your/editions"
-tiddlywiki editions/MultiUserWiki  --wsserver
+tiddlywiki editions/BobWiki  --wsserver
 ```
 
 If you want to change settings see

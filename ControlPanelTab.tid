@@ -1,6 +1,6 @@
-title: $:/plugins/OokTech/MultiUser/ControlPanelTab
+title: $:/plugins/OokTech/Bob/ControlPanelTab
 tags: $:/tags/ControlPanel
-caption: Node Settings
+caption: Bob Settings
 
 Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>not </$reveal>available on local network):
 
@@ -14,13 +14,13 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 >
 
 <$checkbox
-  tiddler='$:/plugins/OokTech/MultiUser/Wiki Listing'
+  tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
   tag='$:/tags/SideBar'
 >
   List available wikis in sidebar
 </$checkbox>
 
-<<tabs "[[$:/plugins/OokTech/MultiUser/AvailableWikisTab]][[$:/plugins/OokTech/MultiUser/ManualSettingsTab]][[$:/plugins/OokTech/MultiUser/ServerActionsTab]]" "$:/plugins/OokTech/MultiUser/AvailableWikisTab">>
+<<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/ServerActionsTab]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
 
 </$reveal>
 
@@ -33,7 +33,7 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 !! Available Wikis
 
 <$checkbox
-  tiddler='$:/plugins/OokTech/MultiUser/Wiki Listing'
+  tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
   tag='$:/tags/SideBar'
 >
   List available wikis in sidebar
@@ -41,6 +41,6 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 
 Other settings should only be changed from the root wiki.
 
-{{$:/plugins/OokTech/MultiUser/Wiki Listing}}
+{{$:/plugins/OokTech/Bob/Wiki Listing}}
 
 </$reveal>

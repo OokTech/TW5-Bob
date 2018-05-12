@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-saveSettings
+title: $:/plugins/OokTech/Bob/WebSocketMessage-saveSettings
 tags: [[Websocket Message]] [[Human Usable]]
 caption: saveSettings
 description: Save changed made to the settings from within the wiki.
@@ -6,7 +6,7 @@ description: Save changed made to the settings from within the wiki.
 ''Note:'' this currently only works for the root wiki!! (that is the wiki at
 the root level served on `localhost:8080` if you are using the defaults).
 
-This saves any changes to the node settings made in the wiki to the file system.
+This saves any changes to the Bob settings made in the wiki to the file system.
 
 This message takes no inputs.
 

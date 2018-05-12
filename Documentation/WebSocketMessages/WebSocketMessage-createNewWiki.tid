@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-createNewWiki
+title: $:/plugins/OokTech/Bob/WebSocketMessage-createNewWiki
 tags: [[Websocket Message]]
 caption: createNewWiki
 description: A message used to make new wikis

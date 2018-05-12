@@ -1,9 +1,9 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-runScript
+title: $:/plugins/OokTech/Bob/WebSocketMessage-runScript
 tags: [[Websocket Message]] [[Human Usable]]
 caption: runScript
 description: Run a shell command defined in the settings.
 
-You can define a shell command in the `Node Settings` tab of $:/ControlPanel.
+You can define a shell command in the `Bob Settings` tab of $:/ControlPanel.
 Then you can use this message to run that command.
 
 It is possible to make messages that have placeholder values that you can set
@@ -13,10 +13,10 @@ and the argument in the script will be replaced with the value given. See the
 example below for clarification. The placeholders here start with # to make
 them obvious but they can be anything you want to use.
 
-See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages]]
+See [[Running Scripts Using Websocket Messages|$:/plugins/OokTech/Bob/Running Scripts Using Websocket Messages]]
 
 |!Parameter |!Description |
-|name |The name given to a script listed in the `Node Settings` |
+|name |The name given to a script listed in the `Bob Settings` |
 |sequential |Scripts with this set to true will run in order and only start after the previous script with sequential set finishes. See note below. (Default: `false`) |
 |queue | ''OPTIONAL'' This only affects scripts that have sequential set to `true`, see note below. Default: `0`. |
 |//{any parameter not starting with $}// |Any other parameters passed are assumed to be the names for placeholders. |
@@ -35,21 +35,21 @@ starting. If no queue is listed everything goes into the default queue called
 
 ''Note:'' This is just an example shell script. You can create new wikis much
 more easily using the built-in tool. See
-[[creating new wikis|$:/plugins/OokTech/MultiUser/Creating New Wikis]] for
+[[creating new wikis|$:/plugins/OokTech/Bob/Creating New Wikis]] for
 more.
 
 Assuming that you have a script defined in the settings as:
 
 `"NewWiki": "tiddlywiki #wikiName --init #editionName"`
 
-and assuming that you have an edition called `MultiUser`.
+and assuming that you have an edition called `Bob`.
 
 ```
 <$button>
   Make Wiki!
-  <$action-websocketmessage $type='runScript' name='NewWiki' #wikiName='Wikis/SomeName' #editionName='MultiUser'/>
+  <$action-websocketmessage $type='runScript' name='NewWiki' #wikiName='Wikis/SomeName' #editionName='Bob'/>
 </$button>
 ```
 
-This would then run the shell command `tiddlywiki Wikis/SomeName --init MultiUser`,
-which creates a new wiki using the MultiUser edition in the folder Wikis/SomeName.
+This would then run the shell command `tiddlywiki Wikis/SomeName --init Bob`,
+which creates a new wiki using the Bob edition in the folder Wikis/SomeName.

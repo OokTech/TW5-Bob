@@ -1,10 +1,10 @@
-title: $:/plugins/OokTech/MultiUser/ws-server-default-settings
+title: $:/plugins/OokTech/Bob/ws-server-default-settings
 type: application/json
 
 {
   "ws-server": {
     "port": "8080",
-		"rootTiddler": "$:/core/save/single",
+		"rootTiddler": "$:/plugins/OokTech/Bob/save/single",
 		"renderType": "text/plain",
 		"serveType": "text/html",
 		"username": "",

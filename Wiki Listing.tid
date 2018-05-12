@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/Wiki Listing
+title: $:/plugins/OokTech/Bob/Wiki Listing
 caption: Wiki Listing
 
 \define thisMakeURL() ./$(PathPrefix)$$(WikiName)$

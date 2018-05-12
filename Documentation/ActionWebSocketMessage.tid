@@ -1,5 +1,5 @@
-title: $:/plugins/OokTech/MultiUser/ActionWebSocketMessage
-tags: ActionWidgets Widgets [[MultiUser Documentation]]
+title: $:/plugins/OokTech/Bob/ActionWebSocketMessage
+tags: ActionWidgets Widgets [[Bob Documentation]]
 caption: ActionWebSocketMessage
 description: The widget for sending websocket messages.
 
@@ -9,7 +9,7 @@ The ''action-websocketmessage''  widget is an [[action widget|ActionWidgets]]
 that sends a websocket message to the websocket server on the node server
 process.
 
-See [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]] for a
+See [[WebSocketMessages|$:/plugins/OokTech/Bob/WebSocketMessages]] for a
 list of available messages and their descriptions.
 
 This is how any non-automated interaction with he websocket server is done.
@@ -19,7 +19,7 @@ This is how any non-automated interaction with he websocket server is done.
 The ''action-websocketmessage'' widget is invisible. Any content within it is ignored.
 
 |!Attribute |!Description |
-|$type |The name of the websocket message you are sending, from the list in [[WebSocketMessages|$:/plugins/OokTech/MultiUser/WebSocketMessages]] |
+|$type |The name of the websocket message you are sending, from the list in [[WebSocketMessages|$:/plugins/OokTech/Bob/WebSocketMessages]] |
 |$param |This was supposed to be the default parameter for messages but it isn't used. This will probably be removed in the future. |
 |//{any other attributes}// |Each other attributed is added to the message sent. Attributes are added using `attribute=value` syntax. |
 

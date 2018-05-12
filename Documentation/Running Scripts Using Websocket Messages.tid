@@ -1,6 +1,6 @@
-title: $:/plugins/OokTech/MultiUser/Running Scripts Using Websocket Messages
+title: $:/plugins/OokTech/Bob/Running Scripts Using Websocket Messages
 caption: Running Scripts Using Websocket Messages
-tags: [[MultiUser Documentation]]
+tags: [[Bob Documentation]]
 description: Run shell scripts from the wiki.
 
 For safety it is set up so that you can only run messages that are defined in

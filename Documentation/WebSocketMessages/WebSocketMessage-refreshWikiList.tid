@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-refreshWikiList
+title: $:/plugins/OokTech/Bob/WebSocketMessage-refreshWikiList
 tags: [[Websocket Message]] [[Human Usable]]
 caption: restartWikiList
 description: Depreciated and no longer useful.
@@ -9,7 +9,7 @@ isn't needed.
 
 This message lets you add a new existing wiki to the list of wikis served from
 within tiddlywiki. The location of the named wiki must be listed in the `wikis`
-section of the `Node Settings` tab in the $:/ControlPanel.
+section of the `Bob Settings` tab in the $:/ControlPanel.
 
 You can have the wikis grouped in the wikis listing like this:
 

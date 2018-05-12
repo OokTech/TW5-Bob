@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/WebSocketMessage-cancelEditingTiddler
+title: $:/plugins/OokTech/Bob/WebSocketMessage-cancelEditingTiddler
 tags: [[Websocket Message]]
 caption: cancelEditingTiddler
 description: A message for the backend, not human usable.

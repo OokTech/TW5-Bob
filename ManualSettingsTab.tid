@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/MultiUser/ManualSettingsTab
+title: $:/plugins/OokTech/Bob/ManualSettingsTab
 caption: Manual Settings
 
 Click on a value to edit it. After clicking on a value the trashcan icon will
@@ -13,7 +13,7 @@ save it, or click
 <$button class='tc-btn-invisible'>{{$:/core/images/cancel-button}}</$button> to
 discard the new property.
 
-{{$:/WikiSettings/split||$:/plugins/OokTech/MultiUser/EditableJSONViewTemplate}}
+{{$:/WikiSettings/split||$:/plugins/OokTech/Bob/EditableJSONViewTemplate}}
 
 <$button>
   Update Settings

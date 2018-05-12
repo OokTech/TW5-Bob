@@ -1,5 +1,5 @@
-title: $:/plugins/OokTech/MultiUser/ExcludeSync
+title: $:/plugins/OokTech/Bob/ExcludeSync
 
 [has[draft.of]][prefix[$:/state/]][prefix[$:/temp/]][[$:/StoryList]]
 [[$:/HistoryList]][[$:/status/UserName]][[$:/Import]]
-[[$:/plugins/OokTech/MultiUser/Server Warning]]
+[[$:/plugins/OokTech/Bob/Server Warning]]

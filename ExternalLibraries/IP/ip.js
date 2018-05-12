@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/ip.js
+title: $:/plugins/OokTech/Bob/ip.js
 type: application/javascript
 module-type: library
 

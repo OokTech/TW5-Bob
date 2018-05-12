@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/safe-buffer/safeBuffer.js
+title: $:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js
 type: application/javascript
 module-type: library
 

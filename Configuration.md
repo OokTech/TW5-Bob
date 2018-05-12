@@ -100,7 +100,7 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   do the same for the websockets port. If this is set to false than if the
   given port is in use an error is given and the process fails. The default
   websocket port is one higher than the http port used. If `servePlugin` is not
-  false than any child wiki served will include the MultiUser plugin. So you
+  false than any child wiki served will include the Bob plugin. So you
   can serve wikis that don't normally have the plugin and edit them as though
   they did.
 - `heartbeat` settings for the heartbeat that makes sure the browser and server
@@ -117,7 +117,7 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the
 `Update Settings` button after making changes in the `Manual Settings` tab
-under the `Node Settings` tab in the $:/ControlPanel. If you change a wiki name
+under the `Bob Settings` tab in the $:/ControlPanel. If you change a wiki name
 or path you also need to click on the `Update Routes` button after you click on
 the `Update Settings` button for your changes to take effect.
 

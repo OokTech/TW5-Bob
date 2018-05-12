@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/MultiUser/WS/WebSocketServer.js
+title: $:/plugins/OokTech/Bob/WS/WebSocketServer.js
 type: application/javascript
 module-type: library
 
@@ -19,17 +19,17 @@ This is part of the websockets module
 
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/MultiUser/safe-buffer/safeBuffer.js');
+const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
 const EventEmitter = require('events');
 const crypto = require('crypto');
-const Ultron = require('$:/plugins/OokTech/MultiUser/Ultron/Ultron.js');
+const Ultron = require('$:/plugins/OokTech/Bob/Ultron/Ultron.js');
 const http = require('http');
 const url = require('url');
 
-const PerMessageDeflate = require('$:/plugins/OokTech/MultiUser/WS/PerMessageDeflate');
-const Extensions = require('$:/plugins/OokTech/MultiUser/WS/Extensions');
-const constants = require('$:/plugins/OokTech/MultiUser/WS/Constants');
-const WebSocket = require('$:/plugins/OokTech/MultiUser/WS/WebSocket');
+const PerMessageDeflate = require('$:/plugins/OokTech/Bob/WS/PerMessageDeflate');
+const Extensions = require('$:/plugins/OokTech/Bob/WS/Extensions');
+const constants = require('$:/plugins/OokTech/Bob/WS/Constants');
+const WebSocket = require('$:/plugins/OokTech/Bob/WS/WebSocket');
 
 const Buffer = safeBuffer.Buffer;
 
