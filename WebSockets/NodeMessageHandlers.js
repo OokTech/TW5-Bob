@@ -333,6 +333,10 @@ if ($tw.node) {
     if (!scriptActive[queue] && scriptQueue[queue].length > 0) {
       childproc = require('child_process').spawn(scriptQueue[queue][0].command, scriptQueue[queue][0].args, scriptQueue[queue][0].options);
       scriptActive[queue] = true;
+      childproc.on('error', function (err) {
+        clearQueue(queue);
+        console.log('Script error: ', err);
+      })
       childproc.on('exit', function () {
         // Remove the finished task from the queue
         if (scriptQueue[queue].length > 0) {
@@ -381,7 +385,10 @@ if ($tw.node) {
               // Process the queue to run a command
               processScriptQueue(data.queue);
             } else {
-              require('child_process').spawn(command, args, options);
+              childproc = require('child_process').spawn(command, args, options);
+              childproc.on('error', function (err) {
+                console.log('Script error: ', err);
+              })
             }
           }
         }
