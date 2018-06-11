@@ -423,7 +423,7 @@ if ($tw.node) {
     console.log('Build Wiki')
     var path = require('path')
     var fs = require('fs')
-    var wikiPath, fullName;
+    var wikiPath, fullName, excludeList;
     if (data.buildWiki) {
       var exists = $tw.httpServer.loadWiki(data.buildWiki);
       if (exists) {
@@ -434,13 +434,19 @@ if ($tw.node) {
       wikiPath = $tw.Bob.Wikis[data.wiki].wikiPath;
       fullName = data.wiki
     }
+    if (data.excludeList) {
+      // Get the excludeList from the provided filter, if it exists
+      excludeList = $tw.wiki.filterTiddlers(data.excludeList);
+    } else {
+      // Otherwise we want to ignore the server-specific plugins to keep things
+      // small.
+      excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+    }
     if (wikiPath) {
       var outputFolder = data.outputFolder || 'output';
       var outputName = data.outputName || 'index.html';
-      var outputFile = path.resolve(wikiPath, outputFolder, 'index.html');
+      var outputFile = path.resolve(wikiPath, outputFolder, outputName);
       $tw.utils.createFileDirectories(outputFile);
-      // We want to ignore the server-specific plugins to keep things small.
-      var excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
       // tiddlers for this wiki.
       var options = {
         variables: {
@@ -729,6 +735,31 @@ if ($tw.node) {
       // The re-add all the routes from the settings
       // This reads the settings so we don't need to give it any arguments
       $tw.httpServer.addOtherRoutes();
+    }
+  }
+
+  /*
+    This unloads a wiki from memory.
+    This can be used to reduce the memory footprint and to fully reload a wiki.
+
+    It needs to remove everything under $tw.Bob.Wikis[data.wikiName] for the
+    wiki. And it also need to find all of the tiddlers for the wiki and remove
+    them. But I don't know how to do that without deleting the tiddlers.
+  */
+  $tw.nodeMessageHandlers.unloadWiki = function (data) {
+    // make sure that there is a wiki name given.
+    if (data.wikiName) {
+      // Make sure that the wiki is loaded
+      if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
+        // If so than unload the wiki
+        // This removes the information about the wiki
+        delete $tw.Bob.Wikis[data.wikiName]
+        // We need to figure out how to remove individual tiddlers
+        // Find all tiddlers that have the correct prefix and remove them from
+        // $tw.boot.files
+        // maybe more? I can't find a function in boot.js that won't delete the
+        // file also.
+      }
     }
   }
 }

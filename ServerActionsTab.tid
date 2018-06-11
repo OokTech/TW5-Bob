@@ -21,7 +21,7 @@ just requires a page reload, not restarting the server.
 -->
 
 WARNING: This button will shutdown this wiki. If you are running multiple wikis
-simultaneously this only shuts down the current wiki.
+simultaneously this only shuts down all of the wikis.
 
 <$button>
   Shutdown Wiki

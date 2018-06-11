@@ -1,8 +1,24 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 0.1.12
+!! Version 1.0.2
+
+- Fixed/Updated documentation
+  - for the getSetting macro (fixed typo)
+  - for the buildHTMLWiki message (added excludeList info)
+  - fixed the message about shutting down the server in the server actions tab
+- Fixed a bug where output single file html wikis would always be called
+  `index.html`
+- Added an optional excludeFilter attribute to the buildHTMLWiki message that
+  lists tiddlers that shouldn't be added to the exported wiki.
+- Added the option to set the location of editions using the editionsPath
+  setting.
+- Fixed a bug that would let the server try and load a wiki that didn't exist
+
+!! Version 1.0.1
 
 - The Bob settings tab only has contents on the root wiki.
+
+!! Changed name to Bob and bumped version to 1.0.0
 
 !! Version 0.1.11
 

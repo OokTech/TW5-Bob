@@ -22,9 +22,13 @@ To fit with tiddlywiki as much as possible each level is separated by ##
 
 Given the above JSON you could use this:
 
-`<<getSetting key="First##Second##Item">>`
+`<<getSetting key:"First##Second##Item">>`
 
-which would return `Value`
+note that you can leave out the `key:` part and use this:
+
+`<<getSetting "First##Second##Item">>`
+
+both would return `Value`
 
 Note that this returns the first leaf reached. If you add extra levels that
 don't exit to the end of the key they are ignored. So in the example if you
@@ -43,3 +47,13 @@ way.
 
   (optional) the root tiddler for the settings. Defaults to
   `$:/WikiSettings/split`
+
+!! Example
+
+The code
+
+`<<getSetting ws-server##host>>`
+
+gives
+
+<<getSetting ws-server##host>>

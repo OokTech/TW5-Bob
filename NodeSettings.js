@@ -115,7 +115,12 @@ if ($tw.node) {
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if (typeof $tw.settings.editionsPath === 'string') {
-      process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
+      // We need to make sure this doesn't overwrite existing thing
+      if (!process.env["TIDDLYWIKI_EDITION_PATH"] || process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + $tw.settings.editionsPath;
+      } else {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
+      }
     }
     // Create the $:/EditionsList tiddler
     var editionsList = $tw.utils.getEditionInfo();

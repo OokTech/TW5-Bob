@@ -26,6 +26,7 @@ var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
   // First make sure that the wiki is listed
   var listed = false;
+  var exists = false;
   if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
     listed = true;
   } else {
@@ -45,9 +46,11 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     }
   }
   // Add tiddlers to the node process
-  var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-  var wikiFolder = path.resolve(basePath, wikiFolder);
-  var exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
+  if (wikiFolder) {
+    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    var wikiFolder = path.resolve(basePath, wikiFolder);
+    exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
+  }
   if (listed && exists) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
