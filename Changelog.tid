@@ -12,7 +12,9 @@ title: $:/plugins/OokTech/Bob/Changelog
   lists tiddlers that shouldn't be added to the exported wiki.
 - Added the option to set the location of editions using the editionsPath
   setting.
+  - This shouldn't affect the environment variable method of setting the location.
 - Fixed a bug that would let the server try and load a wiki that didn't exist
+- Updated instructions to point to TiddlyWiki version 5.1.17
 
 !! Version 1.0.1
 

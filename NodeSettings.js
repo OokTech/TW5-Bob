@@ -23,25 +23,19 @@ $tw.settings = $tw.settings || {};
 $tw.settings.wikis = $tw.settings.wikis || {};
 
 if ($tw.node) {
+  var fs = require("fs"),
+    path = require("path");
   /*
     Only load the settings if you are running node
   */
   var defaultSettingsTiddler = '$:/plugins/OokTech/NodeSettings/DefaultSettings';
   var startup = function () {
-    if ($tw.node) {
-    	var fs = require("fs"),
-    		path = require("path");
-
-      var LocalSettings = {};
-
-      // The default settings path
-      var defaultSettings =  $tw.wiki.getTiddler(defaultSettingsTiddler);
-
-      // The user settings path
-      var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-
-      $tw.loadSettings($tw.settings, userSettingsPath);
-    }
+    var LocalSettings = {};
+    // The default settings path
+    var defaultSettings =  $tw.wiki.getTiddler(defaultSettingsTiddler);
+    // The user settings path
+    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    $tw.loadSettings($tw.settings, userSettingsPath);
   }
 
   /*
@@ -116,7 +110,7 @@ if ($tw.node) {
     // Because we cheat and don't use command line arguments.
     if (typeof $tw.settings.editionsPath === 'string') {
       // We need to make sure this doesn't overwrite existing thing
-      if (!process.env["TIDDLYWIKI_EDITION_PATH"] || process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+      if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
         process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + $tw.settings.editionsPath;
       } else {
         process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
