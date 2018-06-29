@@ -20,9 +20,6 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
-
-  var path = require("path");
-
   var Command = function(params,commander,callback) {
     this.params = params;
     this.commander = commander;

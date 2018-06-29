@@ -1,5 +1,10 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.0.3
+
+- Fixed/Updated documentation
+  - Added note about buildHTMLWiki message
+
 !! Version 1.0.2
 
 - Fixed/Updated documentation

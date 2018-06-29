@@ -21,3 +21,7 @@ Example: Build the current wiki in the default location
 ```
 <$action-websocketmessage $type='buildHTMLWiki'/>
 ```
+
+Note: If you make your own exclude list it is a good idea to include the
+tiddlers in the default. They have no purpose in a single file wiki and may
+cause errors.
