@@ -305,6 +305,9 @@ if($tw.node) {
         if(err) {
           return callback(err);
         }
+        // Delete the tiddler from the internal tiddlywiki side of things
+        delete $tw.boot.files[title];
+        $tw.wiki.deleteTiddler(title);
         //self.logger.log("Deleted file",fileInfo.filepath);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {

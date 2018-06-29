@@ -4,6 +4,12 @@ title: $:/plugins/OokTech/Bob/Changelog
 
 - Fixed/Updated documentation
   - Added note about buildHTMLWiki message
+- Fixed a bug that would keep old tiddlers after they were renamed.
+  - It also sometimes kept old tiddlers that were deleted and then the wiki was
+    reloaded.
+- Partially fixed a related bug that would sometimes keep old versions of
+  tiddlers if they were renamed on the file system while the wiki is running.
+    - This is only partially fixed. The behaviour is inconsistent.
 
 !! Version 1.0.2
 

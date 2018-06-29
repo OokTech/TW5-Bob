@@ -156,10 +156,8 @@ if ($tw.node) {
           if (fs.lstatSync(itemPath).isFile()) {
             // Load tiddler data from the file
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
-
             // Make sure that it at least has a title
             if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
-
               // Test to see if the filename matches what the wiki says it should
               // be. If not rename the file to match the rules set by the wiki.
               var rename = false;
@@ -218,6 +216,9 @@ if ($tw.node) {
                   // Use the non-prefixed title
                   var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
                   console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                  // Remove the old tiddler
+                  var shorterName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
+                  $tw.Bob.DeleteTiddler(folder, shorterName + fileExtension, prefix);
                   // Create the new tiddler
                   $tw.Bob.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
                   // Put the tiddler object in the correct form
@@ -280,6 +281,8 @@ if ($tw.node) {
 
           }
         } else {
+          // If the item doesn't exist on the file system it means it was
+          // deleted. Handle that here.
           filename = filename.slice(0,-1*fileExtension.length);
           console.log('Delete Tiddler ', folder, path.sep, filename);
           $tw.Bob.DeleteTiddler(folder, filename, prefix);
@@ -343,7 +346,7 @@ if ($tw.node) {
     Object.keys($tw.boot.files).forEach(function(tiddlerName) {
       if ($tw.boot.files[tiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.boot.files
-        delete $tw.boot.files[tiddlerName]
+        delete $tw.boot.files[tiddlerName];
         $tw.wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler
         // Remove the prefix from the tiddler
