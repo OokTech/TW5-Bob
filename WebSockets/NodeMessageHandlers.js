@@ -731,6 +731,13 @@ if ($tw.node) {
 
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 
+      // This is here as a hook for an external server. It is defined by the
+      // external server and shouldn't be defined here or it will break
+      // If you are not using an external server than this does nothing
+      if (typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+        $tw.ExternalServer.initialiseWikiSettings(name, data);
+      }
+
       // Then clear all the routes to the non-root wiki
       $tw.httpServer.clearRoutes();
       // The re-add all the routes from the settings

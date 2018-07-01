@@ -16,6 +16,9 @@ title: $:/plugins/OokTech/Bob/Changelog
     very useful because wikis don't take much memory.
   - There is currently no handling for what happens when you unload a wiki
     while someone is using it. So beware.
+- Added a hook to be used by external servers when you create a new wiki
+  - This lets you set the correct access permissions on wikis created from
+    within tiddlywiki when you are using an external server.
 
 !! Version 1.0.2
 
