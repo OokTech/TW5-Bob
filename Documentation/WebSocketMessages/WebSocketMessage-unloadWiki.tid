@@ -1,0 +1,37 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-unloadWiki
+tags: [[Websocket Message]] [[Human Usable]]
+caption: unloadWiki
+description: Unload a wiki from memory.
+
+This message removes the given wiki from the node process. It effecively shuts
+down the wiki. If you go to the wiki url again it will reload the wiki like
+normal.
+
+This allows you to edit the tiddlywiki.info file for a wiki (to change the
+available plugins or themes, etc.) and have the changes take effect without
+restarting the full server.
+
+!!Inputs
+
+|!Parameter |!Description |
+|!wikiName |The name of the wiki to shut down. (No default) |
+
+If no wikiName is given than this message does nothing. To determine the
+wikiName for a wiki look in the $:/WikiName tiddler.
+
+!!Usage
+
+`<$action-websocketmessage $type='unloadWiki' wikiName=wikiName/>`
+
+
+A button that will unload the current wiki from memory:
+
+```
+<$button>
+  Unload Wiki
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button>
+```

@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.3
+!! Version 1.0.3 (in progress)
 
 - Fixed/Updated documentation
   - Added note about buildHTMLWiki message
@@ -9,7 +9,13 @@ title: $:/plugins/OokTech/Bob/Changelog
     reloaded.
 - Partially fixed a related bug that would sometimes keep old versions of
   tiddlers if they were renamed on the file system while the wiki is running.
-    - This is only partially fixed. The behaviour is inconsistent.
+  - This is only partially fixed. The behaviour is inconsistent.
+- Added the 'unloadWiki' message that unloads a loaded wiki.
+  - This can be used to change the plugins loaded in a wiki and to just remove
+    wikis from memory if they aren't being used. That second one may not be
+    very useful because wikis don't take much memory.
+  - There is currently no handling for what happens when you unload a wiki
+    while someone is using it. So beware.
 
 !! Version 1.0.2
 

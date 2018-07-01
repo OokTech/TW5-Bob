@@ -34,6 +34,7 @@ if ($tw.node) {
     // can be used elsewhere.
     $tw.BrowserTiddlerList[data.source_connection] = data.titles;
     $tw.CreateSettingsTiddlers(data.wiki);
+    $tw.connections[data.source_connection].wikiName = data.wiki;
   }
 
   /*
@@ -747,18 +748,30 @@ if ($tw.node) {
     them. But I don't know how to do that without deleting the tiddlers.
   */
   $tw.nodeMessageHandlers.unloadWiki = function (data) {
+    console.log('Unload wiki ', data.wikiName)
     // make sure that there is a wiki name given.
     if (data.wikiName) {
       // Make sure that the wiki is loaded
-      if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
-        // If so than unload the wiki
-        // This removes the information about the wiki
-        delete $tw.Bob.Wikis[data.wikiName]
-        // We need to figure out how to remove individual tiddlers
-        // Find all tiddlers that have the correct prefix and remove them from
-        // $tw.boot.files
-        // maybe more? I can't find a function in boot.js that won't delete the
-        // file also.
+      if ($tw.Bob.Wikis[data.wikiName]) {
+        if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
+          // If so than unload the wiki
+          // First remove all the tiddlers listed as being in the wiki from the
+          // internal listing.
+          // Get the list of tiddlers for this wiki
+          $tw.wiki.allTitles().filter(function(title) {
+            return title.startsWith('{' + data.wikiName + '}');
+          }).forEach(function(title) {
+            $tw.wiki.deleteTiddler(title);
+          })
+          console.log($tw.wiki.allTitles())
+          // This removes the information about the wiki
+          delete $tw.Bob.Wikis[data.wikiName];
+          // We need to figure out how to remove individual tiddlers
+          // Find all tiddlers that have the correct prefix and remove them from
+          // $tw.boot.files
+          // maybe more? I can't find a function in boot.js that won't delete the
+          // file also.
+        }
       }
     }
   }
