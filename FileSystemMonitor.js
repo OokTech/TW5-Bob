@@ -215,10 +215,13 @@ if ($tw.node) {
                   // Make the new file path
                   // Use the non-prefixed title
                   var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title)
-                  console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
-                  // Remove the old tiddler
-                  var shorterName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
-                  $tw.Bob.DeleteTiddler(folder, shorterName + fileExtension, prefix);
+                  // Only remove the old tiddler if it has a title
+                  if (typeof tiddlerName === 'string') {
+                    console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                    // Remove the old tiddler
+                    var shorterName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
+                    $tw.Bob.DeleteTiddler(folder, shorterName + fileExtension, prefix);
+                  }
                   // Create the new tiddler
                   $tw.Bob.MakeTiddlerInfo(folder, newTitle, tiddlerObject, prefix);
                   // Put the tiddler object in the correct form
