@@ -770,7 +770,6 @@ if ($tw.node) {
           }).forEach(function(title) {
             $tw.wiki.deleteTiddler(title);
           })
-          console.log($tw.wiki.allTitles())
           // This removes the information about the wiki
           delete $tw.Bob.Wikis[data.wikiName];
           // We need to figure out how to remove individual tiddlers

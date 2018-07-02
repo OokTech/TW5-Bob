@@ -214,6 +214,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
   // multi-user plugin added instead so that they all work the same.
   // The wikis aren't actually modified, this is just hov they are
   // served.
+  $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
   if (servePlugin) {
     $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
       return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
