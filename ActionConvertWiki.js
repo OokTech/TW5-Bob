@@ -68,7 +68,7 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
       if (output.length > 0) {
         var token = localStorage.getItem('ws-token')
         var message = {
-          "messageType": "newWikiFromTiddlers",
+          "type": "newWikiFromTiddlers",
           "tiddlers": output,
           "token": token
         }
@@ -84,7 +84,7 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     // Create the empty message object
     var message = {};
     // Add in the message type and param, if they exist
-    message.messageType = this.type;
+    message.type = this.type;
     message.param = this.param;
 
     // This is needed for when you serve multiple wikis
@@ -99,7 +99,7 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
   		}
   	});
     // We need a message type at a minimum to send anything
-    if (message.messageType) {
+    if (message.type) {
       // Send the message
       $tw.socket.send(JSON.stringify(message));
     }

@@ -98,11 +98,10 @@ if ($tw.node) {
           // Check to see if we are expecting a save tiddler message from this
           // connection for this tiddler.
           if (!$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title]) {
-            // If we are not expecting a save tiddler event than save the tiddler
-            // normally.
+            // If we are not expecting a save tiddler event than save the
+            // tiddler normally.
             if (!$tw.boot.files[internalTitle]) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              //$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
             } else {
               // If changed send tiddler
               var changed = true;
@@ -119,7 +118,6 @@ if ($tw.node) {
               }
               if (changed) {
                 $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-                //$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
               }
             }
           } else {

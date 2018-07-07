@@ -29,6 +29,8 @@ var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
+  // Import shared commands
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
@@ -38,6 +40,7 @@ if ($tw.node) {
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
+    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
     // Initialise connections array
     $tw.connections = [];
 
@@ -180,10 +183,10 @@ if ($tw.node) {
         // Add the source to the eventData object so it can be used later.
         eventData.source_connection = thisIndex;
         // Make sure we have a handler for the message type
-        if (typeof $tw.nodeMessageHandlers[eventData.messageType] === 'function') {
-          $tw.nodeMessageHandlers[eventData.messageType](eventData);
+        if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+          $tw.nodeMessageHandlers[eventData.type](eventData);
         } else {
-          console.log('No handler for message of type ', eventData.messageType);
+          console.log('No handler for message of type ', eventData.type);
         }
       } catch (e) {
         console.log("WebSocket error, probably closed connection: ", e);
@@ -251,6 +254,10 @@ if ($tw.node) {
     This function sends a message to a single connected browser. It takes the
     browser connection object and the stringifyed message as input.
     If any attempt fails mark the connection as inacive.
+
+    On the server side the history is a bit more complex.
+    There is one history of messages sent that has the message ids, each
+    connection has a list of message ids that are still waiting for acks.
   */
   $tw.Bob.SendToBrowser = function (connection, message) {
     // If the message isn't a string try and coerce it into a string

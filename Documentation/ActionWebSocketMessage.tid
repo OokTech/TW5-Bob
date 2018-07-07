@@ -30,7 +30,7 @@ received message in the terminal running the node process.
 
 This message will print out:
 
-`{ messageType: 'test', attribute: 'value', source_connection: 0 }`
+`{ type: 'test', attribute: 'value', source_connection: 0 }`
 
 Note: the source connection may not be 0. The source connection is the
 zero-based index of the browser connection to the server.

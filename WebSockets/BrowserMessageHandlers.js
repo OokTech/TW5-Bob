@@ -75,7 +75,7 @@ it will overwrite this file.
           } else {
             // Respond that we already have this tiddler synced
             var token = localStorage.getItem('ws-token')
-            var message = JSON.stringify({messageType: 'clearStatus', title: data.fields.title, token: token});
+            var message = JSON.stringify({type: 'clearStatus', title: data.fields.title, token: token});
             $tw.socket.send(message);
           }
         } else {
@@ -182,7 +182,7 @@ it will overwrite this file.
     var response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
-    $tw.socket.send(JSON.stringify({messageType: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    $tw.socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
   }
 
   /*
@@ -192,7 +192,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.ping = function (data) {
     var token = localStorage.getItem('ws-token')
-    var message = {messageType: 'pong', token: token};
+    var message = {type: 'pong', token: token};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
@@ -232,7 +232,7 @@ it will overwrite this file.
       clearTimeout($tw.settings.heartbeat.retry);
       setTimeout(function () {
         var token = localStorage.getItem('ws-token')
-        $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
+        $tw.socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token}));
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
     }
@@ -249,7 +249,7 @@ it will overwrite this file.
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       var token = localStorage.getItem('ws-token')
-      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
+      $tw.socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token}));
     }, $tw.settings.heartbeat.interval);
   }
 
