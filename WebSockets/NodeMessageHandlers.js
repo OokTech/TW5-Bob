@@ -24,6 +24,11 @@ if ($tw.node) {
   // existing copy.
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
+  var sendAck = function (data) {
+    console.log('send ack')
+    $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data._messageId}));
+  }
+
   /*
     This handles when the browser sends the list of all tiddlers that currently
     exist in the browser version of the wiki. This is different than the list of
@@ -97,7 +102,7 @@ if ($tw.node) {
             // normally.
             if (!$tw.boot.files[internalTitle]) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
+              //$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
             } else {
               // If changed send tiddler
               var changed = true;
@@ -114,7 +119,7 @@ if ($tw.node) {
               }
               if (changed) {
                 $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-                $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
+                //$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
               }
             }
           } else {
@@ -130,6 +135,8 @@ if ($tw.node) {
         }
       }
     }
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -160,6 +167,8 @@ if ($tw.node) {
       delete $tw.Bob.EditingTiddlers[data.tiddler];
       $tw.Bob.UpdateEditingTiddlers(false);
     }
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -170,6 +179,8 @@ if ($tw.node) {
     // Add the tiddler to the list of tiddlers being edited to prevent multiple
     // people from editing it at the same time.
     $tw.Bob.UpdateEditingTiddlers(internalName);
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -197,6 +208,8 @@ if ($tw.node) {
       delete $tw.Bob.EditingTiddlers[internalName];
     }
     $tw.Bob.UpdateEditingTiddlers(false);
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*

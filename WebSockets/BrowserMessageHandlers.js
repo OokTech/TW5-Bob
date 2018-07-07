@@ -253,4 +253,35 @@ it will overwrite this file.
     }, $tw.settings.heartbeat.interval);
   }
 
+  /*
+    For some messages we need an ack from the server to make sure that they
+    were received correctly. This removes the messages from the queue after
+    an ack is recevied.
+  */
+  $tw.browserMessageHandlers.ack = function (data) {
+    if (data.id) {
+      // Set the message as acknowledged.
+      $tw.Bob.MessageQueue.forEach(function(value,index) {
+        if (value.id === data.id) {
+          $tw.Bob.MessageQueue[index].ack = true;
+        }
+      })
+      // We can not remove messages immediately or else they won't be around to
+      // prevent duplicates when the message from the file system monitor comes
+      // in.
+      // But we don't want a huge history of messages taking up all the ram, so
+      // we set some long time to live on the message queue and remove any
+      // messages older than this TTL when we receive a new ack.
+      // remove the message with the id from the message queue
+      // try removing messages that received an ack more than 10 seconds ago.
+      $tw.Bob.MessageQueue = $tw.Bob.MessageQueue.filter(function(messageData) {
+        if (messageData.time > 10000) {
+          return false;
+        } else {
+          return true;
+        }
+      });
+    }
+  }
+
 })();

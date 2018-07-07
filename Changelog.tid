@@ -20,6 +20,10 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Added a hook to be used by external servers when you create a new wiki
   - This lets you set the correct access permissions on wikis created from
     within tiddlywiki when you are using an external server.
+- Added detection and recovery of lost websocket messages to ensure that all
+  changes to a wiki are properly saved on the server.
+  - Currently this is only for messages to the server from the browser. Error
+    detection of server->browser messages will come later.
 
 !! Version 1.0.2
 

@@ -29,8 +29,11 @@ socket server, but it can be extended for use with other web socket servers.
   }
 
   exports.startup = function() {
+    // Each time we load the wiki we start with id 0
+    var idNumber = 0;
     // Ensure that the needed objects exist
     $tw.Bob = $tw.Bob || {};
+    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
     $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
 
     // Do all actions on startup.
@@ -84,6 +87,117 @@ socket server, but it can be extended for use with other web socket servers.
       }
     }
 
+    var makeId = function () {
+      idNumber = idNumber + 1;
+      var newId = 'b' + idNumber;
+      return newId;
+    }
+
+    /*
+      Check if the file version matches the in-browser version of a tiddler
+    */
+    function TiddlerHasChanged(tiddler, otherTiddler) {
+      if (!otherTiddler) {
+        return true;
+      }
+      if (!tiddler) {
+        return true;
+      }
+
+      var changed = false;
+      // Some cleverness that gives a list of all fields in both tiddlers without
+      // duplicates.
+      var allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
+        return Object.keys(tiddler.fields).indexOf(item) < 0;
+      }));
+      // check to see if the field values are the same, ignore modified for now
+      allFields.forEach(function(field) {
+        if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
+          if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
+            // There is a difference!
+            changed = true;
+          }
+        } else if (field === 'list' || field === 'tags') {
+          if (tiddler.fields[field] && otherTiddler.fields[field]) {
+            if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
+              changed = true;
+            } else {
+              var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
+              arrayList.forEach(function(item) {
+                if (tiddler.fields[field].indexOf(item) === -1) {
+                  changed = true;
+                }
+              })
+            }
+          } else {
+            changed = true;
+          }
+        }
+      })
+      return changed;
+    };
+
+    var isDuplicate = function (message) {
+      var matches = $tw.Bob.MessageQueue.filter(function(item) {
+        if (item.messageType === 'deleteTiddler' && message.messageType === 'deleteTiddler' && item.tiddler === message.tiddler) {
+          return true;
+        } else if (item.messageType === 'saveTiddler' && message.messageType === 'saveTiddler') {
+          // figure out if the tiddler saved is the same as a previous message
+          return TiddlerHasChanged(message.tiddler, item.tiddler);
+        } else {
+          return false;
+        }
+      })
+      return (matches.length > 0);
+    }
+
+    /*
+      This sends a message to the server and gives it an id. The ids are unique
+      to the session, but not globally.
+      Duplicate messages are rejected.
+    */
+    $tw.Bob.sendMessage = function(message) {
+      if (!isDuplicate(message)) {
+        var messageId = makeId();
+        message._messageId = messageId;
+        var messageData = {
+          message: message,
+          id: messageId,
+          time: Date.now(),
+          ack: false
+        };
+        $tw.Bob.MessageQueue.push(messageData);
+        $tw.socket.send(JSON.stringify(message));
+        clearTimeout($tw.Bob.MessageQueueTimer);
+        $tw.Bob.MessageQueueTimer = setTimeout(checkMessageQueue, 500);
+      }
+    }
+
+    var checkMessageQueue = function () {
+      // If the queue isn't empty
+      if($tw.Bob.MessageQueue.length > 0) {
+        // Check if there are any messages that are more than 500ms old
+        var oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
+          if ((Date.now() - messageData.time > 500) && !messageData.ack) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+        oldMessages.forEach(function (messageData) {
+          console.log(JSON.stringify(messageData.message))
+          $tw.socket.send(JSON.stringify(messageData.message));
+        });
+        if($tw.Bob.MessageQueueTimer) {
+          clearTimeout($tw.Bob.MessageQueueTimer);
+        }
+        $tw.Bob.MessageQueueTimer = setTimeout(checkMessageQueue, 500);
+      } else {
+        clearTimeout($tw.Bob.MessageQueueTimer);
+        $tw.Bob.MessageQueueTimer = false;
+      }
+    }
+
     /*
       This adds actions for the different event hooks. Each hook sends a
       message to the node process.
@@ -97,17 +211,19 @@ socket server, but it can be extended for use with other web socket servers.
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        // console.log('Editing tiddler event: ', event);
-        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
-        $tw.socket.send(message);
+        //var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
+        //$tw.socket.send(message);
+        var message = {messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        $tw.Bob.sendMessage(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        // console.log("cancel editing event: ",event);
-        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
-        $tw.socket.send(message);
+        //var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
+        //$tw.socket.send(message);
+        var message = {messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        $tw.Bob.sendMessage(message);
         // Do the normal handling
         return event;
       });
@@ -145,13 +261,17 @@ socket server, but it can be extended for use with other web socket servers.
                     }
                   }
                 );
-                var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token});
-                $tw.socket.send(message);
+                //var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token});
+                //$tw.socket.send(message);
+                var message = {messageType: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
+                $tw.Bob.sendMessage(message);
               }
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
-              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
-              $tw.socket.send(message);
+              //var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
+              //$tw.socket.send(message);
+              var message = {messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token};
+              $tw.Bob.sendMessage(message);
             }
           } else {
             // Stop the dirty indicator from turning on.

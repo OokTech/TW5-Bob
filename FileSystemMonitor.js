@@ -35,7 +35,6 @@ if ($tw.node) {
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.WaitingList = $tw.Bob.WaitingList || {};
-  $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
@@ -71,72 +70,6 @@ if ($tw.node) {
       })
     }
     return parentTree;
-  }
-
-  /*
-    This updates the list of tiddlers being edited in each wiki. Any tiddler on
-    this list has the edit button disabled to prevent two people from
-    simultaneously editing the same tiddler.
-    If run without an input it just re-sends the lists to each browser, with a
-    tiddler title as input it appends that tiddler to the list and sends the
-    updated list to all connected browsers.
-  */
-  $tw.Bob.UpdateEditingTiddlers = function (tiddler) {
-    // Check if a tiddler title was passed as input and that the tiddler isn't
-    // already listed as being edited.
-    // If there is a title and it isn't being edited add it to the list.
-    if (tiddler && !$tw.Bob.EditingTiddlers[tiddler]) {
-      $tw.Bob.EditingTiddlers[tiddler] = true;
-    }
-    // Create a json object representing the tiddler that lists which tiddlers
-    // are currently being edited.
-    var message = JSON.stringify({type: 'updateEditingTiddlers', list: Object.keys($tw.Bob.EditingTiddlers)});
-    // Send the tiddler info to each connected browser
-    $tw.Bob.SendToBrowsers(message);
-  }
-
-  /*
-    This is a wrapper function that takes a message that is meant to be sent to
-    all connected browsers and handles the details.
-
-    It iterates though all connections, checkis if each one is active, tries to
-    send the message, if the sending fails than it sets the connection as
-    inactive.
-
-    Note: This checks if the message is a string despite SendToBrowser also
-    checking because if it needs to be changed and sent to multiple browsers
-    changing it once here instead of once per browser should be better.
-  */
-  $tw.Bob.SendToBrowsers = function (message) {
-    // If the message isn't a string try and coerce it into a string
-    if (typeof message !== 'string') {
-      message = JSON.stringify(message);
-    }
-    // Send message to all connections.
-    $tw.connections.forEach(function (connection) {
-      $tw.Bob.SendToBrowser(connection, message);
-    })
-  }
-
-  /*
-    This function sends a message to a single connected browser. It takes the
-    browser connection object and the stringifyed message as input.
-    If any attempt fails mark the connection as inacive.
-  */
-  $tw.Bob.SendToBrowser = function (connection, message) {
-    // If the message isn't a string try and coerce it into a string
-    if (typeof message !== 'string') {
-      message = JSON.stringify(message);
-    }
-    // If the connection is open, send the message
-    if (connection.socket.readyState === 1) {
-      connection.socket.send(message, function (err) {
-        // Send callback function, only used for error handling at the moment.
-        if (err) {
-          console.log('Websocket sending error:',err);
-        }
-      });
-    }
   }
 
   /*
