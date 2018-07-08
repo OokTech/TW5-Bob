@@ -34,7 +34,7 @@ if ($tw.node) {
 
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
-  $tw.Bob.WaitingList = $tw.Bob.WaitingList || {};
+  $tw.connections = $tw.connections || [];
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
@@ -178,24 +178,8 @@ if ($tw.node) {
                 if (!tiddler) {
                   tiddler = {fields: tiddlerObject.tiddlers[0]};
                 }
-                // Check if we should send it to each of the connected browsers
-                Object.keys($tw.connections).forEach(function(connectionIndex) {
-                  // If the waiting list entry for this connection doesn't exist
-                  // than create it as an empty object.
-                  if (!$tw.Bob.WaitingList[connectionIndex]) {
-                    $tw.Bob.WaitingList[connectionIndex] = {};
-                  }
-                  // If the current tiddler on the current connection isn't on // the waiting list
-                  if (!$tw.Bob.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title]) {
-                    // Update the list of tiddlers currently in the browser
-                    var message = JSON.stringify({type: 'makeTiddler', fields: tiddlerObject.tiddlers[0], wiki: prefix});
-                    // TODO make it consistent so that connection is always the
-                    // object instead of sometimes just teh index.
-                    $tw.Bob.SendToBrowser($tw.connections[connectionIndex], message);
-                    // Put this tiddler on this connection on the wait list.
-                    $tw.Bob.WaitingList[connectionIndex][tiddlerObject.tiddlers[0].title] = true;
-                  }
-                });
+                var message = {type: 'saveTiddler', tiddler: {fields: tiddlerObject.tiddlers[0]}, wiki: prefix};
+                $tw.Bob.SendToBrowsers(message);
                 // Make sure the node process has the current tiddler listed with
                 // any new changes.
                 var tempTiddlerFields = {};
@@ -287,7 +271,7 @@ if ($tw.node) {
         // Create a message saying to remove the tiddler
         // Remove the prefix from the tiddler
         tiddlerName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
-        var message = JSON.stringify({type: 'removeTiddler', title: tiddlerName, wiki: prefix});
+        var message = {type: 'removeTiddler', title: tiddlerName, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
       }

@@ -29,12 +29,14 @@ socket server, but it can be extended for use with other web socket servers.
   }
 
   exports.startup = function() {
-    // Import shared commands
-    $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
     // Ensure that the needed objects exist
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
+    // Import shared commands
+    $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
     $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
+    // In the browser there is only one connection, so set the connection index
+    var connectionIndex = 0;
 
     // Do all actions on startup.
     function setup() {
@@ -48,10 +50,15 @@ socket server, but it can be extended for use with other web socket servers.
       var IPAddress = window.location.hostname;
       var WSSPort = output.wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
-      $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
-      $tw.socket.onopen = openSocket;
-      $tw.socket.onmessage = parseMessage;
-      $tw.socket.binaryType = "arraybuffer";
+
+      $tw.connections = $tw.connections || [];
+      $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
+      $tw.connections[connectionIndex].index = connectionIndex;
+      $tw.connections[connectionIndex].active = true;
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
+      $tw.connections[connectionIndex].socket.onopen = openSocket;
+      $tw.connections[connectionIndex].socket.onmessage = parseMessage;
+      $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
 
       // Get the name for this wiki for websocket messages
       var tiddler = $tw.wiki.getTiddler("$:/WikiName");
@@ -71,7 +78,7 @@ socket server, but it can be extended for use with other web socket servers.
       console.log('Opened socket');
       var token = localStorage.getItem('ws-token');
       // Start the heartbeat process
-      $tw.socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+      $tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -87,31 +94,19 @@ socket server, but it can be extended for use with other web socket servers.
       }
     }
 
-    /*
-      This sends a message to the server and gives it an id. The ids are unique
-      to the session, but not globally.
-      Duplicate messages are rejected.
-    */
-    $tw.Bob.sendMessage = function(message) {
-      // Get the list of indicies for messages that this message overrules
-      var duplicateIndicies = $tw.Bob.Shared.findDuplicateMessages(message);
-      // Remove the messages that are overruled by the new message.
-      $tw.Bob.MessageQueue = $tw.Bob.MessageQueue.filter(function(item, index) {
-        return duplicateIndicies.indexOf(index) < 0;
-      });
-      // Create and add the new message.
-      var messageId = $tw.Bob.Shared.makeId();
-      message._messageId = messageId;
+    var sendToServer = function (message) {
+      var id = $tw.Bob.Shared.makeId();
+      message.id = id;
       var messageData = {
         message: message,
-        id: messageId,
+        id: id,
         time: Date.now(),
-        ack: false
+        ack: {}
       };
-      $tw.Bob.MessageQueue.push(messageData);
-      $tw.socket.send(JSON.stringify(message));
-      clearTimeout($tw.Bob.MessageQueueTimer);
-      $tw.Bob.MessageQueueTimer = setTimeout(checkMessageQueue, 500);
+      // If the connection is open, send the message
+      if ($tw.connections[connectionIndex].socket.readyState === 1) {
+        $tw.Bob.Shared.sendMessage(messageData, 0);
+      }
     }
 
     /*
@@ -128,14 +123,14 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
         var message = {type: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
-        $tw.Bob.sendMessage(message);
+        sendToServer(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
         var message = {type: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
-        $tw.Bob.sendMessage(message);
+        sendToServer(message);
         // Do the normal handling
         return event;
       });
@@ -174,12 +169,12 @@ socket server, but it can be extended for use with other web socket servers.
                   }
                 );
                 var message = {type: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
-                $tw.Bob.sendMessage(message);
+                sendToServer(message);
               }
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
               var message = {type: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token};
-              $tw.Bob.sendMessage(message);
+              sendToServer(message);
             }
           } else {
             // Stop the dirty indicator from turning on.

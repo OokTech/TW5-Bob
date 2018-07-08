@@ -43,11 +43,20 @@ it will overwrite this file.
   }
 
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
+  $tw.Bob = $tw.Bob || {};
+  $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
+  $tw.connections = $tw.connections || [];
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
+
+  var sendAck = function (data) {
+    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+  }
 
   /*
     TODO - determine if we should sanitise the tiddler titles and field names
 
-    This message handler takes care of makeTiddler messages
+    This message handler takes care of saveTiddler messages going to the
+    browser.
     It creates a tiddler out of the supplied JSON object that lists the fields.
 
     JSON structure of data (the function input):
@@ -59,24 +68,23 @@ it will overwrite this file.
       }
     }
   */
-  $tw.browserMessageHandlers.makeTiddler = function(data) {
-    //console.log('Make Tiddler')
+  $tw.browserMessageHandlers.saveTiddler = function(data) {
     // Ignore the message if it isn't for this wiki
     if (data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
-      if (data.fields) {
-        if (typeof data.fields.title === 'string' && !data.fields.title.startsWith('{' + $tw.wikiName + '}')) {
+      if (data.tiddler.fields) {
+        if (typeof data.tiddler.fields.title === 'string' && !data.tiddler.fields.title.startsWith('{' + $tw.wikiName + '}')) {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
-          var changed = TiddlerHasChanged(data, $tw.wiki.getTiddler(data.fields.title));
+          var changed = $tw.Bob.Shared.TiddlerHasChanged(data, $tw.wiki.getTiddler(data.tiddler.fields.title));
           if (changed) {
-            console.log('Create Tiddler ', data.fields.title);
-            $tw.wiki.addTiddler(new $tw.Tiddler(data.fields));
+            console.log('Create Tiddler', data.tiddler.fields.title);
+            $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
           } else {
             // Respond that we already have this tiddler synced
             var token = localStorage.getItem('ws-token')
-            var message = JSON.stringify({type: 'clearStatus', title: data.fields.title, token: token});
-            $tw.socket.send(message);
+            var message = JSON.stringify({type: 'clearStatus', title: data.tiddler.fields.title, token: token, wiki: $tw.wikiName});
+            $tw.connections[0].socket.send(message);
           }
         } else {
           console.log('Invalid tiddler title');
@@ -85,6 +93,7 @@ it will overwrite this file.
         console.log("No tiddler fields given");
       }
     }
+    sendAck(data);
   }
 
   /*
@@ -107,16 +116,24 @@ it will overwrite this file.
     } else {
       console.log("No tiddler list given");
     }
+    sendAck(data);
   }
 
   /*
     Check if the file version matches the in-browser version of a tiddler
   */
+  /*
   function TiddlerHasChanged(tiddler, otherTiddler) {
     if (!otherTiddler) {
       return true;
     }
     if (!tiddler) {
+      return true;
+    }
+    if (!otherTiddler.fields) {
+      return true;
+    }
+    if (!tiddler.fields) {
       return true;
     }
 
@@ -152,7 +169,7 @@ it will overwrite this file.
     })
     return changed;
   };
-
+  */
   /*
     This message handles the remove tiddler function. Note that this removes
     the tiddler from the wiki in the browser, but it does not delete the .tid
@@ -169,6 +186,7 @@ it will overwrite this file.
         console.log("No tiddler title give.");
       }
     }
+    sendAck(data);
   }
 
   /*
@@ -182,7 +200,7 @@ it will overwrite this file.
     var response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
-    $tw.socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
   }
 
   /*
@@ -192,14 +210,17 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.ping = function (data) {
     var token = localStorage.getItem('ws-token')
-    var message = {type: 'pong', token: token};
+    var message = {};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
+    message.type = 'pong';
+    message.token = token;
+    message.wiki = $tw.wikiName;
     // The message is just the message type
     var response = JSON.stringify(message);
     // Send the response
-    $tw.socket.send(response);
+    $tw.connections[0].socket.send(response);
   }
 
   /*
@@ -232,7 +253,7 @@ it will overwrite this file.
       clearTimeout($tw.settings.heartbeat.retry);
       setTimeout(function () {
         var token = localStorage.getItem('ws-token')
-        $tw.socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token}));
+        $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
     }
@@ -249,7 +270,7 @@ it will overwrite this file.
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       var token = localStorage.getItem('ws-token')
-      $tw.socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token}));
+      $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }, $tw.settings.heartbeat.interval);
   }
 
@@ -258,30 +279,6 @@ it will overwrite this file.
     were received correctly. This removes the messages from the queue after
     an ack is recevied.
   */
-  $tw.browserMessageHandlers.ack = function (data) {
-    if (data.id) {
-      // Set the message as acknowledged.
-      $tw.Bob.MessageQueue.forEach(function(value,index) {
-        if (value.id === data.id) {
-          $tw.Bob.MessageQueue[index].ack = true;
-        }
-      })
-      // We can not remove messages immediately or else they won't be around to
-      // prevent duplicates when the message from the file system monitor comes
-      // in.
-      // But we don't want a huge history of messages taking up all the ram, so
-      // we set some long time to live on the message queue and remove any
-      // messages older than this TTL when we receive a new ack.
-      // remove the message with the id from the message queue
-      // try removing messages that received an ack more than 10 seconds ago.
-      $tw.Bob.MessageQueue = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if (messageData.time > 10000) {
-          return false;
-        } else {
-          return true;
-        }
-      });
-    }
-  }
+  $tw.browserMessageHandlers.ack = $tw.Bob.Shared.handleAck;
 
 })();

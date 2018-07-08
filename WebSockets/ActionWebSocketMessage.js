@@ -93,7 +93,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // We need a message type at a minimum to send anything
   if (message.type) {
     // Send the message
-    $tw.socket.send(JSON.stringify(message));
+    $tw.connections[0].socket.send(JSON.stringify(message));
   }
 
 	return true; // Action was invoked

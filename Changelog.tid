@@ -21,9 +21,17 @@ title: $:/plugins/OokTech/Bob/Changelog
   - This lets you set the correct access permissions on wikis created from
     within tiddlywiki when you are using an external server.
 - Added detection and recovery of lost websocket messages to ensure that all
-  changes to a wiki are properly saved on the server.
-  - Currently this is only for messages to the server from the browser. Error
-    detection of server->browser messages will come later.
+  changes to a wiki are properly saved on the server and that all changes on
+  the server make it to all of the browsers.
+  - This update also gives much more consistent handling to all messages
+- Only messages for the wiki a connection is using get sent to that conneciton,
+  potentially reducing the network load of a wiki.
+  - This also improves security and privacy because people who don't have
+    access to a wiki can't see that there is editing activity taking place or
+    see tiddler titles.
+- On the back-end the waiting list is removed which simplifies a lot
+- Hopefully there is correct handling for date fields now.
+  - This needs further testing.
 
 !! Version 1.0.2
 
