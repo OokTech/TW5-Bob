@@ -80,11 +80,6 @@ it will overwrite this file.
           if (changed) {
             console.log('Create Tiddler', data.tiddler.fields.title);
             $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
-          } else {
-            // Respond that we already have this tiddler synced
-            var token = localStorage.getItem('ws-token')
-            var message = JSON.stringify({type: 'clearStatus', title: data.tiddler.fields.title, token: token, wiki: $tw.wikiName});
-            $tw.connections[0].socket.send(message);
           }
         } else {
           console.log('Invalid tiddler title');

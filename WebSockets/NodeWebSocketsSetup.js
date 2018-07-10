@@ -134,6 +134,11 @@ if ($tw.node) {
         $tw.wss = new WebSocketServer({server: server});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
+        // I don't know how to set up actually closing a connection, so this doesn't
+        // do anything useful yet
+        $tw.wss.on('close', function(connection) {
+          console.log('closed connection ', connection);
+        });
       }
       $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
 
@@ -143,14 +148,6 @@ if ($tw.node) {
         host: host,
         wssPort: WSS_SERVER_PORT
       };
-
-      // I don't know how to set up actually closing a connection, so this doesn't
-      // do anything useful yet
-      /*.
-      $tw.wss.on('close', function(connection) {
-        console.log('closed connection ', connection);
-      })
-      */
     }
   }
 
@@ -240,13 +237,6 @@ if ($tw.node) {
       var message = {type: 'updateEditingTiddlers', list: list, wiki: $tw.connections[index].wiki};
       $tw.Bob.SendToBrowser($tw.connections[index], message);
     });
-    /*
-    // Create a json object representing the tiddler that lists which tiddlers
-    // are currently being edited.
-    var message = {type: 'updateEditingTiddlers', list: Object.keys($tw.Bob.EditingTiddlers)};
-    // Send the tiddler info to each connected browser
-    $tw.Bob.SendToBrowsers(message);
-    */
   }
 
   /*

@@ -14,16 +14,13 @@
   - Saving exports the changed wiki to overwrite the single file wiki (or save
     under a new name if that is what you want)
 - Let the plugins a wiki uses be set from inside the wiki.
-  - This is without editing the tiddlywiki.info file
-  - This requires the wiki to be able to be unloaded and reloaded without
-    restarting the server.
-- Add error correction for server->browser messages
-- Make the message queuing a bit clever to reduce the memory requirements
-  - Only keep the newest 'saveTiddler' message for a tiddler.
-  - If a 'deleteTiddler' message comes in and there is a 'saveTiddler' message
-    queued for the same tiddler, remove the saveTiddler message.
-  - Similarly, if there is a 'saveTiddler' message for a tiddler that has a
-    'deleteTiddler' message queued, remove the 'deleteTiddler' message.
-  - Make a note somewehre in the documentation about how this doesn't play well
-    with multi-user situations.
-- Figure out which other messages should get the same sort of error correction
+  - This is without editing the tiddlywiki.info file directly so we need an
+    interface inside the wiki.
+- Make sure that closed connections are being pruned (make sure that
+  connections are being closed!)
+- If a connection isn't authenticated than serve the wiki without the Bob
+  plugin to make it smaller.
+- Figure out if there is a 'no change' http thing I can do for page reloads.
+- Add an option to wait for a response from the server before being allowed to
+  edit a tiddler to prevent editing conflicts. (THIS MAY BE HARD, it changes
+  some core behaviour)

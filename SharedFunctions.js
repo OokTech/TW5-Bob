@@ -267,6 +267,7 @@ This has some functions that are needed by Bob in different places.
     different id it is ignored.
   */
   Shared.sendMessage = function(messageData, connectionIndex) {
+    $tw.Bob.Timers = $tw.Bob.Timers || {};
     // Empty tags fields will be converted to empty strings.
     if (messageData.message.type === 'saveTiddler') {
       if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
@@ -289,7 +290,15 @@ This has some functions that are needed by Bob in different places.
           // If the there is an existing message with the same id and it doesn't
           // already have an ack from the current destination.
           $tw.Bob.MessageQueue[existingMessage].ack[connectionIndex] = false;
-          $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+          if (messageData.message.type === 'saveTiddler' && $tw.browser) {
+            // Each tiddler gets a timer
+            // invalidate the timer and reset it each time we get a save tiddler
+            clearTimeout($tw.Bob.Timers[messageData.message.tiddler.fields.title]);
+            // then reset the timer
+            $tw.Bob.Timers[messageData.message.tiddler.fields.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
+          } else {
+            $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+          }
         }
         // If there is already an ack for this message than we do nothing here.
       } else {
@@ -314,7 +323,15 @@ This has some functions that are needed by Bob in different places.
           });
           messageData.ack[connectionIndex] = false;
           $tw.Bob.MessageQueue.push(messageData);
-          $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+          if (messageData.message.type === 'saveTiddler' && $tw.browser) {
+            // Each tiddler gets a timer
+            // invalidate the timer and reset it each time we get a save tiddler
+            clearTimeout($tw.Bob.Timers[messageData.message.tiddler.fields.title]);
+            // then reset the timer
+            $tw.Bob.Timers[messageData.message.tiddler.fields.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
+          } else {
+            $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+          }
         }
       }
       clearTimeout($tw.Bob.MessageQueueTimer);

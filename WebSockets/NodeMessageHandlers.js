@@ -98,9 +98,9 @@ if ($tw.node) {
           var prefix = data.wiki || '';
           var internalTitle = '{' + prefix + '}' + data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
-          // being edited but checking eacd time is more complex than just always
-          // setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({data:internalTitle, wiki: prefix});
+          // being edited but checking eacd time is more complex than just
+          // always setting it this way and doesn't benifit us.
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:internalTitle, wiki: prefix});
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if (!$tw.boot.files[internalTitle]) {
@@ -121,6 +121,8 @@ if ($tw.node) {
             }
             if (changed) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+              // Set the wiki as modified
+              $tw.Bob.Wikis[prefix].modified = true;
             }
           }
           delete $tw.Bob.EditingTiddlers[internalTitle];
@@ -133,19 +135,6 @@ if ($tw.node) {
   }
 
   /*
-    TODO remove this!! It isn't needed anymore because we removed the waiting
-    list.
-    Remove a tiddler from the waiting list.
-    This is the response that a browser gives if a tiddler is sent that is
-    identical to what is already on the browser.
-    We use this instead of the browser sending back an update message with the
-    new tiddler as a change.
-  */
-  $tw.nodeMessageHandlers.clearStatus = function(data) {
-    sendAck(data);
-  }
-
-  /*
     This is the handler for when the browser sends the deleteTiddler message.
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
@@ -154,6 +143,8 @@ if ($tw.node) {
     data.tiddler = '{' + data.wiki + '}' + data.tiddler;
     // Delete the tiddler file from the file system
     $tw.syncadaptor.deleteTiddler(data.tiddler);
+    // Set the wiki as modified
+    $tw.Bob.Wikis[data.wiki].modified = true;
     // Remove the tiddler from the list of tiddlers being edited.
     if ($tw.Bob.EditingTiddlers[data.tiddler]) {
       delete $tw.Bob.EditingTiddlers[data.tiddler];
@@ -179,27 +170,20 @@ if ($tw.node) {
     This is the handler for when a browser stops editing a tiddler.
   */
   $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
-    // This is ugly and terrible and I need to make the different soures of this
-    // message all use the same message structure.
-    if (typeof data.data === 'string') {
-      if (data.data.startsWith("Draft of '")) {
-        var title = data.data.slice(10,-1);
-      } else {
-        var title = data.data;
-      }
-    } else {
+    // Make sure that the tiddler title is a string
+    if (typeof data.tiddler === 'string') {
       if (data.tiddler.startsWith("Draft of '")) {
         var title = data.tiddler.slice(10,-1);
       } else {
         var title = data.tiddler;
       }
+      var internalName = '{' + data.wiki + '}' + title;
+      // Remove the current tiddler from the list of tiddlers being edited.
+      if ($tw.Bob.EditingTiddlers[internalName]) {
+        delete $tw.Bob.EditingTiddlers[internalName];
+      }
+      $tw.Bob.UpdateEditingTiddlers(false);
     }
-    var internalName = '{' + data.wiki + '}' + title;
-    // Remove the current tiddler from the list of tiddlers being edited.
-    if ($tw.Bob.EditingTiddlers[internalName]) {
-      delete $tw.Bob.EditingTiddlers[internalName];
-    }
-    $tw.Bob.UpdateEditingTiddlers(false);
     // Acknowledge the message.
     sendAck(data);
   }
@@ -766,21 +750,16 @@ if ($tw.node) {
       if ($tw.Bob.Wikis[data.wikiName]) {
         if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
           // If so than unload the wiki
-          // First remove all the tiddlers listed as being in the wiki from the
-          // internal listing.
           // Get the list of tiddlers for this wiki
           $tw.wiki.allTitles().filter(function(title) {
             return title.startsWith('{' + data.wikiName + '}');
           }).forEach(function(title) {
+            // Remove all the tiddlers listed as being in the wiki from
+            // the internal listing.
             $tw.wiki.deleteTiddler(title);
           })
           // This removes the information about the wiki
           delete $tw.Bob.Wikis[data.wikiName];
-          // We need to figure out how to remove individual tiddlers
-          // Find all tiddlers that have the correct prefix and remove them from
-          // $tw.boot.files
-          // maybe more? I can't find a function in boot.js that won't delete the
-          // file also.
         }
       }
     }
