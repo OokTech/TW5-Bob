@@ -17,12 +17,23 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if ($tw.node) {
+  $tw.connections = $tw.connections || [];
+  $tw.Bob = $tw.Bob || {};
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   // This lets you add to the $tw.nodeMessageHandlers object without overwriting
   // existing handler functions
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   // Ensure that the browser tiddler list object exists without overwriting an
   // existing copy.
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
+
+  var sendAck = function (data) {
+    if (data.id) {
+      if (data.source_connection !== undefined) {
+        $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+      }
+    }
+  }
 
   /*
     This handles when the browser sends the list of all tiddlers that currently
@@ -35,6 +46,7 @@ if ($tw.node) {
     $tw.BrowserTiddlerList[data.source_connection] = data.titles;
     $tw.CreateSettingsTiddlers(data.wiki);
     $tw.connections[data.source_connection].wikiName = data.wiki;
+    sendAck(data);
   }
 
   /*
@@ -52,10 +64,12 @@ if ($tw.node) {
     make sure that the server and browser are still connected.
   */
   $tw.nodeMessageHandlers.ping = function(data) {
-    var message = {type: 'pong'};
+    var message = {};
+    //var message = {type: 'pong'};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
+    message.type = 'pong';
     if (data.heartbeat) {
       message.heartbeat = true;
     }
@@ -84,66 +98,40 @@ if ($tw.node) {
           var prefix = data.wiki || '';
           var internalTitle = '{' + prefix + '}' + data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
-          // being edited but checking eacd time is more complex than just always
-          // setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({data:internalTitle, wiki: prefix});
-          // Make sure that the waitinhg list object has an entry for this
-          // connection
-          $tw.Bob.WaitingList[data.source_connection] = $tw.Bob.WaitingList[data.source_connection] || {};
-          // Check to see if we are expecting a save tiddler message from this
-          // connection for this tiddler.
-          if (!$tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title]) {
-            // If we are not expecting a save tiddler event than save the tiddler
-            // normally.
-            if (!$tw.boot.files[internalTitle]) {
-              $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
-            } else {
-              // If changed send tiddler
-              var changed = true;
-              try {
-                if (data.tiddler.fields._canonical_uri) {
-                  var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath+'.meta');
-                } else {
-                  var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath);
-                }
-                // The file has the normal title so use the normal title here.
-                changed = $tw.syncadaptor.TiddlerHasChanged(data.tiddler, tiddlerObject);
-              } catch (e) {
-                //console.log(e);
-              }
-              if (changed) {
-                $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-                $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = true;
-              }
-            }
+          // being edited but checking eacd time is more complex than just
+          // always setting it this way and doesn't benifit us.
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:internalTitle, wiki: prefix});
+          // If we are not expecting a save tiddler event than save the
+          // tiddler normally.
+          if (!$tw.boot.files[internalTitle]) {
+            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
           } else {
-            // If we are expecting a save tiddler message than it is the browser
-            // acknowledging that it received the update and we remove the entry
-            // from the waiting list.
-            // This is very important, without this it gets stuck in infitine
-            // update loops.
-            $tw.Bob.WaitingList[data.source_connection][data.tiddler.fields.title] = false;
+            // If changed send tiddler
+            var changed = true;
+            try {
+              if (data.tiddler.fields._canonical_uri) {
+                var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath+'.meta');
+              } else {
+                var tiddlerObject = $tw.loadTiddlersFromFile($tw.boot.files[internalTitle].filepath);
+              }
+              // The file has the normal title so use the normal title here.
+              changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
+            } catch (e) {
+              //console.log(e);
+            }
+            if (changed) {
+              $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+              // Set the wiki as modified
+              $tw.Bob.Wikis[prefix].modified = true;
+            }
           }
           delete $tw.Bob.EditingTiddlers[internalTitle];
           $tw.Bob.UpdateEditingTiddlers(false);
         }
       }
     }
-  }
-
-  /*
-    Remove a tiddler from the waiting list.
-    This is the response that a browser gives if a tiddler is sent that is
-    identical to what is already on the browser.
-    We use this instead of the browser sending back an update message with the
-    new tiddler as a change.
-  */
-  $tw.nodeMessageHandlers.clearStatus = function(data) {
-    $tw.Bob.WaitingList[data.source_connection] = $tw.Bob.WaitingList[data.source_connection] || {};
-    if ($tw.Bob.WaitingList[data.source_connection][data.title]) {
-      delete $tw.Bob.WaitingList[data.source_connection][data.title];
-    }
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -155,11 +143,15 @@ if ($tw.node) {
     data.tiddler = '{' + data.wiki + '}' + data.tiddler;
     // Delete the tiddler file from the file system
     $tw.syncadaptor.deleteTiddler(data.tiddler);
+    // Set the wiki as modified
+    $tw.Bob.Wikis[data.wiki].modified = true;
     // Remove the tiddler from the list of tiddlers being edited.
     if ($tw.Bob.EditingTiddlers[data.tiddler]) {
       delete $tw.Bob.EditingTiddlers[data.tiddler];
       $tw.Bob.UpdateEditingTiddlers(false);
     }
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -170,33 +162,30 @@ if ($tw.node) {
     // Add the tiddler to the list of tiddlers being edited to prevent multiple
     // people from editing it at the same time.
     $tw.Bob.UpdateEditingTiddlers(internalName);
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
     This is the handler for when a browser stops editing a tiddler.
   */
   $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
-    // This is ugly and terrible and I need to make the different soures of this
-    // message all use the same message structure.
-    if (typeof data.data === 'string') {
-      if (data.data.startsWith("Draft of '")) {
-        var title = data.data.slice(10,-1);
-      } else {
-        var title = data.data;
-      }
-    } else {
+    // Make sure that the tiddler title is a string
+    if (typeof data.tiddler === 'string') {
       if (data.tiddler.startsWith("Draft of '")) {
         var title = data.tiddler.slice(10,-1);
       } else {
         var title = data.tiddler;
       }
+      var internalName = '{' + data.wiki + '}' + title;
+      // Remove the current tiddler from the list of tiddlers being edited.
+      if ($tw.Bob.EditingTiddlers[internalName]) {
+        delete $tw.Bob.EditingTiddlers[internalName];
+      }
+      $tw.Bob.UpdateEditingTiddlers(false);
     }
-    var internalName = '{' + data.wiki + '}' + title;
-    // Remove the current tiddler from the list of tiddlers being edited.
-    if ($tw.Bob.EditingTiddlers[internalName]) {
-      delete $tw.Bob.EditingTiddlers[internalName];
-    }
-    $tw.Bob.UpdateEditingTiddlers(false);
+    // Acknowledge the message.
+    sendAck(data);
   }
 
   /*
@@ -258,7 +247,7 @@ if ($tw.node) {
       text: settings,
       type: 'application/json'
     };
-    $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2}));
+    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}});
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     if (!fs.existsSync(userSettingsPath)) {
@@ -417,7 +406,6 @@ if ($tw.node) {
   // This builds a single file html version of the current wiki.
   // This is a simplifed version of the renderTiddler command because I
   // couldn't figure out how to just call that command here.
-  // TODO let people pass a custom exclude filter here.
   // TODO let people give an include filter that can build a wiki from tiddlers
   // drawn from any of the served wikis.
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
@@ -689,7 +677,7 @@ if ($tw.node) {
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'{RootWiki}$:/WikiSettings/split', text:tidText, type: 'application/json'}));
-      $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}, wiki: 'RootWiki'}));
+      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}}, wiki: 'RootWiki'});
 
       var tiddlerText = $tw.wiki.getTiddlerText('{RootWiki}$:/WikiSettings/split/wikis')
 
@@ -727,7 +715,7 @@ if ($tw.node) {
         text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
         type: 'application/json'
       };
-      $tw.Bob.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields2, wiki: 'RootWiki'}));
+      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}, wiki: 'RootWiki'});
 
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 
@@ -762,24 +750,25 @@ if ($tw.node) {
       if ($tw.Bob.Wikis[data.wikiName]) {
         if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
           // If so than unload the wiki
-          // First remove all the tiddlers listed as being in the wiki from the
-          // internal listing.
           // Get the list of tiddlers for this wiki
           $tw.wiki.allTitles().filter(function(title) {
             return title.startsWith('{' + data.wikiName + '}');
           }).forEach(function(title) {
+            // Remove all the tiddlers listed as being in the wiki from
+            // the internal listing.
             $tw.wiki.deleteTiddler(title);
           })
           // This removes the information about the wiki
           delete $tw.Bob.Wikis[data.wikiName];
-          // We need to figure out how to remove individual tiddlers
-          // Find all tiddlers that have the correct prefix and remove them from
-          // $tw.boot.files
-          // maybe more? I can't find a function in boot.js that won't delete the
-          // file also.
         }
       }
     }
   }
+
+  /*
+    This handles ack messages.
+  */
+  $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;
+
 }
 })()

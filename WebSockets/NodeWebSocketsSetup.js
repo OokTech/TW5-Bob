@@ -29,6 +29,8 @@ var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
 
 if ($tw.node) {
+  // Import shared commands
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
@@ -36,8 +38,11 @@ if ($tw.node) {
     // initialise the empty $tw.nodeMessageHandlers object. This holds the functions that
     // are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+    $tw.Bob = $tw.Bob || {};
+    $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
+    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
     // Initialise connections array
-    $tw.connections = [];
+    $tw.connections = $tw.connections || [];
 
     if (!$tw.settings) {
       // Make sure that $tw.settings is available.
@@ -129,6 +134,11 @@ if ($tw.node) {
         $tw.wss = new WebSocketServer({server: server});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
+        // I don't know how to set up actually closing a connection, so this doesn't
+        // do anything useful yet
+        $tw.wss.on('close', function(connection) {
+          console.log('closed connection ', connection);
+        });
       }
       $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
 
@@ -138,14 +148,6 @@ if ($tw.node) {
         host: host,
         wssPort: WSS_SERVER_PORT
       };
-
-      // I don't know how to set up actually closing a connection, so this doesn't
-      // do anything useful yet
-      /*.
-      $tw.wss.on('close', function(connection) {
-        console.log('closed connection ', connection);
-      })
-      */
     }
   }
 
@@ -168,7 +170,7 @@ if ($tw.node) {
   */
   function handleConnection(client) {
     console.log("new connection");
-    $tw.connections.push({'socket':client, 'active': true});
+    $tw.connections.push({'socket':client, 'active': true, 'wiki': undefined});
     client.on('message', function incoming(event) {
       var self = this;
       // Determine which connection the message came from
@@ -177,11 +179,27 @@ if ($tw.node) {
         var eventData = JSON.parse(event);
         // Add the source to the eventData object so it can be used later.
         eventData.source_connection = thisIndex;
+        // If the wiki on this connection hasn't been determined yet, take it
+        // from the first message that lists the wiki.
+        // After that the wiki can't be changed. It isn't a good security
+        // measure but this part doesn't have real security anyway.
+        // TODO figure out if this is actually a security problem.
+        // We may have to add a check to the token before sending outgoing
+        // messages.
+        // This is really only a concern for the secure server, in that case
+        // you authenticate the token and it only works if the wiki matches
+        // and the token has access to that wiki.
+        if (eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+          $tw.connections[thisIndex].wiki = eventData.wiki;
+          // Make sure that the new connection has the correct list of tiddlers being
+          // edited.
+          $tw.Bob.UpdateEditingTiddlers();
+        }
         // Make sure we have a handler for the message type
-        if (typeof $tw.nodeMessageHandlers[eventData.messageType] === 'function') {
-          $tw.nodeMessageHandlers[eventData.messageType](eventData);
+        if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+          $tw.nodeMessageHandlers[eventData.type](eventData);
         } else {
-          console.log('No handler for message of type ', eventData.messageType);
+          console.log('No handler for message of type ', eventData.type);
         }
       } catch (e) {
         console.log("WebSocket error, probably closed connection: ", e);
@@ -189,15 +207,89 @@ if ($tw.node) {
     });
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
-    $tw.connections[Object.keys($tw.connections).length-1].index = [Object.keys($tw.connections).length-1];
-    $tw.connections[Object.keys($tw.connections).length-1].socket.send(JSON.stringify({type: 'listTiddlers'}), function (err) {
-      if (err) {
-        console.log(err);
-      }
+    $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
+    var message = {type: 'listTiddlers'}
+    $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
+  }
+
+  /*
+    This updates the list of tiddlers being edited in each wiki. Any tiddler on
+    this list has the edit button disabled to prevent two people from
+    simultaneously editing the same tiddler.
+    If run without an input it just re-sends the lists to each browser, with a
+    tiddler title as input it appends that tiddler to the list and sends the
+    updated list to all connected browsers.
+
+    For privacy and security only the tiddlers that are in the wiki a
+    conneciton is using are sent to that connection.
+  */
+  $tw.Bob.UpdateEditingTiddlers = function (tiddler) {
+    // Check if a tiddler title was passed as input and that the tiddler isn't
+    // already listed as being edited.
+    // If there is a title and it isn't being edited add it to the list.
+    if (tiddler && !$tw.Bob.EditingTiddlers[tiddler]) {
+      $tw.Bob.EditingTiddlers[tiddler] = true;
+    }
+    Object.keys($tw.connections).forEach(function(index) {
+      var list = Object.keys($tw.Bob.EditingTiddlers).filter(function(title) {
+        return title.startsWith('{' + $tw.connections[index].wiki + '}');
+      });
+      var message = {type: 'updateEditingTiddlers', list: list, wiki: $tw.connections[index].wiki};
+      $tw.Bob.SendToBrowser($tw.connections[index], message);
     });
-    // Make sure that the new connection has the correct list of tiddlers being
-    // edited.
-    $tw.Bob.UpdateEditingTiddlers();
+  }
+
+  /*
+    This is a wrapper function that takes a message that is meant to be sent to
+    all connected browsers and handles the details.
+
+    It iterates though all connections, checkis if each one is active, tries to
+    send the message, if the sending fails than it sets the connection as
+    inactive.
+
+    Note: This checks if the message is a string despite SendToBrowser also
+    checking because if it needs to be changed and sent to multiple browsers
+    changing it once here instead of once per browser should be better.
+  */
+  $tw.Bob.SendToBrowsers = function (message) {
+    var id = $tw.Bob.Shared.makeId();
+    message.id = id;
+    var messageData = {
+      message: message,
+      id: id,
+      time: Date.now(),
+      ack: {}
+    };
+    // Send message to all connections.
+    $tw.connections.forEach(function (connection) {
+      if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+        $tw.Bob.Shared.sendMessage(messageData, connection.index);
+      }
+    })
+  }
+
+  /*
+    This function sends a message to a single connected browser. It takes the
+    browser connection object and the stringifyed message as input.
+    If any attempt fails mark the connection as inacive.
+
+    On the server side the history is a bit more complex.
+    There is one history of messages sent that has the message ids, each
+    connection has a list of message ids that are still waiting for acks.
+  */
+  $tw.Bob.SendToBrowser = function (connection, message) {
+    var id = $tw.Bob.Shared.makeId();
+    message.id = id;
+    var messageData = {
+      message: message,
+      id: id,
+      time: Date.now(),
+      ack: {}
+    };
+    // If the connection is open, send the message
+    if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+      $tw.Bob.Shared.sendMessage(messageData, connection.index);
+    }
   }
 
   // Only act if we are running on node. Otherwise WebSocketServer will be

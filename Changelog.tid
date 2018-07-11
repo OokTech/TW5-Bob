@@ -20,6 +20,22 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Added a hook to be used by external servers when you create a new wiki
   - This lets you set the correct access permissions on wikis created from
     within tiddlywiki when you are using an external server.
+- Added detection and recovery of lost websocket messages to ensure that all
+  changes to a wiki are properly saved on the server and that all changes on
+  the server make it to all of the browsers.
+  - This update also gives much more consistent handling to all messages
+  - There is a short delay before sending saveTiddler messages, this prevents a
+    bug that would cause errors saving changes to tiddler edited without using
+    the normal edit tiddler.
+- Only messages for the wiki a connection is using get sent to that conneciton,
+  potentially reducing the network load of a wiki.
+  - This also improves security and privacy because people who don't have
+    access to a wiki can't see that there is editing activity taking place or
+    see tiddler titles.
+- On the back-end the waiting list is removed which simplifies a lot
+- Hopefully there is correct handling for date fields now.
+  - This needs further testing.
+- Serve cached wikis if nothing has changed since the last time it was built
 
 !! Version 1.0.2
 

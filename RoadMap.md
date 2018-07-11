@@ -13,8 +13,14 @@
     wiki and any editing can be done as a normal multi-user wiki.
   - Saving exports the changed wiki to overwrite the single file wiki (or save
     under a new name if that is what you want)
-- Add a way to unload a wiki that has previously been loaded.
 - Let the plugins a wiki uses be set from inside the wiki.
-  - This is without editing the tiddlywiki.info file
-  - This requires the wiki to be able to be unloaded and reloaded without
-    restarting the server.
+  - This is without editing the tiddlywiki.info file directly so we need an
+    interface inside the wiki.
+- Make sure that closed connections are being pruned (make sure that
+  connections are being closed!)
+- If a connection isn't authenticated than serve the wiki without the Bob
+  plugin to make it smaller.
+- Figure out if there is a 'no change' http thing I can do for page reloads.
+- Add an option to wait for a response from the server before being allowed to
+  edit a tiddler to prevent editing conflicts. (THIS MAY BE HARD, it changes
+  some core behaviour)

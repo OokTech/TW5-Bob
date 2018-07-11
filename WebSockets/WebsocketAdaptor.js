@@ -261,7 +261,7 @@ if($tw.node) {
     });
     tempTiddlerFields.title = internalName;
     $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
-    var message = JSON.stringify({type: 'makeTiddler', wiki: prefix, fields: tiddler.fields});
+    var message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
     $tw.Bob.SendToBrowsers(message);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
@@ -325,51 +325,6 @@ if($tw.node) {
       callback(null);
     }
   };
-
-  /*
-    Check if the file version matches the in-browser version of a tiddler
-  */
-  WebsocketAdaptor.prototype.TiddlerHasChanged = function (tiddler, tiddlerFileObject) {
-    if (!tiddlerFileObject) {
-      return true;
-    }
-    if (!tiddler) {
-      return true;
-    }
-
-    var changed = false;
-    // Some cleverness that gives a list of all fields in both tiddlers without
-    // duplicates.
-    var allFields = Object.keys(tiddler.fields).concat(Object.keys(tiddlerFileObject.tiddlers[0]).filter(function (item) {
-      return Object.keys(tiddler.fields).indexOf(item) < 0;
-    }));
-    // check to see if the field values are the same, ignore modified for now
-    allFields.forEach(function(field) {
-      if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if (!tiddlerFileObject.tiddlers[0][field] || tiddlerFileObject.tiddlers[0][field] !== tiddler.fields[field]) {
-          // There is a difference!
-          changed = true;
-        }
-      } else if (field === 'list' || field === 'tags') {
-        if (tiddler.fields[field] && tiddlerFileObject.tiddlers[0][field]) {
-          if ($tw.utils.parseStringArray(tiddlerFileObject.tiddlers[0][field]).length !== tiddler.fields[field].length) {
-            changed = true;
-          } else {
-            var arrayList = $tw.utils.parseStringArray(tiddlerFileObject.tiddlers[0][field]);
-            arrayList.forEach(function(item) {
-              if (tiddler.fields[field].indexOf(item) === -1) {
-                changed = true;
-              }
-            })
-          }
-        } else {
-          changed = true;
-        }
-      }
-    })
-    return changed;
-  };
-
 
   exports.adaptorClass = WebsocketAdaptor;
 }

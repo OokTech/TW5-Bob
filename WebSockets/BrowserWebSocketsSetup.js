@@ -31,7 +31,12 @@ socket server, but it can be extended for use with other web socket servers.
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.Bob = $tw.Bob || {};
+    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
+    // Import shared commands
+    $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
     $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
+    // In the browser there is only one connection, so set the connection index
+    var connectionIndex = 0;
 
     // Do all actions on startup.
     function setup() {
@@ -45,10 +50,15 @@ socket server, but it can be extended for use with other web socket servers.
       var IPAddress = window.location.hostname;
       var WSSPort = output.wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
-      $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
-      $tw.socket.onopen = openSocket;
-      $tw.socket.onmessage = parseMessage;
-      $tw.socket.binaryType = "arraybuffer";
+
+      $tw.connections = $tw.connections || [];
+      $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
+      $tw.connections[connectionIndex].index = connectionIndex;
+      $tw.connections[connectionIndex].active = true;
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
+      $tw.connections[connectionIndex].socket.onopen = openSocket;
+      $tw.connections[connectionIndex].socket.onmessage = parseMessage;
+      $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
 
       // Get the name for this wiki for websocket messages
       var tiddler = $tw.wiki.getTiddler("$:/WikiName");
@@ -68,7 +78,7 @@ socket server, but it can be extended for use with other web socket servers.
       console.log('Opened socket');
       var token = localStorage.getItem('ws-token');
       // Start the heartbeat process
-      $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+      $tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -81,6 +91,21 @@ socket server, but it can be extended for use with other web socket servers.
         if (typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
           $tw.browserMessageHandlers[eventData.type](eventData);
         }
+      }
+    }
+
+    var sendToServer = function (message) {
+      var id = $tw.Bob.Shared.makeId();
+      message.id = id;
+      var messageData = {
+        message: message,
+        id: id,
+        time: Date.now(),
+        ack: {}
+      };
+      // If the connection is open, send the message
+      if ($tw.connections[connectionIndex].socket.readyState === 1) {
+        $tw.Bob.Shared.sendMessage(messageData, 0);
       }
     }
 
@@ -97,17 +122,15 @@ socket server, but it can be extended for use with other web socket servers.
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        // console.log('Editing tiddler event: ', event);
-        var message = JSON.stringify({messageType: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
-        $tw.socket.send(message);
+        var message = {type: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        sendToServer(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        // console.log("cancel editing event: ",event);
-        var message = JSON.stringify({messageType: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token});
-        $tw.socket.send(message);
+        var message = {type: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        sendToServer(message);
         // Do the normal handling
         return event;
       });
@@ -145,13 +168,13 @@ socket server, but it can be extended for use with other web socket servers.
                     }
                   }
                 );
-                var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token});
-                $tw.socket.send(message);
+                var message = {type: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
+                sendToServer(message);
               }
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
-              var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
-              $tw.socket.send(message);
+              var message = {type: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token};
+              sendToServer(message);
             }
           } else {
             // Stop the dirty indicator from turning on.

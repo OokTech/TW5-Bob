@@ -24,9 +24,9 @@ var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
   This function loads a wiki that has a route listed.
 */
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
-  // First make sure that the wiki is listed
   var listed = false;
   var exists = false;
+  // First make sure that the wiki is listed
   if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
     listed = true;
   } else {
@@ -45,22 +45,27 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       }
     }
   }
-  // Add tiddlers to the node process
+  // Make sure that the wiki actually exists
   if (wikiFolder) {
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    // Get the correct path to the tiddlywiki.info file
     var wikiFolder = path.resolve(basePath, wikiFolder);
+    // Make sure it exists
     exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
   }
+  // Add tiddlers to the node process
   if (listed && exists) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
-    $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
-    $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+      // If the wiki isn't loaded yet set the wiki as loaded
       $tw.Bob.Wikis[wikiName].State = 'loaded';
-      // Get the correct path to the tiddlywiki.info file
+      // Save the wiki path and tiddlers path
+      $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
+      $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+      // Make sure that the tiddlers folder exists
       createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
 
       // Recursively build the folder tree structure
@@ -114,6 +119,8 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   }
   // Load any parent wikis
   if(wikiInfo.includeWikis) {
+    console.log('Bob error: includeWikis is not supported yet!')
+    /*
     parentPaths = parentPaths.slice(0);
     parentPaths.push(wikiPath);
     $tw.utils.each(wikiInfo.includeWikis,function(info) {
@@ -132,6 +139,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         $tw.utils.error("Cannot recursively include wiki " + resolvedIncludedWikiPath);
       }
     });
+    */
   }
   // Load any plugins, themes and languages listed in the wiki info file
   $tw.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
@@ -210,32 +218,46 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
 };
 
 ServerSide.prepareWiki = function (fullName, servePlugin) {
-  // By default the normal file system plugins removed and the
-  // multi-user plugin added instead so that they all work the same.
-  // The wikis aren't actually modified, this is just hov they are
-  // served.
-  $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
-  if (servePlugin) {
-    $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
-      return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
-    });
-    if ($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
-      $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
+  // Only rebuild the wiki if there have been changes since the last time it
+  // was built, otherwise use the cached version.
+  if (typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
+    $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
+    $tw.Bob.Wikis[fullName].themes = $tw.Bob.Wikis[fullName].themes || [];
+    $tw.Bob.Wikis[fullName].tiddlers = $tw.Bob.Wikis[fullName].tiddlers || [];
+    if (servePlugin) {
+      // By default the normal file system plugins removed and the
+      // multi-user plugin added instead so that they all work the same.
+      // The wikis aren't actually modified, this is just hov they are
+      // served.
+      $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
+        return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
+      });
+      if ($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
+        $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
+      }
+    }
+    // This makes the wikiTiddlers variable a filter that lists all the
+    // tiddlers for this wiki.
+    var wikiName = fullName;
+    var options = {
+      variables: {
+        wikiTiddlers:
+          $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
+            return '[[' + tidInfo + ']]';
+          }).join(' '),
+        wikiName: wikiName
+      }
+    };
+    var text = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/save/single", options);
+    // Only cache the wiki if it isn't too big.
+    if (text.length < 4*1024*1024) {
+      $tw.Bob.Wikis[fullName].cached = text;
+      $tw.Bob.Wikis[fullName].modified = false;
+    } else {
+      return text;
     }
   }
-  // This makes the wikiTiddlers variable a filter that lists all the
-  // tiddlers for this wiki.
-  var wikiName = fullName;
-  var options = {
-    variables: {
-      wikiTiddlers:
-        $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-          return '[[' + tidInfo + ']]';
-        }).join(' '),
-      wikiName: wikiName
-    }
-  };
-  return text = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/save/single", options);
+  return $tw.Bob.Wikis[fullName].cached;
 }
 
 /*

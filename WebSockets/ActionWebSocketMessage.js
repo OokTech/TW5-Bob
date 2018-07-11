@@ -5,7 +5,7 @@ module-type: widget
 
 Action widget to send a websocket message to the node process
 
-<$action-websocketmessage $type=MessageType $value=value/>
+<$action-websocketmessage $type=type $value=value/>
 
 Any other key=value pairs will be added to the JSON message sent
 
@@ -16,7 +16,7 @@ ex:
 sends:
 
 {
-  "messageType": "git",
+  "type": "git",
   "value": "pull",
   "branch": foo
 }
@@ -74,7 +74,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // Create the empty message object
   var message = {};
   // Add in the message type and param, if they exist
-  message.messageType = this.type;
+  message.type = this.type;
   message.param = this.param;
 
   // This is needed for when you serve multiple wikis
@@ -91,9 +91,9 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   var token = localStorage.getItem('ws-token');
   message["token"] = token;
   // We need a message type at a minimum to send anything
-  if (message.messageType) {
+  if (message.type) {
     // Send the message
-    $tw.socket.send(JSON.stringify(message));
+    $tw.connections[0].socket.send(JSON.stringify(message));
   }
 
 	return true; // Action was invoked
