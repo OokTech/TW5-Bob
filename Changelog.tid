@@ -36,6 +36,19 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Hopefully there is correct handling for date fields now.
   - This needs further testing.
 - Serve cached wikis if nothing has changed since the last time it was built
+- Added includePluginList and excludePluginList to the configuration.
+  - `includePluginList` is a list of plugins that should be served to every
+    wiki served by Bob, regardless of if they are in the tiddlywiki.info file.
+  - `excludePluginList` is a list of plugins that should not be served on any
+    wiki served by Bob regardless of if they are listed in the tiddlywiki.info
+    file.
+  - `excludePluginList` takes precidence over the `includePluginList` so if a
+    plugin is listed in both it will not be included. `excludePluginList` can
+    also override the `servePlugin` setting if you have that set to true, so it
+    can be used to make Bob serve normal tiddlywikis without any multi-user or
+    other Bob functionality.
+- The default file server url path is now `files` instead of `file` to match
+  the proposed updates to the core --listen command.
 
 !! Version 1.0.2
 
