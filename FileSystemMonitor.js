@@ -79,6 +79,55 @@ if ($tw.node) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
     fs.watch(folder, function (eventType, filename) {
+      console.log('Monitor:',eventType,'on',filename)
+      /*
+      var isFile = false;
+      var isFolder = false;
+      var exists = fs.existsSync(itemPath);
+      if (exists) {
+        isFile = fs.lstatSync(itemPath).isFile();
+        if (!isFile) {
+          isFolder = fs.lstatSync(itemPath).isDirectory();
+        }
+      }
+      // The full path to the current item
+      var itemPath = path.join(folder, filename);
+      // The file extension, if no file extension than an empty string
+      var fileExtension = path.extname(filename);
+      // The file name without the extension
+      var baseName = path.baseName(filename, fileExtension);
+
+      if (eventType === 'change') {
+        // Change to an existing file
+        // Make sure that the tiddler file exists and has the correct format
+        // Make sure that the file in named according to the rules given by the
+        // wiki
+        // Check if a tiddler with the same name already exists
+        // If a tiddler with the same name does exist check if the tiddlers are
+        // actually different
+        // If they are different or the tiddler doesn't exist, send the
+        // saveTiddler message.
+      }
+      if (eventType === 'rename') {
+        // Create/Delete a file or folder
+        if (['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+          // Files we can use have extensions
+          if (exists) {
+            // Created file
+          } else {
+            // Deleted File
+          }
+        } else if (isFolder) {
+          // It's a folder
+          if (exists) {
+            // It is created, so start watching it
+          } else {
+            // Nothing to do here. Maybe stop an existing watcher?
+          }
+        }
+      }
+*/
+
       // Make sure that the file name isn't undefined
       if (filename) {
         var itemPath = path.join(folder, filename);
