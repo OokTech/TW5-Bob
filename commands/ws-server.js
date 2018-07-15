@@ -242,8 +242,9 @@ if($tw.node) {
           var replace = new RegExp('^\/' + $tw.settings.fileURLPrefix);
         }
       } else {
-        var pathRegExp = new RegExp('^\/file\/.+$');
-        var replace = new RegExp('^\/file')
+        // Use the same base path as the --listen command
+        var pathRegExp = new RegExp('^\/files\/.+$');
+        var replace = new RegExp('^\/files')
       }
       // Add the external files route handler
       $tw.httpServer.addRoute({
@@ -251,9 +252,9 @@ if($tw.node) {
         path: pathRegExp,
         handler: function(request, response, state) {
           if (replace === false) {
-            var pathname = path.join($tw.settings.filePathRoot, request.url);
+            var pathname = path.join($tw.settings.filePathRoot, decodeURIComponent(request.url));
           } else {
-            var pathname = path.join($tw.settings.filePathRoot, request.url.replace(replace, ''));
+            var pathname = path.join($tw.settings.filePathRoot, decodeURIComponent(request.url).replace(replace, ''));
           }
           // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
           if (pathname.startsWith($tw.settings.filePathRoot)) {
@@ -268,7 +269,7 @@ if($tw.node) {
                   response.statusCode = 500;
                   response.end();
                 } else {
-                  var ext = path.parse(pathname).ext;
+                  var ext = path.parse(pathname).ext.toLowerCase();
                   var mimeMap = $tw.settings.mimeMap || {
                     '.aac': 'audio/aac',
                     '.avi': 'video/x-msvideo',

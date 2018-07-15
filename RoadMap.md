@@ -24,3 +24,20 @@
 - Add an option to wait for a response from the server before being allowed to
   edit a tiddler to prevent editing conflicts. (THIS MAY BE HARD, it changes
   some core behaviour)
+- See if we can store the tiddlywiki core and Bob plugin in localstorage and
+  then serve an html page that just has the wiki content. That could greatly
+  reduce loading times and network traffic.
+- See if we can have it so that imported images are saved in a images folder
+  and canonical uri tiddlers are created for them instead of making an image
+  tiddler.
+- Let the prepareWiki function take an array of plugins to include in the wiki
+  even if they aren't listed in the tiddlywiki.info file.
+  - This should just be a change to the servePlugin input. We could also add an
+    exclude array that lists plugins to not include even if they are in the
+    .info file.
+  - It may be better to just make a new function that lets you pick and choose
+    tiddlers and plugins from any that are available.
+- Maybe keep a history of changed tiddlers and timestamps (with the same bits
+  of cleverness as the message queue pruning to keep it smaller) so that when a
+  wiki disconnects it can reconnect and see changes since the last time it was
+  in sync, and then resync itself without reloading.

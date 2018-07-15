@@ -236,6 +236,26 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
       }
     }
+    $tw.settings.includePluginList = $tw.settings.includePluginList || [];
+    $tw.settings.excludePluginList = $tw.settings.excludePluginList || [];
+    // Add any plugins that should be included in every wiki
+    var includeList = Object.values($tw.settings.includePluginList).filter(function(plugin) {
+      return $tw.Bob.Wikis[fullName].plugins.indexOf(plugin) === -1;
+    }).map(function(pluginName) {return '$:/plugins/'+pluginName;})
+    $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.concat(includeList);
+    // Remove any plugins in the excluded list
+    // The exclude list takes precidence over the include list
+    $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
+      return Object.values($tw.settings.excludePluginList).indexOf(plugin) === -1;
+    })
+    // Make sure that all the plugins are actually loaded.
+    var missingPlugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
+      return !$tw.wiki.tiddlerExists(plugin);
+    }).map(function(pluginTiddler) {return pluginTiddler.removePrefix('$:/plugins/')});
+    console.log(missingPlugins)
+    if (missingPlugins.length > 0) {
+      $tw.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+    }
     // This makes the wikiTiddlers variable a filter that lists all the
     // tiddlers for this wiki.
     var wikiName = fullName;
