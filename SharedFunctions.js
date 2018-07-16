@@ -40,12 +40,12 @@ This has some functions that are needed by Bob in different places.
       return true;
     }
     console.log(2)
-    if (!otherTiddler.fields) {
+    if (!otherTiddler.fields && tiddler.fields) {
       console.log('no otherTiddler fields')
       return true;
     }
     console.log(3)
-    if (!tiddler.fields) {
+    if (!tiddler.fields && otherTiddler.fields) {
       console.log('no tiddler fields')
       return true;
     }
