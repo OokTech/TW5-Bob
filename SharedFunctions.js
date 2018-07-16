@@ -59,8 +59,10 @@ This has some functions that are needed by Bob in different places.
     // check to see if the field values are the same, ignore modified for now
     allFields.forEach(function(field) {
       if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
-          console.log('different')
+        if (otherTiddler.fields[field] !== tiddler.fields[field]) {
+          console.log('different', field)
+          console.log('tiddler', tiddler.fields[field])
+          console.log('otherTiddler', otherTiddler.fields[field])
           // There is a difference!
           changed = true;
         }
