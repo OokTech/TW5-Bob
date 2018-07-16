@@ -270,7 +270,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob.Timers = $tw.Bob.Timers || {};
     // Empty tags fields will be converted to empty strings.
     if (messageData.message.type === 'saveTiddler') {
-      if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
+      if (!Array.isArray(messageData.message.tiddler.fields.tags) && messageData.message.tiddler.fields.tags === '') {
         messageData.message.tiddler.fields.tags = [];
       }
     }
