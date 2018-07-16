@@ -314,6 +314,8 @@ This has some functions that are needed by Bob in different places.
         var ignore = false;
         if (messageData.message.type === 'saveTiddler') {
           duplicateIndicies.forEach(function(messageIndex) {
+            console.log('message:', messageData.message.tiddler)
+            console.log('queue:',$tw.Bob.MessageQueue[messageIndex].message.tiddler)
             if (!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, $tw.Bob.MessageQueue[messageIndex].message.tiddler)) {
               ignore = true;
             }
