@@ -29,27 +29,18 @@ This has some functions that are needed by Bob in different places.
     Check if the file version matches the in-browser version of a tiddler
   */
   Shared.TiddlerHasChanged = function (tiddler, otherTiddler) {
-    console.log(0)
     if (!otherTiddler) {
-      console.log('no otherTiddler')
       return true;
     }
-    console.log(1)
     if (!tiddler) {
-      console.log('no tiddler')
       return true;
     }
-    console.log(2)
     if (!otherTiddler.fields && tiddler.fields) {
-      console.log('no otherTiddler fields')
       return true;
     }
-    console.log(3)
     if (!tiddler.fields && otherTiddler.fields) {
-      console.log('no tiddler fields')
       return true;
     }
-    console.log(4)
     var changed = false;
     // Some cleverness that gives a list of all fields in both tiddlers without
     // duplicates.
@@ -60,9 +51,6 @@ This has some functions that are needed by Bob in different places.
     allFields.forEach(function(field) {
       if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
         if (otherTiddler.fields[field] !== tiddler.fields[field]) {
-          console.log('different', field)
-          console.log('tiddler', tiddler.fields[field])
-          console.log('otherTiddler', otherTiddler.fields[field])
           // There is a difference!
           changed = true;
         }
@@ -74,7 +62,6 @@ This has some functions that are needed by Bob in different places.
           var empty2 = false;
           if (Array.isArray(tiddler.fields[field])) {
             if (tiddler.fields[field].length === 0) {
-              console.log('no tiddler tags')
               empty1 = true;
             }
           } else if (tiddler.fields[field].trim() === '') {
@@ -82,40 +69,24 @@ This has some functions that are needed by Bob in different places.
           }
           if (Array.isArray(otherTiddler.fields[field])) {
             if (otherTiddler.fields[field].length === 0) {
-              console.log('no otherTiddler tags')
               empty2 = true;
             }
           } else if (otherTiddler.fields[field].trim() === '') {
             empty2 = true;
           }
           if (!empty1 && !empty2) {
-            /*
-            if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
-              changed = true;
-            } else {
-              var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
-              arrayList.forEach(function(item) {
-                if (tiddler.fields[field].indexOf(item) === -1) {
-                  changed = true;
-                }
-              })
-            }
-            */
             if (otherTiddler.fields[field].length !== tiddler.fields[field].length) {
-              console.log('different lengths')
               changed = true;
             } else {
               var arrayList = otherTiddler.fields[field];
               arrayList.forEach(function(item) {
                 if (tiddler.fields[field].indexOf(item) === -1) {
-                  console.log('missing item')
                   changed = true;
                 }
               })
             }
           }
         } else {
-          console.log('something else')
           changed = true;
         }
       } else if (field === 'modified' || field === 'created') {
