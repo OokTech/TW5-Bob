@@ -29,19 +29,23 @@ This has some functions that are needed by Bob in different places.
     Check if the file version matches the in-browser version of a tiddler
   */
   Shared.TiddlerHasChanged = function (tiddler, otherTiddler) {
+    console.log(0)
     if (!otherTiddler) {
       return true;
     }
+    console.log(1)
     if (!tiddler) {
       return true;
     }
+    console.log(2)
     if (!otherTiddler.fields) {
       return true;
     }
+    console.log(3)
     if (!tiddler.fields) {
       return true;
     }
-
+    console.log(4)
     var changed = false;
     // Some cleverness that gives a list of all fields in both tiddlers without
     // duplicates.
@@ -76,10 +80,22 @@ This has some functions that are needed by Bob in different places.
             empty2 = true;
           }
           if (!empty1 && !empty2) {
+            /*
             if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
               changed = true;
             } else {
               var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
+              arrayList.forEach(function(item) {
+                if (tiddler.fields[field].indexOf(item) === -1) {
+                  changed = true;
+                }
+              })
+            }
+            */
+            if (otherTiddler.fields[field].length !== tiddler.fields[field].length) {
+              changed = true;
+            } else {
+              var arrayList = otherTiddler.fields[field];
               arrayList.forEach(function(item) {
                 if (tiddler.fields[field].indexOf(item) === -1) {
                   changed = true;
@@ -317,6 +333,7 @@ This has some functions that are needed by Bob in different places.
             console.log('message:', messageData.message.tiddler)
             console.log('queue:',$tw.Bob.MessageQueue[messageIndex].message.tiddler)
             if (!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, $tw.Bob.MessageQueue[messageIndex].message.tiddler)) {
+              console.log('IGNORE ME')
               ignore = true;
             }
           })
