@@ -272,6 +272,9 @@ This has some functions that are needed by Bob in different places.
     if (messageData.message.type === 'saveTiddler') {
       if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
         messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
+        if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
+          messageData.message.tiddler.fields.tags = [];
+        }
       }
     }
     connectionIndex = connectionIndex || 0;
