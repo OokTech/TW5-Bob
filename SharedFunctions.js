@@ -35,13 +35,12 @@ This has some functions that are needed by Bob in different places.
     if (!tiddler) {
       return true;
     }
-    if (!otherTiddler.fields) {
+    if (!otherTiddler.fields && tiddler.fields) {
       return true;
     }
-    if (!tiddler.fields) {
+    if (!tiddler.fields && otherTiddler.fields) {
       return true;
     }
-
     var changed = false;
     // Some cleverness that gives a list of all fields in both tiddlers without
     // duplicates.
@@ -51,7 +50,7 @@ This has some functions that are needed by Bob in different places.
     // check to see if the field values are the same, ignore modified for now
     allFields.forEach(function(field) {
       if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
+        if (otherTiddler.fields[field] !== tiddler.fields[field]) {
           // There is a difference!
           changed = true;
         }
@@ -76,10 +75,10 @@ This has some functions that are needed by Bob in different places.
             empty2 = true;
           }
           if (!empty1 && !empty2) {
-            if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
+            if (otherTiddler.fields[field].length !== tiddler.fields[field].length) {
               changed = true;
             } else {
-              var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
+              var arrayList = otherTiddler.fields[field];
               arrayList.forEach(function(item) {
                 if (tiddler.fields[field].indexOf(item) === -1) {
                   changed = true;
@@ -272,6 +271,9 @@ This has some functions that are needed by Bob in different places.
     if (messageData.message.type === 'saveTiddler') {
       if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
         messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
+        if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
+          messageData.message.tiddler.fields.tags = [];
+        }
       }
     }
     connectionIndex = connectionIndex || 0;
@@ -311,7 +313,10 @@ This has some functions that are needed by Bob in different places.
         var ignore = false;
         if (messageData.message.type === 'saveTiddler') {
           duplicateIndicies.forEach(function(messageIndex) {
+            console.log('message:', messageData.message.tiddler)
+            console.log('queue:',$tw.Bob.MessageQueue[messageIndex].message.tiddler)
             if (!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, $tw.Bob.MessageQueue[messageIndex].message.tiddler)) {
+              console.log('IGNORE ME')
               ignore = true;
             }
           })
