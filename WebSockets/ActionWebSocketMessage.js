@@ -5,7 +5,7 @@ module-type: widget
 
 Action widget to send a websocket message to the node process
 
-<$action-websocketmessage $type=type $value=value/>
+<$action-websocketmessage $type=type $param=value/>
 
 Any other key=value pairs will be added to the JSON message sent
 
