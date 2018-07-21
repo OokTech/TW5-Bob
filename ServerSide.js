@@ -273,8 +273,8 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     // Make sure that all the plugins are actually loaded.
     var missingPlugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
       return !$tw.wiki.tiddlerExists(plugin);
-    }).map(function(pluginTiddler) {return pluginTiddler.removePrefix('$:/plugins/')});
-    console.log(missingPlugins)
+    }).map(function(pluginTiddler) {
+      return pluginTiddler.replace(/^\$:\/plugins\//, '')});
     if (missingPlugins.length > 0) {
       $tw.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar);
     }
