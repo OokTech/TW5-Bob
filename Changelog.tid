@@ -10,7 +10,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Partially fixed a related bug that would sometimes keep old versions of
   tiddlers if they were renamed on the file system while the wiki is running.
   - This is only partially fixed. The behaviour is inconsistent. I need to find
-    reproducable ways to cause it.
+    reproducible ways to cause it.
 - Added the 'unloadWiki' message that unloads a loaded wiki.
   - This can be used to change the plugins loaded in a wiki and to just remove
     wikis from memory if they aren't being used. That second one may not be
@@ -27,7 +27,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - There is a short delay before sending saveTiddler messages, this prevents a
     bug that would cause errors saving changes to tiddler edited without using
     the normal edit tiddler.
-- Only messages for the wiki a connection is using get sent to that conneciton,
+- Only messages for the wiki a connection is using get sent to that connection,
   potentially reducing the network load of a wiki.
   - This also improves security and privacy because people who don't have
     access to a wiki can't see that there is editing activity taking place or
@@ -42,13 +42,17 @@ title: $:/plugins/OokTech/Bob/Changelog
   - `excludePluginList` is a list of plugins that should not be served on any
     wiki served by Bob regardless of if they are listed in the tiddlywiki.info
     file.
-  - `excludePluginList` takes precidence over the `includePluginList` so if a
+  - `excludePluginList` takes precedence over the `includePluginList` so if a
     plugin is listed in both it will not be included. `excludePluginList` can
     also override the `servePlugin` setting if you have that set to true, so it
     can be used to make Bob serve normal tiddlywikis without any multi-user or
     other Bob functionality.
 - The default file server url path is now `files` instead of `file` to match
   the proposed updates to the core --listen command.
+- The deleteTiddler, editingTiddler and, cancelEditingTiddler messages are now
+  consistent with the saveTiddler message.
+  - Now removeTiddler is deleteTiddler
+- The wiki now keeps track of unsent messages when disconnected from the server
 
 !! Version 1.0.2
 

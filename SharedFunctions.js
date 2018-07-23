@@ -95,12 +95,12 @@ This has some functions that are needed by Bob in different places.
         var date2;
         if (typeof tiddler.fields[field] === 'string') {
           date1 = tiddler.fields[field];
-        } else {
+        } else if (typeof date1 !== 'undefined') {
           date1 = $tw.utils.stringifyDate(tiddler.fields[field]);
         }
         if (typeof otherTiddler.fields[field] === 'string') {
           date2 = otherTiddler.fields[field];
-        } else {
+        } else if (typeof date2 !== 'undefined'){
           date2 = $tw.utils.stringifyDate(otherTiddler.fields[field]);
         }
         if (date1 !== date2) {
@@ -123,49 +123,27 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.findDuplicateMessages = function (message) {
     var overrides = $tw.Bob.MessageQueue.map(function(item, index) {
-      // For any sequence of editing/cancel editing tiddler messages the latest
-      // one for a specific tiddler overrules the previous ones.
-      // A delete tiddler message overrules any delete, save, editing or cancel
-      // editing messages for the same tiddler.
-      if (message.type === 'deleteTiddler' && ['deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].includes(item.message.type) && message.tidder === item.message.tiddler) {
-        return index;
-      }
-      if (message.type === 'deleteTiddler' && item.message.type === 'saveTiddler') {
-        // We need this to protect against malformed saveTiddler messages
-        if (typeof item.message.tiddler === 'object') {
-          if (typeof item.message.tiddler.fields === 'object') {
-            if (message.tiddler === item.message.tiddler.fields.title) {
-              // A malformed saveTiddler message will break this!
-              return index;
-            }
-          }
-        }
-      }
-      // A save tiddler message overrules any existing deleteTiddler,
-      // editingTiddler, cancelEditingTiddler or saveTiddler messages for the
-      // same tiddler.
-      if (message.type === 'saveTiddler') {
-        // Protect against malformed messages
-        if (typeof message.tiddler === 'object') {
-          if (typeof message.tiddler.fields === 'object') {
-            if (['deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].includes(item.message.type) && message.tiddler.fields.title === item.message.tiddler) {
-              return index;
-            } else if (item.message.type === 'saveTiddler') {
-              if (typeof item.message.tiddler === 'object') {
-                if (typeof item.message.tiddler.fields === 'object') {
-                  if (message.tiddler.fields.title === item.message.tiddler.fields.title) {
-                    return index;
-                  }
-                }
-              }
-            }
-          }
+      // A delete or save tiddler message overrules any delete, save, editing
+      // or cancel editing messages for the same tiddler.
+      if (['deleteTiddler', 'saveTiddler'].includes(message.type) && ['deleteTiddler', 'editingTiddler', 'cancelEditingTiddler', 'saveTiddler'].includes(item.message.type)) {
+        message.tiddler = message.tiddler || {}
+        message.tiddler.fields = message.tiddler.fields || {}
+        item.message.tiddler = item.message.tiddler || {}
+        item.message.tiddler.fields = item.message.tiddler.fields || {}
+        if (message.tiddler.fields.title === item.message.tiddler.fields.title) {
+          return index;
         }
       }
       // An editingTiddler or cancelEditingTiddler message overrides any
       // previous editingTiddler or cancelEditingTiddler messages.
-      if (message.type === 'editingTiddler' || message.type === 'cancelEditingTiddler' && ['editingTiddler', 'cancelEditingTiddler'].includes(item.message.type) && message.tiddler === item.message.tiddler) {
-        return index;
+      if (['editingTiddler', 'cancelEditingTiddler'].includes(message.type) && ['editingTiddler', 'cancelEditingTiddler'].includes(item.message.type)) {
+        message.tiddler = message.tiddler || {}
+        message.tiddler.fields = message.tiddler.fields || {}
+        item.message.tiddler = item.message.tiddler || {}
+        item.message.tiddler.fields = item.message.tiddler.fields || {}
+        if (message.tiddler.fields.title === item.message.tiddler.fields.title) {
+          return index;
+        }
       }
       // Finally if it isn't any of the basic messages check to see if the
       // message is a direct duplicate of an existing message.
@@ -247,6 +225,11 @@ This has some functions that are needed by Bob in different places.
     }
   }
 
+  /*
+    This returns a new id for a message.
+    Messages from the browser have ids that start with b, messages from the
+    server have an idea that starts with s.
+  */
   Shared.makeId = function () {
     idNumber = idNumber + 1;
     var newId = ($tw.browser?'b':'s') + idNumber;
@@ -254,19 +237,14 @@ This has some functions that are needed by Bob in different places.
   }
 
   /*
-    This sends a message to the server and gives it an id. The ids are unique
-    to the session, but not globally.
-    Duplicate messages are rejected.
+    This checks if a message is eligable to be sent and returns a boolean value
+    true means the message should be sent or stored and false means it shouldn't
 
-    TODO add a check to make it so that messages are only queued up to be sent
-    to the correct wikis
-
-    TODO add a check to make it so that if a saveTiddler message is going to be
-    sent but it is the same as a previous saveTiddler message but has a
-    different id it is ignored.
+    When there is an active connection the messages are sent, when there isn't
+    they are stored for later.
   */
-  Shared.sendMessage = function(messageData, connectionIndex) {
-    $tw.Bob.Timers = $tw.Bob.Timers || {};
+  Shared.messageIsEligible = function (messageData, connectionIndex) {
+    var send = false;
     // Empty tags fields will be converted to empty strings.
     if (messageData.message.type === 'saveTiddler') {
       if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
@@ -289,18 +267,10 @@ This has some functions that are needed by Bob in different places.
       });
       if (existingMessage > -1) {
         if (typeof $tw.Bob.MessageQueue[existingMessage].ack[connectionIndex] === 'undefined') {
-          // If the there is an existing message with the same id and it doesn't
-          // already have an ack from the current destination.
+          // If the there is an existing message with the same id and it
+          // doesn't already have an ack from the current destination.
           $tw.Bob.MessageQueue[existingMessage].ack[connectionIndex] = false;
-          if (messageData.message.type === 'saveTiddler' && $tw.browser) {
-            // Each tiddler gets a timer
-            // invalidate the timer and reset it each time we get a save tiddler
-            clearTimeout($tw.Bob.Timers[messageData.message.tiddler.fields.title]);
-            // then reset the timer
-            $tw.Bob.Timers[messageData.message.tiddler.fields.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
-          } else {
-            $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
-          }
+          send = true;
         }
         // If there is already an ack for this message than we do nothing here.
       } else {
@@ -311,12 +281,22 @@ This has some functions that are needed by Bob in different places.
         // and the tiddler is the same in the old one as the new one ignore the
         // new one.
         var ignore = false;
+        // Ignore saveTiddler messages if the tiddler hasn't changed
         if (messageData.message.type === 'saveTiddler') {
           duplicateIndicies.forEach(function(messageIndex) {
             if (!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, $tw.Bob.MessageQueue[messageIndex].message.tiddler)) {
               ignore = true;
             }
           })
+        }
+        // Ignore saveTiddler and deleteTiddler messages for tiddlers that
+        // are listed by the sync exclude filter.
+        if (['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(messageData.message.type) !== -1) {
+          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          var title = messageData.message.tiddler.fields.title;
+          if (list.indexOf(title) !== -1) {
+            ignore = true;
+          }
         }
         if (!ignore) {
           // Remove the messages that are overruled by the new message.
@@ -325,20 +305,50 @@ This has some functions that are needed by Bob in different places.
           });
           messageData.ack[connectionIndex] = false;
           $tw.Bob.MessageQueue.push(messageData);
-          if (messageData.message.type === 'saveTiddler' && $tw.browser) {
-            // Each tiddler gets a timer
-            // invalidate the timer and reset it each time we get a save tiddler
-            clearTimeout($tw.Bob.Timers[messageData.message.tiddler.fields.title]);
-            // then reset the timer
-            $tw.Bob.Timers[messageData.message.tiddler.fields.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
-          } else {
-            $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+          send = true;
+        }
+      }
+    }
+    return send;
+  }
+
+  /*
+    This sends a message to the server and gives it an id. The ids are unique
+    to the session, but not globally.
+    Duplicate messages are rejected.
+  */
+  Shared.sendMessage = function(messageData, connectionIndex) {
+    if (Shared.messageIsEligible(messageData, connectionIndex)) {
+      $tw.Bob.Timers = $tw.Bob.Timers || {};
+      connectionIndex = connectionIndex || 0;
+      // Empty tags fields will be converted to empty strings.
+      if (messageData.message.type === 'saveTiddler') {
+        if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
+          messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
+          if (!Array.isArray(messageData.message.tiddler.fields.tags)) {
+            messageData.message.tiddler.fields.tags = [];
           }
         }
       }
-      clearTimeout($tw.Bob.MessageQueueTimer);
-      $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+      // We have a slight delay before sending saveTiddler messages, this
+      // is because if you send them right away than you have trouble with
+      // fields that are edited outside the tiddler edit view (like setting
+      // the site title or subtitle) because a message is sent on each key
+      // press and it creates race conditions with the server and which was
+      // the last message can get confused and it can even get stuck in
+      // infinite update loops.
+      if (messageData.message.type === 'saveTiddler' && $tw.browser) {
+        // Each tiddler gets a timer invalidate the timer and reset it each time
+        // we get a saveTiddler message for a tiddler
+        clearTimeout($tw.Bob.Timers[messageData.message.tiddler.fields.title]);
+        // then reset the timer
+        $tw.Bob.Timers[messageData.message.tiddler.fields.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
+      } else {
+        $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+      }
     }
+    clearTimeout($tw.Bob.MessageQueueTimer);
+    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
   }
 
   /*
@@ -361,6 +371,9 @@ This has some functions that are needed by Bob in different places.
     }
   }
 
+  /*
+    This removes unneeded messages from the message queue
+  */
   function pruneMessageQueue() {
     // We can not remove messages immediately or else they won't be around to
     // prevent duplicates when the message from the file system monitor comes

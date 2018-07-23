@@ -89,6 +89,7 @@ if ($tw.node) {
     $tw.boot uses prefixed titles
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
+    console.log('save', data)
     // Make sure there is actually a tiddler sent
     if (data.tiddler) {
       // Make sure that the tiddler that is sent has fields
@@ -100,7 +101,7 @@ if ($tw.node) {
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:internalTitle, wiki: prefix});
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:internalTitle}}, wiki: prefix});
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if (!$tw.boot.files[internalTitle]) {
@@ -139,16 +140,21 @@ if ($tw.node) {
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     //console.log('Node Delete Tiddler');
-    // Make the internal name
-    data.tiddler = '{' + data.wiki + '}' + data.tiddler;
-    // Delete the tiddler file from the file system
-    $tw.syncadaptor.deleteTiddler(data.tiddler);
-    // Set the wiki as modified
-    $tw.Bob.Wikis[data.wiki].modified = true;
-    // Remove the tiddler from the list of tiddlers being edited.
-    if ($tw.Bob.EditingTiddlers[data.tiddler]) {
-      delete $tw.Bob.EditingTiddlers[data.tiddler];
-      $tw.Bob.UpdateEditingTiddlers(false);
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      // Make the internal name
+      title = '{' + data.wiki + '}' + title;
+      // Delete the tiddler file from the file system
+      $tw.syncadaptor.deleteTiddler(title);
+      // Set the wiki as modified
+      $tw.Bob.Wikis[data.wiki].modified = true;
+      // Remove the tiddler from the list of tiddlers being edited.
+      if ($tw.Bob.EditingTiddlers[title]) {
+        delete $tw.Bob.EditingTiddlers[title];
+        $tw.Bob.UpdateEditingTiddlers(false);
+      }
     }
     // Acknowledge the message.
     sendAck(data);
@@ -158,10 +164,15 @@ if ($tw.node) {
     This is the handler for when a browser sends the editingTiddler message.
   */
   $tw.nodeMessageHandlers.editingTiddler = function(data) {
-    var internalName = '{' + data.wiki + '}' + data.tiddler;
-    // Add the tiddler to the list of tiddlers being edited to prevent multiple
-    // people from editing it at the same time.
-    $tw.Bob.UpdateEditingTiddlers(internalName);
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      var internalName = '{' + data.wiki + '}' + title;
+      // Add the tiddler to the list of tiddlers being edited to prevent multiple
+      // people from editing it at the same time.
+      $tw.Bob.UpdateEditingTiddlers(internalName);
+    }
     // Acknowledge the message.
     sendAck(data);
   }
@@ -170,12 +181,13 @@ if ($tw.node) {
     This is the handler for when a browser stops editing a tiddler.
   */
   $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
-    // Make sure that the tiddler title is a string
-    if (typeof data.tiddler === 'string') {
-      if (data.tiddler.startsWith("Draft of '")) {
-        var title = data.tiddler.slice(10,-1);
-      } else {
-        var title = data.tiddler;
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      // Make sure that the tiddler title is a string
+      if (title.startsWith("Draft of '")) {
+        title = title.slice(10,-1);
       }
       var internalName = '{' + data.wiki + '}' + title;
       // Remove the current tiddler from the list of tiddlers being edited.

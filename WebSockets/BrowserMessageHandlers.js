@@ -115,70 +115,19 @@ it will overwrite this file.
   }
 
   /*
-    Check if the file version matches the in-browser version of a tiddler
+    This message handles the deleteTiddler message for the browser. Note that
+    this removes the tiddler from the wiki in the browser, but it does not
+    delete the .tid file from the node server if you are running tiddlywiki in
+    node. If you are running without node than this function is equavalient to
+    deleting the tiddler.
   */
-  /*
-  function TiddlerHasChanged(tiddler, otherTiddler) {
-    if (!otherTiddler) {
-      return true;
-    }
-    if (!tiddler) {
-      return true;
-    }
-    if (!otherTiddler.fields) {
-      return true;
-    }
-    if (!tiddler.fields) {
-      return true;
-    }
-
-    var changed = false;
-    // Some cleverness that gives a list of all fields in both tiddlers without
-    // duplicates.
-    var allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
-      return Object.keys(tiddler.fields).indexOf(item) < 0;
-    }));
-    // check to see if the field values are the same, ignore modified for now
-    allFields.forEach(function(field) {
-      if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
-          // There is a difference!
-          changed = true;
-        }
-      } else if (field === 'list' || field === 'tags') {
-        if (tiddler.fields[field] && otherTiddler.fields[field]) {
-          if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
-            changed = true;
-          } else {
-            var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
-            arrayList.forEach(function(item) {
-              if (tiddler.fields[field].indexOf(item) === -1) {
-                changed = true;
-              }
-            })
-          }
-        } else {
-          changed = true;
-        }
-      }
-    })
-    return changed;
-  };
-  */
-  /*
-    This message handles the remove tiddler function. Note that this removes
-    the tiddler from the wiki in the browser, but it does not delete the .tid
-    file from the node server if you are running tiddlywiki in node.
-    If you are running without node than this function is equavalient to deleting the tiddler.
-  */
-  $tw.browserMessageHandlers.removeTiddler = function(data) {
-    // Ignore the message it if isn't for the current wiki
+  $tw.browserMessageHandlers.deleteTiddler = function (data) {
     if (data.wiki === $tw.wikiName) {
-      // The data object passed must have at least a title
-      if (data.title) {
-        $tw.wiki.deleteTiddler(data.title);
-      } else {
-        console.log("No tiddler title give.");
+      data.tiddler = data.tiddler || {};
+      data.tiddler.fields = data.tiddler.fields || {};
+      var title = data.tiddler.fields.title;
+      if (title) {
+        $tw.wiki.deleteTiddler(title);
       }
     }
     sendAck(data);
@@ -267,6 +216,12 @@ it will overwrite this file.
       var token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }, $tw.settings.heartbeat.interval);
+    var queue = {}
+    $tw.Bob.MessageQueue.forEach(function(message) {
+      queue[message.id] = message
+    })
+    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'}
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 
   /*

@@ -140,8 +140,9 @@ if ($tw.node) {
             var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
             // Make sure that it at least has a title
             if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
-              // Test to see if the filename matches what the wiki says it should
-              // be. If not rename the file to match the rules set by the wiki.
+              // Test to see if the filename matches what the wiki says it
+              // should be. If not rename the file to match the rules set by
+              // the wiki.
               var rename = false;
               if (tiddlerObject.tiddlers[0].title && (fileExtension === '.tid' || fileExtension === '.meta')) {
                 var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
@@ -167,9 +168,9 @@ if ($tw.node) {
                 // no longer matches.
 
                 // If the tiddler with that title doesn't exist, check if a
-                // tiddler is listed with that file path in $tw.boot.files with a
-                // different title. If so than remove the old tiddler and add the
-                // new one. Also remove the old file and make the new one.
+                // tiddler is listed with that file path in $tw.boot.files with
+                // a different title. If so than remove the old tiddler and add
+                // the new one. Also remove the old file and make the new one.
                 var tiddlerName = Object.keys($tw.boot.files).filter(function (item) {
                   // A lot of this is to handle some weird edge cases I ran into
                   // while making it.
@@ -217,8 +218,8 @@ if ($tw.node) {
                     fs.unlinkSync(itemPath);
                   }
                 } else if (!tiddler || !$tw.boot.files[internalTitle]) {
-                  // This check needs the prefixed title (everything in $tw.boot
-                  // uses the internalTitle)
+                  // This check needs the prefixed title (everything in
+                  // $tw.boot uses the internalTitle)
                   // This is a new tiddler, so just save the tiddler info
                   $tw.Bob.MakeTiddlerInfo(folder, filename, tiddlerObject, prefix);
                 }
@@ -252,7 +253,6 @@ if ($tw.node) {
         } else {
           // If the item doesn't exist on the file system it means it was
           // deleted. Handle that here.
-          filename = filename.slice(0,-1*fileExtension.length);
           console.log('Delete Tiddler ', folder, path.sep, filename);
           $tw.Bob.DeleteTiddler(folder, filename, prefix);
         }
@@ -320,7 +320,7 @@ if ($tw.node) {
         // Create a message saying to remove the tiddler
         // Remove the prefix from the tiddler
         tiddlerName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
-        var message = {type: 'removeTiddler', title: tiddlerName, wiki: prefix};
+        var message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
       }
@@ -366,26 +366,26 @@ if ($tw.node) {
     isn't available at this point in the boot process.
   */
   var isDirectory = function(dirPath) {
-  	return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+    return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
   };
   var createDirectory = function(dirPath) {
-  	if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
-  		dirPath = dirPath + path.sep;
-  	}
-  	var pos = 1;
-  	pos = dirPath.indexOf(path.sep,pos);
-  	while(pos !== -1) {
-  		var subDirPath = dirPath.substr(0,pos);
-  		if(!isDirectory(subDirPath)) {
-  			try {
-  				fs.mkdirSync(subDirPath);
-  			} catch(e) {
-  				return "Error creating directory '" + subDirPath + "'";
-  			}
-  		}
-  		pos = dirPath.indexOf(path.sep,pos + 1);
-  	}
-  	return null;
+    if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
+      dirPath = dirPath + path.sep;
+    }
+    var pos = 1;
+    pos = dirPath.indexOf(path.sep,pos);
+    while(pos !== -1) {
+      var subDirPath = dirPath.substr(0,pos);
+      if(!isDirectory(subDirPath)) {
+        try {
+          fs.mkdirSync(subDirPath);
+        } catch(e) {
+          return "Error creating directory '" + subDirPath + "'";
+        }
+      }
+      pos = dirPath.indexOf(path.sep,pos + 1);
+    }
+    return null;
   };
 
 }
