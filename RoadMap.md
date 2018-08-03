@@ -44,12 +44,8 @@
   - Wiki diffs: same process as above, but export a json file that has all of
     the changes in it. This could use the same thing as the history of changed
     tiddlers thing.
-- Make the unsent list use the same logic as the message queue to make it more
-  compact.
-  - In the browser it should stay what it is with the pruning added, on the
-    server it should just be a list of modified tiddlers and times. Then when a
-    browser reconnects it can use the last time it got a ping from the server
-    and ask for anything newer than that. And send its list of changes.
+- Make the server save a compact list of changes so that it can quickly resync
+  wikis that reconnect after being disconnected
   - Any conflicts should be up to people to resolve. Both versions should be
     kept, a 'server' version and a 'browser' version.
     - This means I need to make a conflict resolution tool for it.

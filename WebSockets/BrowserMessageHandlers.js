@@ -199,7 +199,16 @@ it will overwrite this file.
         var token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }, $tw.settings.heartbeat.interval);
-      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
+      $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
+    }
+  }
+
+  function checkDisconnected() {
+    if ($tw.connections[0].socket.readyState !== 1) {
+      handleDisconnected();
+    } else {
+      var token = localStorage.getItem('ws-token')
+      $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
   }
 
@@ -209,18 +218,18 @@ it will overwrite this file.
   */
   function handleDisconnected() {
     console.log('Disconnected from server');
-    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
+    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;max-height:100px;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1><$button>Reconnect<$action-reconnectwebsocket/></$button></div>";
     var tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       var token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }, $tw.settings.heartbeat.interval);
-    var queue = {}
+    var queue = [];
     $tw.Bob.MessageQueue.forEach(function(message) {
-      queue[message.id] = message
+      queue.push(message)
     })
-    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'}
+    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 

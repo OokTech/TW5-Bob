@@ -39,7 +39,10 @@ socket server, but it can be extended for use with other web socket servers.
     var connectionIndex = 0;
 
     // Do all actions on startup.
-    function setup() {
+    $tw.Bob.setup = function(reconnect) {
+      if (reconnect) {
+        $tw.connections = null;
+      }
       $tw.Syncer.isDirty = false;
       var IPTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/ws-server");
       try {
@@ -68,7 +71,9 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.wikiName = '';
       }
 
-      addHooks();
+      if (!reconnect) {
+        addHooks();
+      }
     }
     /*
       When the socket is opened the heartbeat process starts. This lets us know
@@ -109,21 +114,26 @@ socket server, but it can be extended for use with other web socket servers.
       } else {
         // If the connection is not open than store the message in the queue
         var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent')
-        var queue = {}
+        var queue = []
         if (tiddler) {
           if (typeof tiddler.fields.text === 'string') {
             queue = JSON.parse(tiddler.fields.text)
           }
         }
-        if (messageData.message.type !== 'saveTiddler') {
-          queue[messageData.id] = messageData
-        } else {
-          if  (messageData.message.tiddler.fields.title !== '$:/plugins/OokTech/Bob/Unsent') {
-            queue[messageData.id] = messageData
+        // Prune the queue and check if the current message is redundant or
+        // overrides old messages
+        queue = $tw.Bob.Shared.removeDuplicates(messageData, queue);
+        if ($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
+          if (messageData.message.type !== 'saveTiddler') {
+            queue.push(messageData);
+          } else {
+            if  (messageData.message.tiddler.fields.title !== '$:/plugins/OokTech/Bob/Unsent') {
+              queue.push(messageData);
+            }
           }
+          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'};
+          $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
         }
-        var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'}
-        $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
       }
     }
 
@@ -249,6 +259,43 @@ socket server, but it can be extended for use with other web socket servers.
       */
     }
     // Send the message to node using the websocket
-    setup();
+    $tw.Bob.setup();
+  }
+  $tw.Bob.Reconnect = function (sync) {
+    if ($tw.connections[0].socket.readyState !== 1) {
+      $tw.Bob.setup();
+      if (sync) {
+        $tw.Bob.syncToServer();
+      }
+    }
+  }
+  $tw.Bob.syncToServer = function () {
+    // Use a timeout to ensure that the websocket is ready
+    if ($tw.connections[0].socket.readyState !== 1) {
+      setTimeout($tw.Bob.syncToServer, 100)
+      console.log('waiting')
+    } else {
+      // Add the unsent messages to the queue in the browser
+      var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent')
+      var queue = []
+      if (tiddler) {
+        if (typeof tiddler.fields.text === 'string') {
+          queue = JSON.parse(tiddler.fields.text)
+        }
+      }
+      // TODO I think that we need to update messageIsEligible to check
+      // timestamps on the messages instead of just assuming that the current
+      // message is more recent than any already queued message.
+      queue.forEach(function(messageData) {
+        if ($tw.Bob.Shared.messageIsEligible(messageData, 0, $tw.Bob.MessageQueue)) {
+          $tw.Bob.Shared.sendMessage(messageData,0);
+        }
+      })
+      // Check the message queue to handle the new messages added
+      //$tw.Bob.Shared.checkMessageQueue()
+      // TODO remove everything in the unsent message queue!
+      // Ask the server for any updates since the connection was lost
+      //$tw.Bob.resync();
+    }
   }
 })();
