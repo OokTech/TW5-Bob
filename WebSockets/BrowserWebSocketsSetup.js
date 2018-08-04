@@ -57,7 +57,6 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.connections = $tw.connections || [];
       $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
       $tw.connections[connectionIndex].index = connectionIndex;
-      $tw.connections[connectionIndex].active = true;
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
       $tw.connections[connectionIndex].socket.onopen = openSocket;
       $tw.connections[connectionIndex].socket.onmessage = parseMessage;
@@ -100,14 +99,7 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     var sendToServer = function (message) {
-      var id = $tw.Bob.Shared.makeId();
-      message.id = id;
-      var messageData = {
-        message: message,
-        id: id,
-        time: Date.now(),
-        ack: {}
-      };
+      var messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if ($tw.connections[connectionIndex].socket.readyState === 1) {
         $tw.Bob.Shared.sendMessage(messageData, 0);
@@ -120,16 +112,15 @@ socket server, but it can be extended for use with other web socket servers.
             queue = JSON.parse(tiddler.fields.text)
           }
         }
-        // Prune the queue and check if the current message is redundant or
-        // overrides old messages
-        queue = $tw.Bob.Shared.removeDuplicates(messageData, queue);
+        // Check to make sure that the current message is eligible to be saved
         if ($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
-          if (messageData.message.type !== 'saveTiddler') {
+          // Prune the queue and check if the current message makes any enqueued
+          // messages redundant or overrides old messages
+          queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
+          // Don't save any messages that are about the unsent list or you get
+          // infinite loops of badness.
+          if (messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
             queue.push(messageData);
-          } else {
-            if  (messageData.message.tiddler.fields.title !== '$:/plugins/OokTech/Bob/Unsent') {
-              queue.push(messageData);
-            }
           }
           var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'};
           $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
@@ -283,9 +274,6 @@ socket server, but it can be extended for use with other web socket servers.
           queue = JSON.parse(tiddler.fields.text)
         }
       }
-      // TODO I think that we need to update messageIsEligible to check
-      // timestamps on the messages instead of just assuming that the current
-      // message is more recent than any already queued message.
       queue.forEach(function(messageData) {
         if ($tw.Bob.Shared.messageIsEligible(messageData, 0, $tw.Bob.MessageQueue)) {
           $tw.Bob.Shared.sendMessage(messageData,0);

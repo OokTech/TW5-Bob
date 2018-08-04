@@ -54,6 +54,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Now removeTiddler is deleteTiddler
 - The wiki can now reconnect to a server after being disconnected
 - The wiki now keeps track of unsent messages when disconnected from the server
+  - This part is still very experimental
   - The browser sends any unsent changes to the server when it reconnects
   - The changes are also saved in a tiddler that can be exported for future
     manual inclusion

@@ -29,10 +29,6 @@
   reduce loading times and network traffic.
 - Make a new function that lets you pick and choose tiddlers and plugins from
   any that are available.
-- Maybe keep a history of changed tiddlers and timestamps (with the same bits
-  of cleverness as the message queue pruning to keep it smaller) so that when a
-  wiki disconnects it can reconnect and see changes since the last time it was
-  in sync, and then resync itself without reloading.
 - Add wiki syncing!
   - Sync local to remote state: make a list of all wiki tiddlers and send that
     to another wiki which checks that list against its own list and sends back
@@ -49,3 +45,7 @@
   - Any conflicts should be up to people to resolve. Both versions should be
     kept, a 'server' version and a 'browser' version.
     - This means I need to make a conflict resolution tool for it.
+- When reconnecting to a server the wiki may have to be loaded before any
+  messages with updates can be accepted. This may take some more involved work
+  than I had hoped.
+  - Also there is a problem where a save message can make a new tiddler file instead of overwriting the old one after a reconnection

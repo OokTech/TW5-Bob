@@ -1,0 +1,89 @@
+# Test Cases
+
+Until we get some automated testing set up this is a list of tests that should
+show at least the most common places where something may be broken.
+
+If you create something make sure that all of the following work after your
+changes:
+
+## Creating, deleting and editing tiddlers
+
+1. The wiki actually boots
+2. Loading the wiki in one browser doesn't crash the node process
+3. Loading the wiki in multiple browser tabs/on multiple computers doesn't
+  crash the node process.
+4. Creating a tiddler in one browser tab results in:
+  - The tiddler appearing in another already-open browser tab with the same
+    wiki open
+  - The corresponding .tid file appears on the file system
+  - Opening up the wiki in a new browser tab/browser/computer shows the new tiddler
+  - After re-loading an already open wiki the tiddler is still shown in that
+    wiki
+  - The tiddler still exists after stopping and restarting the node process and
+    then re-loading the wiki.
+5. Creating a new .tid file with the proper fields present results in:
+  - The tiddler appears in any open wikis
+  - The tiddler appears in any new wikis opened
+  - The tiddler persists after reloading an already loaded wiki
+  - The tiddler persists after stopping and restarting the node process
+6. Deleting a tiddler in one browser tab results in:
+  - The tiddler also being deleted in any other open wikis
+  - The corresponding .tid file being removed from the file system
+  - The tiddler not being present when opening a new wiki
+  - The tiddler not being present after stopping the node process and
+    restarting it
+7. Deleting a tiddler from the file system results in:
+  - The tiddler also being deleted in any other open wikis
+  - The corresponding .tid file being removed from the file system
+  - The tiddler not being present when opening a new wiki
+  - The tiddler not being present after stopping the node process and
+    restarting it
+8. Editing a tiddler in a browser:
+  - Other browser tabs etc. with the wiki show the edit button locked for that
+    tiddler while it is being edited
+  - Changes to the tiddler appear almost immediately in other browser tabs
+    after saving the changes to the tiddler.
+  - Changes to the tiddler appear on the file system
+9. Editing a tiddler on the file system:
+  - The changes appear almost immediately in any connected browsers after the
+    tiddler is saved
+10. Renaming a tiddler in the browser:
+  - Changes appear in other browser tabs
+  - The old .tid file is gone, a new .tid file with the correct name for the
+    new title is there
+11. Renaming a tiddler on the file system (by changing the title field in the
+    .tid file):
+  - The file is deleted and a new file with the correct name for the new
+    tiddler is created
+  - The new tiddler is created in all connected wikis
+  - The old tiddler is deleted from all connected wikis
+  - Changes persist in newly opened wikis or reloaded wikis (both deleting the
+    old title and creating the new one)
+12. Importing tiddlers - TODO what do we test here?
+
+## Admin Tasks
+
+1. Settings can be modified and saved correctly
+  - TODO How do we test this?
+2. Resetting the wiki paths doesn't break anything
+  - TODO how to test this?
+
+## Serving wikis
+
+1. The root wiki is served without errors
+  - TODO
+2. Child wikis are served without errors
+  - TODO
+3. Static files can be served when properly configured
+  - TODO
+
+TODO - The rest
+
+## Creating new wikis
+
+TODO - This part
+
+## Logging
+
+During all of the above tests make sure that there aren't any left-over debug
+messages left in.

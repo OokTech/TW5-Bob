@@ -253,7 +253,7 @@ if ($tw.node) {
         } else {
           // If the item doesn't exist on the file system it means it was
           // deleted. Handle that here.
-          console.log('Delete Tiddler ', folder, path.sep, filename);
+          console.log('Delete Tiddler ', folder + path.sep + filename);
           $tw.Bob.DeleteTiddler(folder, filename, prefix);
         }
       } else {
@@ -305,13 +305,9 @@ if ($tw.node) {
     var itemPath = path.join(folder, filename);
     // Get the file name because it isn't always the same as the tiddler
     // title.
-    // TODO there is a strange error where sometimes $tw.boot.files will have
-    // an old entry instead of deleting it it will rename it 'undefined'.
-    // This part takes care of that but I don't know why it happens.
-    // So sometimes you will get the message 'Deleting Tiddler "undefined"'
-    // in addition to the message about deleting the real tiddler.
+
     // At this point the tiddlerName is the internal name so we need to switch
-    // to the non-prefixed name
+    // to the non-prefixed name for the message to the browsers
     Object.keys($tw.boot.files).forEach(function(tiddlerName) {
       if ($tw.boot.files[tiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.boot.files

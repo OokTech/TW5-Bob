@@ -163,14 +163,13 @@ if ($tw.node) {
 
     connection objects are:
     {
-      "active": boolean showing if the connection is active,
       "socket": socketObject,
-      "name": the user name for the wiki using this connection
+      "wiki": the name for the wiki using this connection
     }
   */
   function handleConnection(client) {
     console.log("new connection");
-    $tw.connections.push({'socket':client, 'active': true, 'wiki': undefined});
+    $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', function incoming(event) {
       var self = this;
       // Determine which connection the message came from
@@ -252,14 +251,7 @@ if ($tw.node) {
     changing it once here instead of once per browser should be better.
   */
   $tw.Bob.SendToBrowsers = function (message) {
-    var id = $tw.Bob.Shared.makeId();
-    message.id = id;
-    var messageData = {
-      message: message,
-      id: id,
-      time: Date.now(),
-      ack: {}
-    };
+    var messageData = $tw.Bob.Shared.createMessageData(message);
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
       if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
@@ -278,17 +270,36 @@ if ($tw.node) {
     connection has a list of message ids that are still waiting for acks.
   */
   $tw.Bob.SendToBrowser = function (connection, message) {
-    var id = $tw.Bob.Shared.makeId();
-    message.id = id;
-    var messageData = {
-      message: message,
-      id: id,
-      time: Date.now(),
-      ack: {}
-    };
+    var messageData = $tw.Bob.Shared.createMessageData(message);
     // If the connection is open, send the message
     if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
       $tw.Bob.Shared.sendMessage(messageData, connection.index);
+    }
+  }
+
+  /*
+    This keeps a history of changes for each wiki so that when a wiki is
+    disconnected and reconnects and asks to resync this can be used to resync
+    the wiki with the minimum amount of network traffic.
+
+    Resyncing only needs to keep track of creating and deleting tiddlers here.
+    The editing state of tiddlers is taken care of by the websocket
+    reconnection process.
+
+    So this is just the list of deleted tiddlers and saved tiddlers with time
+    stamps, and it should at most have one item per tiddler because the newest
+    save or delete message overrides any previous messages.
+  */
+  $tw.Bob.UpdateHistory = function(message) {
+    // Only save saveTiddler or deleteTiddler events that have a wiki listed
+    if (['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
+      $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
+      $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || {};
+      if (message.type === 'saveTiddler') {
+        $tw.Bob.ServerHistory[message.wiki][message.tiddler.fields.title] = {'saveTiddler':Date.now()}
+      } else {
+        $tw.Bob.ServerHistory[message.wiki][message.tiddler.fields.title] = {'deleteTiddler':Date.now()}
+      }
     }
   }
 

@@ -89,7 +89,6 @@ if ($tw.node) {
     $tw.boot uses prefixed titles
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
-    console.log('save', data)
     // Make sure there is actually a tiddler sent
     if (data.tiddler) {
       // Make sure that the tiddler that is sent has fields
