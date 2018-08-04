@@ -363,8 +363,6 @@ This has some functions that are needed by Bob in different places.
       if (['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
         var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
         if (list.indexOf(messageData.title) !== -1) {
-          console.log(messageData)
-          console.log('ignore 1')
           ignore = true;
         }
       }
@@ -380,7 +378,6 @@ This has some functions that are needed by Bob in different places.
               // if the queued message is newer than the current message ignore
               // the current message
               if (queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
-                console.log('ignore 2')
                 ignore = true;
               }
             }
@@ -399,7 +396,6 @@ This has some functions that are needed by Bob in different places.
               // if the queued message is newer than the current message ignore
               // the current message
               if (queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
-                console.log('ignore 3')
                 ignore = true;
               }
             }
@@ -411,7 +407,6 @@ This has some functions that are needed by Bob in different places.
         if (messageData.type === 'saveTiddler') {
           queue.forEach(function(message, messageIndex) {
             if (!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, queue[messageIndex].message.tiddler)) {
-              console.log('ignore 4')
               ignore = true;
             }
           })
@@ -526,15 +521,17 @@ This has some functions that are needed by Bob in different places.
       var index = $tw.Bob.MessageQueue.findIndex(function(messageData) {
         return messageData.id === data.id;
       })
-      // Set the message as acknowledged.
-      $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
-      // Check if all the expected acks have been received
-      var complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
-        return $tw.Bob.MessageQueue[index].ack[value] === false;
-      }) === -1;
-      // If acks have been received from all connections than set the ctime.
-      if (complete) {
-        $tw.Bob.MessageQueue[index].ctime = Date.now();
+      if ($tw.Bob.MessageQueue[index]) {
+        // Set the message as acknowledged.
+        $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
+        // Check if all the expected acks have been received
+        var complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
+          return $tw.Bob.MessageQueue[index].ack[value] === false;
+        }) === -1;
+        // If acks have been received from all connections than set the ctime.
+        if (complete) {
+          $tw.Bob.MessageQueue[index].ctime = Date.now();
+        }
       }
     }
   }

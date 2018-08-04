@@ -145,6 +145,7 @@ it will overwrite this file.
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    sendAck(data);
   }
 
   /*
@@ -229,7 +230,7 @@ it will overwrite this file.
     $tw.Bob.MessageQueue.forEach(function(message) {
       queue.push(message)
     })
-    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'};
+    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: Date.now()-Number($tw.settings.heartbeat.timeout)};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 

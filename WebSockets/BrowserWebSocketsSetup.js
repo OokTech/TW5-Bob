@@ -201,6 +201,49 @@ socket server, but it can be extended for use with other web socket servers.
           }
         }
     	});
+
+      $tw.Bob.Reconnect = function (sync) {
+        if ($tw.connections[0].socket.readyState !== 1) {
+          $tw.Bob.setup();
+          if (sync) {
+            $tw.Bob.syncToServer();
+          }
+        }
+      }
+      $tw.Bob.syncToServer = function () {
+        // Use a timeout to ensure that the websocket is ready
+        if ($tw.connections[0].socket.readyState !== 1) {
+          setTimeout($tw.Bob.syncToServer, 100)
+          console.log('waiting')
+        } else {
+          /*
+          // The process here should be:
+
+            Send the full list of changes from the browser to the server in a
+            special message
+            The server determines if any conflicts exist and marks the tiddlers as appropriate
+            If there are no conflicts than it just applies the changes from the browser/server
+            If there are than it marks the tiddler as needing resolution and both versions are made available
+            All connected browsers now see the tiddlers marked as in conflict and resolution is up to the people
+
+            This message is sent to the server, once the server receives it it respons with a special ack for it, when the browser receives that it deletes the unsent tiddler
+
+            What is a conflict?
+
+            If both sides say to delete the same tiddler there is no conflict
+            If one side says save and the othre delete there is a conflict
+            if both sides say save there is a conflict if the two saved versions
+            aren't the same.
+          */
+          // Get the tiddler with the info about local changes
+          var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+          // Ask the server for a listing of changes since the browser was
+          // disconnected
+          var token = localStorage.getItem('ws-token');
+          var message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, wiki: $tw.wikiName, token: token};
+          sendToServer(message);
+        }
+      }
       /*
         Below here are skeletons for adding new actions to existing hooks.
         None are needed right now but the skeletons may help later.
@@ -251,39 +294,5 @@ socket server, but it can be extended for use with other web socket servers.
     }
     // Send the message to node using the websocket
     $tw.Bob.setup();
-  }
-  $tw.Bob.Reconnect = function (sync) {
-    if ($tw.connections[0].socket.readyState !== 1) {
-      $tw.Bob.setup();
-      if (sync) {
-        $tw.Bob.syncToServer();
-      }
-    }
-  }
-  $tw.Bob.syncToServer = function () {
-    // Use a timeout to ensure that the websocket is ready
-    if ($tw.connections[0].socket.readyState !== 1) {
-      setTimeout($tw.Bob.syncToServer, 100)
-      console.log('waiting')
-    } else {
-      // Add the unsent messages to the queue in the browser
-      var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent')
-      var queue = []
-      if (tiddler) {
-        if (typeof tiddler.fields.text === 'string') {
-          queue = JSON.parse(tiddler.fields.text)
-        }
-      }
-      queue.forEach(function(messageData) {
-        if ($tw.Bob.Shared.messageIsEligible(messageData, 0, $tw.Bob.MessageQueue)) {
-          $tw.Bob.Shared.sendMessage(messageData,0);
-        }
-      })
-      // Check the message queue to handle the new messages added
-      //$tw.Bob.Shared.checkMessageQueue()
-      // TODO remove everything in the unsent message queue!
-      // Ask the server for any updates since the connection was lost
-      //$tw.Bob.resync();
-    }
   }
 })();

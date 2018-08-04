@@ -28,8 +28,9 @@ if ($tw.node) {
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
   var sendAck = function (data) {
+    console.log(data)
     if (data.id) {
-      if (data.source_connection !== undefined) {
+      if (data.source_connection !== undefined && data.source_connection !== -1) {
         $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
       }
     }
@@ -195,6 +196,77 @@ if ($tw.node) {
       }
       $tw.Bob.UpdateEditingTiddlers(false);
     }
+    // Acknowledge the message.
+    sendAck(data);
+  }
+
+  /*
+    This is for resyncing with a wiki that was disconnected and has reconnected
+    The data object should have the form:
+    {
+      type: 'syncChanges',
+      since: startTime,
+      changes: messageQueue,
+      wiki: wikiName,
+      token: token,
+      id: messageID,
+      source_connection: connectionIndex
+    }
+  */
+  $tw.nodeMessageHandlers.syncChanges = function(data) {
+    // Make sure that the server history exists
+    $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
+    $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || {};
+    // Get the received message queue
+    var queue = [];
+    try {
+      queue = JSON.parse(data.changes);
+    } catch (e) {
+      console.log("Can't parse server changes!!");
+    }
+    // Get the list of tiddler titles from the received queue
+    var saveMessages = queue.filter(function(messageData) {
+      return messageData.type === 'saveTiddler'
+    });
+    console.log('Save messages', saveMessages)
+    var deleteMessages = queue.filter(function(messageData) {
+      return messageData.type === 'deleteTiddler'
+    });
+    console.log('Delete Messages', deleteMessages)
+    var conflicts = [];
+    // Iterate through the received queue
+    queue.forEach(function(messageData) {
+      // If the tiddler is listed both in the received queue and in the server // changes check if it is a conflict.
+      if ($tw.Bob.ServerHistory[data.wiki][messageData.title]) {
+        if (messageData.type === 'deleteTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['deleteTiddler'] === undefined) {
+          // Browser is delete, server isn't => conflict
+          conflicts.push(messageData.title);
+        } else if (messageData.type === 'saveTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['saveTiddler'] === undefined) {
+          // Browser is save, server isn't => conflict
+          conflicts.push(messageData.title);
+        } else if (messageData.type === 'saveTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['saveTiddler'] !== undefined) {
+          // Server and browser are both save => conflict if the two tiddlers
+          // aren't the same.
+          var tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
+          tempTid.fields.title = '{'+data.wiki+'}'+messageData.title;
+          var serverTiddler = $tw.wiki.getTiddler(tempTid.fields.title);
+          if ($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
+            conflicts.push(messageData.title);
+          }
+        }
+      }
+    });
+    console.log(conflicts)
+    // Take care of all the messages that aren't conflicting
+    // First from the received queue
+    queue.forEach(function(messageData){
+      console.log(messageData.title)
+      if (conflicts.indexOf(messageData.title) === -1) {
+        console.log(JSON.stringify(messageData.message))
+        // Send the message to the handler with the appropriate setup
+        $tw.Bob.handleMessage.call($tw.connections[data.source_connection].socket, JSON.stringify(messageData.message));
+      }
+    })
     // Acknowledge the message.
     sendAck(data);
   }
