@@ -534,7 +534,7 @@ This has some functions that are needed by Bob in different places.
           return $tw.Bob.MessageQueue[index].ack[value] === false;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
-        if (complete) {
+        if (complete && !$tw.Bob.MessageQueue[index].ctime) {
           $tw.Bob.MessageQueue[index].ctime = Date.now();
         }
       }
