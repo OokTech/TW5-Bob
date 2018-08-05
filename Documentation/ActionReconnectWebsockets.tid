@@ -1,0 +1,23 @@
+title: $:/plugins/OokTech/Bob/ActionReconnectWebsockets
+tags: ActionWidgets Widgets [[Bob Documentation]]
+caption: ActionReconnectWebsockets
+description: A widget for reconnecting to a websocket server if you have been disconnected.
+
+! Introduction
+
+The `action-reconnectwebsocket` widget is an action widget that tries to
+re-establish your connection to the Bob server component after being
+disconnected.
+
+! Content and Attributes
+
+Any content of the `action-reconnectwebsocket` widget is ignored.
+
+|!Attribute |!Description |
+|!sync |If this is set to `true` than the wiki sends the server a list of its unsent changes and asks for any changes on the server since the wiki was disconnected (Default: `false`) |
+
+! Examples
+
+```
+<$action-reconnectwebsocet sync='false'/>
+```

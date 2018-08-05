@@ -308,6 +308,14 @@ if($tw.node) {
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.boot.files[title];
         $tw.wiki.deleteTiddler(title);
+        // Create a message saying to remove the tiddler
+        // get the prefix
+        var prefix = title.slice(1,title.indexOf('}'));
+        // Remove the prefix from the tiddler
+        var tiddlerName = title.replace(new RegExp('^\{' + prefix + '\}'),'');
+        var message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
+        // Send the message to each connected browser
+        $tw.Bob.SendToBrowsers(message);
         //self.logger.log("Deleted file",fileInfo.filepath);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
