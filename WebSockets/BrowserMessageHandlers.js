@@ -49,7 +49,8 @@ it will overwrite this file.
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 
   var sendAck = function (data) {
-    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+    var token = localStorage.getItem('ws-token');
+    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token}));
   }
 
   /*
