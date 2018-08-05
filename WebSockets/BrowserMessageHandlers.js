@@ -151,9 +151,24 @@ it will overwrite this file.
   /*
     This message handles conflicts between the server and browser after
     reconnecting
+
+    It saves the server version under the normal title and saves the in-browser
+    version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
-    console.log(data)
+    data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
+    data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
+    data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
+    var wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
+    wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
+    wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
+    wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
+    // Only add the tiddler if it is different
+    if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
+      var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
+      $tw.wiki.addTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
+      $tw.wiki.addTiddler(data.tiddler.fields);
+    }
     sendAck(data);
   }
 

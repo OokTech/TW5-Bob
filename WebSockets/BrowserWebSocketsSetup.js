@@ -105,11 +105,11 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.Bob.Shared.sendMessage(messageData, 0);
       } else {
         // If the connection is not open than store the message in the queue
-        var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent')
-        var queue = []
+        var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+        var queue = [];
         if (tiddler) {
           if (typeof tiddler.fields.text === 'string') {
-            queue = JSON.parse(tiddler.fields.text)
+            queue = JSON.parse(tiddler.fields.text);
           }
         }
         // Check to make sure that the current message is eligible to be saved
