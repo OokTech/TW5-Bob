@@ -213,6 +213,9 @@ if ($tw.node) {
     }
   */
   $tw.nodeMessageHandlers.syncChanges = function(data) {
+    // Make sure that the wiki that the syncing is for is actually loaded
+    // TODO make sure that this works for wikis that are under multiple levels
+    $tw.ServerSide.loadWiki(data.wiki, $tw.settings.wikis[data.wiki]);
     // Make sure that the server history exists
     $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
     $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
