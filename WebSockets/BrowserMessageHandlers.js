@@ -149,6 +149,15 @@ it will overwrite this file.
   }
 
   /*
+    This message handles conflicts between the server and browser after
+    reconnecting
+  */
+  $tw.browserMessageHandlers.conflict = function(data) {
+    console.log(data)
+    sendAck(data);
+  }
+
+  /*
     This handles a ping from the server. The server and browser make sure they
     are connected by sending pings periodically.
     The pong response also echos back whatever was sent along with the ping.

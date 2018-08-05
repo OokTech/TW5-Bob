@@ -188,15 +188,12 @@ if ($tw.node) {
   /*
     The handle message function, split out so we can use it other places
   */
-  //function handleMessage (event) {
   $tw.Bob.handleMessage = function(event) {
     var self = this;
     // Determine which connection the message came from
     var thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
     try {
       var eventData = JSON.parse(event);
-      console.log(eventData)
-      console.log(thisIndex)
       // Add the source to the eventData object so it can be used later.
       eventData.source_connection = thisIndex;
       // If the wiki on this connection hasn't been determined yet, take it
@@ -311,16 +308,32 @@ if ($tw.node) {
     So this is just the list of deleted tiddlers and saved tiddlers with time
     stamps, and it should at most have one item per tiddler because the newest
     save or delete message overrides any previous messages.
+
+    The hisotry is an array of change entries
+    Each entry in the history is in the form
+    {
+      title: tiddlerTitle,
+      timestamp: changeTimeStamp,
+      type: messageType
+    }
   */
   $tw.Bob.UpdateHistory = function(message) {
     // Only save saveTiddler or deleteTiddler events that have a wiki listed
     if (['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
       $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
-      $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || {};
-      if (message.type === 'saveTiddler') {
-        $tw.Bob.ServerHistory[message.wiki][message.tiddler.fields.title] = {'saveTiddler':Date.now()}
+      $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || [];
+      var entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
+        return entry.title === message.tiddler.fields.title;
+      })
+      var entry = {
+        timestamp: Date.now(),
+        title: message.tiddler.fields.title,
+        type: message.type
+      }
+      if (entryIndex > -1) {
+        $tw.Bob.ServerHistory[message.wiki][entryIndex] = entry;
       } else {
-        $tw.Bob.ServerHistory[message.wiki][message.tiddler.fields.title] = {'deleteTiddler':Date.now()}
+        $tw.Bob.ServerHistory[message.wiki].push(entry);
       }
     }
   }

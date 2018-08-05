@@ -122,7 +122,7 @@ socket server, but it can be extended for use with other web socket servers.
           if (messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
             queue.push(messageData);
           }
-          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json'};
+          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: tiddler.fields.start};
           $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
         }
       }

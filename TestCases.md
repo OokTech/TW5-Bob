@@ -83,6 +83,24 @@ TODO - The rest
 
 TODO - This part
 
+## Syncing on Reconnect
+
+1. Browser->Server syncing
+  - Disconnect from the server (stop the server process),
+  - create a tiddler
+  - delete a tiddler,
+  - edit a tiddler,
+  - rename a tiddler.
+  - Restart the server and open the wiki in a new tab. Then reconnect the already open wiki to the server.
+    - The created tiddler should now exist in the new wiki tab
+    - The deleted tiddler should not exist in the new wiki tab
+    - The edited tiddler should be changed in the new wiki tab
+    - The renamed tiddler should be renamed in the new tab (old name should be deleted, new name should exist)
+2. Server->Browser syncing
+  - TODO this part
+3. Conflicts should be properly shown
+  - TODO this part
+
 ## Logging
 
 During all of the above tests make sure that there aren't any left-over debug

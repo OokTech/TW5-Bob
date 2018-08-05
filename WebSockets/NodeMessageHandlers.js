@@ -28,7 +28,6 @@ if ($tw.node) {
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
   var sendAck = function (data) {
-    console.log(data)
     if (data.id) {
       if (data.source_connection !== undefined && data.source_connection !== -1) {
         $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
@@ -216,7 +215,7 @@ if ($tw.node) {
   $tw.nodeMessageHandlers.syncChanges = function(data) {
     // Make sure that the server history exists
     $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
-    $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || {};
+    $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
     // Get the received message queue
     var queue = [];
     try {
@@ -224,27 +223,26 @@ if ($tw.node) {
     } catch (e) {
       console.log("Can't parse server changes!!");
     }
-    // Get the list of tiddler titles from the received queue
-    var saveMessages = queue.filter(function(messageData) {
-      return messageData.type === 'saveTiddler'
-    });
-    console.log('Save messages', saveMessages)
-    var deleteMessages = queue.filter(function(messageData) {
-      return messageData.type === 'deleteTiddler'
-    });
-    console.log('Delete Messages', deleteMessages)
+    // Only look at changes more recent than when the browser disconnected
+    var recentServer = $tw.Bob.ServerHistory[data.wiki].filter(function(entry) {
+      return entry.timestamp > data.since;
+    })
     var conflicts = [];
     // Iterate through the received queue
     queue.forEach(function(messageData) {
-      // If the tiddler is listed both in the received queue and in the server // changes check if it is a conflict.
-      if ($tw.Bob.ServerHistory[data.wiki][messageData.title]) {
-        if (messageData.type === 'deleteTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['deleteTiddler'] === undefined) {
-          // Browser is delete, server isn't => conflict
+      // Find the serverEntry for the tiddler the current message is for, if
+      // any.
+      var serverEntry = recentServer.find(function(entry) {
+        return entry.title === messageData.title
+      })
+      // If the tiddler has an entry check if it is a conflict.
+      // Both deleting the tiddler is not a conflict, both saving the same
+      // changes is not a conflict, otherwise it is.
+      if (serverEntry) {
+        if (messageData.type !== serverEntry.type) {
+          // Different message types between server and browser => conflict
           conflicts.push(messageData.title);
-        } else if (messageData.type === 'saveTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['saveTiddler'] === undefined) {
-          // Browser is save, server isn't => conflict
-          conflicts.push(messageData.title);
-        } else if (messageData.type === 'saveTiddler' && $tw.Bob.ServerHistory[data.wiki][messageData.title]['saveTiddler'] !== undefined) {
+        } else if (messageData.type === 'saveTiddler' && serverEntry.type === 'saveTiddler') {
           // Server and browser are both save => conflict if the two tiddlers
           // aren't the same.
           var tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
@@ -256,15 +254,57 @@ if ($tw.node) {
         }
       }
     });
-    console.log(conflicts)
     // Take care of all the messages that aren't conflicting
     // First from the received queue
     queue.forEach(function(messageData){
-      console.log(messageData.title)
       if (conflicts.indexOf(messageData.title) === -1) {
-        console.log(JSON.stringify(messageData.message))
         // Send the message to the handler with the appropriate setup
         $tw.Bob.handleMessage.call($tw.connections[data.source_connection].socket, JSON.stringify(messageData.message));
+      }
+    });
+    // Then from the server side
+    recentServer.forEach(function(messageData) {
+      if (conflicts.indexOf(messageData.title) === -1) {
+        var message = {type: messageData.type, wiki: data.wiki}
+        if (messageData.type === 'saveTiddler') {
+          var longTitle = '{'+data.wiki+'}'+messageData.title;
+          var tempTid = $tw.wiki.getTiddler(longTitle);
+          var tiddler = JSON.parse(JSON.stringify(tempTid));
+          tiddler.fields.title = messageData.title;
+          // Making the copy above does something that breaks the date fields
+          if (tempTid.fields.created) {
+            tiddler.fields.created = $tw.utils.stringifyDate(tempTid.fields.created);
+          }
+          if (tempTid.fields.modified) {
+            tiddler.fields.modified = $tw.utils.stringifyDate(tempTid.fields.modified);
+          }
+        } else {
+          var tiddler = {fields:{title:messageData.title}}
+        }
+        message.tiddler = tiddler;
+        $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+      }
+    });
+    // Then do something with the conflicts
+    // I think that we need a new message, something like 'conflictingEdits'
+    // that sends the tiddler info from the server to the browser and the
+    // browser takes care of the rest.
+    conflicts.forEach(function(title) {
+      var serverEntry = recentServer.find(function(entry) {
+        return entry.title === title;
+      });
+      if (serverEntry) {
+        var message;
+        if (serverEntry.type === 'saveTiddler') {
+          var longTitle = '{'+data.wiki+'}'+serverEntry.title;
+          var tiddler = $tw.wiki.getTiddler(longTitle);
+          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+        } else if (serverEntry.type === 'deleteTiddler') {
+          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}};
+        }
+        if (message) {
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+        }
       }
     })
     // Acknowledge the message.
