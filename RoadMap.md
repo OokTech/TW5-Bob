@@ -27,17 +27,25 @@
 - See if we can store the tiddlywiki core and Bob plugin in localstorage and
   then serve an html page that just has the wiki content. That could greatly
   reduce loading times and network traffic.
-- See if we can have it so that imported images are saved in a images folder
-  and canonical uri tiddlers are created for them instead of making an image
-  tiddler.
-- Let the prepareWiki function take an array of plugins to include in the wiki
-  even if they aren't listed in the tiddlywiki.info file.
-  - This should just be a change to the servePlugin input. We could also add an
-    exclude array that lists plugins to not include even if they are in the
-    .info file.
-  - It may be better to just make a new function that lets you pick and choose
-    tiddlers and plugins from any that are available.
-- Maybe keep a history of changed tiddlers and timestamps (with the same bits
-  of cleverness as the message queue pruning to keep it smaller) so that when a
-  wiki disconnects it can reconnect and see changes since the last time it was
-  in sync, and then resync itself without reloading.
+- Make a new function that lets you pick and choose tiddlers and plugins from
+  any that are available.
+- Add wiki syncing!
+  - Sync local to remote state: make a list of all wiki tiddlers and send that
+    to another wiki which checks that list against its own list and sends back
+    any differences.
+  - (Be careful with this) Sync remote to local state: make a list of all wiki
+    tiddlers, send it to remote, remote checks it against its list and sends
+    back a list of differences, the local then sends the differences to the
+    remote.
+  - Wiki diffs: same process as above, but export a json file that has all of
+    the changes in it. This could use the same thing as the history of changed
+    tiddlers thing.
+- Make the server save a compact list of changes so that it can quickly resync
+  wikis that reconnect after being disconnected
+  - Any conflicts should be up to people to resolve. Both versions should be
+    kept, a 'server' version and a 'browser' version.
+    - This means I need to make a conflict resolution tool for it.
+- When reconnecting to a server the wiki may have to be loaded before any
+  messages with updates can be accepted. This may take some more involved work
+  than I had hoped.
+  - Also there is a problem where a save message can make a new tiddler file instead of overwriting the old one after a reconnection

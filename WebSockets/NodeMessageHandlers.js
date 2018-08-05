@@ -29,7 +29,7 @@ if ($tw.node) {
 
   var sendAck = function (data) {
     if (data.id) {
-      if (data.source_connection !== undefined) {
+      if (data.source_connection !== undefined && data.source_connection !== -1) {
         $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
       }
     }
@@ -100,7 +100,7 @@ if ($tw.node) {
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:internalTitle, wiki: prefix});
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:internalTitle}}, wiki: prefix});
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if (!$tw.boot.files[internalTitle]) {
@@ -139,16 +139,21 @@ if ($tw.node) {
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     //console.log('Node Delete Tiddler');
-    // Make the internal name
-    data.tiddler = '{' + data.wiki + '}' + data.tiddler;
-    // Delete the tiddler file from the file system
-    $tw.syncadaptor.deleteTiddler(data.tiddler);
-    // Set the wiki as modified
-    $tw.Bob.Wikis[data.wiki].modified = true;
-    // Remove the tiddler from the list of tiddlers being edited.
-    if ($tw.Bob.EditingTiddlers[data.tiddler]) {
-      delete $tw.Bob.EditingTiddlers[data.tiddler];
-      $tw.Bob.UpdateEditingTiddlers(false);
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      // Make the internal name
+      title = '{' + data.wiki + '}' + title;
+      // Delete the tiddler file from the file system
+      $tw.syncadaptor.deleteTiddler(title);
+      // Set the wiki as modified
+      $tw.Bob.Wikis[data.wiki].modified = true;
+      // Remove the tiddler from the list of tiddlers being edited.
+      if ($tw.Bob.EditingTiddlers[title]) {
+        delete $tw.Bob.EditingTiddlers[title];
+        $tw.Bob.UpdateEditingTiddlers(false);
+      }
     }
     // Acknowledge the message.
     sendAck(data);
@@ -158,10 +163,15 @@ if ($tw.node) {
     This is the handler for when a browser sends the editingTiddler message.
   */
   $tw.nodeMessageHandlers.editingTiddler = function(data) {
-    var internalName = '{' + data.wiki + '}' + data.tiddler;
-    // Add the tiddler to the list of tiddlers being edited to prevent multiple
-    // people from editing it at the same time.
-    $tw.Bob.UpdateEditingTiddlers(internalName);
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      var internalName = '{' + data.wiki + '}' + title;
+      // Add the tiddler to the list of tiddlers being edited to prevent multiple
+      // people from editing it at the same time.
+      $tw.Bob.UpdateEditingTiddlers(internalName);
+    }
     // Acknowledge the message.
     sendAck(data);
   }
@@ -170,12 +180,13 @@ if ($tw.node) {
     This is the handler for when a browser stops editing a tiddler.
   */
   $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
-    // Make sure that the tiddler title is a string
-    if (typeof data.tiddler === 'string') {
-      if (data.tiddler.startsWith("Draft of '")) {
-        var title = data.tiddler.slice(10,-1);
-      } else {
-        var title = data.tiddler;
+    data.tiddler = data.tiddler || {};
+    data.tiddler.fields = data.tiddler.fields || {};
+    var title = data.tiddler.fields.title;
+    if (title) {
+      // Make sure that the tiddler title is a string
+      if (title.startsWith("Draft of '")) {
+        title = title.slice(10,-1);
       }
       var internalName = '{' + data.wiki + '}' + title;
       // Remove the current tiddler from the list of tiddlers being edited.
@@ -184,6 +195,121 @@ if ($tw.node) {
       }
       $tw.Bob.UpdateEditingTiddlers(false);
     }
+    // Acknowledge the message.
+    sendAck(data);
+  }
+
+  /*
+    This is for resyncing with a wiki that was disconnected and has reconnected
+    The data object should have the form:
+    {
+      type: 'syncChanges',
+      since: startTime,
+      changes: messageQueue,
+      wiki: wikiName,
+      token: token,
+      id: messageID,
+      source_connection: connectionIndex
+    }
+  */
+  $tw.nodeMessageHandlers.syncChanges = function(data) {
+    // Make sure that the wiki that the syncing is for is actually loaded
+    // TODO make sure that this works for wikis that are under multiple levels
+    $tw.ServerSide.loadWiki(data.wiki, $tw.settings.wikis[data.wiki]);
+    // Make sure that the server history exists
+    $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
+    $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
+    // Get the received message queue
+    var queue = [];
+    try {
+      queue = JSON.parse(data.changes);
+    } catch (e) {
+      console.log("Can't parse server changes!!");
+    }
+    // Only look at changes more recent than when the browser disconnected
+    var recentServer = $tw.Bob.ServerHistory[data.wiki].filter(function(entry) {
+      return entry.timestamp > data.since;
+    })
+    var conflicts = [];
+    // Iterate through the received queue
+    queue.forEach(function(messageData) {
+      // Find the serverEntry for the tiddler the current message is for, if
+      // any.
+      var serverEntry = recentServer.find(function(entry) {
+        return entry.title === messageData.title
+      })
+      // If the tiddler has an entry check if it is a conflict.
+      // Both deleting the tiddler is not a conflict, both saving the same
+      // changes is not a conflict, otherwise it is.
+      if (serverEntry) {
+        if (messageData.type !== serverEntry.type) {
+          // Different message types between server and browser => conflict
+          conflicts.push(messageData.title);
+        } else if (messageData.type === 'saveTiddler' && serverEntry.type === 'saveTiddler') {
+          // Server and browser are both save => conflict if the two tiddlers
+          // aren't the same.
+          var tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
+          tempTid.fields.title = '{'+data.wiki+'}'+messageData.title;
+          var serverTiddler = $tw.wiki.getTiddler(tempTid.fields.title);
+          if ($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
+            conflicts.push(messageData.title);
+          }
+        }
+      }
+    });
+    // Take care of all the messages that aren't conflicting
+    // First from the received queue
+    queue.forEach(function(messageData){
+      if (conflicts.indexOf(messageData.title) === -1) {
+        // Send the message to the handler with the appropriate setup
+        $tw.Bob.handleMessage.call($tw.connections[data.source_connection].socket, JSON.stringify(messageData.message));
+      }
+    });
+    // Then from the server side
+    recentServer.forEach(function(messageData) {
+      if (conflicts.indexOf(messageData.title) === -1) {
+        var message = {type: messageData.type, wiki: data.wiki}
+        if (messageData.type === 'saveTiddler') {
+          var longTitle = '{'+data.wiki+'}'+messageData.title;
+          var tempTid = $tw.wiki.getTiddler(longTitle);
+          var tiddler = JSON.parse(JSON.stringify(tempTid));
+          tiddler.fields.title = messageData.title;
+          // Making the copy above does something that breaks the date fields
+          if (tempTid.fields.created) {
+            tiddler.fields.created = $tw.utils.stringifyDate(tempTid.fields.created);
+          }
+          if (tempTid.fields.modified) {
+            tiddler.fields.modified = $tw.utils.stringifyDate(tempTid.fields.modified);
+          }
+        } else {
+          var tiddler = {fields:{title:messageData.title}}
+        }
+        message.tiddler = tiddler;
+        $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+      }
+    });
+    // Then do something with the conflicts
+    // I think that we need a new message, something like 'conflictingEdits'
+    // that sends the tiddler info from the server to the browser and the
+    // browser takes care of the rest.
+    conflicts.forEach(function(title) {
+      var serverEntry = recentServer.find(function(entry) {
+        return entry.title === title;
+      });
+      if (serverEntry) {
+        var message;
+        if (serverEntry.type === 'saveTiddler') {
+          var longTitle = '{'+data.wiki+'}'+serverEntry.title;
+          var tiddler = $tw.wiki.getTiddler(longTitle);
+          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+        } else if (serverEntry.type === 'deleteTiddler') {
+          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}};
+        }
+        if (message) {
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+        }
+      }
+    })
     // Acknowledge the message.
     sendAck(data);
   }

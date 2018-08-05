@@ -37,7 +37,7 @@ zero-based index of the browser connection to the server.
 
 ```
 <$button>
-  Test!
+  PING!
   <$action-websocketmessage $type='test' attribute=value/>
 </$button>
 ```

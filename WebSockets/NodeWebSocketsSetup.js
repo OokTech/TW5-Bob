@@ -163,53 +163,69 @@ if ($tw.node) {
 
     connection objects are:
     {
-      "active": boolean showing if the connection is active,
       "socket": socketObject,
-      "name": the user name for the wiki using this connection
+      "wiki": the name for the wiki using this connection
     }
   */
   function handleConnection(client) {
     console.log("new connection");
-    $tw.connections.push({'socket':client, 'active': true, 'wiki': undefined});
-    client.on('message', function incoming(event) {
-      var self = this;
-      // Determine which connection the message came from
-      var thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
-      try {
-        var eventData = JSON.parse(event);
-        // Add the source to the eventData object so it can be used later.
-        eventData.source_connection = thisIndex;
-        // If the wiki on this connection hasn't been determined yet, take it
-        // from the first message that lists the wiki.
-        // After that the wiki can't be changed. It isn't a good security
-        // measure but this part doesn't have real security anyway.
-        // TODO figure out if this is actually a security problem.
-        // We may have to add a check to the token before sending outgoing
-        // messages.
-        // This is really only a concern for the secure server, in that case
-        // you authenticate the token and it only works if the wiki matches
-        // and the token has access to that wiki.
-        if (eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
-          $tw.connections[thisIndex].wiki = eventData.wiki;
-          // Make sure that the new connection has the correct list of tiddlers being
-          // edited.
-          $tw.Bob.UpdateEditingTiddlers();
-        }
-        // Make sure we have a handler for the message type
-        if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
-          $tw.nodeMessageHandlers[eventData.type](eventData);
-        } else {
-          console.log('No handler for message of type ', eventData.type);
-        }
-      } catch (e) {
-        console.log("WebSocket error, probably closed connection: ", e);
-      }
-    });
+    $tw.connections.push({'socket':client, 'wiki': undefined});
+    client.on('message', $tw.Bob.handleMessage);
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
     $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     var message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
+  }
+
+  /*
+    A placeholder, I may put something here later
+  */
+  function authenticateMessage(event) {
+    return true
+  }
+
+  /*
+    The handle message function, split out so we can use it other places
+  */
+  $tw.Bob.handleMessage = function(event) {
+    var self = this;
+    // Determine which connection the message came from
+    var thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
+    try {
+      var eventData = JSON.parse(event);
+      // Add the source to the eventData object so it can be used later.
+      eventData.source_connection = thisIndex;
+      // If the wiki on this connection hasn't been determined yet, take it
+      // from the first message that lists the wiki.
+      // After that the wiki can't be changed. It isn't a good security
+      // measure but this part doesn't have real security anyway.
+      // TODO figure out if this is actually a security problem.
+      // We may have to add a check to the token before sending outgoing
+      // messages.
+      // This is really only a concern for the secure server, in that case
+      // you authenticate the token and it only works if the wiki matches
+      // and the token has access to that wiki.
+      if (eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+        $tw.connections[thisIndex].wiki = eventData.wiki;
+        // Make sure that the new connection has the correct list of tiddlers being
+        // edited.
+        $tw.Bob.UpdateEditingTiddlers();
+      }
+      // Make sure we have a handler for the message type
+      if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+        // Check authorisation
+        var authorised = authenticateMessage(eventData)
+        if (authorised) {
+          eventData.decoded = authorised
+          $tw.nodeMessageHandlers[eventData.type](eventData);
+        }
+      } else {
+        console.log('No handler for message of type ', eventData.type);
+      }
+    } catch (e) {
+      console.log("WebSocket error, probably closed connection: ", e);
+    }
   }
 
   /*
@@ -252,14 +268,8 @@ if ($tw.node) {
     changing it once here instead of once per browser should be better.
   */
   $tw.Bob.SendToBrowsers = function (message) {
-    var id = $tw.Bob.Shared.makeId();
-    message.id = id;
-    var messageData = {
-      message: message,
-      id: id,
-      time: Date.now(),
-      ack: {}
-    };
+    $tw.Bob.UpdateHistory(message);
+    var messageData = $tw.Bob.Shared.createMessageData(message);
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
       if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
@@ -278,17 +288,53 @@ if ($tw.node) {
     connection has a list of message ids that are still waiting for acks.
   */
   $tw.Bob.SendToBrowser = function (connection, message) {
-    var id = $tw.Bob.Shared.makeId();
-    message.id = id;
-    var messageData = {
-      message: message,
-      id: id,
-      time: Date.now(),
-      ack: {}
-    };
+    $tw.Bob.UpdateHistory(message);
+    var messageData = $tw.Bob.Shared.createMessageData(message);
     // If the connection is open, send the message
     if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
       $tw.Bob.Shared.sendMessage(messageData, connection.index);
+    }
+  }
+
+  /*
+    This keeps a history of changes for each wiki so that when a wiki is
+    disconnected and reconnects and asks to resync this can be used to resync
+    the wiki with the minimum amount of network traffic.
+
+    Resyncing only needs to keep track of creating and deleting tiddlers here.
+    The editing state of tiddlers is taken care of by the websocket
+    reconnection process.
+
+    So this is just the list of deleted tiddlers and saved tiddlers with time
+    stamps, and it should at most have one item per tiddler because the newest
+    save or delete message overrides any previous messages.
+
+    The hisotry is an array of change entries
+    Each entry in the history is in the form
+    {
+      title: tiddlerTitle,
+      timestamp: changeTimeStamp,
+      type: messageType
+    }
+  */
+  $tw.Bob.UpdateHistory = function(message) {
+    // Only save saveTiddler or deleteTiddler events that have a wiki listed
+    if (['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
+      $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
+      $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || [];
+      var entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
+        return entry.title === message.tiddler.fields.title;
+      })
+      var entry = {
+        timestamp: Date.now(),
+        title: message.tiddler.fields.title,
+        type: message.type
+      }
+      if (entryIndex > -1) {
+        $tw.Bob.ServerHistory[message.wiki][entryIndex] = entry;
+      } else {
+        $tw.Bob.ServerHistory[message.wiki].push(entry);
+      }
     }
   }
 
