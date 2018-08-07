@@ -60,7 +60,7 @@ install everything):
 git clone --depth=1 --branch v5.1.17 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
-cp -r TiddlyWiki5/plugins/OokTech/Bob/BobWiki TiddlyWiki5/Wikis/BobWiki/
+cp -r TiddlyWiki5/plugins/OokTech/Bob/MultiUserWiki TiddlyWiki5/Wikis/BobWiki/
 ```
 
 After that is finished, and to start up tiddlywiki later type:
