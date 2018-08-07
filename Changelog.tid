@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.3 (in progress)
+!! Version 1.0.3 Sourdough Crumpets
 
 - Fixed/Updated documentation
   - Added note about buildHTMLWiki message
@@ -10,7 +10,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Partially fixed a related bug that would sometimes keep old versions of
   tiddlers if they were renamed on the file system while the wiki is running.
   - This is only partially fixed. The behaviour is inconsistent. I need to find
-    reproducable ways to cause it.
+    reproducible ways to cause it.
 - Added the 'unloadWiki' message that unloads a loaded wiki.
   - This can be used to change the plugins loaded in a wiki and to just remove
     wikis from memory if they aren't being used. That second one may not be
@@ -27,7 +27,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - There is a short delay before sending saveTiddler messages, this prevents a
     bug that would cause errors saving changes to tiddler edited without using
     the normal edit tiddler.
-- Only messages for the wiki a connection is using get sent to that conneciton,
+- Only messages for the wiki a connection is using get sent to that connection,
   potentially reducing the network load of a wiki.
   - This also improves security and privacy because people who don't have
     access to a wiki can't see that there is editing activity taking place or
@@ -49,8 +49,21 @@ title: $:/plugins/OokTech/Bob/Changelog
     other Bob functionality.
 - The default file server url path is now `files` instead of `file` to match
   the proposed updates to the core --listen command.
+- The deleteTiddler, editingTiddler and, cancelEditingTiddler messages are now
+  consistent with the saveTiddler message.
+  - Now removeTiddler is deleteTiddler
+- The wiki can now reconnect to a server after being disconnected
+- The wiki now keeps track of unsent messages when disconnected from the server
+  - The browser sends any unsent changes to the server when it reconnects
+  - The changes are also saved in a tiddler that can be exported for future
+    manual inclusion
+  - The server sends any changes that have happened since the browser was
+    disconnected
+  - Conflicts need to be taken care of in the browser.
+- The connection health is now determined by the socket state in the browser,
+  not the time it takes to receive a response to the heartbeat
 
-!! Version 1.0.2
+!! Version 1.0.2 Sourdough Biscuits
 
 - Fixed/Updated documentation
   - for the getSetting macro (fixed typo)
@@ -66,7 +79,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Fixed a bug that would let the server try and load a wiki that didn't exist
 - Updated instructions to point to TiddlyWiki version 5.1.17
 
-!! Version 1.0.1
+!! Version 1.0.1 Sourdough
 
 - The Bob settings tab only has contents on the root wiki.
 

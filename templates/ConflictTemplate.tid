@@ -1,0 +1,41 @@
+list-after: $:/core/ui/ViewTemplate/tags
+tags: $:/tags/ViewTemplate
+title: $:/plugins/Bob/template/ConflictTemplate
+
+<$list
+  filter='[is[current]addprefix[$:/state/Bob/Conflicts/]has[text]]'
+>
+  There are syncing conflicts with this tiddler!!
+  <br>
+  <$button>
+    Open Other Version
+    <$action-navigate
+      $to=<<currentTiddler>>
+    />
+  </$button>
+  <br>
+
+  <$button>
+    Use This Version
+    <$action-deletetiddler
+      $tiddler=<<currentTiddler>>
+    />
+  </$button>
+  <$set
+    name=OriginalTitle
+    filter='[is[current]removeprefix[$:/state/Bob/Conflicts/]has[text]]'
+    select='0'
+  >
+    <$button>
+      Use Other Version
+      <$action-setfield
+        $tiddler=<<currentTiddler>>
+        $field='title'
+        $value=<<OriginalTitle>>
+      />
+      <$action-deletetiddler
+        $tiddler=<<currentTiddler>>
+      />
+    </$button>
+  </$set>
+</$list>

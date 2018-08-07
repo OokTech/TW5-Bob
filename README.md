@@ -60,7 +60,7 @@ install everything):
 git clone --depth=1 --branch v5.1.17 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
-cp -r TiddlyWiki5/plugins/OokTech/Bob/BobWiki TiddlyWiki5/Wikis/BobWiki/
+cp -r TiddlyWiki5/plugins/OokTech/Bob/MultiUserWiki TiddlyWiki5/Wikis/BobWiki/
 ```
 
 After that is finished, and to start up tiddlywiki later type:
@@ -72,7 +72,7 @@ node ./tiddlywiki.js Wikis/BobWiki  --wsserver
 
 In a browser go to `127.0.0.1:8080` and the wiki should load. From here any
 tiddlers you create should have .tid files created in the
-`editions/BobWiki/tiddlers` folder, any edits you do to those files
+`Wikis/BobWiki/tiddlers` folder, any edits you do to those files
 should be immediately reflected in the browser. Open the tiddler called
 `$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine
 right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the

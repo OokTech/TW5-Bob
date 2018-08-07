@@ -49,7 +49,8 @@ it will overwrite this file.
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 
   var sendAck = function (data) {
-    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+    var token = localStorage.getItem('ws-token')
+    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token}));
   }
 
   /*
@@ -115,70 +116,19 @@ it will overwrite this file.
   }
 
   /*
-    Check if the file version matches the in-browser version of a tiddler
+    This message handles the deleteTiddler message for the browser. Note that
+    this removes the tiddler from the wiki in the browser, but it does not
+    delete the .tid file from the node server if you are running tiddlywiki in
+    node. If you are running without node than this function is equavalient to
+    deleting the tiddler.
   */
-  /*
-  function TiddlerHasChanged(tiddler, otherTiddler) {
-    if (!otherTiddler) {
-      return true;
-    }
-    if (!tiddler) {
-      return true;
-    }
-    if (!otherTiddler.fields) {
-      return true;
-    }
-    if (!tiddler.fields) {
-      return true;
-    }
-
-    var changed = false;
-    // Some cleverness that gives a list of all fields in both tiddlers without
-    // duplicates.
-    var allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
-      return Object.keys(tiddler.fields).indexOf(item) < 0;
-    }));
-    // check to see if the field values are the same, ignore modified for now
-    allFields.forEach(function(field) {
-      if (field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if (!otherTiddler.fields[field] || otherTiddler.fields[field] !== tiddler.fields[field]) {
-          // There is a difference!
-          changed = true;
-        }
-      } else if (field === 'list' || field === 'tags') {
-        if (tiddler.fields[field] && otherTiddler.fields[field]) {
-          if ($tw.utils.parseStringArray(otherTiddler.fields[field]).length !== tiddler.fields[field].length) {
-            changed = true;
-          } else {
-            var arrayList = $tw.utils.parseStringArray(otherTiddler.fields[field]);
-            arrayList.forEach(function(item) {
-              if (tiddler.fields[field].indexOf(item) === -1) {
-                changed = true;
-              }
-            })
-          }
-        } else {
-          changed = true;
-        }
-      }
-    })
-    return changed;
-  };
-  */
-  /*
-    This message handles the remove tiddler function. Note that this removes
-    the tiddler from the wiki in the browser, but it does not delete the .tid
-    file from the node server if you are running tiddlywiki in node.
-    If you are running without node than this function is equavalient to deleting the tiddler.
-  */
-  $tw.browserMessageHandlers.removeTiddler = function(data) {
-    // Ignore the message it if isn't for the current wiki
+  $tw.browserMessageHandlers.deleteTiddler = function (data) {
     if (data.wiki === $tw.wikiName) {
-      // The data object passed must have at least a title
-      if (data.title) {
-        $tw.wiki.deleteTiddler(data.title);
-      } else {
-        console.log("No tiddler title give.");
+      data.tiddler = data.tiddler || {};
+      data.tiddler.fields = data.tiddler.fields || {};
+      var title = data.tiddler.fields.title;
+      if (title) {
+        $tw.wiki.deleteTiddler(title);
       }
     }
     sendAck(data);
@@ -196,6 +146,31 @@ it will overwrite this file.
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    sendAck(data);
+  }
+
+  /*
+    This message handles conflicts between the server and browser after
+    reconnecting
+
+    It saves the server version under the normal title and saves the in-browser
+    version with the prefix $:/state/Bob/Conflicts/
+  */
+  $tw.browserMessageHandlers.conflict = function(data) {
+    data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
+    data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
+    data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
+    var wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
+    wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
+    wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
+    wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
+    // Only add the tiddler if it is different
+    if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
+      var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
+      $tw.wiki.addTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
+      $tw.wiki.addTiddler(data.tiddler.fields);
+    }
+    sendAck(data);
   }
 
   /*
@@ -250,7 +225,16 @@ it will overwrite this file.
         var token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }, $tw.settings.heartbeat.interval);
-      $tw.settings.heartbeat.TTLID = setTimeout(handleDisconnected, Number($tw.settings.heartbeat.timeout));
+      $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
+    }
+  }
+
+  function checkDisconnected() {
+    if ($tw.connections[0].socket.readyState !== 1) {
+      handleDisconnected();
+    } else {
+      var token = localStorage.getItem('ws-token')
+      $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
   }
 
@@ -260,13 +244,19 @@ it will overwrite this file.
   */
   function handleDisconnected() {
     console.log('Disconnected from server');
-    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1></div>";
+    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:15vh;max-height:100px;text-align:center;vertical-align:center;'><h1>''WARNING: You are no longer connected to the server. No changes you make will be saved.''</h1><$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
     var tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       var token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }, $tw.settings.heartbeat.interval);
+    var queue = [];
+    $tw.Bob.MessageQueue.forEach(function(message) {
+      queue.push(message)
+    })
+    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: Date.now()-Number($tw.settings.heartbeat.timeout)};
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 
   /*

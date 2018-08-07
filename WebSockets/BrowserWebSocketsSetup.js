@@ -39,7 +39,10 @@ socket server, but it can be extended for use with other web socket servers.
     var connectionIndex = 0;
 
     // Do all actions on startup.
-    function setup() {
+    $tw.Bob.setup = function(reconnect) {
+      if (reconnect) {
+        $tw.connections = null;
+      }
       $tw.Syncer.isDirty = false;
       var IPTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/ws-server");
       try {
@@ -54,7 +57,6 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.connections = $tw.connections || [];
       $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
       $tw.connections[connectionIndex].index = connectionIndex;
-      $tw.connections[connectionIndex].active = true;
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
       $tw.connections[connectionIndex].socket.onopen = openSocket;
       $tw.connections[connectionIndex].socket.onmessage = parseMessage;
@@ -68,7 +70,9 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.wikiName = '';
       }
 
-      addHooks();
+      if (!reconnect) {
+        addHooks();
+      }
     }
     /*
       When the socket is opened the heartbeat process starts. This lets us know
@@ -95,17 +99,32 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     var sendToServer = function (message) {
-      var id = $tw.Bob.Shared.makeId();
-      message.id = id;
-      var messageData = {
-        message: message,
-        id: id,
-        time: Date.now(),
-        ack: {}
-      };
+      var messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if ($tw.connections[connectionIndex].socket.readyState === 1) {
         $tw.Bob.Shared.sendMessage(messageData, 0);
+      } else {
+        // If the connection is not open than store the message in the queue
+        var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+        var queue = [];
+        if (tiddler) {
+          if (typeof tiddler.fields.text === 'string') {
+            queue = JSON.parse(tiddler.fields.text);
+          }
+        }
+        // Check to make sure that the current message is eligible to be saved
+        if ($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
+          // Prune the queue and check if the current message makes any enqueued
+          // messages redundant or overrides old messages
+          queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
+          // Don't save any messages that are about the unsent list or you get
+          // infinite loops of badness.
+          if (messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
+            queue.push(messageData);
+          }
+          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: tiddler.fields.start};
+          $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
+        }
       }
     }
 
@@ -122,14 +141,14 @@ socket server, but it can be extended for use with other web socket servers.
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        var message = {type: 'editingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        var message = {type: 'editingTiddler', tiddler: {fields: {title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        var message = {type: 'cancelEditingTiddler', tiddler: event.tiddlerTitle, wiki: $tw.wikiName, token: token};
+        var message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // Do the normal handling
         return event;
@@ -173,7 +192,7 @@ socket server, but it can be extended for use with other web socket servers.
               }
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
-              var message = {type: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token};
+              var message = {type: 'deleteTiddler', tiddler:{fields:{title:tiddlerTitle}} , wiki: $tw.wikiName, token: token};
               sendToServer(message);
             }
           } else {
@@ -182,6 +201,49 @@ socket server, but it can be extended for use with other web socket servers.
           }
         }
     	});
+
+      $tw.Bob.Reconnect = function (sync) {
+        if ($tw.connections[0].socket.readyState !== 1) {
+          $tw.Bob.setup();
+          if (sync) {
+            $tw.Bob.syncToServer();
+          }
+        }
+      }
+      $tw.Bob.syncToServer = function () {
+        // Use a timeout to ensure that the websocket is ready
+        if ($tw.connections[0].socket.readyState !== 1) {
+          setTimeout($tw.Bob.syncToServer, 100)
+          console.log('waiting')
+        } else {
+          /*
+          // The process here should be:
+
+            Send the full list of changes from the browser to the server in a
+            special message
+            The server determines if any conflicts exist and marks the tiddlers as appropriate
+            If there are no conflicts than it just applies the changes from the browser/server
+            If there are than it marks the tiddler as needing resolution and both versions are made available
+            All connected browsers now see the tiddlers marked as in conflict and resolution is up to the people
+
+            This message is sent to the server, once the server receives it it respons with a special ack for it, when the browser receives that it deletes the unsent tiddler
+
+            What is a conflict?
+
+            If both sides say to delete the same tiddler there is no conflict
+            If one side says save and the othre delete there is a conflict
+            if both sides say save there is a conflict if the two saved versions
+            aren't the same.
+          */
+          // Get the tiddler with the info about local changes
+          var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+          // Ask the server for a listing of changes since the browser was
+          // disconnected
+          var token = localStorage.getItem('ws-token');
+          var message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, wiki: $tw.wikiName, token: token};
+          sendToServer(message);
+        }
+      }
       /*
         Below here are skeletons for adding new actions to existing hooks.
         None are needed right now but the skeletons may help later.
@@ -231,6 +293,6 @@ socket server, but it can be extended for use with other web socket servers.
       */
     }
     // Send the message to node using the websocket
-    setup();
+    $tw.Bob.setup();
   }
 })();

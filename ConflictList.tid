@@ -1,0 +1,45 @@
+caption: Conflict List
+title: $:/plugins/Bob/ConflictList
+
+These are the tiddlers that currently have conflicts from resyncing with the server:
+
+<$list
+  filter='[prefix[$:/state/Bob/Conflicts/]]'
+  variable='dummy'
+  emptyMessage="''There are no syncing conflicts, you can close this tiddler''"
+>
+  <table
+    style='width:100%'
+  >
+    <tr>
+      <th>
+      Server Version
+      </th>
+      <th>
+      Conflicted Version
+      </th>
+    </tr>
+    <$list
+      filter='[prefix[$:/state/Bob/Conflicts/]]'
+    >
+      <tr>
+        <td>
+        <$list
+          filter='[removeprefix[$:/state/Bob/Conflicts/]]'
+        >
+          <$link>
+            <<currentTiddler>>
+          </$link>
+        </$list>
+        </td>
+        <td>
+          <$link
+            to=<<currentTiddler>>
+          >
+            Conflicted Version
+          </$link>
+        </td>
+      </tr>
+    </$list>
+  </table>
+</$list>
