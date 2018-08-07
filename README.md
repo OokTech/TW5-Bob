@@ -72,7 +72,7 @@ node ./tiddlywiki.js Wikis/BobWiki  --wsserver
 
 In a browser go to `127.0.0.1:8080` and the wiki should load. From here any
 tiddlers you create should have .tid files created in the
-`editions/BobWiki/tiddlers` folder, any edits you do to those files
+`Wikis/BobWiki/tiddlers` folder, any edits you do to those files
 should be immediately reflected in the browser. Open the tiddler called
 `$:/ServerIP`, if you go to the ip address listed there on port `8080` (on mine
 right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the
