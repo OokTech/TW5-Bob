@@ -56,7 +56,7 @@ This has some functions that are needed by Bob in different places.
           changed = true;
         }
       } else if (field === 'list' || field === 'tags') {
-        if ((tiddler.fields[field] || tiddler.fields[field] === '') && (otherTiddler.fields[field] || otherTiddler.fields[field] === '')) {
+        if ((tiddler.fields[field] || tiddler.fields[field] === '' || tiddler.fields[field] === []) && (otherTiddler.fields[field] || otherTiddler.fields[field] === '' || otherTiddler.fields[field] === [])) {
           // We need a special check to check against empty arrays and empty
           // strings, which in this context match.
           var empty1 = false;
@@ -340,7 +340,7 @@ This has some functions that are needed by Bob in different places.
           }
         }
       }
-      if (messageData.message.tiddler.fields.tags = '')  {
+      if (messageData.message.tiddler.fields.tags === '')  {
         messageData.message.tiddler.fields.tags = [];
       }
       if (messageData.message.tiddler.fields.list) {

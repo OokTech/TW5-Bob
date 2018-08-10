@@ -60,6 +60,8 @@ changes:
   - Changes persist in newly opened wikis or reloaded wikis (both deleting the
     old title and creating the new one)
 12. Importing tiddlers - TODO what do we test here?
+13. Adding and removing tags
+  - In browser and on the file system
 
 ## Admin Tasks
 
