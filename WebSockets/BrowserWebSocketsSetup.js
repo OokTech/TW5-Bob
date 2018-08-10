@@ -107,9 +107,13 @@ socket server, but it can be extended for use with other web socket servers.
         // If the connection is not open than store the message in the queue
         var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
         var queue = [];
+        var start = Date.now();
         if (tiddler) {
           if (typeof tiddler.fields.text === 'string') {
             queue = JSON.parse(tiddler.fields.text);
+          }
+          if (tiddler.fields.start) {
+            start = tiddler.fields.start;
           }
         }
         // Check to make sure that the current message is eligible to be saved
@@ -122,7 +126,7 @@ socket server, but it can be extended for use with other web socket servers.
           if (messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
             queue.push(messageData);
           }
-          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: tiddler.fields.start};
+          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: start};
           $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
         }
       }

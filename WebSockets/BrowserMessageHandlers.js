@@ -50,7 +50,7 @@ it will overwrite this file.
 
   var sendAck = function (data) {
     var token = localStorage.getItem('ws-token')
-    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token}));
+    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
   }
 
   /*
