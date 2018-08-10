@@ -21,13 +21,18 @@ to restart the wiki server.
 
 <$reveal
   type='nomatch'
-  state='$:/ServerIP'
+  state='$:/WikiSettings/split/ws-server##host'
   text='0.0.0.0'
 >
   Host has to be set to `0.0.0.0` in order to connect from other computers.
   <br><br>
   <$button>
     Click here
+    <$action-setfield
+      $tiddler='$:/WikiSettings/split/serverInfo'
+      $index=host
+      $value="0.0.0.0"
+    />
     <$action-setfield
       $tiddler='$:/WikiSettings/split/ws-server'
       $index=host
@@ -43,16 +48,17 @@ to restart the wiki server.
   save icon shold turn back to grey) and stop then restart the server to make
   this wiki accessible to other computers on the network.
 
-  After setting the host and restarting you can connect to this wiki from another
-  computer on the same network by entering the above into the address bar of a
-  browser.
+  After setting the host and restarting you can connect to this wiki from
+  another computer on the same network by entering the ip address into the
+  address bar of a browser. After you change the host value the ip address
+  will be listed in this tiddler.
 
   You can then create and edit tiddlers in any connected wiki.
 </$reveal>
 
 <$reveal
   type='match'
-  state='$:/ServerIP'
+  state='$:/WikiSettings/split/ws-server##host'
   text='0.0.0.0'
 >
   The wiki server ip address and port is:
@@ -64,6 +70,11 @@ to restart the wiki server.
   <br><br>
   <$button>
     Click here
+    <$action-setfield
+      $tiddler='$:/WikiSettings/split/serverInfo'
+      $index=host
+      $value="127.0.0.1"
+    />
     <$action-setfield
       $tiddler='$:/WikiSettings/split/ws-server'
       $index=host
