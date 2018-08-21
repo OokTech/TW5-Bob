@@ -894,6 +894,55 @@ if ($tw.node) {
   }
 
   /*
+    Determine if the token is authorised to view the wiki
+  */
+  function canAccess(token, wiki) {
+    return true
+  }
+
+  /*
+    This message fetches tiddlers from another wiki on the same Bob server
+    The input data object has:
+      fromWiki - the name of the wiki to pull from
+      filter - the tiddler filter to use to select tiddlers from the remote
+        wiki
+  */
+  $tw.nodeMessageHandlers.internalFetch = function(data) {
+    // Make sure that the person has access to the wiki
+    var authorised = canAccess(data.token, data.fromWiki)
+    if (authorised) {
+      // Make sure that the wiki is listed
+      if ($tw.settings.wikis[data.fromWiki]) {
+        // If the wiki isn't loaded than load it
+        if (!$tw.Bob.Wikis[data.fromWiki]) {
+          $tw.ServerSide.loadWiki(data.fromWiki, $tw.settings.wikis[data.fromWiki]);
+        } else if ($tw.Bob.Wikis[data.fromWiki].State !== 'loaded') {
+          $tw.ServerSide.loadWiki(data.fromWiki, $tw.settings.wikis[data.fromWiki]);
+        }
+        // Make sure that the wiki exists and is loaded
+        if ($tw.Bob.Wikis[data.fromWiki]) {
+          if ($tw.Bob.Wikis[data.fromWiki].State === 'loaded') {
+            // Use the filter
+            var list = $tw.wiki.filterTiddlers(data.filter);
+            // Add the results to the current wiki
+            // Each tiddler gets added to the requesting wiki
+            list.forEach(function(tidTitle){
+              var tiddler = $tw.wiki.getTiddler(tidTitle);
+              var newTiddler = {fields:{}}
+              Object.keys(tiddler.fields).forEach(function(field) {
+                newTiddler.fields[field] = tiddler.fields[field]
+              })
+              newTiddler.fields.title = tiddler.fields.title.replace('{'+data.fromWiki+'}', '')
+              var message = {type: 'saveTiddler', tiddler: newTiddler, wiki: data.wiki};
+              $tw.syncadaptor.saveTiddler(newTiddler, data.wiki);
+            })
+          }
+        }
+      }
+    }
+  }
+
+  /*
     This handles ack messages.
   */
   $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;

@@ -40,13 +40,9 @@
   - Wiki diffs: same process as above, but export a json file that has all of
     the changes in it. This could use the same thing as the history of changed
     tiddlers thing.
-- Make the server save a compact list of changes so that it can quickly resync
-  wikis that reconnect after being disconnected
-  - Any conflicts should be up to people to resolve. Both versions should be
-    kept, a 'server' version and a 'browser' version.
-    - This means I need to make a conflict resolution tool for it.
-- When reconnecting to a server the wiki may have to be loaded before any
-  messages with updates can be accepted. This may take some more involved work
-  than I had hoped.
-  - Also there is a problem where a save message can make a new tiddler file
-    instead of overwriting the old one after a reconnection
+  - Syncing between servers: Each server has its compact list of changes, they
+    are exchanged and examined for conflicts, non-conflicting tiddlers are sent
+    and any conflicts are handled like browser-server conflicts.
+    - If there is security than the initiating server needs to get an access
+      token from the other server.
+      - Syncing should be pretty much the same as when a browser reconnects otherwise. The local server logs into the remote server to get a token, then sends over the changes in the syncChanges message and the remote server then sends any new things to the local server. The conflicts are handled the same way as browser-server conflicts.

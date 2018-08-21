@@ -1,5 +1,11 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.0.4 (ongoing)
+
+- The disconnected message is now much smaller because you can keep working on
+  the wiki and reconnect.
+- Added the (undocumented) internalFetch message
+
 !! Version 1.0.3 Sourdough Crumpets
 
 - Fixed/Updated documentation
