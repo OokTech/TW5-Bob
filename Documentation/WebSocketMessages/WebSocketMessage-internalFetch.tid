@@ -1,0 +1,44 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-internalFetch
+tags: [[Websocket Message]] [[Human Usable]]
+caption: internalFetch
+description: Fetch tiddlers from another wiki on the same Bob server
+
+This message imports tiddlers from another wiki being served by the same Bob
+server into the current wiki. It can optionally apply a filter to modify the
+titles of imported tiddlers.
+
+''Note:'' This makes new copies of the tiddler. Changes to the imported
+tiddlers don't affect the original wiki and changes in the original wiki don't
+affect the imported tiddlers.
+
+!!Inputs
+
+|!Parameter |!Description |
+|!fromWiki |The name of the wiki to shut down. (No default) |
+|!filter |The tiddlers returned by this filter are imported. (No default) |
+|!transformFilter |Imported tiddlers have their titles transformed by this filter (No defalut) |
+
+If nothing is given for the `fromWiki` or `filter` attributes than this message
+does nothing. To determine the wikiName for a wiki look in the $:/WikiName
+tiddler.
+
+!!Usage
+
+`<$action-websocketmessage $type='internalFetch' fromWiki=wikiName filter='[prefix[$:/importMe/]]' transformFilter='[removeprefix[$:/importMe]]'/>`
+
+
+A button that will import any tiddlers in the wiki called `AnotherWiki` that
+have the tag `IMPORT ME` and adds `From Another Wiki ` added to the imported
+tiddler titles as a prefix.
+
+```
+<$button>
+  Import Some Tiddlers
+  <$action-websocketmessage
+    $type='internalFetch'
+    fromWiki='AnotherWiki'
+    filter='[tag[IMPORT ME]]'
+    transformFilter='[addprefix[From Another Wiki: ]]'
+  />
+</$button>
+```

@@ -168,8 +168,7 @@ it will overwrite this file.
       // Only add the tiddler if it is different
       if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
         var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
-        $tw.wiki.addTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
-        $tw.wiki.importTiddler(data.tiddler.fields);
+        $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
         // we have conflicts so open the conflict list tiddler
         var storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
         storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
@@ -178,7 +177,7 @@ it will overwrite this file.
     } else {
       // If the tiddler doesn't actually have a conflicting version than just
       // add the tiddler.
-      $tw.wiki.importTiddler(data.tiddler.fields);
+      $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields));
     }
     sendAck(data);
   }

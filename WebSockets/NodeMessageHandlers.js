@@ -906,6 +906,8 @@ if ($tw.node) {
       fromWiki - the name of the wiki to pull from
       filter - the tiddler filter to use to select tiddlers from the remote
         wiki
+      transformFilter - the titles of imported tiddlers are modified by this
+        filter.
   */
   $tw.nodeMessageHandlers.internalFetch = function(data) {
     // Make sure that the person has access to the wiki
@@ -926,16 +928,12 @@ if ($tw.node) {
             var tempWiki = new $tw.Wiki();
             $tw.Bob.Wikis[data.fromWiki].tiddlers.forEach(function(internalTitle) {
               var tiddler = $tw.wiki.getTiddler(internalTitle);
-              //var newTiddler = {fields:{}}
-              //Object.keys(tiddler.fields).forEach(function(field) {
-              //  newTiddler.fields[field] = tiddler.fields[field]
-              //})
-              var newTiddler = JSON.parse(JSON.stringify(tiddler))
-              newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified))
-              newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created))
-              newTiddler.fields.title = newTiddler.fields.title.replace('{' + data.fromWiki + '}', '')
+              var newTiddler = JSON.parse(JSON.stringify(tiddler));
+              newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+              newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+              newTiddler.fields.title = newTiddler.fields.title.replace('{' + data.fromWiki + '}', '');
               // Add all the tiddlers that belong in wiki
-              tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields))
+              tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
             })
             // Use the filter
             var list = tempWiki.filterTiddlers(data.filter);
@@ -943,6 +941,12 @@ if ($tw.node) {
             // Each tiddler gets added to the requesting wiki
             list.forEach(function(tidTitle){
               var tiddler = tempWiki.getTiddler(tidTitle);
+              if (data.transformFilter) {
+                var transformedTitle = (tempWiki.filterTiddlers(data.transformFilter, null, tempWiki.makeTiddlerIterator([tidTitle])) || [""])[0];
+                if(transformedTitle) {
+                  tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
+                }
+              }
               var message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
               $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
