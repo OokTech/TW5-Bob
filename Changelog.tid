@@ -4,7 +4,12 @@ title: $:/plugins/OokTech/Bob/Changelog
 
 - The disconnected message is now much smaller because you can keep working on
   the wiki and reconnect.
-- Added the (undocumented) internalFetch message
+- Added the internalFetch message to match the --fetch command in the core.
+  - It fetches tiddlers from another wiki on the same Bob server
+  - Tiddlers to import are selected by a filter
+  - There is an optional transform filter that can modify the imported tiddlers
+    titles (you can add prefixes/suffixes, etc.)
+  - Conflict resolution uses the same system as resyncing to the server.
 
 !! Version 1.0.3 Sourdough Crumpets
 
