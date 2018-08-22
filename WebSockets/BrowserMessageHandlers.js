@@ -161,14 +161,24 @@ it will overwrite this file.
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
     var wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
-    wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
-    wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
-    wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
-    // Only add the tiddler if it is different
-    if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
-      var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
-      $tw.wiki.addTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
-      $tw.wiki.addTiddler(data.tiddler.fields);
+    if (wikiTiddler) {
+      wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
+      wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
+      wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
+      // Only add the tiddler if it is different
+      if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
+        var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
+        $tw.wiki.addTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
+        $tw.wiki.importTiddler(data.tiddler.fields);
+        // we have conflicts so open the conflict list tiddler
+        var storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+        storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
+        $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
+      }
+    } else {
+      // If the tiddler doesn't actually have a conflicting version than just
+      // add the tiddler.
+      $tw.wiki.importTiddler(data.tiddler.fields);
     }
     sendAck(data);
   }
@@ -214,7 +224,6 @@ it will overwrite this file.
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
-
 
       $tw.utils.toggleClass(document.body,"tc-dirty",false);
       // Clear the time to live timeout.

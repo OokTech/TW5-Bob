@@ -922,19 +922,29 @@ if ($tw.node) {
         // Make sure that the wiki exists and is loaded
         if ($tw.Bob.Wikis[data.fromWiki]) {
           if ($tw.Bob.Wikis[data.fromWiki].State === 'loaded') {
+            // Make a temp wiki to run the filter on
+            var tempWiki = new $tw.Wiki();
+            $tw.Bob.Wikis[data.fromWiki].tiddlers.forEach(function(internalTitle) {
+              var tiddler = $tw.wiki.getTiddler(internalTitle);
+              //var newTiddler = {fields:{}}
+              //Object.keys(tiddler.fields).forEach(function(field) {
+              //  newTiddler.fields[field] = tiddler.fields[field]
+              //})
+              var newTiddler = JSON.parse(JSON.stringify(tiddler))
+              newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified))
+              newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created))
+              newTiddler.fields.title = newTiddler.fields.title.replace('{' + data.fromWiki + '}', '')
+              // Add all the tiddlers that belong in wiki
+              tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields))
+            })
             // Use the filter
-            var list = $tw.wiki.filterTiddlers(data.filter);
+            var list = tempWiki.filterTiddlers(data.filter);
             // Add the results to the current wiki
             // Each tiddler gets added to the requesting wiki
             list.forEach(function(tidTitle){
-              var tiddler = $tw.wiki.getTiddler(tidTitle);
-              var newTiddler = {fields:{}}
-              Object.keys(tiddler.fields).forEach(function(field) {
-                newTiddler.fields[field] = tiddler.fields[field]
-              })
-              newTiddler.fields.title = tiddler.fields.title.replace('{'+data.fromWiki+'}', '')
-              var message = {type: 'saveTiddler', tiddler: newTiddler, wiki: data.wiki};
-              $tw.syncadaptor.saveTiddler(newTiddler, data.wiki);
+              var tiddler = tempWiki.getTiddler(tidTitle);
+              var message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+              $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
           }
         }

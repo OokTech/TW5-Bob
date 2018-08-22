@@ -208,8 +208,8 @@ if ($tw.node) {
       // and the token has access to that wiki.
       if (eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
         $tw.connections[thisIndex].wiki = eventData.wiki;
-        // Make sure that the new connection has the correct list of tiddlers being
-        // edited.
+        // Make sure that the new connection has the correct list of tiddlers
+        // being edited.
         $tw.Bob.UpdateEditingTiddlers();
       }
       // Make sure we have a handler for the message type
