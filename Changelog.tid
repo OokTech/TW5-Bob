@@ -1,6 +1,10 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.4 (ongoing)
+!! Version 1.0.5 (ongoing)
+
+- Added fetch and push routes to the `ws-server`
+
+!! Version 1.0.4 Sourdough Pizza
 
 - The disconnected message is now much smaller because you can keep working on
   the wiki and reconnect.
