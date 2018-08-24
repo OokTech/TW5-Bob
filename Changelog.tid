@@ -3,6 +3,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.0.5 (ongoing)
 
 - Added fetch and push routes to the `ws-server`
+  - There are currently only placeholder functions for access control
 - Updated external libraries to the newest versions (npm modules `ip`, `ws` and
   `async-limiter`)
   - `ip` is used to get the ip address of the server to make connecting

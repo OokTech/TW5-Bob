@@ -27,12 +27,20 @@ if($tw.node) {
     http = require("http"),
     qs = require("querystring");
 
-    // A placeholder function. In the future it will look at the request object
-    // and make sure that the proper authentication header is there to access
-    // the desired wiki.
-    function isAuthenticated(request, wiki, action) {
-      return true
-    }
+  // A placeholder function. In the future it will look at the request object
+  // and make sure that the proper authentication header is there to access
+  // the desired wiki.
+  function isAuthenticated(request, wiki, action) {
+    return true
+  }
+
+  function canPullFromWiki(request, wiki, action) {
+    return true
+  }
+
+  function canPushToWiki(request, wiki, action) {
+    return true
+  }
 
   /*
   A simple HTTP server with regexp-based routes
@@ -250,24 +258,39 @@ if($tw.node) {
             var body = ''
             request.on('data', function(chunk){
               body += chunk;
+              // We limit the size of a push to 5mb for now.
+              if (body.length > 5e6) {
+                response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+                request.connection.destroy();
+              }
             });
             request.on('end', function() {
               try {
                 var bodyData = JSON.parse(body)
-                // TODO the standard bit of making sure this doesn't crash
-                // everything when a bad wiki name is given.
-                // See fetch handler for how to do it.
-                if ($tw.settings.wikis[bodyData.toWiki]) {
-                  $tw.ServerSide.loadWiki(bodyData.toWiki, $tw.settings.wikis[bodyData.toWiki]);
-                  if (bodyData.tiddlers && bodyData.toWiki) {
-                    Object.keys(bodyData.tiddlers).forEach(function(title) {
-                      bodyData.tiddlers[title].fields.modified = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
-                      bodyData.tiddlers[title].fields.created = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
-                      $tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
-                    });
-                    response.writeHead(200)
-                    response.end()
+                // Make sure that the token sent here matches the https header
+                // and that the token has push access to the toWiki
+                var allowed = canPushToWiki(bodyData)
+                if (allowed) {
+                  if ($tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
+                    $tw.ServerSide.loadWiki(bodyData.toWiki, $tw.settings.wikis[bodyData.toWiki]);
+                    // Make sure that the wiki exists and is loaded
+                    if ($tw.Bob.Wikis[bodyData.toWiki]) {
+                      if ($tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
+                        if (bodyData.tiddlers && bodyData.toWiki) {
+                          Object.keys(bodyData.tiddlers).forEach(function(title) {
+                            bodyData.tiddlers[title].fields.modified = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
+                            bodyData.tiddlers[title].fields.created = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
+                            $tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
+                          });
+                          response.writeHead(200)
+                          response.end()
+                        }
+                      }
+                    }
                   }
+                } else {
+                  response.writeHead(400)
+                  response.end()
                 }
               } catch (e) {
                 response.writeHead(400)
@@ -284,19 +307,25 @@ if($tw.node) {
         method: "POST",
         path: fetchPathRegExp,
         handler: function(request,response,state) {
-          var authenticated = isAuthenticated(request)
-          if (authenticated) {
-            var body = ''
-            var list
-            var data = {}
-            response.setHeader('Access-Control-Allow-Origin', '*')
-            response.writeHead(200, {"Content-Type": "application/json"});
-            request.on('data', function(chunk){
-              body += chunk;
-            });
-            request.on('end', function() {
-              try {
-                var bodyData = JSON.parse(body)
+          var body = ''
+          var list
+          var data = {}
+          response.setHeader('Access-Control-Allow-Origin', '*')
+          response.writeHead(200, {"Content-Type": "application/json"});
+          request.on('data', function(chunk){
+            body += chunk;
+            // We limit this to 1mb, it should never be anywhere near that
+            // big
+            if (body.length > 1e6) {
+              response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+              request.connection.destroy();
+            }
+          });
+          request.on('end', function() {
+            try {
+              var bodyData = JSON.parse(body)
+              var hasAccess = canPullFromWiki(bodyData)
+              if (hasAccess) {
                 if (bodyData.filter && bodyData.fromWiki) {
                   // Make sure that the person has access to the wiki
                   var authorised = true//canAccess(data.token, data.fromWiki)
@@ -338,16 +367,12 @@ if($tw.node) {
                   data = JSON.stringify(data) || "";
                   response.end(data);
                 }
-              } catch (e) {
-                data = JSON.stringify(data) || "";
-                response.end(data);
               }
-            })
-          } else {
-            // Not authenticated
-            response.writeHead(403)
-            response.end()
-          }
+            } catch (e) {
+              data = JSON.stringify(data) || "";
+              response.end(data);
+            }
+          })
         }
       });
     }
