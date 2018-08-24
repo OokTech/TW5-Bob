@@ -14,7 +14,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
   "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
   "suppressBrowser": false,
-  "fileURLPrefix": "file"
+  "fileURLPrefix": "files"
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -49,6 +49,10 @@ used. If the json isn't formatted correctly than default values will be used.
     ".pdf": "application/pdf",
     ".doc": "application/msword",
     ".gif": "image/gif"
+  },
+  "API": {
+    "enableFetch": "no",
+    "enablePush": "no"
   }
 }
 ```
@@ -71,10 +75,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   than local files aren't served.
 - `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
   has the normal restrictions on names as any URL, so avoid special characters.
-  This defaults to `file` and only have an affect if you have also set
+  This defaults to `files` and only have an affect if you have also set
   `filePathRoot`.
   Note: If you set this to an empty string it will use the default value of
-  `file` unless you set the `acceptance` value described below. This will break
+  `files` unless you set the `acceptance` value described below. This will break
   things and no tech support will be provided.
 - `mimeMap` lists the file extensions and their associated mime-types that the
   server is allowed to serve. This only has an effect if `filePathRoot` is set.
