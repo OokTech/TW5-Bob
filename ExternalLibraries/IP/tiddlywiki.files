@@ -1,0 +1,21 @@
+{
+  "tiddlers": [
+    {
+      "file": "ip.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/IP/ip.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "README.md",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/IP/README"
+      }
+    }
+  ]
+}

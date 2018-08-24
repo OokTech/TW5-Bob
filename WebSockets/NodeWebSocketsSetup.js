@@ -23,7 +23,7 @@ exports.after = ["node-settings"];
 exports.synchronous = true;
 
 // require the websockets module if we are running node
-var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/Bob/WS/ws.js').Server : undefined;
+var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server : undefined;
 var fs = $tw.node ? require("fs"): undefined;
 var http = $tw.node ? require("http") : undefined;
 var path = $tw.node ? require("path") : undefined;
@@ -50,7 +50,7 @@ if ($tw.node) {
     }
     // Get the ip address to display to make it easier for other computers to
     // connect.
-    var ip = require('$:/plugins/OokTech/Bob/ip.js');
+    var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
     var ipAddress = ip.address();
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};

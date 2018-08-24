@@ -1,0 +1,28 @@
+{
+  "tiddlers": [
+    {
+      "file": "index.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/async-limiter/async-limiter.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "readme.md",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/async-limiter/README"
+      }
+    },
+    {
+      "file": "LICENSE",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/async-limiter/LICENSE"
+      }
+    }
+  ]
+}

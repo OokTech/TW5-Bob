@@ -1,32 +1,11 @@
-/*\
-title: $:/plugins/OokTech/Bob/WS/Sender.js
-type: application/javascript
-module-type: library
-
-This is part of the websockets module
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-
-/*!
- * ws: a node.js websocket client
- * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
- * MIT Licensed
- */
-
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
 const crypto = require('crypto');
 
-const PerMessageDeflate = require('$:/plugins/OokTech/Bob/WS/PerMessageDeflate');
-const bufferUtil = require('$:/plugins/OokTech/Bob/WS/BufferUtil');
-const ErrorCodes = require('$:/plugins/OokTech/Bob/WS/ErrorCodes');
-
-const Buffer = safeBuffer.Buffer;
+const PerMessageDeflate = require('./permessage-deflate');
+const bufferUtil = require('./buffer-util');
+const validation = require('./validation');
+const constants = require('./constants');
 
 /**
  * HyBi Sender implementation.
@@ -82,10 +61,10 @@ class Sender {
     if (options.rsv1) target[0] |= 0x40;
 
     if (payloadLength === 126) {
-      target.writeUInt16BE(data.length, 2, true);
+      target.writeUInt16BE(data.length, 2);
     } else if (payloadLength === 127) {
-      target.writeUInt32BE(0, 2, true);
-      target.writeUInt32BE(data.length, 6, true);
+      target.writeUInt32BE(0, 2);
+      target.writeUInt32BE(data.length, 6);
     }
 
     if (!options.mask) {
@@ -125,14 +104,20 @@ class Sender {
    * @public
    */
   close (code, data, mask, cb) {
-    if (code !== undefined && (typeof code !== 'number' || !ErrorCodes.isValidErrorCode(code))) {
-      throw new Error('first argument must be a valid error code number');
+    var buf;
+
+    if (code === undefined) {
+      buf = constants.EMPTY_BUFFER;
+    } else if (typeof code !== 'number' || !validation.isValidStatusCode(code)) {
+      throw new TypeError('First argument must be a valid error code number');
+    } else if (data === undefined || data === '') {
+      buf = Buffer.allocUnsafe(2);
+      buf.writeUInt16BE(code, 0);
+    } else {
+      buf = Buffer.allocUnsafe(2 + Buffer.byteLength(data));
+      buf.writeUInt16BE(code, 0);
+      buf.write(data, 2);
     }
-
-    const buf = Buffer.allocUnsafe(2 + (data ? Buffer.byteLength(data) : 0));
-
-    buf.writeUInt16BE(code || 1000, 0, true);
-    if (buf.length > 2) buf.write(data, 2);
 
     if (this._deflating) {
       this.enqueue([this.doClose, buf, mask, cb]);
@@ -164,9 +149,10 @@ class Sender {
    *
    * @param {*} data The message to send
    * @param {Boolean} mask Specifies whether or not to mask `data`
+   * @param {Function} cb Callback
    * @public
    */
-  ping (data, mask) {
+  ping (data, mask, cb) {
     var readOnly = true;
 
     if (!Buffer.isBuffer(data)) {
@@ -181,9 +167,9 @@ class Sender {
     }
 
     if (this._deflating) {
-      this.enqueue([this.doPing, data, mask, readOnly]);
+      this.enqueue([this.doPing, data, mask, readOnly, cb]);
     } else {
-      this.doPing(data, mask, readOnly);
+      this.doPing(data, mask, readOnly, cb);
     }
   }
 
@@ -193,16 +179,17 @@ class Sender {
    * @param {*} data The message to send
    * @param {Boolean} mask Specifies whether or not to mask `data`
    * @param {Boolean} readOnly Specifies whether `data` can be modified
+   * @param {Function} cb Callback
    * @private
    */
-  doPing (data, mask, readOnly) {
+  doPing (data, mask, readOnly, cb) {
     this.sendFrame(Sender.frame(data, {
       fin: true,
       rsv1: false,
       opcode: 0x09,
       mask,
       readOnly
-    }));
+    }), cb);
   }
 
   /**
@@ -210,9 +197,10 @@ class Sender {
    *
    * @param {*} data The message to send
    * @param {Boolean} mask Specifies whether or not to mask `data`
+   * @param {Function} cb Callback
    * @public
    */
-  pong (data, mask) {
+  pong (data, mask, cb) {
     var readOnly = true;
 
     if (!Buffer.isBuffer(data)) {
@@ -227,9 +215,9 @@ class Sender {
     }
 
     if (this._deflating) {
-      this.enqueue([this.doPong, data, mask, readOnly]);
+      this.enqueue([this.doPong, data, mask, readOnly, cb]);
     } else {
-      this.doPong(data, mask, readOnly);
+      this.doPong(data, mask, readOnly, cb);
     }
   }
 
@@ -239,16 +227,17 @@ class Sender {
    * @param {*} data The message to send
    * @param {Boolean} mask Specifies whether or not to mask `data`
    * @param {Boolean} readOnly Specifies whether `data` can be modified
+   * @param {Function} cb Callback
    * @private
    */
-  doPong (data, mask, readOnly) {
+  doPong (data, mask, readOnly, cb) {
     this.sendFrame(Sender.frame(data, {
       fin: true,
       rsv1: false,
       opcode: 0x0a,
       mask,
       readOnly
-    }));
+    }), cb);
   }
 
   /**
@@ -410,5 +399,3 @@ function viewToBuffer (view) {
 
   return buf;
 }
-
-})();

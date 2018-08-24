@@ -1,17 +1,3 @@
-/*\
-title: $:/plugins/OokTech/Bob/ip.js
-type: application/javascript
-module-type: library
-
-This is the ip npm module packaged with the plugin so it doesn't have to be
-installed separately from tiddlywiki.
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-
 'use strict';
 
 var ip = exports;
@@ -428,6 +414,3 @@ ip.fromLong = function(ipl) {
       (ipl >> 8 & 255) + '.' +
       (ipl & 255) );
 };
-
-
-})();

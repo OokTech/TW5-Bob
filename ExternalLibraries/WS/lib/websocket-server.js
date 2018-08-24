@@ -1,37 +1,14 @@
-/*\
-title: $:/plugins/OokTech/Bob/WS/WebSocketServer.js
-type: application/javascript
-module-type: library
-
-This is part of the websockets module
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-
-/*!
- * ws: a node.js websocket client
- * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
- * MIT Licensed
- */
-
 'use strict';
 
-const safeBuffer = require('$:/plugins/OokTech/Bob/safe-buffer/safeBuffer.js');
 const EventEmitter = require('events');
 const crypto = require('crypto');
-const Ultron = require('$:/plugins/OokTech/Bob/Ultron/Ultron.js');
 const http = require('http');
 const url = require('url');
 
-const PerMessageDeflate = require('$:/plugins/OokTech/Bob/WS/PerMessageDeflate');
-const Extensions = require('$:/plugins/OokTech/Bob/WS/Extensions');
-const constants = require('$:/plugins/OokTech/Bob/WS/Constants');
-const WebSocket = require('$:/plugins/OokTech/Bob/WS/WebSocket');
-
-const Buffer = safeBuffer.Buffer;
+const PerMessageDeflate = require('./permessage-deflate');
+const extension = require('./extension');
+const constants = require('./constants');
+const WebSocket = require('./websocket');
 
 /**
  * Class representing a WebSocket server.
@@ -73,7 +50,9 @@ class WebSocketServer extends EventEmitter {
     }, options);
 
     if (options.port == null && !options.server && !options.noServer) {
-      throw new TypeError('missing or invalid options');
+      throw new TypeError(
+        'One of the "port", "server", or "noServer" options must be specified'
+      );
     }
 
     if (options.port != null) {
@@ -86,25 +65,44 @@ class WebSocketServer extends EventEmitter {
         });
         res.end(body);
       });
-      this._server.allowHalfOpen = false;
       this._server.listen(options.port, options.host, options.backlog, callback);
     } else if (options.server) {
       this._server = options.server;
     }
 
     if (this._server) {
-      this._ultron = new Ultron(this._server);
-      this._ultron.on('listening', () => this.emit('listening'));
-      this._ultron.on('error', (err) => this.emit('error', err));
-      this._ultron.on('upgrade', (req, socket, head) => {
-        this.handleUpgrade(req, socket, head, (client) => {
-          this.emit('connection', client, req);
-        });
+      this._removeListeners = addListeners(this._server, {
+        listening: this.emit.bind(this, 'listening'),
+        error: this.emit.bind(this, 'error'),
+        upgrade: (req, socket, head) => {
+          this.handleUpgrade(req, socket, head, (ws) => {
+            this.emit('connection', ws, req);
+          });
+        }
       });
     }
 
+    if (options.perMessageDeflate === true) options.perMessageDeflate = {};
     if (options.clientTracking) this.clients = new Set();
     this.options = options;
+  }
+
+  /**
+   * Returns the bound address, the address family name, and port of the server
+   * as reported by the operating system if listening on an IP socket.
+   * If the server is listening on a pipe or UNIX domain socket, the name is
+   * returned as a string.
+   *
+   * @return {(Object|String|null)} The address of the server
+   * @public
+   */
+  address () {
+    if (this.options.noServer) {
+      throw new Error('The server is operating in "noServer" mode');
+    }
+
+    if (!this._server) return null;
+    return this._server.address();
   }
 
   /**
@@ -124,8 +122,8 @@ class WebSocketServer extends EventEmitter {
     const server = this._server;
 
     if (server) {
-      this._ultron.destroy();
-      this._ultron = this._server = null;
+      this._removeListeners();
+      this._removeListeners = this._server = null;
 
       //
       // Close the http server if it was internally created.
@@ -161,28 +159,38 @@ class WebSocketServer extends EventEmitter {
    * @public
    */
   handleUpgrade (req, socket, head, cb) {
-    socket.on('error', socketError);
+    socket.on('error', socketOnError);
 
     const version = +req.headers['sec-websocket-version'];
+    const extensions = {};
 
     if (
       req.method !== 'GET' || req.headers.upgrade.toLowerCase() !== 'websocket' ||
       !req.headers['sec-websocket-key'] || (version !== 8 && version !== 13) ||
       !this.shouldHandle(req)
     ) {
-      return abortConnection(socket, 400);
+      return abortHandshake(socket, 400);
     }
 
-    var protocol = (req.headers['sec-websocket-protocol'] || '').split(/, */);
+    if (this.options.perMessageDeflate) {
+      const perMessageDeflate = new PerMessageDeflate(
+        this.options.perMessageDeflate,
+        true,
+        this.options.maxPayload
+      );
 
-    //
-    // Optionally call external protocol selection handler.
-    //
-    if (this.options.handleProtocols) {
-      protocol = this.options.handleProtocols(protocol, req);
-      if (protocol === false) return abortConnection(socket, 401);
-    } else {
-      protocol = protocol[0];
+      try {
+        const offers = extension.parse(
+          req.headers['sec-websocket-extensions']
+        );
+
+        if (offers[PerMessageDeflate.extensionName]) {
+          perMessageDeflate.accept(offers[PerMessageDeflate.extensionName]);
+          extensions[PerMessageDeflate.extensionName] = perMessageDeflate;
+        }
+      } catch (err) {
+        return abortHandshake(socket, 400);
+      }
     }
 
     //
@@ -196,32 +204,33 @@ class WebSocketServer extends EventEmitter {
       };
 
       if (this.options.verifyClient.length === 2) {
-        this.options.verifyClient(info, (verified, code, message) => {
-          if (!verified) return abortConnection(socket, code || 401, message);
+        this.options.verifyClient(info, (verified, code, message, headers) => {
+          if (!verified) {
+            return abortHandshake(socket, code || 401, message, headers);
+          }
 
-          this.completeUpgrade(protocol, version, req, socket, head, cb);
+          this.completeUpgrade(extensions, req, socket, head, cb);
         });
         return;
-      } else if (!this.options.verifyClient(info)) {
-        return abortConnection(socket, 401);
       }
+
+      if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
     }
 
-    this.completeUpgrade(protocol, version, req, socket, head, cb);
+    this.completeUpgrade(extensions, req, socket, head, cb);
   }
 
   /**
    * Upgrade the connection to WebSocket.
    *
-   * @param {String} protocol The chosen subprotocol
-   * @param {Number} version The WebSocket protocol version
+   * @param {Object} extensions The accepted extensions
    * @param {http.IncomingMessage} req The request object
    * @param {net.Socket} socket The network socket between the server and client
    * @param {Buffer} head The first packet of the upgraded stream
    * @param {Function} cb Callback
    * @private
    */
-  completeUpgrade (protocol, version, req, socket, head, cb) {
+  completeUpgrade (extensions, req, socket, head, cb) {
     //
     // Destroy the socket if the client has already sent a FIN packet.
     //
@@ -238,26 +247,34 @@ class WebSocketServer extends EventEmitter {
       `Sec-WebSocket-Accept: ${key}`
     ];
 
-    if (protocol) headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
+    const ws = new WebSocket(null);
+    var protocol = req.headers['sec-websocket-protocol'];
 
-    const offer = Extensions.parse(req.headers['sec-websocket-extensions']);
-    var extensions;
+    if (protocol) {
+      protocol = protocol.trim().split(/ *, */);
 
-    try {
-      extensions = acceptExtensions(this.options, offer);
-    } catch (err) {
-      return abortConnection(socket, 400);
+      //
+      // Optionally call external protocol selection handler.
+      //
+      if (this.options.handleProtocols) {
+        protocol = this.options.handleProtocols(protocol, req);
+      } else {
+        protocol = protocol[0];
+      }
+
+      if (protocol) {
+        headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
+        ws.protocol = protocol;
+      }
     }
 
-    const props = Object.keys(extensions);
-
-    if (props.length) {
-      const serverExtensions = props.reduce((obj, key) => {
-        obj[key] = [extensions[key].params];
-        return obj;
-      }, {});
-
-      headers.push(`Sec-WebSocket-Extensions: ${Extensions.format(serverExtensions)}`);
+    if (extensions[PerMessageDeflate.extensionName]) {
+      const params = extensions[PerMessageDeflate.extensionName].params;
+      const value = extension.format({
+        [PerMessageDeflate.extensionName]: [params]
+      });
+      headers.push(`Sec-WebSocket-Extensions: ${value}`);
+      ws._extensions = extensions;
     }
 
     //
@@ -265,60 +282,48 @@ class WebSocketServer extends EventEmitter {
     //
     this.emit('headers', headers, req);
 
-    socket.write(headers.concat('', '').join('\r\n'));
+    socket.write(headers.concat('\r\n').join('\r\n'));
+    socket.removeListener('error', socketOnError);
 
-    const client = new WebSocket([socket, head], null, {
-      maxPayload: this.options.maxPayload,
-      protocolVersion: version,
-      extensions,
-      protocol
-    });
+    ws.setSocket(socket, head, this.options.maxPayload);
 
     if (this.clients) {
-      this.clients.add(client);
-      client.on('close', () => this.clients.delete(client));
+      this.clients.add(ws);
+      ws.on('close', () => this.clients.delete(ws));
     }
 
-    socket.removeListener('error', socketError);
-    cb(client);
+    cb(ws);
   }
 }
 
 module.exports = WebSocketServer;
 
 /**
+ * Add event listeners on an `EventEmitter` using a map of <event, listener>
+ * pairs.
+ *
+ * @param {EventEmitter} server The event emitter
+ * @param {Object.<String, Function>} map The listeners to add
+ * @return {Function} A function that will remove the added listeners when called
+ * @private
+ */
+function addListeners (server, map) {
+  for (const event of Object.keys(map)) server.on(event, map[event]);
+
+  return function removeListeners () {
+    for (const event of Object.keys(map)) {
+      server.removeListener(event, map[event]);
+    }
+  };
+}
+
+/**
  * Handle premature socket errors.
  *
  * @private
  */
-function socketError () {
+function socketOnError () {
   this.destroy();
-}
-
-/**
- * Accept WebSocket extensions.
- *
- * @param {Object} options The `WebSocketServer` configuration options
- * @param {Object} offer The parsed value of the `sec-websocket-extensions` header
- * @return {Object} Accepted extensions
- * @private
- */
-function acceptExtensions (options, offer) {
-  const pmd = options.perMessageDeflate;
-  const extensions = {};
-
-  if (pmd && offer[PerMessageDeflate.extensionName]) {
-    const perMessageDeflate = new PerMessageDeflate(
-      pmd !== true ? pmd : {},
-      true,
-      options.maxPayload
-    );
-
-    perMessageDeflate.accept(offer[PerMessageDeflate.extensionName]);
-    extensions[PerMessageDeflate.extensionName] = perMessageDeflate;
-  }
-
-  return extensions;
 }
 
 /**
@@ -327,23 +332,26 @@ function acceptExtensions (options, offer) {
  * @param {net.Socket} socket The socket of the upgrade request
  * @param {Number} code The HTTP response status code
  * @param {String} [message] The HTTP response body
+ * @param {Object} [headers] Additional HTTP response headers
  * @private
  */
-function abortConnection (socket, code, message) {
+function abortHandshake (socket, code, message, headers) {
   if (socket.writable) {
     message = message || http.STATUS_CODES[code];
+    headers = Object.assign({
+      'Connection': 'close',
+      'Content-type': 'text/html',
+      'Content-Length': Buffer.byteLength(message)
+    }, headers);
+
     socket.write(
       `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r\n` +
-      'Connection: close\r\n' +
-      'Content-type: text/html\r\n' +
-      `Content-Length: ${Buffer.byteLength(message)}\r\n` +
-      '\r\n' +
+      Object.keys(headers).map(h => `${h}: ${headers[h]}`).join('\r\n') +
+      '\r\n\r\n' +
       message
     );
   }
 
-  socket.removeListener('error', socketError);
+  socket.removeListener('error', socketOnError);
   socket.destroy();
 }
-
-})();

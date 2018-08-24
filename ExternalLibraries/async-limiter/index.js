@@ -1,16 +1,3 @@
-/*\
-title: $:/plugins/OokTech/Bob/async-limiter/async-limiter.js
-type: application/javascript
-module-type: library
-
-This is the npm module async-limiter wrapped in a tiddler
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-
 'use strict';
 
 function Queue(options) {
@@ -78,5 +65,3 @@ function done() {
 }
 
 module.exports = Queue;
-
-})();

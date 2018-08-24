@@ -1,16 +1,3 @@
-/*\
-title: $:/plugins/OokTech/Bob/WS/EventTarget.js
-type: application/javascript
-module-type: library
-
-This is part of the websockets module
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-
 'use strict';
 
 /**
@@ -68,7 +55,7 @@ class CloseEvent extends Event {
   constructor (code, reason, target) {
     super('close', target);
 
-    this.wasClean = code === undefined || code === 1000 || (code >= 3000 && code <= 4999);
+    this.wasClean = target._closeFrameReceived && target._closeFrameSent;
     this.reason = reason;
     this.code = code;
   }
@@ -88,6 +75,27 @@ class OpenEvent extends Event {
    */
   constructor (target) {
     super('open', target);
+  }
+}
+
+/**
+ * Class representing an error event.
+ *
+ * @extends Event
+ * @private
+ */
+class ErrorEvent extends Event {
+  /**
+   * Create a new `ErrorEvent`.
+   *
+   * @param {Object} error The error that generated this event
+   * @param {WebSocket} target A reference to the target to which the event was dispatched
+   */
+  constructor (error, target) {
+    super('error', target);
+
+    this.message = error.message;
+    this.error = error;
   }
 }
 
@@ -116,10 +124,8 @@ const EventTarget = {
       listener.call(this, new CloseEvent(code, message, this));
     }
 
-    function onError (event) {
-      event.type = 'error';
-      event.target = this;
-      listener.call(this, event);
+    function onError (error) {
+      listener.call(this, new ErrorEvent(error, this));
     }
 
     function onOpen () {
@@ -162,5 +168,3 @@ const EventTarget = {
 };
 
 module.exports = EventTarget;
-
-})();

@@ -1,0 +1,128 @@
+{
+  "tiddlers": [
+    {
+      "file": "index.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/ws.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "README.md",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/WS/README"
+      }
+    },
+    {
+      "file": "LICENSE",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/WS/LICENSE"
+      }
+    },
+    {
+      "file": "lib/buffer-util.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/buffer-util.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/constants.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/constants.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/event-target.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/event-target.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/extension.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/extension.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/permessage-deflate.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/permessage-deflate.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/receiver.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/receiver.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/sender.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/sender.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/validation.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/validation.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/websocket-server.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/websocket-server.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/websocket.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/websocket.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    }
+  ]
+}
