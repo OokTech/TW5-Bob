@@ -1,0 +1,18 @@
+title: $:/plugins/OokTech/Bob/Bob Documentation
+caption: Bob Documentation
+
+<$list filter='[all[tiddlers+shadows]tag[Bob Documentation]]'>
+<li>
+  <$link
+    to=<<currentTiddler>>
+  >
+    <$view
+      field='caption'
+    >
+      <$view
+        field='title'
+      />
+    </$view>
+  </$link>
+</li>
+</$list>

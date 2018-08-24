@@ -1,0 +1,21 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-syncChanges
+tags: [[Websocket Message]]
+caption: syncChanges
+description: Resync with a server after reconnecting
+
+If your browser is disconnected from a wiki server this is the message used to
+sync any updates made either in the browser or on the server.
+
+While this is usable it should only be used indirectly through the `Reconnect`
+button that appears when the browser has been disconnected from the server.
+
+!!Inputs
+
+|!Parameter |!Description |
+|!since |The time that the browser detected that it was disconnected. Changes after this time will be synced. (No default) |
+|!changes |A messageQueue object that contains the changes in the browser. (No default) |
+|!wiki |The wiki that is trying to reconnect (No defalut) |
+
+!!Usage
+
+This is all handled automatically.

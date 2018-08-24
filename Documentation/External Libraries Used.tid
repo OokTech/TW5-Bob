@@ -1,0 +1,13 @@
+title: $:/plugins/OokTech/Bob/External Libraries Used
+caption: External Libraries Used
+tags: [[Bob Documentation]]
+
+Bob uses three npm modules in addition to what is used by the base tiddlywiki.
+
+* [[ws|https://github.com/websockets/ws]] - This adds the websocket interface
+  to the node server. ([[License|$:/plugins/OokTech/Bob/External/WS/LICENSE]], [[Readme|$:/plugins/OokTech/Bob/External/WS/README]])
+* [[ip|https://github.com/indutny/node-ip]] - This gives the server information
+  about its own ip address so the ip address can be displayed in the
+  $:/ControlPanel making it easier to connect other computers to the server. ([[Readme|$:/plugins/OokTech/Bob/External/IP/README]])
+* [[async-limiter|https://github.com/strml/async-limiter]] - This is a module
+  required by `ws` ([[License|$:/plugins/OokTech/Bob/External/async-limiter/LICENSE]], [[Readme|$:/plugins/OokTech/Bob/External/async-limiter/README]])

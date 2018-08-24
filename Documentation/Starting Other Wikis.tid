@@ -25,7 +25,9 @@ Afterward you will be able to go to `localhost:8080/otherwiki` to open the wiki
 (assuming that you are using default settings)
 
 ''Note:'' This does not create the wiki. If the wiki doesn't exist this won't
-do anything. To create a new wiki from within the wiki see the example for the
+do anything. To create a new wiki from within the wiki use the interface in the
+$:/ControlPanel under the Bob tab. If for some reason you would rather do it
+some other way see the example for the
 [[runScript message|$:/plugins/OokTech/Bob/WebSocketMessage-runScript]].
 
 <!--
