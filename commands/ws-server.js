@@ -247,6 +247,7 @@ if($tw.node) {
         response.end(buffer,"base64");
       }
     });
+    $tw.settings.API = $tw.settings.API || {};
     if ($tw.settings.API.enablePush === 'yes') {
       var pushPathRegExp = new RegExp('^\/api\/push');
       $tw.httpServer.addRoute({

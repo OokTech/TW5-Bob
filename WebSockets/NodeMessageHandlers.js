@@ -757,16 +757,28 @@ if ($tw.node) {
       var editionName = data.edition?data.edition:"empty";
       var searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
       if (process.pkg) {
-        var editionPath = undefined
-        var pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
-        if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
-          editionPath = pluginPath;
-        }
-        if (editionPath) {
-          specialCopy(editionPath, fullPath);
-          console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
-        } else {
-          console.log("Edition not found");
+        var editionPath = $tw.findLibraryItem(editionName,searchPaths);
+        if(!$tw.utils.isDirectory(editionPath)) {
+          //var editionPath = undefined
+          editionPath = undefined
+          var pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
+          if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
+            editionPath = pluginPath;
+          }
+          if (editionPath) {
+            specialCopy(editionPath, fullPath);
+            console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+          } else {
+            console.log("Edition not found");
+          }
+        } else if ($tw.utils.isDirectory(editionPath)) {
+          // Copy the edition content
+          var err = $tw.utils.copyDirectory(editionPath,fullPath);
+          if(!err) {
+            console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+          } else {
+            console.log(err);
+          }
         }
       } else {
         // Check the edition exists
