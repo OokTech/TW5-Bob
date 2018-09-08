@@ -29,6 +29,8 @@ if($tw.node) {
   };
 
   Command.prototype.execute = function() {
+    var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
+    console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
     return null;
   };
 

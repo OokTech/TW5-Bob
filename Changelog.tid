@@ -14,6 +14,10 @@ title: $:/plugins/OokTech/Bob/Changelog
     of the previous fragile hacky way.
 - Updated documentation and added a tab in the Bob section of the
   $:/ControlPanel for Bob documentation.
+- Bob now prints out the TiddlyWiki and Bob versions being used in the terminal
+  when you start the server.
+- The Save Wiki button is disabled because it isn't useful (later I may make it
+  download a non-bob single file wiki)
 
 !! Version 1.0.4 Sourdough Pizza
 

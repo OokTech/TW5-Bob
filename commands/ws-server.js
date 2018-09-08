@@ -542,6 +542,9 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
+    var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
+    console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
+
     $tw.httpServer.listen(port,host);
     return null;
   };
