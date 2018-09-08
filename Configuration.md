@@ -58,9 +58,8 @@ used. If the json isn't formatted correctly than default values will be used.
 ```
 
 ''Note:'' All paths can be either absolute or relative. Relative paths are
-relative to the folder with tiddlywiki.js in it if you are using the normal
-version or the folder with the executable file if you are using the single
-executable version.
+relative to the folder with tiddlywiki.js in it if you are using the plugin
+version or the folder with the executable file if you are using the BobEXE version.
 
 ''Note for windows:'' All the example paths here are how they would appear on
 linux or osx. On windows the paths would look like
@@ -117,6 +116,12 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   insecure or have a very good chance of breaking your wiki. You will get no
   tech support if you do any of them. If you want to do it anyway than you need
   to give this the value `I Will Not Get Tech Support For This`.
+- `API` things in this group are used for the api used for inter-server
+  communication using the TWederBob plugin.
+  - `enablePush` if this is set to `yes` than the server will accept tiddlers
+    pushed using the TWederBob plugin.
+  - `enableFetch` if this is set to `yes` than the server will let people fetch
+    tiddlers from the server using the TWederBob plugin.
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the

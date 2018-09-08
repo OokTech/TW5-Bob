@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.5 (ongoing)
+!! Version 1.0.5
 
 - Added fetch and push routes to the `ws-server`
   - There are currently only placeholder functions for access control
