@@ -51,7 +51,7 @@ socket server, but it can be extended for use with other web socket servers.
         var output = {};
       }
       var IPAddress = window.location.hostname;
-      var WSSPort = output.wssport;
+      var WSSPort = output.port //output.wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
 
       $tw.connections = $tw.connections || [];

@@ -76,63 +76,13 @@ if ($tw.node) {
       This function ensures that the WS server is made on an available port
     */
     var server;
-    function makeWSS () {
-      if ($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
-        // If we try to autoincrement the web socket ports
-        try {
-          server = http.createServer(function (request, response) {
-            // We don't need anything here, this is just for websockets.
-          });
-          server.on('error', function (e) {
-            if (e.code === 'EADDRINUSE') {
-              WSS_SERVER_PORT = WSS_SERVER_PORT + 1;
-              makeWSS();
-            }
-          });
-          server.listen(WSS_SERVER_PORT, function (e) {
-            if (!e) {
-              console.log('Websockets listening on ', WSS_SERVER_PORT);
-              finishSetup();
-            } else {
-              console.log('Port ', WSS_SERVER_PORT, ' in use trying ', WSS_SERVER_PORT + 1);
-            }
-          });
-        } catch (e) {
-          WSS_SERVER_PORT += 1;
-          makeWSS();
-        }
-      } else {
-        // Otherwise fail if a
-        server = http.createServer(function (request, response) {
-          // We don't need anything here, this is just for websockets.
-        });
-        server.listen(WSS_SERVER_PORT, function (e) {
-          if (!e) {
-            console.log('Websockets listening on ', WSS_SERVER_PORT);
-            finishSetup();
-          } else {
-            console.log('Error port used for websockets in use probably: ', e);
-          }
-        });
-      }
-    }
-    // Stat trying with the next port from the one used by the http process
-    // We want this one to start at the +1 place so that the webserver has a
-    // chance to be in the desired port.
-    var WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
-
-    var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
-    // This makes the server and returns the actual port used
-    if (!$tw.settings['ws-server'].useExternalWSS) {
-      makeWSS();
-    } else {
-      WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || WSS_SERVER_PORT;
-      finishSetup();
-    }
-
+    /*
+      Setup the websocket server if we aren't using an external one
+    */
     function finishSetup () {
       if (!$tw.settings['ws-server'].useExternalWSS) {
-        $tw.wss = new WebSocketServer({server: server});
+        //$tw.wss = new WebSocketServer({server: server});
+        $tw.wss = new WebSocketServer({noServer: true});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
         // I don't know how to set up actually closing a connection, so this doesn't
@@ -141,15 +91,15 @@ if ($tw.node) {
           console.log('closed connection ', connection);
         });
       }
-      $tw.settings['ws-server'].wssport = WSS_SERVER_PORT;
 
       $tw.settings.serverInfo = {
         ipAddress: ipAddress,
         port: ServerPort,
-        host: host,
-        wssPort: WSS_SERVER_PORT
+        host: host
       };
     }
+
+    finishSetup();
   }
 
   /*
@@ -168,7 +118,7 @@ if ($tw.node) {
       "wiki": the name for the wiki using this connection
     }
   */
-  function handleConnection(client) {
+  function handleConnection(client, request) {
     console.log("new connection");
     $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);

@@ -210,6 +210,11 @@ if($tw.node) {
         }
       }
     });
+    httpServer.on('upgrade', function(request, socket, head) {
+      $tw.wss.handleUpgrade(request, socket, head, function(ws) {
+        $tw.wss.emit('connection', ws, request);
+      });
+    });
   };
 
   var Command = function(params,commander,callback) {
@@ -248,6 +253,14 @@ if($tw.node) {
       }
     });
     $tw.settings.API = $tw.settings.API || {};
+    if ($tw.settings.API.pluginLibrary === 'yes') {
+      // Add list route
+      var pluginListRoute = new RegExp('^\/api\/plugins\/list')
+      // TODO
+      // Add plugin fetch route
+      var fetchPluginRoute = new RegExp('^\/api\/plugins\/fetch\/.+')
+      // TODO
+    }
     if ($tw.settings.API.enablePush === 'yes') {
       var pushPathRegExp = new RegExp('^\/api\/push');
       $tw.httpServer.addRoute({

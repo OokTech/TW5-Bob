@@ -52,7 +52,8 @@ used. If the json isn't formatted correctly than default values will be used.
   },
   "API": {
     "enableFetch": "no",
-    "enablePush": "no"
+    "enablePush": "no",
+    "pluginLibrary": "no"
   }
 }
 ```
@@ -117,11 +118,15 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   tech support if you do any of them. If you want to do it anyway than you need
   to give this the value `I Will Not Get Tech Support For This`.
 - `API` things in this group are used for the api used for inter-server
-  communication using the TWederBob plugin.
+  communication using the TWederBob plugin. This is only active if you use the
+  `--wsserver` command, if you use an external server than these don't do
+  anything.
   - `enablePush` if this is set to `yes` than the server will accept tiddlers
     pushed using the TWederBob plugin.
   - `enableFetch` if this is set to `yes` than the server will let people fetch
     tiddlers from the server using the TWederBob plugin.
+  - *UNIMPLEMENTED* `pluginLibrary` if this is set to `yes` than the server will act as a
+    plugin library.
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the

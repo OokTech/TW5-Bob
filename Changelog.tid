@@ -1,6 +1,11 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.5
+!! Version 1.0.6 (ongoing)
+
+- Added placeholders for the plugin library without an external server.
+- Now the server only uses one port for both websockets and http(s) traffic
+
+!! Version 1.0.5 Salt Bagles
 
 - Added fetch and push routes to the `ws-server`
   - There are currently only placeholder functions for access control
