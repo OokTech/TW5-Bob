@@ -254,12 +254,106 @@ if($tw.node) {
     });
     $tw.settings.API = $tw.settings.API || {};
     if ($tw.settings.API.pluginLibrary === 'yes') {
+      var getPluginList = function () {
+        var pluginList = []
+        if (typeof $tw.settings.pluginsPath === 'string') {
+          var pluginsPath = path.resolve($tw.settings.pluginsPath)
+          if(fs.existsSync(pluginsPath)) {
+            var pluginAuthors = fs.readdirSync(pluginsPath)
+            pluginAuthors.forEach(function (author) {
+              var pluginAuthorPath = path.join(pluginsPath, './', author)
+              if (fs.statSync(pluginAuthorPath).isDirectory()) {
+                var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
+                for(var t=0; t<pluginAuthorFolders.length; t++) {
+                  var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
+                  var pluginFields = $tw.loadPluginFolder(fullPluginFolder)
+                  if(pluginFields) {
+                    var readme = ""
+                    var readmeText = ''
+                    try {
+                      // Try pulling out the plugin readme
+                      var pluginJSON = JSON.parse(pluginFields.text).tiddlers
+                      readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
+                        return title.toLowerCase().endsWith('/readme')
+                      })[0]]
+                    } catch (e) {
+                      console.log('Error parsing plugin', e)
+                    }
+                    if (readme) {
+                      readmeText = readme.text
+                    }
+                    var nameParts = pluginFields.title.split('/')
+                    var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
+                    var listInfo = {
+                      name: name,
+                      description: pluginFields.description,
+                      tiddlerName: pluginFields.title,
+                      version: pluginFields.version,
+                      author: pluginFields.author,
+                      readme: readmeText
+                    }
+                    pluginList.push(listInfo)
+                  }
+                }
+              }
+            })
+          }
+        }
+        return pluginList
+      }
+      var getPlugin = function (request) {
+        var urlParts = request.url.split('/')
+        if (typeof $tw.settings.pluginsPath === 'string') {
+          var pluginsPath = path.resolve($tw.settings.pluginsPath)
+          var pluginPath = path.resolve(pluginsPath, urlParts[urlParts.length-2], urlParts[urlParts.length-1])
+          if (fs.statSync(pluginPath).isDirectory()) {
+            var pluginFields = $tw.loadPluginFolder(pluginPath)
+            return pluginFields
+          }
+        }
+        return false
+      }
       // Add list route
       var pluginListRoute = new RegExp('^\/api\/plugins\/list')
-      // TODO
+      $tw.httpServer.addRoute({
+        method: "POST",
+        path: pluginListRoute,
+        handler: function (request, response, state) {
+          var authenticated = isAuthenticated(request)
+          if (authenticated) {
+            var pluginList = getPluginList()
+            response.setHeader('Access-Control-Allow-Origin', '*')
+            response.writeHead(200)
+            response.end(JSON.stringify(pluginList))
+          } else {
+            response.writeHead(403)
+            response.end()
+          }
+        }
+      })
       // Add plugin fetch route
       var fetchPluginRoute = new RegExp('^\/api\/plugins\/fetch\/.+')
-      // TODO
+      $tw.httpServer.addRoute({
+        method: "POST",
+        path: fetchPluginRoute,
+        handler: function (request, response, state) {
+          var authenticated = isAuthenticated(request)
+          if (authenticated) {
+            var plugin = getPlugin(request)
+            if (plugin) {
+              response.setHeader('Access-Control-Allow-Origin', '*')
+              response.writeHead(200)
+              response.end(JSON.stringify(plugin))
+            } else {
+              response.writeHead(403)
+              response.end()
+            }
+          } else {
+            response.writeHead(403)
+            response.end()
+          }
+        }
+      })
     }
     if ($tw.settings.API.enablePush === 'yes') {
       var pushPathRegExp = new RegExp('^\/api\/push');
@@ -325,7 +419,7 @@ if($tw.node) {
           var list
           var data = {}
           response.setHeader('Access-Control-Allow-Origin', '*')
-          response.writeHead(200, {"Content-Type": "application/json"});
+          response.writeHead(200, {"Content-Type": "application/json"})
           request.on('data', function(chunk){
             body += chunk;
             // We limit this to 1mb, it should never be anywhere near that

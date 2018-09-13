@@ -1,0 +1,52 @@
+title: $:/plugins/OokTech/Bob/Bob Plugin Library
+caption: Bob Plugin Library
+tags: [[Bob Documentation]]
+description: setting up Bob as a plugin library
+
+A Bob server can be configured as a plugin library.
+To do this you need to set the `pluginLibrary` key under `API` to `yes` in the
+settings and then set the `pluginsPath` key to wherever you have your plugins.
+
+Plugins are assumed to be in the same format as used by the core wiki.
+So under the plugins folder there should be folders that have the author names
+and under those folders that have the plugin names which hold the `plugin.info`
+files.
+
+Look at the plugins folder of the tiddlywiki5 repo for an example.
+
+When listing plugins Bob looks for a tiddler whose title ends with `/readme` (capitilisation is not important, so `/ReadMe` or `/README` would also work) and sends the text field of that tiddler with the plugin info.
+
+!! Developer Information
+
+''Note:'' This is information for developers. If you are setting up or using
+Bob as a plugin library you can ignore this. This section is only relevant if
+you are going to create your own interface to the plugin library.
+
+There are two RESTful api endpoints that are part of the plugin library. They both accept POSTs and return the requested information as stringified JSON.
+
+* `/api/plugins/list` returns a list of all plugins available in the library
+  (see list format below)
+* `/api/plugins/fetch/Author/Plugin` returns the plugin as a json object.
+
+The plugin list endpoint returns a list as an array in this format:
+
+```
+[
+  {
+    name: Author/Plugin,
+    description: plugin description field,
+    tiddlerName: the plugin tiddler name,
+    version: the plugin version,
+    author: the plugin author,
+    readme: the text of the plugins readme tiddler
+  },
+  {
+    name: Author/Plugin2,
+    description: plugin description field,
+    tiddlerName: the plugin2 tiddler name,
+    version: the plugin version,
+    author: the plugin author,
+    readme: the text of the plugins readme tiddler
+  }
+]
+```

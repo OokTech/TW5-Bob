@@ -13,8 +13,9 @@ used. If the json isn't formatted correctly than default values will be used.
 {
   "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
   "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
+  "pluginsPath": "/home/inmysocks/TiddlyWiki/Plugins",
   "suppressBrowser": false,
-  "fileURLPrefix": "files"
+  "fileURLPrefix": "files",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -125,8 +126,8 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
     pushed using the TWederBob plugin.
   - `enableFetch` if this is set to `yes` than the server will let people fetch
     tiddlers from the server using the TWederBob plugin.
-  - *UNIMPLEMENTED* `pluginLibrary` if this is set to `yes` than the server will act as a
-    plugin library.
+  - *UNIMPLEMENTED* `pluginLibrary` if this is set to `yes` than the server
+    will act as a plugin library.
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the
