@@ -74,6 +74,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   want to use an external image from your computer in your wiki than you need
   to set this to a parent folder of where the pictures are. If none is given
   than local files aren't served.
+- `editionsPath` is the folder that holds any custom editions you want to be
+  able to use when making wikis using the control panel.
+- `pluginsPath` is the path to the plugins folder if you are using the as a
+  plugin library.
 - `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
   has the normal restrictions on names as any URL, so avoid special characters.
   This defaults to `files` and only have an affect if you have also set
@@ -83,8 +87,6 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   things and no tech support will be provided.
 - `mimeMap` lists the file extensions and their associated mime-types that the
   server is allowed to serve. This only has an effect if `filePathRoot` is set.
-- `editionsPath` is the folder that holds any custom editions you want to be
-  able to use when making wikis using the control panel.
 - `suppressBrowser` is only used if you are using the single executable
   version. If it is set to `true` than the browser isn't opened automatically
   when the server is started.
@@ -126,8 +128,8 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
     pushed using the TWederBob plugin.
   - `enableFetch` if this is set to `yes` than the server will let people fetch
     tiddlers from the server using the TWederBob plugin.
-  - *UNIMPLEMENTED* `pluginLibrary` if this is set to `yes` than the server
-    will act as a plugin library.
+  - `pluginLibrary` if this is set to `yes` than the server will act as a
+    plugin library. (you also have to set the `pluginsPath`, see above)
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the
