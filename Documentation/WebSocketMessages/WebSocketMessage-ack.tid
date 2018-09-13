@@ -1,0 +1,10 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-ack
+tags: [[Websocket Message]]
+caption: ack
+description: A message for the backend, not human usable.
+
+A message for the backend, not human usable.
+
+It is used to acknowledge a websocket message from the server or browser.
+
+If you use this in normal wikitext than it will probably break things and I will not offer any help fixing it.

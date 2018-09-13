@@ -1,9 +1,9 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.6 (ongoing)
+!! Version 1.0.6 Salt Bagels 2: Bagel Harder
 
-- Added placeholders for the plugin library without an external server.
 - Now the server only uses one port for both websockets and http(s) traffic
+- Add paths for the plugin library to the normal Bob server
 
 !! Version 1.0.5 Salt Bagles
 
