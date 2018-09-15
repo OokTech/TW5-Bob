@@ -430,6 +430,7 @@ if($tw.node) {
             }
           });
           request.on('end', function() {
+            body = body.replace(/^message=/, '')
             try {
               var bodyData = JSON.parse(body)
               var hasAccess = canPullFromWiki(bodyData)
@@ -467,11 +468,93 @@ if($tw.node) {
                     }
                   }
                   var tiddlers = {}
+                  var info = {}
                   list.forEach(function(title) {
-                    tiddlers[title] = tempWiki.getTiddler(title)
+                    var tempTid = tempWiki.getTiddler(title)
+                    tiddlers[title] = tempTid
+                    info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
                   })
                   // Send the tiddlers
-                  data = {list: list, tiddlers: tiddlers}
+                  // title, modified, meta-data, version
+                  data = {list: list, tiddlers: tiddlers, info: info}
+                  data = JSON.stringify(data) || "";
+                  response.end(data);
+                }
+              }
+            } catch (e) {
+              data = JSON.stringify(data) || "";
+              response.end(data);
+            }
+          })
+        }
+      });
+      var fetchListPathRegExp = new RegExp('^\/api\/fetch\/list');
+      $tw.httpServer.addRoute({
+        method: "POST",
+        path: fetchListPathRegExp,
+        handler: function(request,response,state) {
+          var body = ''
+          var list
+          var data = {}
+          response.setHeader('Access-Control-Allow-Origin', '*')
+          response.writeHead(200, {"Content-Type": "application/json"})
+          request.on('data', function(chunk){
+            body += chunk;
+            // We limit this to 1mb, it should never be anywhere near that
+            // big
+            if (body.length > 1e6) {
+              response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+              request.connection.destroy();
+            }
+          });
+          request.on('end', function() {
+            body = body.replace(/^message=/, '')
+            try {
+              var bodyData = JSON.parse(body)
+              var hasAccess = canPullFromWiki(bodyData)
+              if (hasAccess) {
+                if (bodyData.filter && bodyData.fromWiki) {
+                  // Make sure that the person has access to the wiki
+                  var authorised = true//canAccess(data.token, data.fromWiki)
+                  if (authorised) {
+                    // Make sure that the wiki is listed
+                    if ($tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
+                      // If the wiki isn't loaded than load it
+                      if (!$tw.Bob.Wikis[bodyData.fromWiki]) {
+                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                      } else if ($tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
+                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                      }
+                      // Make sure that the wiki exists and is loaded
+                      if ($tw.Bob.Wikis[bodyData.fromWiki]) {
+                        if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
+                          // Make a temp wiki to run the filter on
+                          var tempWiki = new $tw.Wiki();
+                          $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
+                            var tiddler = $tw.wiki.getTiddler(internalTitle);
+                            var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                            newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                            newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                            newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                            // Add all the tiddlers that belong in wiki
+                            tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
+                          })
+                          // Use the filter
+                          list = tempWiki.filterTiddlers(bodyData.filter);
+                        }
+                      }
+                    }
+                  }
+                  var tiddlers = {}
+                  var info = {}
+                  list.forEach(function(title) {
+                    var tempTid = tempWiki.getTiddler(title)
+                    //tiddlers[title] = tempTid
+                    info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
+                  })
+                  // Send the tiddlers
+                  // title, modified, meta-data, version
+                  data = {list: list, info: info}
                   data = JSON.stringify(data) || "";
                   response.end(data);
                 }
