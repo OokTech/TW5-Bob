@@ -25,9 +25,9 @@ file and then run it and everything should work. When you run it it should even
 open the wiki in your default browser.
 
 To do use this go here
-(https://github.com/OokTech/TW5-SingleExecutable/releases) and download the
-file for your system (tiddlyLinux for linux, tiddlyWin.exe for windows and
-tiddlyOSX for mac). Then run the file.
+(https://github.com/OokTech/TW5-BobEXE) and download the
+file for your system (BobLinux for linux, BobWin.exe for windows and
+BobOSX for mac). Then run the file.
 
 - On windows it may ask if you want to allow node through your firewall. Say
   yes. If you have anti-virus software it will probably say that it is from an
