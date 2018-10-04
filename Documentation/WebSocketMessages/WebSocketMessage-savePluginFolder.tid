@@ -1,0 +1,46 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-savePluginFolder
+tags: [[Websocket Message]] [[Human Usable]]
+caption: savePluginFolder
+description: Split a plugin into individual .tid files and save it on the server
+
+This message imports tiddlers from another wiki being served by the same Bob
+server into the current wiki. It can optionally apply a filter to modify the
+titles of imported tiddlers.
+
+The purpose of this is to add plugins to the list of plugins served by a Bob
+server.
+
+!!Inputs
+
+|!Parameter |!Description |
+|!pluginName |The name of the plugin tiddler to save on the server |
+
+
+!!Notes
+
+The plugin tiddler must be named in the form `$:/plugins/Author/PluginName`.
+They will be stored in the folder listed in the settings under `pluginsPath`.
+The folder holding the .tid files will be `<<pluginsPath>>/Author/PluginName`.
+
+This message checks to make sure that the plugin being saved isn't an older
+version of one that is already saved. If the version number matches than the
+plugin is saved.
+
+!!Usage
+
+`<$action-websocketmessage $type='savePluginFolder' pluginName='$:/plugins/OokTech/Bob'/>`
+
+
+A button that will import any tiddlers in the wiki called `AnotherWiki` that
+have the tag `IMPORT ME` and adds `From Another Wiki ` added to the imported
+tiddler titles as a prefix.
+
+```
+<$button>
+  Import Some Tiddlers
+  <$action-websocketmessage
+    $type='savePluginFolder'
+    pluginName='$:/plugins/OokTech/Bob'
+  />
+</$button>
+```

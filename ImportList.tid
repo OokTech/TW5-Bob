@@ -1,0 +1,116 @@
+caption: Import List
+title: $:/plugins/Bob/ImportList
+
+These are the tiddlers from the most recent import:
+
+<$list
+  filter='[list[$:/status/Bob/importlist]]'
+>
+
+</$list>
+
+These are tiddlers that currently are waiting to be imported:
+
+<$list
+  filter='[prefix[$:/state/Bob/Import/]limit[1]]'
+  variable='dummy'
+  emptyMessage="''There are no tiddlers waiting for import, you can close this tiddler''"
+>
+  <$button>
+    Accept all
+    <$list
+      filter='[prefix[$:/state/Bob/Import/]]'
+    >
+      <$list
+        filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+        variable=NewTitle
+      >
+        <$action-setfield
+          $tiddler=<<currentTiddler>>
+          $field='title'
+          $value=<<NewTitle>>
+          $timestamp='no'
+        />
+        <$action-deletetiddler
+          $tiddler=<<currentTiddler>>
+        />
+      </$list>
+    </$list>
+  </$button>
+  <$button>
+    Discard import
+    <$action-deletetiddler
+      $filter='[prefix[$:/state/Bob/Import/]]'
+    />
+  </$button>
+  <table
+    style='width:100%'
+  >
+    <$list
+      filter='[prefix[$:/state/Bob/Import/]]'
+    >
+      <tr>
+        <td>
+          <$list
+            filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+          >
+            <$view
+              field='title'
+            />
+          </$list>
+        </td>
+        <td>
+        <$list
+          filter='[is[current]removeprefix[$:/state/Bob/Import/]has[title]]'
+          emptyMessage='No Local Version'
+        >
+          <$link>
+            <$link
+              to=<<currentTiddler>>
+            >
+              Local Version
+            </$link>
+          </$link>
+        </$list>
+        </td>
+        <td>
+          <$link
+            to=<<currentTiddler>>
+          >
+            Import Version
+          </$link>
+        </td>
+        <td>
+          <$button>
+            <$list
+              filter='[is[current]removeprefix[$:/state/Bob/Import/]has[title]]'
+              emptyMessage='Discard'
+            >
+              Keep original
+            </$list>
+            <$action-deletetiddler
+              $tiddler=<<currentTiddler>>
+            />
+          </$button>
+          <$button>
+            Use imported
+            <$list
+              filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+              variable=NewTitle
+            >
+              <$action-setfield
+                $tiddler=<<currentTiddler>>
+                $field='title'
+                $value=<<NewTitle>>
+                $timestamp='no'
+              />
+              <$action-deletetiddler
+                $tiddler=<<currentTiddler>>
+              />
+            </$list>
+          </$button>
+        </td>
+      </tr>
+    </$list>
+  </table>
+</$list>

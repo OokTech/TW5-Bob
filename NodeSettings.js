@@ -135,6 +135,33 @@ if ($tw.node) {
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split", wiki);
+    // Save the lists of plugins, languages and themes in tiddlywiki.info
+    var wikiInfoPath = path.join($tw.Bob.Wikis[wiki].wikiPath, 'tiddlywiki.info');
+    var wikiInfo
+    try {
+      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    } catch(e) {
+      console.log(e)
+    }
+    if (typeof wikiInfo === 'object') {
+      console.log('here')
+      // Get plugin list
+      var fieldsPluginList = {
+        title: '{' + wiki + '}$:/Bob/ActivePluginList',
+        list: $tw.utils.stringifyList(wikiInfo.plugins)
+      }
+      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsPluginList));
+      var fieldsThemesList = {
+        title: '{' + wiki + '}$:/Bob/ActiveThemesList',
+        list: $tw.utils.stringifyList(wikiInfo.themes)
+      }
+      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsThemesList));
+      var fieldsLanguagesList = {
+        title: '{' + wiki + '}$:/Bob/ActiveLanguagesList',
+        list: $tw.utils.stringifyList(wikiInfo.languages)
+      }
+      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsLanguagesList));
+    }
   }
 
   function doThisLevel (inputObject, currentName, wiki) {

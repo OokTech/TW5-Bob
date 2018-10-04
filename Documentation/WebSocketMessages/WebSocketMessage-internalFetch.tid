@@ -17,10 +17,20 @@ affect the imported tiddlers.
 |!fromWiki |The name of the wiki to shut down. (No default) |
 |!filter |The tiddlers returned by this filter are imported. (No default) |
 |!transformFilter |Imported tiddlers have their titles transformed by this filter (No defalut) |
+|!resolution |The method used to handle conflicts (default: `manual`) |
 
 If nothing is given for the `fromWiki` or `filter` attributes than this message
 does nothing. To determine the wikiName for a wiki look in the $:/WikiName
 tiddler.
+
+There are there options for `resolution`
+
+* `manual` each tiddler is saved to a temporary tiddler for review and must be
+  manually accepted or rejected.
+* `conflict` tiddlers with local copies that have been modified more recently
+  than the incoming version are saved in temporary tiddlers to be accepted or
+  rejected.
+* `force` all incoming tiddlers are saved regardless of any conflicts
 
 !!Usage
 

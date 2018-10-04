@@ -20,7 +20,7 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
   List available wikis in sidebar
 </$checkbox>
 
-<<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
+<<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
 
 </$reveal>
 
@@ -41,6 +41,6 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 
 Other settings should only be changed from the root wiki.
 
-{{$:/plugins/OokTech/Bob/Wiki Listing}}
+<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugins/OokTech/Bob/SelectPlugins]]" "$:/plugins/OokTech/Bob/Wiki Listing">>
 
 </$reveal>

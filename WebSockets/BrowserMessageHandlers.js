@@ -183,6 +183,24 @@ it will overwrite this file.
   }
 
   /*
+    Import as a temporary tiddler so it can be saved or deleted by the person
+    using the wiki
+  */
+  $tw.browserMessageHandlers.import = function(data) {
+    console.log('import', data.tiddler.fields.title)
+    data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
+    data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
+    data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
+    var newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
+    $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields, {title: newTitle}));
+    // we have conflicts so open the conflict list tiddler
+    var storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+    storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
+    $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
+    sendAck(data);
+  }
+
+  /*
     This handles a ping from the server. The server and browser make sure they
     are connected by sending pings periodically.
     The pong response also echos back whatever was sent along with the ping.

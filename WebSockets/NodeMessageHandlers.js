@@ -920,6 +920,12 @@ if ($tw.node) {
         wiki
       transformFilter - the titles of imported tiddlers are modified by this
         filter.
+      resolution - how conflicts are handled
+        - manual - all tiddlers are saved in a temporary place and have to be
+          manually accepted or rejected
+        - conflct - only tiddlers that conflict with existing tiddlers are
+          saved in a temporary place to be accepted or rejected.
+        - force - all imported tiddlers are saved regardelss of conflicts
   */
   $tw.nodeMessageHandlers.internalFetch = function(data) {
     // Make sure that the person has access to the wiki
@@ -951,6 +957,7 @@ if ($tw.node) {
             var list = tempWiki.filterTiddlers(data.filter);
             // Add the results to the current wiki
             // Each tiddler gets added to the requesting wiki
+            var message
             list.forEach(function(tidTitle){
               var tiddler = tempWiki.getTiddler(tidTitle);
               if (data.transformFilter) {
@@ -959,12 +966,200 @@ if ($tw.node) {
                   tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
                 }
               }
-              var message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+              if (data.resolution === 'conflict') {
+                message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+              } else if (data.resolution === 'force') {
+                message = {type: 'saveTiddler', tiddler: tiddler};
+              } else {
+                message = {type: 'import', tiddler: tiddler};
+              }
               $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
+            var importListTiddler = {
+              fields: {
+                title: '$:/status/Bob/importlist',
+                tags: [],
+                list: list
+              }
+            }
+            message = {type: 'saveTiddler', tiddler: importListTiddler, wiki: data.wiki}
+            $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
           }
         }
       }
+    }
+  }
+
+  /*
+    This saves a plugin tiddler and splits it into separate .tid files and
+    saves them into the appropriate folder
+
+    But first it checks the plugin version to make sure that it is newer than
+    the existing one
+  */
+  $tw.nodeMessageHandlers.savePluginFolder = function(data) {
+    if (data.plugin) {
+      const fs = require('fs')
+      const path = require('path')
+      var pluginTiddler = $tw.wiki.getTiddler(data.plugin)
+      if (pluginTiddler) {
+        var pluginName = data.plugin.replace(/^\$:\/plugins\//, '')
+        var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
+        var pluginInfoPath = path.join(pluginFolderPath, 'plugin.info')
+        var isNewVersion = true
+        // Check if the plugin folder exists
+        if (fs.existsSync(pluginInfoPath)) {
+          // If it does exist than check versions, only save new or equal
+          // versions
+          // Load the plugin.info file and check the version
+          var oldInfo
+          try {
+            oldInfo = JSON.parse(fs.readFileSync(pluginInfoPath, 'utf8'))
+          } catch (e) {
+            //Something
+            console.log(e)
+          }
+          if (oldInfo) {
+            // Check the version here
+            var oldVersion = $tw.utils.parseVersion(oldInfo.version)
+            var newVersion = $tw.utils.parseVersion(pluginTiddler.fields.version)
+            if (oldVersion.major > newVersion.major) {
+              isNewVersion = false
+            } else if (oldVersion.minor > newVersion.minor) {
+              isNewVersion = false
+            } else if (oldVersion.patch > newVersion.patch) {
+              isNewVersion = false
+            }
+          }
+        } else {
+          // We don't have any version of the plugin yet
+          var error = $tw.utils.createDirectory(pluginFolderPath);
+        }
+        if (isNewVersion) {
+          // Save the plugin tiddlers
+          Object.keys(JSON.parse(pluginTiddler.fields.text).tiddlers).forEach(function(title) {
+            var content = $tw.wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
+            var fileExtension = '.tid'
+            var filepath = path.join(pluginFolderPath, $tw.syncadaptor.generateTiddlerBaseFilepath(title) + fileExtension);
+            // If we aren't passed a path
+            fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
+              if(err) {
+                console.log(err);
+              } else {
+                console.log('saved file', filepath)
+              }
+            });
+          })
+          // Make the plugin.info file
+          var pluginInfo = {}
+          Object.keys(pluginTiddler.fields).forEach(function(field) {
+            if (field !== 'text' && field !== 'tags' && field !== 'type') {
+              pluginInfo[field] = pluginTiddler.fields[field]
+            }
+          })
+          fs.writeFile(pluginInfoPath,JSON.stringify(pluginInfo, null, 2),{encoding: "utf8"},function (err) {
+            if(err) {
+              console.log(err);
+            } else {
+              console.log('saved file', pluginInfoPath)
+            }
+          });
+        } else {
+          console.log("Didn't save plugin", pluginName, "with version", newVersion.version,"it is already saved with version", oldVersion.version)
+        }
+      }
+    }
+  }
+
+  /*
+  */
+  $tw.nodeMessageHandlers.getPluginList = function (data) {
+    const path = require('path')
+    const fs = require('fs')
+    var pluginList = []
+    if (typeof $tw.settings.pluginsPath === 'string') {
+      var pluginsPath = path.resolve($tw.settings.pluginsPath)
+      if(fs.existsSync(pluginsPath)) {
+        var pluginAuthors = fs.readdirSync(pluginsPath)
+        pluginAuthors.forEach(function (author) {
+          var pluginAuthorPath = path.join(pluginsPath, './', author)
+          if (fs.statSync(pluginAuthorPath).isDirectory()) {
+            var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
+            for(var t=0; t<pluginAuthorFolders.length; t++) {
+              var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
+              var pluginFields = $tw.loadPluginFolder(fullPluginFolder)
+              if(pluginFields) {
+                var readme = ""
+                var readmeText = ''
+                try {
+                  // Try pulling out the plugin readme
+                  var pluginJSON = JSON.parse(pluginFields.text).tiddlers
+                  readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
+                    return title.toLowerCase().endsWith('/readme')
+                  })[0]]
+                } catch (e) {
+                  console.log('Error parsing plugin', e)
+                }
+                if (readme) {
+                  readmeText = readme.text
+                }
+                var nameParts = pluginFields.title.split('/')
+                var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
+                var listInfo = {
+                  name: name,
+                  description: pluginFields.description,
+                  tiddlerName: pluginFields.title,
+                  version: pluginFields.version,
+                  author: pluginFields.author,
+                  readme: readmeText
+                }
+                pluginList.push(listInfo)
+              }
+            }
+          }
+        })
+      }
+    }
+    //return pluginList
+    var pluginNames = pluginList.map(function(index) {
+      return index.name
+    })
+    var fields = {
+      title: '$:/Bob/AvailablePluginList',
+      list: $tw.utils.stringifyList(pluginNames)
+    }
+    var tiddler = {fields: fields}
+    var message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+  }
+
+  /*
+    This loads the tiddlywiki.info and if new versions are given it updates the
+    description, list of plugins, themes and languages
+  */
+  $tw.nodeMessageHandlers.updateTiddlyWikiInfo = function (data) {
+    if (data.wiki) {
+      const path = require('path')
+      const fs = require('fs')
+      var wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
+      try {
+        var wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+      } catch(e) {
+        console.log(e)
+      }
+      if (data.description) {
+        wikiInfo.description = data.description;
+      }
+      if (data.pluginsList) {
+        wikiInfo.plugins = $tw.utils.parseStringArray(data.pluginsList);
+      }
+      if (data.themeList) {
+        wikiInfo.themes = $tw.utils.parseStringArray(data.themeList);
+      }
+      if (data.languageList) {
+        wikiInfo.languages = $tw.utils.parseStringArray(data.languageList);
+      }
+      fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
     }
   }
 

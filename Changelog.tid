@@ -1,5 +1,17 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.0.7 (ongoing)
+
+- Add `savePluginFolder` web socket message to save packaged plugins as folders
+  on a server. These plugins can then be available to other served wikis and in
+  the plugin library, if it is enabled.
+- Add the `import` borwser message handler to make fetching nicer
+- Add options for how to handle conflicts for `internalFetch`
+- `internalFetch` now displays a list of imported tiddlers
+- Added a way to change which plugins a wiki uses from inside the wiki
+- Added an interface to save plugins to the server and to select which plugins
+  from the server should be used in the current wiki
+
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 
 - Now the server only uses one port for both websockets and http(s) traffic
