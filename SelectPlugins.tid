@@ -54,7 +54,7 @@ then reload the page.
   Save Plugin Selection
   <$action-websocketmessage
     $type='updateTiddlyWikiInfo'
-    pluginsList={{$:/Bob/ActivePluginList!!list}}
+    pluginList={{$:/Bob/ActivePluginList!!list}}
   />
   <$action-websocketmessage
     $type='unloadWiki'

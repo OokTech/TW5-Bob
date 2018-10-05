@@ -1072,61 +1072,13 @@ if ($tw.node) {
   }
 
   /*
+    This sends a list of all available plugins to the wiki
   */
   $tw.nodeMessageHandlers.getPluginList = function (data) {
-    const path = require('path')
-    const fs = require('fs')
-    var pluginList = []
-    if (typeof $tw.settings.pluginsPath === 'string') {
-      var pluginsPath = path.resolve($tw.settings.pluginsPath)
-      if(fs.existsSync(pluginsPath)) {
-        var pluginAuthors = fs.readdirSync(pluginsPath)
-        pluginAuthors.forEach(function (author) {
-          var pluginAuthorPath = path.join(pluginsPath, './', author)
-          if (fs.statSync(pluginAuthorPath).isDirectory()) {
-            var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
-            for(var t=0; t<pluginAuthorFolders.length; t++) {
-              var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
-              var pluginFields = $tw.loadPluginFolder(fullPluginFolder)
-              if(pluginFields) {
-                var readme = ""
-                var readmeText = ''
-                try {
-                  // Try pulling out the plugin readme
-                  var pluginJSON = JSON.parse(pluginFields.text).tiddlers
-                  readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
-                    return title.toLowerCase().endsWith('/readme')
-                  })[0]]
-                } catch (e) {
-                  console.log('Error parsing plugin', e)
-                }
-                if (readme) {
-                  readmeText = readme.text
-                }
-                var nameParts = pluginFields.title.split('/')
-                var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
-                var listInfo = {
-                  name: name,
-                  description: pluginFields.description,
-                  tiddlerName: pluginFields.title,
-                  version: pluginFields.version,
-                  author: pluginFields.author,
-                  readme: readmeText
-                }
-                pluginList.push(listInfo)
-              }
-            }
-          }
-        })
-      }
-    }
-    //return pluginList
-    var pluginNames = pluginList.map(function(index) {
-      return index.name
-    })
+    var pluginNames = $tw.utils.getPluginInfo();
     var fields = {
       title: '$:/Bob/AvailablePluginList',
-      list: $tw.utils.stringifyList(pluginNames)
+      list: $tw.utils.stringifyList(Object.keys(pluginNames))
     }
     var tiddler = {fields: fields}
     var message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
@@ -1147,16 +1099,16 @@ if ($tw.node) {
       } catch(e) {
         console.log(e)
       }
-      if (data.description) {
+      if (data.description || data.description === "") {
         wikiInfo.description = data.description;
       }
-      if (data.pluginsList) {
-        wikiInfo.plugins = $tw.utils.parseStringArray(data.pluginsList);
+      if (data.pluginList || data.pluginList === "") {
+        wikiInfo.plugins = $tw.utils.parseStringArray(data.pluginList);
       }
-      if (data.themeList) {
+      if (data.themeList || data.themeList === "") {
         wikiInfo.themes = $tw.utils.parseStringArray(data.themeList);
       }
-      if (data.languageList) {
+      if (data.languageList || data.languageList === "") {
         wikiInfo.languages = $tw.utils.parseStringArray(data.languageList);
       }
       fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))

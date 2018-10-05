@@ -1,0 +1,32 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-getPluginList
+tags: [[Websocket Message]] [[Human Usable]]
+caption: getPluginList
+description: Get a list of all available plugins from the server
+
+This updates the list of all plugins that are available on the server. It is
+here to be used with the tools for changing which plugins from the local
+library.
+
+The list of plugins is saved in the list field of the tiddler
+`$:/Bob/AvailablePluginList` and they are in the form `Author/PluginName`, like
+`tiddlywiki/katex`.
+
+!!Inputs
+
+None
+
+!!Usage
+
+`<$action-websocketmessage $type='getPluginList'/>`
+
+
+A button that will update the list of available plugins
+
+```
+<$button>
+  Update Plugin List
+  <$action-websocketmessage
+    $type='getPluginList'
+  />
+</$button>
+```

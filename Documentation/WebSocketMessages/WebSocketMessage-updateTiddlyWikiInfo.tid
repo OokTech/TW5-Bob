@@ -1,0 +1,35 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-updateTiddlyWikiInfo
+tags: [[Websocket Message]] [[Human Usable]]
+caption: updateTiddlyWikiInfo
+description: Update the description, plugins, languages and themes in tiddlywiki.info
+
+This message can be used to modify the `tiddlywiki.info` file for the current
+wiki.
+You can change the list of plugins, themes or languages as well as the
+description.
+
+You can change one or more of the parts at the same time.
+
+If you give a parameter with an empty string (like this `""`) than it will
+clear the list of plugins/themes/languages.
+
+!!Usage
+
+Note: all parameters for this are optional.
+
+|!Name |!Description |
+|!description |A text description to replace the current one. (optional) |
+|!pluginList |A list of plugin names to replace the current list of plugins in the form "OokTech/Bob tiddlywiki/katext" (optional) |
+|!themeList |A list of themes to include in the wiki in the same form as the plugins. (optional) |
+|!languageList |A list of languages to include in the wiki in the same form as the plugins (optional) |
+
+
+Example: Build the current wiki in the default location
+
+```
+<$action-websocketmessage $type='buildHTMLWiki'/>
+```
+
+Note: If you make your own exclude list it is a good idea to include the
+tiddlers in the default. They have no purpose in a single file wiki and may
+cause errors.
