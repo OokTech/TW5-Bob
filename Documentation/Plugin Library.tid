@@ -14,7 +14,41 @@ files.
 
 Look at the plugins folder of the tiddlywiki5 repo for an example.
 
-When listing plugins Bob looks for a tiddler whose title ends with `/readme` (capitilisation is not important, so `/ReadMe` or `/README` would also work) and sends the text field of that tiddler with the plugin info.
+When listing plugins Bob looks for a tiddler whose title ends with `/readme`
+(capitilisation is not important, so `/ReadMe`, `/README` or `/ReAdMe` would
+also work) and sends the text field of that tiddler with the plugin info.
+
+!!! Adding Plugins to the Library
+
+There is a tab `Manage Plugins` under `Bob Settings` that has tools for adding
+plugins that you have dragged and dropped into the wiki to the plugin library.
+Only plugins that are not already in the library are listed in this.
+
+Alternately you can add plugins to the library in three ways:
+
+- Git - You can use git to clone plugins into your plugin folder and they can
+  be accessible in the library.
+- API - You can use the api to POST plugins and have them saved in the library
+- Websocket Message - If you have the plugin in your wiki via drag and drop
+  than you can add it to the library using the `savePluginFolder` message.
+
+!!! Changing Plugins Used by a Wiki
+
+In the `Manage Plugins` tab under `Bob Settings` in the $:/ControlPanel you can
+change which plugins are in a wiki. You should click `Update Plugin List` to
+make sure that you have a complete list of plugins.
+
+Then you can select whichever plugins from the list that you want to have in
+your wiki. After selecting the plugins you want click `Save Plugin Selection`
+to update the `tiddlywiki.info` file then reload the page. Clicking
+`Refresh Page` will do this, or use the normal browser reload.
+
+After reloading the wiki will have the new list of plugins.
+
+''Note:'' This will not remove plugins that you have added by drag and drop.
+You have to delete them like normal. If you have added a plugin using this
+method after you added the plugin via drag and drop you can delete the plugin
+tiddler before reloading the page.
 
 !! Developer Information
 

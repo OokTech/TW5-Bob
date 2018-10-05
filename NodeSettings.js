@@ -144,7 +144,6 @@ if ($tw.node) {
       console.log(e)
     }
     if (typeof wikiInfo === 'object') {
-      console.log('here')
       // Get plugin list
       var fieldsPluginList = {
         title: '{' + wiki + '}$:/Bob/ActivePluginList',

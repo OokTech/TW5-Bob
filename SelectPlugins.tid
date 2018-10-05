@@ -1,8 +1,14 @@
 title: $:/plugins/OokTech/Bob/SelectPlugins
-caption: Select Plugins
+caption: Manage Plugins
 
-This only lists plugins that you have in the folder listed with the
-`pluginsPath` key in the `Manual Settings` tab.
+This lists any plugins on the server. Click this button to update the list.
+
+<$button>
+  Update Plugin List
+  <$action-websocketmessage
+    $type='getPluginList'
+  />
+</$button>
 
 You can add plugins to the library by selecting them here and click
 `Save Plugin As Folder`. You may want to click `Update Plugin List` below to
@@ -44,12 +50,6 @@ make sure you don't try and save a plugin you already have saved.
 Select which plugins you want in this wiki below then click `Update Plugins`
 then reload the page.
 
-<$button>
-  Update Plugin List
-  <$action-websocketmessage
-    $type='getPluginList'
-  />
-</$button>
 <$button>
   Save Plugin Selection
   <$action-websocketmessage
