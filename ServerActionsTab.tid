@@ -20,8 +20,8 @@ just requires a page reload, not restarting the server.
 
 -->
 
-WARNING: This button will shutdown this wiki. If you are running multiple wikis
-simultaneously this only shuts down all of the wikis.
+WARNING: This button will shutdown the wiki server. None of the wikis will be
+available until it is restarted.
 
 <$button>
   Shutdown Wiki
