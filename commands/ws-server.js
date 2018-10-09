@@ -450,19 +450,7 @@ if($tw.node) {
                       // Make sure that the wiki exists and is loaded
                       if ($tw.Bob.Wikis[bodyData.fromWiki]) {
                         if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
-                          // Make a temp wiki to run the filter on
-                          var tempWiki = new $tw.Wiki();
-                          $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
-                            var tiddler = $tw.wiki.getTiddler(internalTitle);
-                            var newTiddler = JSON.parse(JSON.stringify(tiddler));
-                            newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                            newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                            newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                            // Add all the tiddlers that belong in wiki
-                            tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
-                          })
-                          // Use the filter
-                          list = tempWiki.filterTiddlers(bodyData.filter);
+                          list = $tw.Bob.Wikis[bodyData.fromWiki].wiki.filterTiddlers(bodyData.filter);
                         }
                       }
                     }
@@ -470,7 +458,7 @@ if($tw.node) {
                   var tiddlers = {};
                   var info = {};
                   list.forEach(function(title) {
-                    var tempTid = tempWiki.getTiddler(title);
+                    var tempTid = $tw.Bob.Wikis[bodyData.fromWiki].wiki.getTiddler(title);
                     tiddlers[title] = tempTid;
                     info[title] = {};
                     if (bodyData.fieldList) {

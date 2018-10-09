@@ -105,7 +105,7 @@ if ($tw.node) {
   }
 
   $tw.CreateSettingsTiddlers = function (wiki) {
-    wiki = wiki === ''?'RootWiki':wiki;
+    wiki = (wiki === '' || typeof wiki === 'undefined')?'RootWiki':wiki;
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if (typeof $tw.settings.editionsPath === 'string') {
@@ -122,17 +122,17 @@ if ($tw.node) {
     Object.keys(editionsList).forEach(function(index) {
       $tw.editionsInfo[index] = editionsList[index].description;
     });
-    $tw.wiki.addTiddler(new $tw.Tiddler({title: "{" + wiki + "}$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}));
     // Create the $:/ServerIP tiddler
-    $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host, wss_port: $tw.settings.serverInfo.wssPort}));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host, wss_port: $tw.settings.serverInfo.wssPort}));
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
-      title: '{' + wiki + '}' + '$:/WikiSettings',
+      title: '$:/WikiSettings',
       text: settingsString,
       type: 'application/json'
     };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split", wiki);
     // Save the lists of plugins, languages and themes in tiddlywiki.info
@@ -146,20 +146,20 @@ if ($tw.node) {
     if (typeof wikiInfo === 'object') {
       // Get plugin list
       var fieldsPluginList = {
-        title: '{' + wiki + '}$:/Bob/ActivePluginList',
+        title: '$:/Bob/ActivePluginList',
         list: $tw.utils.stringifyList(wikiInfo.plugins)
       }
-      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsPluginList));
+      $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler(fieldsPluginList));
       var fieldsThemesList = {
-        title: '{' + wiki + '}$:/Bob/ActiveThemesList',
+        title: '$:/Bob/ActiveThemesList',
         list: $tw.utils.stringifyList(wikiInfo.themes)
       }
-      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsThemesList));
+      $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler(fieldsThemesList));
       var fieldsLanguagesList = {
-        title: '{' + wiki + '}$:/Bob/ActiveLanguagesList',
+        title: '$:/Bob/ActiveLanguagesList',
         list: $tw.utils.stringifyList(wikiInfo.languages)
       }
-      $tw.wiki.addTiddler(new $tw.Tiddler(fieldsLanguagesList));
+      $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler(fieldsLanguagesList));
     }
   }
 
@@ -176,11 +176,11 @@ if ($tw.node) {
       }
     });
     var tiddlerFields = {
-      title: '{' + wiki + '}' + currentName,
+      title: currentName,
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   }
 
   startup();
