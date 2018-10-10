@@ -124,7 +124,7 @@ if ($tw.node) {
           // the wiki.
           // This is the title based on the current .tid file
           var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title);
-          var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(newTitle);
+          var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
           // Load the tiddler from the wiki, check if they are different (non-existent is changed)
           var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
           //if (tiddlerFileTitle !== newTitle) {
@@ -206,14 +206,15 @@ if ($tw.node) {
 
     // At this point the tiddlerName is the internal name so we need to switch
     // to the non-prefixed name for the message to the browsers
-    Object.keys($tw.boot.files).forEach(function(tiddlerName) {
-      if ($tw.boot.files[tiddlerName].filepath === itemPath) {
+    Object.keys($tw.boot.files).forEach(function(prefixTiddlerName) {
+      if ($tw.boot.files[prefixTiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.boot.files
-        delete $tw.boot.files[tiddlerName];
+        delete $tw.boot.files[prefixTiddlerName];
+        // Get the non-prefixed name
+        var tiddlerName = prefixTiddlerName.replace('{'+prefix+'}','');
+        // Remove the tiddler on the server
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(tiddlerName);
-        // Create a message saying to remove the tiddler
-        // Remove the prefix from the tiddler
-        tiddlerName = tiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
+        // Create a message saying to remove the tiddler from the browser
         var message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);

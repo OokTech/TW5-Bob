@@ -28,11 +28,7 @@ if ($tw.node) {
   /*
     Only load the settings if you are running node
   */
-  var defaultSettingsTiddler = '$:/plugins/OokTech/NodeSettings/DefaultSettings';
   var startup = function () {
-    var LocalSettings = {};
-    // The default settings path
-    var defaultSettings =  $tw.wiki.getTiddler(defaultSettingsTiddler);
     // The user settings path
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     $tw.loadSettings($tw.settings, userSettingsPath);
@@ -124,7 +120,7 @@ if ($tw.node) {
     });
     $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}));
     // Create the $:/ServerIP tiddler
-    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host, wss_port: $tw.settings.serverInfo.wssPort}));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host}));
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {

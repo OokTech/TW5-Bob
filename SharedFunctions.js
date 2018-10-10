@@ -63,11 +63,11 @@ This has some functions that are needed by Bob in different places.
           var empty2 = false;
           var field1 = tiddler.fields[field]
           if (!Array.isArray(field1)) {
-            field1 = $tw.utils.stringifyList(field1);
+            field1 = $tw.utils.parseStringArray(field1);
           }
           var field2 = otherTiddler.fields[field]
           if (!Array.isArray(field2)) {
-            field2 = $tw.utils.stringifyList(field2);
+            field2 = $tw.utils.parseStringArray(field2);
           }
           if (field1) {
             if (field1.length === 0) {
@@ -368,7 +368,7 @@ This has some functions that are needed by Bob in different places.
       // with draft tiddler titles which would be ignored, but that prevents
       // the lock from being removed from the non-draft tiddler.
       if (['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
-        var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        var list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
         if (list.indexOf(messageData.title) !== -1) {
           ignore = true;
         }

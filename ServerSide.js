@@ -107,7 +107,6 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     		$tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
     	});
     	// Load the core tiddlers
-    	$tw.wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       if (!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
         $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       }
@@ -192,7 +191,8 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   $tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
     if(!options.readOnly && tiddlerFile.filepath) {
       $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
-        $tw.boot.files[tiddler.title] = {
+        var prefixTitle = '{' + options.prefix + '}' + tiddler.title;
+        $tw.boot.files[prefixTitle] = {
           filepath: tiddlerFile.filepath,
           type: tiddlerFile.type,
           hasMetaFile: tiddlerFile.hasMetaFile
@@ -205,8 +205,9 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   var config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
     var output = {};
-    for(var title in $tw.boot.files) {
-      output[title] = path.relative(resolvedWikiPath,$tw.boot.files[title].filepath);
+    for(var prefixTitle in $tw.boot.files) {
+      var title = prefixTitle.replace('{' + options.prefix + '}', '');
+      output[title] = path.relative(resolvedWikiPath,$tw.boot.files[prefixTitle].filepath);
     }
     $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
   }

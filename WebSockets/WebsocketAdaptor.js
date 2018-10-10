@@ -116,8 +116,8 @@ if($tw.node) {
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
         $tw.boot.files[internalTitle] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
-          $tw.Bob.Wikis[prefix].tiddlers.push(internalTitle);
+        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
+          $tw.Bob.Wikis[prefix].tiddlers.push(title);
         }
         // Pass it to the callback
         callback(null,fileInfo);
@@ -178,7 +178,7 @@ if($tw.node) {
   WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
     if (typeof prefix === 'function') {
       callback = prefix;
-      prefix = '';
+      prefix = null;
     }
     if (typeof callback !== 'function') {
       callback = function () {
@@ -186,7 +186,6 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    var internalName = tiddler.fields.title;
     if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       var self = this;
       self.getTiddlerFileInfo(tiddler, prefix,
@@ -200,13 +199,13 @@ if($tw.node) {
           return callback(error);
         }
         // Save the tiddler in memory.
-        internalSave(tiddler, internalName, prefix);
+        internalSave(tiddler, prefix);
         // Handle saving to the file system
         if(fileInfo.hasMetaFile) {
           var title = tiddler.fields.title
           // Save the tiddler as a separate body and meta file
           var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          var content = $tw.wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
+          var content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
           fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
@@ -250,7 +249,7 @@ if($tw.node) {
   };
 
   // After the tiddler file is saved this takes care of the internal part
-  function internalSave (tiddler, internalName, prefix) {
+  function internalSave (tiddler, prefix) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
     var message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
     $tw.Bob.SendToBrowsers(message);
@@ -258,8 +257,8 @@ if($tw.node) {
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
     $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
-      $tw.Bob.Wikis[prefix].tiddlers.push(internalName);
+    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(tiddler.fields.title) === -1) {
+      $tw.Bob.Wikis[prefix].tiddlers.push(tiddler.fields.title);
     }
   }
 

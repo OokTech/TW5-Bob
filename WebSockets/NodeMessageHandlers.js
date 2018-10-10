@@ -96,11 +96,11 @@ if ($tw.node) {
         // Ignore draft tiddlers
         if (!data.tiddler.fields['draft.of']) {
           var prefix = data.wiki || '';
-          var internalTitle = data.tiddler.fields.title;
+          var internalTitle = '{'+data.wiki+'}'+data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:internalTitle}}, wiki: prefix});
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:data.tiddler.fields.title}}, wiki: prefix});
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if (!$tw.boot.files[internalTitle]) {
@@ -148,8 +148,9 @@ if ($tw.node) {
       // Set the wiki as modified
       $tw.Bob.Wikis[data.wiki].modified = true;
       // Remove the tiddler from the list of tiddlers being edited.
-      if ($tw.Bob.EditingTiddlers[title]) {
-        delete $tw.Bob.EditingTiddlers[title];
+      var internalTitle = '{'+data.wiki+'}'+title;
+      if ($tw.Bob.EditingTiddlers[internalTitle]) {
+        delete $tw.Bob.EditingTiddlers[internalTitle];
         $tw.Bob.UpdateEditingTiddlers(false);
       }
     }
@@ -165,10 +166,10 @@ if ($tw.node) {
     data.tiddler.fields = data.tiddler.fields || {};
     var title = data.tiddler.fields.title;
     if (title) {
-      var internalName = title;
-      // Add the tiddler to the list of tiddlers being edited to prevent multiple
-      // people from editing it at the same time.
-      $tw.Bob.UpdateEditingTiddlers(internalName);
+      // Add the tiddler to the list of tiddlers being edited to prevent
+      // multiple people from editing it at the same time.
+      var internalTitle = '{'+data.wiki+'}'+title;
+      $tw.Bob.UpdateEditingTiddlers(internalTitle);
     }
     // Acknowledge the message.
     sendAck(data);
@@ -186,7 +187,7 @@ if ($tw.node) {
       if (title.startsWith("Draft of '")) {
         title = title.slice(10,-1);
       }
-      var internalName = title;
+      var internalName = '{'+data.wiki+'}' + title;
       // Remove the current tiddler from the list of tiddlers being edited.
       if ($tw.Bob.EditingTiddlers[internalName]) {
         delete $tw.Bob.EditingTiddlers[internalName];
