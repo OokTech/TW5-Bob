@@ -24,8 +24,6 @@ if($tw.node) {
     var self = this;
     this.wiki = options.wiki;
     this.logger = new $tw.utils.Logger("WebsocketAdaptor",{colour: "blue"});
-    // Create the <wiki>/tiddlers folder if it doesn't exist
-    //$tw.utils.createDirectory($tw.boot.wikiTiddlersPath);
   }
 
   WebsocketAdaptor.prototype.name = "WebsocketAdaptor";

@@ -368,7 +368,11 @@ This has some functions that are needed by Bob in different places.
       // with draft tiddler titles which would be ignored, but that prevents
       // the lock from being removed from the non-draft tiddler.
       if (['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
-        var list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        if ($tw.node) {
+          var list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        } else {
+          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        }
         if (list.indexOf(messageData.title) !== -1) {
           ignore = true;
         }

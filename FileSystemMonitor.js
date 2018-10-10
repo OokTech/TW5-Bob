@@ -9,12 +9,6 @@ browser. So if you make a new .tid file in the tiddlers folder it will appear
 in the wiki in the browser without needing to restart the server. You can also
 delete files to remove the tiddlers from the browser.
 
-Note: For now this only watches the tiddlers folder that is in the same place
-as the tiddlywiki.info file and doesn't watch for changes in any subfolders
-inside that folder.
-This is due to differences in how different operating systems handle watching
-for changes to files.
-
 \*/
 (function(){
 
@@ -254,35 +248,6 @@ if ($tw.node) {
       $tw.Bob.WatchAllFolders(folderTree.folders[folder], prefix);
     });
   }
-
-  /*
-    Recursively create a directory
-    copied from core/modules/utils/filesystem.js because for some reason it
-    isn't available at this point in the boot process.
-  */
-  var isDirectory = function(dirPath) {
-    return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
-  };
-  var createDirectory = function(dirPath) {
-    if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
-      dirPath = dirPath + path.sep;
-    }
-    var pos = 1;
-    pos = dirPath.indexOf(path.sep,pos);
-    while(pos !== -1) {
-      var subDirPath = dirPath.substr(0,pos);
-      if(!isDirectory(subDirPath)) {
-        try {
-          fs.mkdirSync(subDirPath);
-        } catch(e) {
-          return "Error creating directory '" + subDirPath + "'";
-        }
-      }
-      pos = dirPath.indexOf(path.sep,pos + 1);
-    }
-    return null;
-  };
-
 }
 
 })();

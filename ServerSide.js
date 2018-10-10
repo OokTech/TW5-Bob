@@ -88,8 +88,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
       $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
       // Make sure that the tiddlers folder exists
-      createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
-
+      var error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
       // Recursively build the folder tree structure
       $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
@@ -371,28 +370,6 @@ var buildTree = function(location, parent) {
   }
   return parentTree;
 }
-var isDirectory = function(dirPath) {
-  return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
-};
-var createDirectory = function(dirPath) {
-  if(dirPath.substr(dirPath.length-1,1) !== path.sep) {
-    dirPath = dirPath + path.sep;
-  }
-  var pos = 1;
-  pos = dirPath.indexOf(path.sep,pos);
-  while(pos !== -1) {
-    var subDirPath = dirPath.substr(0,pos);
-    if(!isDirectory(subDirPath)) {
-      try {
-        fs.mkdirSync(subDirPath);
-      } catch(e) {
-        return "Error creating directory '" + subDirPath + "'";
-      }
-    }
-    pos = dirPath.indexOf(path.sep,pos + 1);
-  }
-  return null;
-};
 
 module.exports = ServerSide
 
