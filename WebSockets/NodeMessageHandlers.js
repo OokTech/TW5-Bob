@@ -889,10 +889,21 @@ if ($tw.node) {
       if ($tw.Bob.Wikis[data.wikiName]) {
         if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
           // If so than unload the wiki
-          // This removes the information about the wiki
+          // This removes the information about the wiki and the wiki object
           delete $tw.Bob.Wikis[data.wikiName];
+          // This removes all the info about the files for the wiki
+          var key;
+          var result = {};
+          console.log(typeof $tw.boot.files)
+          for (key in $tw.boot.files) {
+            if (typeof key === 'string' && !key.startsWith('{'+data.wikiName+'}')) {
+              result[key] = $tw.boot.files[key];
+            }
+          }
+          $tw.boot.files = result;
         }
       }
+      console.log($tw.boot.files)
     }
   }
 
@@ -933,18 +944,23 @@ if ($tw.node) {
         // Make sure that the wiki exists and is loaded
         if ($tw.Bob.Wikis[data.fromWiki]) {
           if ($tw.Bob.Wikis[data.fromWiki].State === 'loaded') {
-            var list = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(data.filter);
+            // The list of tidddlers that are returned by the filter
+            var list = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
             // Add the results to the current wiki
             // Each tiddler gets added to the requesting wiki
             var message
             list.forEach(function(tidTitle){
-              var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle);
+              // Get the current tiddler
+              var tiddler = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
+              // Transform the tiddler title if a transfom filter is given
               if (data.transformFilter) {
-                var transformedTitle = ($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(data.transformFilter, null, $tw.Bob.Wikis[data.wiki].wiki.makeTiddlerIterator([tidTitle])) || [""])[0];
+                var transformedTitle = ($tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.transformFilter, null, $tw.Bob.Wikis[data.fromWiki].wiki.makeTiddlerIterator([tidTitle])) || [""])[0];
                 if(transformedTitle) {
                   tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
                 }
               }
+              // Create the message with the appropriate conflict resolution
+              // method and send it
               if (data.resolution === 'conflict') {
                 message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
               } else if (data.resolution === 'force') {
@@ -954,6 +970,7 @@ if ($tw.node) {
               }
               $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
+            // Make the import list and send that tiddler too
             var importListTiddler = {
               fields: {
                 title: '$:/status/Bob/importlist',

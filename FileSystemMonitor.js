@@ -73,7 +73,7 @@ if ($tw.node) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
     fs.watch(folder, function (eventType, filename) {
-      console.log('Monitor:',eventType,'on',filename)
+      //console.log('Monitor:',eventType,'on',filename)
       var isFile = false;
       var isFolder = false;
       // The full path to the current item
@@ -131,7 +131,7 @@ if ($tw.node) {
               // Make the new file path
               var tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
             }
-            if (typeof tiddlerName === 'string') {
+            if (typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
               console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
               // Remove the old tiddler
               $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
