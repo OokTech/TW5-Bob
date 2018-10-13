@@ -43,7 +43,7 @@ make sure you don't try and save a plugin you already have saved.
   Save Plugin As Folder
   <$action-websocketmessage
     $type='savePluginFolder'
-    plugin='$:/plugins/tiddlywiki/katex'
+    plugin={{$:/state/Bob/SavePluginFolder}}
   />
 </$button>
 
