@@ -300,9 +300,9 @@ if ($tw.node) {
         if (serverEntry.type === 'saveTiddler') {
           var longTitle = serverEntry.title;
           var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
         } else if (serverEntry.type === 'deleteTiddler') {
-          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}};
+          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}, wiki: data.wiki};
         }
         if (message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -367,12 +367,7 @@ if ($tw.node) {
     // Add the tiddler
     $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
-    var tiddlerFields2 = {
-      title: '$:/WikiSettings',
-      text: settings,
-      type: 'application/json'
-    };
-    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}});
+    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     if (!fs.existsSync(userSettingsPath)) {
@@ -404,7 +399,7 @@ if ($tw.node) {
           if (typeof object[field] === 'string' || typeof object[field] === 'number') {
             if (String(object[field]).startsWith('$:/WikiSettings/split')) {
               // Recurse!
-              var newTiddler = $tw.Bob.Wiki[prefix].wiki.getTiddler(object[field]);
+              var newTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(object[field]);
               settings[field] = buildSettings(newTiddler, prefix);
             } else {
               // Actual thingy!
@@ -847,13 +842,9 @@ if ($tw.node) {
       // Add the tiddler
       $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
       // Push changes out to the browsers
-      var tiddlerFields2 = {
-        title: '$:/WikiSettings/split/wikis',
-        text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
-        type: 'application/json'
-      };
-      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}, wiki: 'RootWiki'});
+      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: 'RootWiki'});
 
+      // Update the settings
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 
       // This is here as a hook for an external server. It is defined by the
@@ -962,11 +953,11 @@ if ($tw.node) {
               // Create the message with the appropriate conflict resolution
               // method and send it
               if (data.resolution === 'conflict') {
-                message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+                message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
               } else if (data.resolution === 'force') {
-                message = {type: 'saveTiddler', tiddler: tiddler};
+                message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
               } else {
-                message = {type: 'import', tiddler: tiddler};
+                message = {type: 'import', tiddler: tiddler, wiki: data.wiki};
               }
               $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
