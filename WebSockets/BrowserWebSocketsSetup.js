@@ -44,14 +44,8 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.connections = null;
       }
       $tw.Syncer.isDirty = false;
-      var IPTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/ws-server");
-      try {
-        var output = JSON.parse(IPTiddler.fields.text);
-      } catch (e) {
-        var output = {};
-      }
       var IPAddress = window.location.hostname;
-      var WSSPort = output.port //output.wssport;
+      var WSSPort = window.location.port;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
 
       $tw.connections = $tw.connections || [];

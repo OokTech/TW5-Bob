@@ -61,27 +61,31 @@ This has some functions that are needed by Bob in different places.
           // strings, which in this context match.
           var empty1 = false;
           var empty2 = false;
-          if (Array.isArray(tiddler.fields[field])) {
-            if (tiddler.fields[field].length === 0) {
+          var field1 = tiddler.fields[field]
+          if (!Array.isArray(field1)) {
+            field1 = $tw.utils.parseStringArray(field1);
+          }
+          var field2 = otherTiddler.fields[field]
+          if (!Array.isArray(field2)) {
+            field2 = $tw.utils.parseStringArray(field2);
+          }
+          if (field1) {
+            if (field1.length === 0) {
               empty1 = true;
             }
-          } else if (tiddler.fields[field].trim() === '') {
-            empty1 = true;
           }
-          if (Array.isArray(otherTiddler.fields[field])) {
-            if (otherTiddler.fields[field].length === 0) {
+          if (field2) {
+            if (field2.length === 0) {
               empty2 = true;
             }
-          } else if (otherTiddler.fields[field].trim() === '') {
-            empty2 = true;
           }
           if (!empty1 && !empty2) {
-            if (otherTiddler.fields[field].length !== tiddler.fields[field].length) {
+            if (field1.length !== field2.length) {
               changed = true;
             } else {
-              var arrayList = otherTiddler.fields[field];
+              var arrayList = field2;
               arrayList.forEach(function(item) {
-                if (tiddler.fields[field].indexOf(item) === -1) {
+                if (field1.indexOf(item) === -1) {
                   changed = true;
                 }
               })
@@ -96,12 +100,12 @@ This has some functions that are needed by Bob in different places.
         var date2;
         if (typeof tiddler.fields[field] === 'string') {
           date1 = tiddler.fields[field];
-        } else if (typeof date1 !== 'undefined') {
+        } else if (typeof tiddler.fields[field] === 'object') {
           date1 = $tw.utils.stringifyDate(tiddler.fields[field]);
         }
         if (typeof otherTiddler.fields[field] === 'string') {
           date2 = otherTiddler.fields[field];
-        } else if (typeof date2 !== 'undefined'){
+        } else if (typeof otherTiddler.fields[field] === 'object'){
           date2 = $tw.utils.stringifyDate(otherTiddler.fields[field]);
         }
         if (date1 !== date2) {
@@ -364,7 +368,11 @@ This has some functions that are needed by Bob in different places.
       // with draft tiddler titles which would be ignored, but that prevents
       // the lock from being removed from the non-draft tiddler.
       if (['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
-        var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        if ($tw.node) {
+          var list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        } else {
+          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+        }
         if (list.indexOf(messageData.title) !== -1) {
           ignore = true;
         }

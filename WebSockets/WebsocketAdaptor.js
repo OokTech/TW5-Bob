@@ -24,8 +24,6 @@ if($tw.node) {
     var self = this;
     this.wiki = options.wiki;
     this.logger = new $tw.utils.Logger("WebsocketAdaptor",{colour: "blue"});
-    // Create the <wiki>/tiddlers folder if it doesn't exist
-    //$tw.utils.createDirectory($tw.boot.wikiTiddlersPath);
   }
 
   WebsocketAdaptor.prototype.name = "WebsocketAdaptor";
@@ -63,9 +61,6 @@ if($tw.node) {
     // See if we've already got information about this file
     var self = this,
       title = tiddler.fields.title;
-    if (title.startsWith('{' + prefix + '}')) {
-      title = title.replace('{' + prefix + '}', '');
-    }
     var internalTitle = '{' + prefix + '}' + title;
     var fileInfo = $tw.boot.files[internalTitle];
     if(fileInfo) {
@@ -119,8 +114,8 @@ if($tw.node) {
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
         $tw.boot.files[internalTitle] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalTitle) !== -1) {
-          $tw.Bob.Wikis[prefix].tiddlers.push(internalTitle);
+        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
+          $tw.Bob.Wikis[prefix].tiddlers.push(title);
         }
         // Pass it to the callback
         callback(null,fileInfo);
@@ -181,7 +176,7 @@ if($tw.node) {
   WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
     if (typeof prefix === 'function') {
       callback = prefix;
-      prefix = '';
+      prefix = null;
     }
     if (typeof callback !== 'function') {
       callback = function () {
@@ -189,7 +184,6 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    var internalName = (prefix === '' || tiddler.fields.title.startsWith('{' + prefix + '}')) ? tiddler.fields.title:'{' + prefix + '}' + tiddler.fields.title;
     if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
       var self = this;
       self.getTiddlerFileInfo(tiddler, prefix,
@@ -203,13 +197,13 @@ if($tw.node) {
           return callback(error);
         }
         // Save the tiddler in memory.
-        internalSave(tiddler, internalName, prefix);
+        internalSave(tiddler, prefix);
         // Handle saving to the file system
         if(fileInfo.hasMetaFile) {
-          var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title
+          var title = tiddler.fields.title
           // Save the tiddler as a separate body and meta file
           var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/templates/tiddler-metadata", {variables: {currentTiddler: title}});
+          var content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
           fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
@@ -236,9 +230,9 @@ if($tw.node) {
             }
           });
         } else {
-          var title = tiddler.fields.title.startsWith('{' + prefix + '}')?title:'{'+prefix+'}'+tiddler.fields.title;
+          var title = tiddler.fields.title;
           // Save the tiddler as a self contained templated file
-          var content = $tw.wiki.renderTiddler("text/plain", "$:/plugins/OokTech/Bob/templates/tid-tiddler", {variables: {currentTiddler: title}});
+          var content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
           // If we aren't passed a path
           fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
             if(err) {
@@ -253,22 +247,16 @@ if($tw.node) {
   };
 
   // After the tiddler file is saved this takes care of the internal part
-  function internalSave (tiddler, internalName, prefix) {
-    // addTiddler needs the prefixed title!!
-    var tempTiddlerFields = {};
-    Object.keys(tiddler.fields).forEach(function(fieldName) {
-      tempTiddlerFields[fieldName] = tiddler.fields[fieldName];
-    });
-    tempTiddlerFields.title = internalName;
-    $tw.wiki.addTiddler(new $tw.Tiddler(tempTiddlerFields));
+  function internalSave (tiddler, prefix) {
+    $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
     var message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
     $tw.Bob.SendToBrowsers(message);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
     $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(internalName) === -1) {
-      $tw.Bob.Wikis[prefix].tiddlers.push(internalName);
+    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(tiddler.fields.title) === -1) {
+      $tw.Bob.Wikis[prefix].tiddlers.push(tiddler.fields.title);
     }
   }
 
@@ -290,13 +278,24 @@ if($tw.node) {
   Delete a tiddler and invoke the callback with (err)
   */
   WebsocketAdaptor.prototype.deleteTiddler = function(title, callback, options) {
-    if (!callback) {
+    if (typeof callback === 'object') {
+      options = callback;
+      callback = null;
+    }
+    if (!callback || typeof callback === 'object') {
       callback = function () {
         // Just a blank function to prevent errors
       }
     }
+    if (typeof options !== 'object') {
+      options = {}
+    }
+    if (options.wiki) {
+      var prefix = options.wiki;
+      var prefixName = '{' + prefix + '}' + title;
+    }
     var self = this,
-      fileInfo = $tw.boot.files[title];
+      fileInfo = $tw.boot.files[prefixName];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
       //console.log('Delete tiddler file ', fileInfo.filepath);
@@ -306,13 +305,12 @@ if($tw.node) {
           return callback(err);
         }
         // Delete the tiddler from the internal tiddlywiki side of things
-        delete $tw.boot.files[title];
-        $tw.wiki.deleteTiddler(title);
+        delete $tw.boot.files[prefixName];
+        $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
         // Create a message saying to remove the tiddler
-        // get the prefix
-        var prefix = title.slice(1,title.indexOf('}'));
+
         // Remove the prefix from the tiddler
-        var tiddlerName = title.replace(new RegExp('^\{' + prefix + '\}'),'');
+        var tiddlerName = title;
         var message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);

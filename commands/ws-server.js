@@ -450,19 +450,7 @@ if($tw.node) {
                       // Make sure that the wiki exists and is loaded
                       if ($tw.Bob.Wikis[bodyData.fromWiki]) {
                         if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
-                          // Make a temp wiki to run the filter on
-                          var tempWiki = new $tw.Wiki();
-                          $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
-                            var tiddler = $tw.wiki.getTiddler(internalTitle);
-                            var newTiddler = JSON.parse(JSON.stringify(tiddler));
-                            newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                            newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                            newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                            // Add all the tiddlers that belong in wiki
-                            tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
-                          })
-                          // Use the filter
-                          list = tempWiki.filterTiddlers(bodyData.filter);
+                          list = $tw.Bob.Wikis[bodyData.fromWiki].wiki.filterTiddlers(bodyData.filter);
                         }
                       }
                     }
@@ -470,7 +458,7 @@ if($tw.node) {
                   var tiddlers = {};
                   var info = {};
                   list.forEach(function(title) {
-                    var tempTid = tempWiki.getTiddler(title);
+                    var tempTid = $tw.Bob.Wikis[bodyData.fromWiki].wiki.getTiddler(title);
                     tiddlers[title] = tempTid;
                     info[title] = {};
                     if (bodyData.fieldList) {
@@ -742,6 +730,31 @@ if($tw.node) {
       password: password,
       pathprefix: pathprefix
     });
+
+    if (typeof $tw.settings.pluginsPath === 'string') {
+      var resolvedpluginspath = path.resolve($tw.settings.pluginsPath);
+      if (process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
+        process.env["TIDDLYWIKI_PLUGIN_PATH"] = process.env["TIDDLYWIKI_PLUGIN_PATH"] + path.delimiter + resolvedpluginspath;
+      } else {
+        process.env["TIDDLYWIKI_PLUGIN_PATH"] = resolvedpluginspath;
+      }
+    }
+    if (typeof $tw.settings.themesPath === 'string') {
+      var resolvedthemespath = path.resolve($tw.settings.themesPath);
+      if (process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
+        process.env["TIDDLYWIKI_THEME_PATH"] = process.env["TIDDLYWIKI_THEME_PATH"] + path.delimiter + resolvedthemespath;
+      } else {
+        process.env["TIDDLYWIKI_THEME_PATH"] = resolvedthemespath;
+      }
+    }
+    if (typeof $tw.settings.editionsPath === 'string') {
+      var resolvededitionspath = path.resolve($tw.settings.editionsPath)
+      if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
+      } else {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = resolvededitionspath;
+      }
+    }
 
     var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)

@@ -74,10 +74,10 @@ it will overwrite this file.
     if (data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
       if (data.tiddler.fields) {
-        if (typeof data.tiddler.fields.title === 'string' && !data.tiddler.fields.title.startsWith('{' + $tw.wikiName + '}')) {
+        if (typeof data.tiddler.fields.title === 'string') {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
-          var changed = $tw.Bob.Shared.TiddlerHasChanged(data, $tw.wiki.getTiddler(data.tiddler.fields.title));
+          var changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
           if (changed) {
             console.log('Create Tiddler', data.tiddler.fields.title);
             $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
@@ -99,11 +99,6 @@ it will overwrite this file.
   $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
     // make sure there is actually a list sent
     if (data.list) {
-        // remove the prefix for the current wiki from anything listed with
-        // that prefix.
-        for (var i = 0; i < data.list.length; i++) {
-          data.list[i] = data.list[i].replace(new RegExp("^\{" + $tw.wikiName + "\}"),'');
-        }
         var listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields
         var tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
@@ -157,7 +152,6 @@ it will overwrite this file.
     version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
-    data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
     var wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
@@ -188,7 +182,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.import = function(data) {
     console.log('import', data.tiddler.fields.title)
-    data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
+    //data.tiddler.fields.title = data.tiddler.fields.title.replace('{'+$tw.wikiName+'}','');
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
     var newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;

@@ -96,11 +96,11 @@ if ($tw.node) {
         // Ignore draft tiddlers
         if (!data.tiddler.fields['draft.of']) {
           var prefix = data.wiki || '';
-          var internalTitle = '{' + prefix + '}' + data.tiddler.fields.title;
+          var internalTitle = '{'+data.wiki+'}'+data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:internalTitle}}, wiki: prefix});
+          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:data.tiddler.fields.title}}, wiki: prefix});
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if (!$tw.boot.files[internalTitle]) {
@@ -143,15 +143,14 @@ if ($tw.node) {
     data.tiddler.fields = data.tiddler.fields || {};
     var title = data.tiddler.fields.title;
     if (title) {
-      // Make the internal name
-      title = '{' + data.wiki + '}' + title;
       // Delete the tiddler file from the file system
-      $tw.syncadaptor.deleteTiddler(title);
+      $tw.syncadaptor.deleteTiddler(title, {wiki: data.wiki});
       // Set the wiki as modified
       $tw.Bob.Wikis[data.wiki].modified = true;
       // Remove the tiddler from the list of tiddlers being edited.
-      if ($tw.Bob.EditingTiddlers[title]) {
-        delete $tw.Bob.EditingTiddlers[title];
+      var internalTitle = '{'+data.wiki+'}'+title;
+      if ($tw.Bob.EditingTiddlers[internalTitle]) {
+        delete $tw.Bob.EditingTiddlers[internalTitle];
         $tw.Bob.UpdateEditingTiddlers(false);
       }
     }
@@ -167,10 +166,10 @@ if ($tw.node) {
     data.tiddler.fields = data.tiddler.fields || {};
     var title = data.tiddler.fields.title;
     if (title) {
-      var internalName = '{' + data.wiki + '}' + title;
-      // Add the tiddler to the list of tiddlers being edited to prevent multiple
-      // people from editing it at the same time.
-      $tw.Bob.UpdateEditingTiddlers(internalName);
+      // Add the tiddler to the list of tiddlers being edited to prevent
+      // multiple people from editing it at the same time.
+      var internalTitle = '{'+data.wiki+'}'+title;
+      $tw.Bob.UpdateEditingTiddlers(internalTitle);
     }
     // Acknowledge the message.
     sendAck(data);
@@ -188,7 +187,7 @@ if ($tw.node) {
       if (title.startsWith("Draft of '")) {
         title = title.slice(10,-1);
       }
-      var internalName = '{' + data.wiki + '}' + title;
+      var internalName = '{'+data.wiki+'}' + title;
       // Remove the current tiddler from the list of tiddlers being edited.
       if ($tw.Bob.EditingTiddlers[internalName]) {
         delete $tw.Bob.EditingTiddlers[internalName];
@@ -249,8 +248,8 @@ if ($tw.node) {
           // Server and browser are both save => conflict if the two tiddlers
           // aren't the same.
           var tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
-          tempTid.fields.title = '{'+data.wiki+'}'+messageData.title;
-          var serverTiddler = $tw.wiki.getTiddler(tempTid.fields.title);
+          tempTid.fields.title = messageData.title;
+          var serverTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tempTid.fields.title);
           if ($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
             conflicts.push(messageData.title);
           }
@@ -270,8 +269,8 @@ if ($tw.node) {
       if (conflicts.indexOf(messageData.title) === -1) {
         var message = {type: messageData.type, wiki: data.wiki}
         if (messageData.type === 'saveTiddler') {
-          var longTitle = '{'+data.wiki+'}'+messageData.title;
-          var tempTid = $tw.wiki.getTiddler(longTitle);
+          var longTitle = messageData.title;
+          var tempTid = $tw.Bob.Wiki[data.wiki].wiki.getTiddler(longTitle);
           var tiddler = JSON.parse(JSON.stringify(tempTid));
           tiddler.fields.title = messageData.title;
           // Making the copy above does something that breaks the date fields
@@ -299,11 +298,11 @@ if ($tw.node) {
       if (serverEntry) {
         var message;
         if (serverEntry.type === 'saveTiddler') {
-          var longTitle = '{'+data.wiki+'}'+serverEntry.title;
-          var tiddler = $tw.wiki.getTiddler(longTitle);
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+          var longTitle = serverEntry.title;
+          var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
+          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
         } else if (serverEntry.type === 'deleteTiddler') {
-          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}};
+          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}, wiki: data.wiki};
         }
         if (message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -355,25 +354,20 @@ if ($tw.node) {
       var path = require('path');
       var fs = require('fs');
     }
-    var prefix = '{'+data.wiki+'}';
+    var prefix = data.wiki;
     // Get first tiddler to start out
-    var tiddler = $tw.wiki.getTiddler(prefix + '$:/WikiSettings/split');
+    var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/WikiSettings/split');
     var settings = JSON.stringify(buildSettings(tiddler, prefix), "", 2);
     // Update the settings tiddler in the wiki.
     var tiddlerFields = {
-      title: prefix + '$:/WikiSettings',
-      text: settings,
-      type: 'application/json'
-    };
-    // Add the tiddler
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-    // Push changes out to the browsers
-    var tiddlerFields2 = {
       title: '$:/WikiSettings',
       text: settings,
       type: 'application/json'
     };
-    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}});
+    // Add the tiddler
+    $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    // Push changes out to the browsers
+    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     if (!fs.existsSync(userSettingsPath)) {
@@ -405,7 +399,7 @@ if ($tw.node) {
           if (typeof object[field] === 'string' || typeof object[field] === 'number') {
             if (String(object[field]).startsWith('$:/WikiSettings/split')) {
               // Recurse!
-              var newTiddler = $tw.wiki.getTiddler(prefix + object[field]);
+              var newTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(object[field]);
               settings[field] = buildSettings(newTiddler, prefix);
             } else {
               // Actual thingy!
@@ -530,55 +524,72 @@ if ($tw.node) {
   }
 
   // This builds a single file html version of the current wiki.
-  // This is a simplifed version of the renderTiddler command because I
-  // couldn't figure out how to just call that command here.
-  // TODO let people give an include filter that can build a wiki from tiddlers
-  // drawn from any of the served wikis.
+  // This is a modified version of the renderTiddler command.
+  // It can exclude tiddlers from the wiki using a filter and it can include
+  // tiddlers form any served wiki.
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
-    console.log('Build Wiki')
-    var path = require('path')
-    var fs = require('fs')
-    var wikiPath, fullName, excludeList;
+    var path = require('path');
+    var fs = require('fs');
+    var wikiPath, fullName, excludeList = [];
     if (data.buildWiki) {
-      var exists = $tw.httpServer.loadWiki(data.buildWiki);
+      var exists = $tw.ServerSide.loadWiki(data.buildWiki, $tw.settings.wikis[data.buildWiki]);
       if (exists) {
         wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
       }
     } else {
       wikiPath = $tw.Bob.Wikis[data.wiki].wikiPath;
-      fullName = data.wiki
+      fullName = data.wiki;
     }
+    console.log('Build HTML Wiki:', fullName);
     if (data.excludeList) {
       // Get the excludeList from the provided filter, if it exists
-      excludeList = $tw.wiki.filterTiddlers(data.excludeList);
+      excludeList = $tw.Bob.Wikis[fullName].wiki.filterTiddlers(data.excludeList);
     } else {
       // Otherwise we want to ignore the server-specific plugins to keep things
       // small.
       excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+    }
+    if (data.ignoreDefaultExclude !== 'true') {
+      var defaultExclude = $tw.Bob.Wikis[fullName].wiki.filterTiddlers('[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]');
+      excludeList = excludeList.concat(defaultExclude);
     }
     if (wikiPath) {
       var outputFolder = data.outputFolder || 'output';
       var outputName = data.outputName || 'index.html';
       var outputFile = path.resolve(wikiPath, outputFolder, outputName);
       $tw.utils.createFileDirectories(outputFile);
-      // tiddlers for this wiki.
-      var options = {
-        variables: {
-          wikiTiddlers:
-            $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-              // This prevents the Bob plugin from being added to the wiki
-              // It also strips out the filesystem and tiddlyweb plugins
-              if (excludeList.indexOf(tidInfo) === -1) {
-                return '[[' + tidInfo + ']]';
-              } else {
-                return '';
-              }
-            }).join(' '),
-          wikiName: fullName
+      var tempWiki = new $tw.Wiki();
+      var wikiTiddlers = $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).filter(function(tidInfo) {
+        return (excludeList.indexOf(tidInfo) === -1)
+      })
+      $tw.Bob.Wikis[fullName].wiki.allTitles().forEach(function(title) {
+        if (excludeList.indexOf(title) === -1) {
+          tempWiki.addTiddler($tw.Bob.Wikis[fullName].wiki.getTiddler(title));
         }
-      };
-      var text = $tw.wiki.renderTiddler('text/plain','$:/plugins/OokTech/Bob/save/single', options);
+      })
+      // If there are external tiddlers to add try and add them
+      if (data.externalTiddlers) {
+        try {
+          var externalData = JSON.parse(data.externalTiddlers);
+          Object.keys(externalData).forEach(function(wikiTitle) {
+            var exists = $tw.ServerSide.loadWiki(wikiTitle, $tw.settings.wikis[wikiTitle]);
+            if (exists) {
+              var includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
+              includeList.forEach(function(tiddlerTitle) {
+                tempWiki.addTiddler($tw.Bob.Wikis[wikiTitle].wiki.getTiddler(tiddlerTitle));
+              })
+            }
+          });
+        } catch (e) {
+          console.log("Couldn't parse externalTiddlers input")
+        }
+      }
+      tempWiki.registerPluginTiddlers("plugin",["$:/core"]);
+      // Unpack plugin tiddlers
+  	  tempWiki.readPluginInfo();
+      tempWiki.unpackPluginTiddlers();
+      var text = tempWiki.renderTiddler('text/plain',"$:/core/save/all", {variables:{wikiTiddlers:$tw.utils.stringifyList(tempWiki.allTitles())}});
       fs.writeFile(outputFile,text,"utf8",function(err) {
         if (err) {
             console.log(err);
@@ -656,7 +667,7 @@ if ($tw.node) {
         var options = {
           "currentTiddler": tiddler.title
         };
-        var text = $tw.wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options);
+        var text = $tw.Bob.Wikis[wikiName].wiki.renderTiddler('text/plain','$:/core/templates/tid-tiddler', options);
         // Save each tiddler as a file in the appropriate place
         fs.writeFile(outputFile,text,"utf8",function(err) {
           if (err) {
@@ -803,7 +814,7 @@ if ($tw.node) {
       // We need to make sure that the wikis entry is in the root settings
       // thing.
       var tidText = {};
-      var tiddler = $tw.wiki.getTiddler('{RootWiki}$:/WikiSettings/split');
+      var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/WikiSettings/split');
       if (tiddler) {
         if (typeof tiddler.fields.text === 'object') {
           // Clone object to make it writable
@@ -814,10 +825,10 @@ if ($tw.node) {
       }
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
-      $tw.wiki.addTiddler(new $tw.Tiddler({title:'{RootWiki}$:/WikiSettings/split', text:tidText, type: 'application/json'}));
+      $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler({title:'$:/WikiSettings/split', text:tidText, type: 'application/json'}));
       $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText, "", $tw.config.preferences.jsonSpaces), type: 'application/json'}}, wiki: 'RootWiki'});
 
-      var tiddlerText = $tw.wiki.getTiddlerText('{RootWiki}$:/WikiSettings/split/wikis')
+      var tiddlerText = $tw.Bob.Wikis[data.wiki].wiki.getTiddlerText('$:/WikiSettings/split/wikis')
 
       tiddlerText = tiddlerText?tiddlerText:"{}";
       var currentWikis = JSON.parse(tiddlerText);
@@ -841,20 +852,16 @@ if ($tw.node) {
       currentWikis[name] = '.' + path.sep + path.relative(rootPath, fullPath);
 
       var tiddlerFields = {
-        title: '{RootWiki}$:/WikiSettings/split/wikis',
-        text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
-        type: 'application/json'
-      };
-      // Add the tiddler
-      $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-      // Push changes out to the browsers
-      var tiddlerFields2 = {
         title: '$:/WikiSettings/split/wikis',
         text: JSON.stringify(currentWikis, null, $tw.config.preferences.jsonSpaces),
         type: 'application/json'
       };
-      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields2}, wiki: 'RootWiki'});
+      // Add the tiddler
+      $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+      // Push changes out to the browsers
+      $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: 'RootWiki'});
 
+      // Update the settings
       $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 
       // This is here as a hook for an external server. It is defined by the
@@ -890,18 +897,20 @@ if ($tw.node) {
       if ($tw.Bob.Wikis[data.wikiName]) {
         if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
           // If so than unload the wiki
-          // Get the list of tiddlers for this wiki
-          $tw.wiki.allTitles().filter(function(title) {
-            return title.startsWith('{' + data.wikiName + '}');
-          }).forEach(function(title) {
-            // Remove all the tiddlers listed as being in the wiki from
-            // the internal listing.
-            $tw.wiki.deleteTiddler(title);
-          })
-          // This removes the information about the wiki
+          // This removes the information about the wiki and the wiki object
           delete $tw.Bob.Wikis[data.wikiName];
+          // This removes all the info about the files for the wiki
+          var key;
+          var result = {};
+          for (key in $tw.boot.files) {
+            if (typeof key === 'string' && !key.startsWith('{'+data.wikiName+'}')) {
+              result[key] = $tw.boot.files[key];
+            }
+          }
+          $tw.boot.files = result;
         }
       }
+      $tw.Bob.DisconnectWiki(data.wikiName);
     }
   }
 
@@ -942,39 +951,33 @@ if ($tw.node) {
         // Make sure that the wiki exists and is loaded
         if ($tw.Bob.Wikis[data.fromWiki]) {
           if ($tw.Bob.Wikis[data.fromWiki].State === 'loaded') {
-            // Make a temp wiki to run the filter on
-            var tempWiki = new $tw.Wiki();
-            $tw.Bob.Wikis[data.fromWiki].tiddlers.forEach(function(internalTitle) {
-              var tiddler = $tw.wiki.getTiddler(internalTitle);
-              var newTiddler = JSON.parse(JSON.stringify(tiddler));
-              newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-              newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-              newTiddler.fields.title = newTiddler.fields.title.replace('{' + data.fromWiki + '}', '');
-              // Add all the tiddlers that belong in wiki
-              tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
-            })
-            // Use the filter
-            var list = tempWiki.filterTiddlers(data.filter);
+            // The list of tidddlers that are returned by the filter
+            var list = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
             // Add the results to the current wiki
             // Each tiddler gets added to the requesting wiki
             var message
             list.forEach(function(tidTitle){
-              var tiddler = tempWiki.getTiddler(tidTitle);
+              // Get the current tiddler
+              var tiddler = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
+              // Transform the tiddler title if a transfom filter is given
               if (data.transformFilter) {
-                var transformedTitle = (tempWiki.filterTiddlers(data.transformFilter, null, tempWiki.makeTiddlerIterator([tidTitle])) || [""])[0];
+                var transformedTitle = ($tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.transformFilter, null, $tw.Bob.Wikis[data.fromWiki].wiki.makeTiddlerIterator([tidTitle])) || [""])[0];
                 if(transformedTitle) {
                   tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
                 }
               }
+              // Create the message with the appropriate conflict resolution
+              // method and send it
               if (data.resolution === 'conflict') {
-                message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler};
+                message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
               } else if (data.resolution === 'force') {
-                message = {type: 'saveTiddler', tiddler: tiddler};
+                message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
               } else {
-                message = {type: 'import', tiddler: tiddler};
+                message = {type: 'import', tiddler: tiddler, wiki: data.wiki};
               }
               $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
             })
+            // Make the import list and send that tiddler too
             var importListTiddler = {
               fields: {
                 title: '$:/status/Bob/importlist',
@@ -1001,7 +1004,7 @@ if ($tw.node) {
     if (data.plugin) {
       const fs = require('fs')
       const path = require('path')
-      var pluginTiddler = $tw.wiki.getTiddler(data.plugin)
+      var pluginTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.plugin)
       if (pluginTiddler) {
         var pluginName = data.plugin.replace(/^\$:\/plugins\//, '')
         var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
@@ -1038,7 +1041,7 @@ if ($tw.node) {
         if (isNewVersion) {
           // Save the plugin tiddlers
           Object.keys(JSON.parse(pluginTiddler.fields.text).tiddlers).forEach(function(title) {
-            var content = $tw.wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
+            var content = $tw.Bob.Wikis[data.wiki].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
             var fileExtension = '.tid'
             var filepath = path.join(pluginFolderPath, $tw.syncadaptor.generateTiddlerBaseFilepath(title) + fileExtension);
             // If we aren't passed a path

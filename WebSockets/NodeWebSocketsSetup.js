@@ -59,20 +59,6 @@ if ($tw.node) {
     var host = $tw.settings['ws-server'].host || '127.0.0.1';
 
     /*
-      Make the tiddler that lists the available wikis and puts it in a data tiddler
-    */
-    var MakeWikiListTiddler = function () {
-      var tiddlerFields = {
-        title: '$:/plugins/OokTech/Bob/WikiList',
-        text: JSON.stringify($tw.settings.wikis, "", 2),
-        type: 'application/json'
-      };
-      $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-    }
-
-    MakeWikiListTiddler();
-
-    /*
       This function ensures that the WS server is made on an available port
     */
     var server;
@@ -81,7 +67,6 @@ if ($tw.node) {
     */
     function finishSetup () {
       if (!$tw.settings['ws-server'].useExternalWSS) {
-        //$tw.wss = new WebSocketServer({server: server});
         $tw.wss = new WebSocketServer({noServer: true});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
@@ -180,6 +165,20 @@ if ($tw.node) {
   }
 
   /*
+    This disconnects all connections that are for a specific wiki. this is used
+    when unloading a wiki to make sure that people aren't trying to interact
+    with a disconnected wiki.
+  */
+  $tw.Bob.DisconnectWiki = function (wiki) {
+    $tw.connections.forEach(function(connectionIndex) {
+      if (connectionIndex.wiki === wiki) {
+        // Close the websocket connection
+        connectionIndex.socket.terminate();
+      }
+    })
+  }
+
+  /*
     This updates the list of tiddlers being edited in each wiki. Any tiddler on
     this list has the edit button disabled to prevent two people from
     simultaneously editing the same tiddler.
@@ -200,7 +199,7 @@ if ($tw.node) {
     Object.keys($tw.connections).forEach(function(index) {
       var list = Object.keys($tw.Bob.EditingTiddlers).filter(function(title) {
         return title.startsWith('{' + $tw.connections[index].wiki + '}');
-      });
+      }).map(function(title) {return title.replace('{'+$tw.connections[index].wiki+'}', '')});
       var message = {type: 'updateEditingTiddlers', list: list, wiki: $tw.connections[index].wiki};
       $tw.Bob.SendToBrowser($tw.connections[index], message);
     });
