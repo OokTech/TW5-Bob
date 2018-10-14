@@ -117,13 +117,28 @@ if ($tw.node) {
           // should be. If not rename the file to match the rules set by
           // the wiki.
           // This is the title based on the current .tid file
-          var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title);
+          var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
           var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
           // Load the tiddler from the wiki, check if they are different (non-existent is changed)
           var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
-          //if (tiddlerFileTitle !== newTitle) {
           if ($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
             // Rename the file
+            // If $:/config/FileSystemPaths is used than the folder and
+            // newTitle may overlap.
+            // This determines if any of the title has an overlap in the path
+            if (newTitle.replace('\\','/').indexOf('/') !== -1) {
+              var pieces = newTitle.replace('\\','/').split('/')
+              var pathBits = pieces.slice(0,-1);
+              while (pathBits.length > 0) {
+                if (folder.endsWith(pathBits.join(path.sep))) {
+                  break;
+                }
+                pathBits = pathBits.slice(0,-1);
+              }
+              if (pathBits.length > 0) {
+                newTitle = pieces.slice(pathBits.length).join(path.sep);
+              }
+            }
             // translate tiddler title into filepath
             var theFilepath = path.join(folder, newTitle + fileExtension);
             if (typeof fullTiddlerName === 'string') {
