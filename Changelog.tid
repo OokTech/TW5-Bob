@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.7 (ongoing)
+!! Version 1.1.0 (ongoing)
 
 - Add `savePluginFolder` web socket message to save packaged plugins as folders
   on a server. These plugins can then be available to other served wikis and in
@@ -21,8 +21,19 @@ title: $:/plugins/OokTech/Bob/Changelog
 - Environment variables are now set from the plugin, themes, and languages paths
   given in the settings.
   - This is needed by the core to properly list available plugins
+  - This means that you can set the location of one folder listing plugins,
+    themes and languages in the settings instead of using environment
+    variables. At the moment this is limited to one folder.
 - The `unloadWiki` message now ensures that the connection to any browsers with
   that wiki open are closed correctly.
+- Updates to the `buildHTMLWiki` message
+  - You can now pull tiddlers in from any served wiki while making an html
+    file. This means you can combine wikis in the output.
+  - There is a default filter for excluding plugins like Bob and components
+    that are only useful on a server
+  - You can add an additional filter to exclude tiddlers from the exported html
+    wiki
+  - You can disable the default exclude list for more control
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 

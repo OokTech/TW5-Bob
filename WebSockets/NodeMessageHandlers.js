@@ -524,55 +524,72 @@ if ($tw.node) {
   }
 
   // This builds a single file html version of the current wiki.
-  // This is a simplifed version of the renderTiddler command because I
-  // couldn't figure out how to just call that command here.
-  // TODO let people give an include filter that can build a wiki from tiddlers
-  // drawn from any of the served wikis.
+  // This is a modified version of the renderTiddler command.
+  // It can exclude tiddlers from the wiki using a filter and it can include
+  // tiddlers form any served wiki.
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
-    console.log('Build Wiki')
-    var path = require('path')
-    var fs = require('fs')
-    var wikiPath, fullName, excludeList;
+    var path = require('path');
+    var fs = require('fs');
+    var wikiPath, fullName, excludeList = [];
     if (data.buildWiki) {
-      var exists = $tw.httpServer.loadWiki(data.buildWiki);
+      var exists = $tw.ServerSide.loadWiki(data.buildWiki, $tw.settings.wikis[data.buildWiki]);
       if (exists) {
         wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
       }
     } else {
       wikiPath = $tw.Bob.Wikis[data.wiki].wikiPath;
-      fullName = data.wiki
+      fullName = data.wiki;
     }
+    console.log('Build HTML Wiki:', fullName);
     if (data.excludeList) {
       // Get the excludeList from the provided filter, if it exists
-      excludeList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(data.excludeList);
+      excludeList = $tw.Bob.Wikis[fullName].wiki.filterTiddlers(data.excludeList);
     } else {
       // Otherwise we want to ignore the server-specific plugins to keep things
       // small.
       excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+    }
+    if (data.ignoreDefaultExclude !== 'true') {
+      var defaultExclude = $tw.Bob.Wikis[fullName].wiki.filterTiddlers('[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]');
+      excludeList = excludeList.concat(defaultExclude);
     }
     if (wikiPath) {
       var outputFolder = data.outputFolder || 'output';
       var outputName = data.outputName || 'index.html';
       var outputFile = path.resolve(wikiPath, outputFolder, outputName);
       $tw.utils.createFileDirectories(outputFile);
-      // tiddlers for this wiki.
-      var options = {
-        variables: {
-          wikiTiddlers:
-            $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-              // This prevents the Bob plugin from being added to the wiki
-              // It also strips out the filesystem and tiddlyweb plugins
-              if (excludeList.indexOf(tidInfo) === -1) {
-                return '[[' + tidInfo + ']]';
-              } else {
-                return '';
-              }
-            }).join(' '),
-          wikiName: fullName
+      var tempWiki = new $tw.Wiki();
+      var wikiTiddlers = $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).filter(function(tidInfo) {
+        return (excludeList.indexOf(tidInfo) === -1)
+      })
+      $tw.Bob.Wikis[fullName].wiki.allTitles().forEach(function(title) {
+        if (excludeList.indexOf(title) === -1) {
+          tempWiki.addTiddler($tw.Bob.Wikis[fullName].wiki.getTiddler(title));
         }
-      };
-      var text = $tw.Bob.Wikis[fullName].wiki.renderTiddler('text/plain',"$:/core/save/all", options);
+      })
+      // If there are external tiddlers to add try and add them
+      if (data.externalTiddlers) {
+        try {
+          var externalData = JSON.parse(data.externalTiddlers);
+          Object.keys(externalData).forEach(function(wikiTitle) {
+            var exists = $tw.ServerSide.loadWiki(wikiTitle, $tw.settings.wikis[wikiTitle]);
+            if (exists) {
+              var includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
+              includeList.forEach(function(tiddlerTitle) {
+                tempWiki.addTiddler($tw.Bob.Wikis[wikiTitle].wiki.getTiddler(tiddlerTitle));
+              })
+            }
+          });
+        } catch (e) {
+          console.log("Couldn't parse externalTiddlers input")
+        }
+      }
+      tempWiki.registerPluginTiddlers("plugin",["$:/core"]);
+      // Unpack plugin tiddlers
+  	  tempWiki.readPluginInfo();
+      tempWiki.unpackPluginTiddlers();
+      var text = tempWiki.renderTiddler('text/plain',"$:/core/save/all", {variables:{wikiTiddlers:$tw.utils.stringifyList(tempWiki.allTitles())}});
       fs.writeFile(outputFile,text,"utf8",function(err) {
         if (err) {
             console.log(err);
