@@ -165,6 +165,20 @@ if ($tw.node) {
   }
 
   /*
+    This disconnects all connections that are for a specific wiki. this is used
+    when unloading a wiki to make sure that people aren't trying to interact
+    with a disconnected wiki.
+  */
+  $tw.Bob.DisconnectWiki = function (wiki) {
+    $tw.connections.forEach(function(connectionIndex) {
+      if (connectionIndex.wiki === wiki) {
+        // Close the websocket connection
+        connectionIndex.socket.terminate();
+      }
+    })
+  }
+
+  /*
     This updates the list of tiddlers being edited in each wiki. Any tiddler on
     this list has the edit button disabled to prevent two people from
     simultaneously editing the same tiddler.

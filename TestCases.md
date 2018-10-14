@@ -103,6 +103,16 @@ TODO - This part
 3. Conflicts should be properly shown
   - TODO this part
 
+## Loading and Unloading Wikis
+
+1. Load the root wiki and a child wiki in a browser then unload the child wiki.
+  - The child wiki in the browser should show that it is disconnected
+  - Reloading the wiki should work
+2. Unload the root wiki from the root wiki
+  - The wiki should show that it is disconnected
+  - Reloading the wiki should work
+3. Reconnecting should do something...
+
 ## Logging
 
 During all of the above tests make sure that there aren't any left-over debug

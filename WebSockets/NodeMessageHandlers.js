@@ -885,7 +885,6 @@ if ($tw.node) {
           // This removes all the info about the files for the wiki
           var key;
           var result = {};
-          console.log(typeof $tw.boot.files)
           for (key in $tw.boot.files) {
             if (typeof key === 'string' && !key.startsWith('{'+data.wikiName+'}')) {
               result[key] = $tw.boot.files[key];
@@ -894,7 +893,7 @@ if ($tw.node) {
           $tw.boot.files = result;
         }
       }
-      console.log($tw.boot.files)
+      $tw.Bob.DisconnectWiki(data.wikiName);
     }
   }
 
