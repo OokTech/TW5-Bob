@@ -89,7 +89,7 @@ if($tw.node) {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
       var tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
-      var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title));
+      var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title, prefix));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
       fs.readdir(path.dirname(baseFilepath),function(err,files) {
@@ -139,7 +139,7 @@ if($tw.node) {
   /*
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
-  WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title) {
+  WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
     if (title.startsWith('{')) {
       var ending = title.indexOf('}');
       // If ending is -1 than this just returns the title, otherwise it cuts
@@ -148,9 +148,9 @@ if($tw.node) {
     }
     var baseFilename;
     // Check whether the user has configured a tiddler -> pathname mapping
-    var pathNameFilters = this.wiki.getTiddlerText("$:/config/FileSystemPaths");
+    var pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
     if(pathNameFilters) {
-      var source = this.wiki.makeTiddlerIterator([title]);
+      var source = $tw.Bob.Wikis[wiki].wiki.makeTiddlerIterator([title]);
       baseFilename = this.findFirstFilter(pathNameFilters.split("\n"),source);
       if(baseFilename) {
         // Interpret "/" and "\" as path separator

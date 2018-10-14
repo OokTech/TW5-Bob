@@ -661,7 +661,7 @@ if ($tw.node) {
       $tw.utils.each(data.tiddlers,function(tiddler) {
         // Save each tiddler in the correct folder
         // Get the tiddler file title
-        var tiddlerFileName = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddler.title);
+        var tiddlerFileName = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddler.title, wikiName);
         // Output file name
         var outputFile = path.join(wikiTiddlersPath, tiddlerFileName);
         var options = {
@@ -1043,7 +1043,7 @@ if ($tw.node) {
           Object.keys(JSON.parse(pluginTiddler.fields.text).tiddlers).forEach(function(title) {
             var content = $tw.Bob.Wikis[data.wiki].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
             var fileExtension = '.tid'
-            var filepath = path.join(pluginFolderPath, $tw.syncadaptor.generateTiddlerBaseFilepath(title) + fileExtension);
+            var filepath = path.join(pluginFolderPath, $tw.syncadaptor.generateTiddlerBaseFilepath(title, data.wiki) + fileExtension);
             // If we aren't passed a path
             fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
               if(err) {
