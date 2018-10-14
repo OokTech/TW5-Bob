@@ -34,6 +34,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - You can add an additional filter to exclude tiddlers from the exported html
     wiki
   - You can disable the default exclude list for more control
+- The `$:/config/FileSystemPaths` settings should work now
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 
