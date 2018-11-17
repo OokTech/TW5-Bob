@@ -717,7 +717,7 @@ if($tw.node) {
       $tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
     }
     var port = $tw.settings['ws-server'].port || "8080",
-      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/plugins/OokTech/Bob/save/single",
+      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/all",
       renderType = $tw.settings['ws-server'].renderType || "text/plain",
       serveType = $tw.settings['ws-server'].serveType || "text/html",
       username = $tw.settings['ws-server'].username,
