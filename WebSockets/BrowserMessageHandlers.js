@@ -282,6 +282,24 @@ it will overwrite this file.
   }
 
   /*
+    Download the file in the message data
+  */
+  $tw.browserMessageHandlers.downloadFile = function (data) {
+    if (data) {
+      var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
+      let a = document.createElement('a');
+      a.download = 'index.html';
+      var thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
+      console.log(thisStr)
+      a.setAttribute('href', thisStr);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    sendAck(data);
+  }
+
+  /*
     For some messages we need an ack from the server to make sure that they
     were received correctly. This removes the messages from the queue after
     an ack is recevied.

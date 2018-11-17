@@ -1,0 +1,32 @@
+title: $:/plugins/OokTech/Bob/ActionDownloadWiki
+tags: ActionWidgets Widgets [[Bob Documentation]]
+caption: ActionDownloadWiki
+description: An action widget that downloads the current wiki as a single file html wiki without any of the Bob components.
+
+! Introduction
+
+The `action-downloadwiki` widget is an action widget that downloads the current
+wiki as a single file html wiki.
+
+! Content and Attributes
+
+Any content of the `action-downloadwiki` widget is ignored.
+
+|!Attribute |!Description |
+|!excludeFilter |A filter, tiddlers returned by this filter are not included in the downloaded wiki. (default: see below) |
+|!ignoreDefaultExclude |If this is set to true the default exclude filter is ignored. (Default: `false`) |
+
+The default exclude filter is
+
+```
+[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]
+```
+
+! Examples
+
+```
+<$button>
+Download HTML File
+<$action-downloadwiki/>
+</$button>
+```

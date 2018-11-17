@@ -35,6 +35,10 @@ title: $:/plugins/OokTech/Bob/Changelog
     wiki
   - You can disable the default exclude list for more control
 - The `$:/config/FileSystemPaths` settings should work now
+- Added a check so it shouldn't crash when trying to load a wiki that doesn't
+  work
+- Fixed bug where the wrong port is listed in the control panel.
+- Added download wiki action widget.
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 

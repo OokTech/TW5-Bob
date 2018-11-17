@@ -1119,6 +1119,23 @@ if ($tw.node) {
   }
 
   /*
+    This downloads the single html file version of a wiki
+    It defaults to the current wiki but if you give a
+  */
+  $tw.nodeMessageHandlers.downloadHTMLFile = function (data) {
+    if (data.wiki) {
+      var downloadWiki = data.forWiki || data.wiki;
+      const path = require('path');
+      const fs = require('fs');
+      var outputFilePath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'output', 'index.html');
+      var file = fs.readFileSync(outputFilePath);
+      // Send file to browser in a websocket message
+      var message = {'type': 'downloadFile', 'file': file};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+    }
+  }
+
+  /*
     This handles ack messages.
   */
   $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;
