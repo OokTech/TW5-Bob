@@ -22,22 +22,26 @@ exports.platforms = ["node"];
 exports.after = ["node-settings"];
 exports.synchronous = true;
 
-// require the websockets module if we are running node
-var WebSocketServer = $tw.node ? require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server : undefined;
-var fs = $tw.node ? require("fs"): undefined;
-var http = $tw.node ? require("http") : undefined;
-var path = $tw.node ? require("path") : undefined;
-//  var TOML = $tw.node ? require('$:/plugins/OokTech/Bob/External/@iarna/toml/toml.js') : undefined;
+if (!$tw.settings) {
+  // Make sure that $tw.settings is available.
+  var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
+}
 
 if ($tw.node) {
+  // require the websockets module if we are running node
+  var WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
+  var fs = require("fs");
+  var http = require("http");
+  var path = require("path");
+  //  var TOML = $tw.node ? require('$:/plugins/OokTech/Bob/External/@iarna/toml/toml.js') : undefined;
   // Import shared commands
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
   var setup = function () {
-    // initialise the empty $tw.nodeMessageHandlers object. This holds the functions that
-    // are used for each message type
+    // initialise the empty $tw.nodeMessageHandlers object. This holds the
+    // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
@@ -45,22 +49,10 @@ if ($tw.node) {
     // Initialise connections array
     $tw.connections = $tw.connections || [];
 
-    if (!$tw.settings) {
-      // Make sure that $tw.settings is available.
-      var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
-    }
-    // Get the ip address to display to make it easier for other computers to
-    // connect.
-    var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
-    var ipAddress = ip.address();
-
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
     var host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-    /*
-      This function ensures that the WS server is made on an available port
-    */
     var server;
     /*
       Setup the websocket server if we aren't using an external one
@@ -76,12 +68,6 @@ if ($tw.node) {
           console.log('closed connection ', connection);
         });
       }
-
-      $tw.settings.serverInfo = {
-        ipAddress: ipAddress,
-        port: ServerPort,
-        host: host
-      };
     }
 
     finishSetup();

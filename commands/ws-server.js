@@ -585,13 +585,15 @@ if($tw.node) {
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
+          var pathRoot = path.resolve(process.cwd(),$tw.settings.filePathRoot);
           if (replace === false) {
-            var pathname = path.join($tw.settings.filePathRoot, decodeURIComponent(request.url));
+            var pathname = path.join(pathRoot, decodeURIComponent(request.url));
           } else {
-            var pathname = path.join($tw.settings.filePathRoot, decodeURIComponent(request.url).replace(replace, ''));
+            var pathname = path.join(pathRoot, decodeURIComponent(request.url).replace(replace, ''));
           }
+
           // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
-          if (pathname.startsWith($tw.settings.filePathRoot)) {
+          if (pathname.startsWith(pathRoot)) {
             fs.exists(pathname, function(exists) {
               if (!exists || fs.statSync(pathname).isDirectory()) {
                 response.statusCode = 404;
@@ -760,6 +762,17 @@ if($tw.node) {
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
 
     $tw.httpServer.listen(port,host);
+
+    // Get the ip address to display to make it easier for other computers to
+    // connect.
+    var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
+    var ipAddress = ip.address();
+    $tw.settings.serverInfo = {
+      ipAddress: ipAddress,
+      port: port,
+      host: host
+    };
+
     return null;
   };
 
