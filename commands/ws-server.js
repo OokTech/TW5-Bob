@@ -585,7 +585,8 @@ if($tw.node) {
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
-          var pathRoot = path.resolve(process.cwd(),$tw.settings.filePathRoot);
+          var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          var pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
           if (replace === false) {
             var pathname = path.join(pathRoot, decodeURIComponent(request.url));
           } else {
