@@ -120,6 +120,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   insecure or have a very good chance of breaking your wiki. You will get no
   tech support if you do any of them. If you want to do it anyway than you need
   to give this the value `I Will Not Get Tech Support For This`.
+- `allowUnsafeMimeTypes` setting this to `true` lets you serve anything
+  ignoring the mimeMap. This is a bad idea but it was consistently requested so
+  you have to fill out the `acceptance` key and you will receive no support for
+  any problems that arise.
 - `API` things in this group are used for the api used for inter-server
   communication using the TWederBob plugin. This is only active if you use the
   `--wsserver` command, if you use an external server than these don't do
