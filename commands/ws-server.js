@@ -585,7 +585,8 @@ if($tw.node) {
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
-          var pathRoot = path.resolve(process.cwd(),$tw.settings.filePathRoot);
+          var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          var pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
           if (replace === false) {
             var pathname = path.join(pathRoot, decodeURIComponent(request.url));
           } else {
@@ -717,7 +718,7 @@ if($tw.node) {
       $tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
     }
     var port = $tw.settings['ws-server'].port || "8080",
-      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/plugins/OokTech/Bob/save/single",
+      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/all",
       renderType = $tw.settings['ws-server'].renderType || "text/plain",
       serveType = $tw.settings['ws-server'].serveType || "text/html",
       username = $tw.settings['ws-server'].username,
