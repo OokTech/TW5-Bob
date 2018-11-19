@@ -370,9 +370,10 @@ if ($tw.node) {
     $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
     // Save the updated settings
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    if (!fs.existsSync(userSettingsPath)) {
+    var userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
+    if (!fs.existsSync(userSettingsFolder)) {
       // Create the settings folder
-      fs.mkdirSync(userSettingsPath);
+      fs.mkdirSync(userSettingsFolder);
     }
     fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
       if (err) {

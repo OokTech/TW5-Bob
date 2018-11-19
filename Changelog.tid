@@ -39,6 +39,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   work
 - Fixed bug where the wrong port is listed in the control panel.
 - Added download wiki action widget.
+- Fixed bug where settings file wouldn't be properly created if it didn't exist
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 
