@@ -120,7 +120,7 @@ if ($tw.node) {
     });
     $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}));
     // Create the $:/ServerIP tiddler
-    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.settings.serverInfo.port, host: $tw.settings.serverInfo.host}));
+    $tw.Bob.Wikis[wiki].wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}));
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {

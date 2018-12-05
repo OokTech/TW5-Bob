@@ -187,18 +187,28 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   ServerSide.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, options.prefix);
   // Load the wiki files, registering them as writable
   var resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
-  $tw.utils.each($tw.loadTiddlersFromPath(resolvedWikiPath), function(tiddlerFile) {
-    if(!options.readOnly && tiddlerFile.filepath) {
-      $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
-        var prefixTitle = '{' + options.prefix + '}' + tiddler.title;
-        $tw.boot.files[prefixTitle] = {
-          filepath: tiddlerFile.filepath,
-          type: tiddlerFile.type,
-          hasMetaFile: tiddlerFile.hasMetaFile
-        };
-      });
+  function getTheseTiddlers() {
+    var out = [];
+    try {
+      out = $tw.loadTiddlersFromPath(resolvedWikiPath);
+    } catch(e) {
+      console.log(e);
     }
-    $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
+    return out;
+  }
+  $tw.utils.each(
+    getTheseTiddlers(), function(tiddlerFile) {
+      if(!options.readOnly && tiddlerFile.filepath) {
+        $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
+          var prefixTitle = '{' + options.prefix + '}' + tiddler.title;
+          $tw.boot.files[prefixTitle] = {
+            filepath: tiddlerFile.filepath,
+            type: tiddlerFile.type,
+            hasMetaFile: tiddlerFile.hasMetaFile
+          };
+        });
+      }
+      $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
   });
   // Save the original tiddler file locations if requested
   var config = wikiInfo.config || {};

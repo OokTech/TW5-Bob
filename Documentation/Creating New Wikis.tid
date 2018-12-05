@@ -3,19 +3,90 @@ caption: Creating New Wikis
 tags: [[Bob Documentation]]
 description: Create and serve new wikis from inside a wiki.
 
-''Note:'' This is about how to create and start serving a new wiki. If you want
-to add an existing wiki to the list of wikis served than you should refer to
-[[starting other wikis|$:/plugins/OokTech/Bob/Starting Other Wikis]].
+There are multiple ways to make new wikis with Bob.
 
 To create a new wiki go to the `Bob Settings` tab of the $:/ControlPanel and
-scroll down below the settings interface to where it says you can create a new
-wiki.
+open the `Available Wikis` tab and select which method you want to use from the
+radio buttons.
 
-Select the edition you want to use as the base and then give the wiki a name
-in the text field, then click the `Make Wiki` button.
+For the most part if you are unsure you will want to make a new wiki from an
+edition and use the `empty` edition. This will give you the Bob equavilent of
+downloading an empty wiki from tiddlywiki.com.
 
-After that the new wiki should be available on `localhost:8080/WikiName`
+More instruction about how to use each option is below.
+
+After creating a new wiki it will be available on `localhost:8080/WikiName`
 (assuming you called the wiki WikiName and your wiki is served on port 8080
 using the default settings). If you are not on the computer running the server
 or have changed the settings than the url is the url of your root wiki with
 `/WikiName` added to the end.
+
+!!an edition
+
+Select the edition you want to use as the base from the drop down menu labelled
+`Select Wiki Edition` and then give the wiki a name in the text field, then
+click the `Make Wiki` button.
+
+You can limit which editions are listed in the drop-down menu by listing the
+editions you want to have available by creating a wiki called
+`$:/ListedEditions` and listing the editions in the text field as a space
+separated list.
+
+Example:
+
+```
+empty codemirrordemo
+```
+
+!!an html file
+
+This is for when you hvae a normal single html tiddlywiki and you want to make
+it into a wiki you can use with Bob.
+
+Select the `an html file` option from the radio buttons. Then click the
+`Browse` button where it says `Select file` and find the wiki file you want to
+use on your computer.
+
+After selecting the file give the wiki a name using the text input box and then
+click the `Make Wiki` button. All of the tiddlers in the html file will be
+copied into a new wiki listed in the available wikis list.
+
+This will not update the single file wiki when you make changes in Bob, you
+will have to export the wiki manually. See [[exporting wikis|]] for how to
+easily do that.
+
+!!existing tiddlers
+
+If you already have multiple wikis served by Bob and you want to create a new
+wiki using tiddlers from one of more of them than you select this option.
+
+Give the wiki a name using the text box labelled `Give the wiki a name`. Then
+below put a wiki name in the FromWiki box (using the same names as in the wiki
+listing) and in the filter give a filter to be applied to that wiki. The
+tiddlers returned by this filter will be added to the newly created wiki.
+Click the `Add Filter` button to include the filter. You can then add a filter
+for tiddlers from another wiki if you wish. You can add filters for as many
+wikis as you want.
+
+When you have the filters you want to use listed click `Make Wiki` to create
+the wiki. The new wiki will be listed in the list of available wikis.
+
+!!a node wiki
+
+If you have a node-based wiki that isn't currently listed in Bob you use this
+option.
+
+This is the same as manually adding the wiki in the manual setting tab.
+
+Give the wiki a name in the text box, remember that wiki names have to be
+unique. This is the only method listed here that doesn't protect you from using
+an existing name. The other methods will append a number to the end of the name
+if it is not unique.
+
+Enter the path to the node wiki folder. This in the folder that has the
+tiddlywiki.info file for the wiki. The path can be absolute or relative.
+Relative paths are relative to the location where you started the wiki. In the
+case of the BobEXE they are relative to the location of the executable.
+
+Then click on the `Add Wiki` button and it will be listed under the available
+wikis.

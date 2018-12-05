@@ -39,7 +39,11 @@ ActionConvertWiki.prototype.render = function(parent,nextSibling) {
 Compute the internal state of the widget
 */
 ActionConvertWiki.prototype.execute = function() {
-	this.inputName = this.getAttribute('$fileInput', "#fileInput");
+	this.inputName = this.getAttribute('fileInput', "#fileInput");
+  this.wikiFolder = this.getAttribute('wikiFolder', undefined);
+  this.wikisPath = this.getAttribute('wikisPath', undefined);
+  this.wikiName = this.getAttribute('wikiName', undefined);
+  this.overwrite = this.getAttribute('overwrite', undefined);
 };
 
 /*
@@ -58,52 +62,33 @@ ActionConvertWiki.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
+  var self = this;
   // Find the file input html element, get the file from that.
   var fileElement = document.getElementById(this.inputName);
   if (fileElement) {
     var file = fileElement.files[0];
-    console.log(file.type);
-    // Read the file and pass it to the parsing stuff
-    $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
-      if (output.length > 0) {
-        var token = localStorage.getItem('ws-token')
-        var message = {
-          "type": "newWikiFromTiddlers",
-          "tiddlers": output,
-          "token": token
-        }
-        $tw.connections[0].socket.send(JSON.stringify(message));
-      } else {
-        console.log("No tiddlers found in input file!");
-      }
-    })
-    /*
-    // Take the output wikis and send them to the node process using
-    // the appropriate websocket message
-
-    // Create the empty message object
-    var message = {};
-    // Add in the message type and param, if they exist
-    message.type = this.type;
-    message.param = this.param;
-
-    // This is needed for when you serve multiple wikis
     var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
-    message.wiki = wikiName?wikiName:'';
-
-    // For any other attributes passed to the widget add them to the message as
-    // key: value pairs
-    $tw.utils.each(this.attributes,function(attribute,name) {
-  		if(name.charAt(0) !== "$") {
-        message[name] = attribute;
-  		}
-  	});
-    // We need a message type at a minimum to send anything
-    if (message.type) {
-      // Send the message
-      $tw.connections[0].socket.send(JSON.stringify(message));
+    // Read the file and pass it to the parsing stuff
+    if (file) {
+      $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
+        if (output.length > 0) {
+          var token = localStorage.getItem('ws-token')
+          var message = {
+            "type": "newWikiFromTiddlers",
+            "tiddlers": output,
+            "wikisPath": self.wikisPath,
+            "wikiName": self.wikiName,
+            "wikiFolder": self.wikiFolder,
+            "token": token,
+            "wiki": wikiName,
+            "overwrite": self.overwrite
+          }
+          $tw.connections[0].socket.send(JSON.stringify(message));
+        } else {
+          console.log("No tiddlers found in input file!");
+        }
+      })
     }
-*/
   	return true; // Action was invoked
   }
 };

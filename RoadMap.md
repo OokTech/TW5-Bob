@@ -1,9 +1,6 @@
 # Roadmap for version 1.1.0
 
 - Create Bob wikis from existing single file wikis. (This mostly already exists)
-  - From inside the control panel select an existing wiki file and give a name
-    and then the file is split into individual tiddler files and made into a
-    wiki.
   - (maybe) determine if the plugins used in the single file are available
     locally as node plugins and preferentially use the node plugins
   - (maybe) determine if the plugins in the single file are available locally

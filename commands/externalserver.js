@@ -36,8 +36,6 @@ if($tw.node) {
     // connect.
     var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
     var ipAddress = ip.address();
-    console.log('this place')
-    console.log($tw.settings)
     $tw.settings.serverInfo = {
       ipAddress: ipAddress
     };

@@ -12,6 +12,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - In the Bob Settings tab there is a Manage Plugins tab
 - Added an interface to save plugins to the server and to select which plugins
   from the server should be used in the current wiki
+  - It is still very crude and needs work
 - Change the internals to make one $tw.Wiki object for each wiki instead of
   having them all in $tw.wiki
   - There are lots of internal changes to make this work
@@ -35,6 +36,20 @@ title: $:/plugins/OokTech/Bob/Changelog
     wiki
   - You can disable the default exclude list for more control
 - The `$:/config/FileSystemPaths` settings should work now
+- Added a check so it shouldn't crash when trying to load a wiki that doesn't
+  work
+- Fixed bug where the wrong port is listed in the control panel.
+- Added download wiki action widget that downloads the current wiki as a single
+  html file.
+  - By default it removes the Bob plugin and some other plugins that only work
+    with a server.
+  - It can have an `includeFilter` for tiddlers to include, an `excludeFilter`
+    for tiddlers to exclude and a suggested name for the downloaded file.
+- Fixed bug where settings file wouldn't be properly created if it didn't exist
+- Added an action widget that lets you convert a single file wiki into a wiki
+  that can be used by Bob.
+- Added interfaces for the importing/creating and exporting/saving wikis to the
+  control panel.
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 
