@@ -7,6 +7,9 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
 </pre>
 
+See [[exporting wikis|$:/plugins/OokTech/Bob/Exporting Wikis]] for information about different ways to save or export
+your wikis.
+
 This saves the wiki to the server, it doesn't download it.
 <$button>
   Save Single File Wiki
@@ -15,6 +18,7 @@ This saves the wiki to the server, it doesn't download it.
   />
 </$button>
 
+This downloads the current wiki as a single file wiki.
 <$button>
   Download Single File Version
   <$action-downloadwiki

@@ -1,0 +1,40 @@
+title: $:/plugins/OokTech/Bob/ActionConvertWiki
+tags: ActionWidgets Widgets [[Bob Documentation]]
+caption: ActionConvertWiki
+description: An action widget that takes an html file as input and makes a new wiki on the server using it
+
+! Introduction
+
+This action widget lets you pick a single file wiki from your computer and
+convert it into a wiki that Bob can use.
+
+This action widget requires a file input to go along with whatever triggers the
+action widget (normally a button widget). The file input is used to select
+which html file you want to convert into a wiki for Bob.
+
+! Content and Attributes
+
+Any content of the `action-convertwiki` widget is ignored.
+
+`<$action-convertwiki fileInput='#fileInput' wikiFolder='SomeFolder' wikisPath='/look/a/path' wikiName='AwesomeWiki' overwrite='true'/>`
+
+|!Parameter |!Description |
+|!fileInput |This is the html id attribute given to the file picker used to select which html file to use. Default: `#fileInput` |
+|!wikiName |The name to give the created wiki. Unless overwrite is set to `true` this name is made unique by appending a number onto the end. Default: `NewWiki` |
+|!overwrite |If this is set to `true` and a wiki with the name given by wikiName exists than the tiddlers from the html file will be added to that wiki instead of a new wiki being created. Default: `false` |
+|!wikisPath |The path to the folder that contains the wikis folder. Default: whatever is set in settings.json |
+|!wikiFolder |The folder that holds the wikis. Default: whatever is set in settings.json, normally `Wikis` |
+
+''Note:'' only fileInput is needed. It is suggested that you give the wiki a
+descriptive name with wikiName, but you can safely ignore wikisPath and
+wikiFolder.
+
+! Example
+
+```
+<$button>
+Make wiki from HTML file
+<$action-convertwiki fileInput='aFileInput'/>
+</$button>
+<input type='file' id='aFileInput' accept='.html,.htm'/>
+```

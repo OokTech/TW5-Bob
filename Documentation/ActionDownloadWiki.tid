@@ -6,21 +6,53 @@ description: An action widget that downloads the current wiki as a single file h
 ! Introduction
 
 The `action-downloadwiki` widget is an action widget that downloads the current
-wiki as a single file html wiki.
+wiki as a single file html wiki with optinal filters on the
+output tiddlers.
+
+you can optionally give an include or exclude filter that lists tiddlers to
+include/exclude from the built wiki. If none are given than all tiddlers in the
+wiki are exported with the execption of the default exclude list (Bob and other
+plugins that don't do anything for single file wikis.)
+
+alternatively you can give an include filter that lists all of the tiddlers to
+include in the output wiki. If an include filter is given than the exclude
+filter input is ignored if it exists.
+
+If you have some specific reason you can set ignoreDefaultExclude to true and
+it will ignore the default set of tiddlers to exclude.
+
+Unless ignoreDefaultExclude is set than the default exclude list is used for
+both include and exclude filters.
 
 ! Content and Attributes
 
 Any content of the `action-downloadwiki` widget is ignored.
 
-|!Attribute |!Description |
-|!excludeFilter |A filter, tiddlers returned by this filter are not included in the downloaded wiki. (default: see below) |
-|!ignoreDefaultExclude |If this is set to true the default exclude filter is ignored. (Default: `false`) |
+<$action-downloadwiki excludeFilter='excludeFilter' ignoreDefaultExclude=false/>
+
+|!Parameter |!Description |
+|!includeFilter |An optional filter that returns all tiddlers to inclued in the output wiki. If nothing is given than the whole wiki is included. |
+|!excludeFilter |An optional filter that returns tiddlers to exclude from the downloaded wiki. If this lists a tiddler that is also returned by the includeFilter than the excludeFilter takes presidence. Defaults to an empty list so nothing is excluded. |
+|!ignoreDefaultExclude |If this is set to `true` than the default exclude list is ignored. The default exclude list includes the Bob plugin and other things that either break single file wikis or do nothing in single file wikis, so don't set this unless you have a specific reason. |
 
 The default exclude filter is
 
 ```
 [prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]
 ```
+
+''Note:'' When you give an include filter you only include tiddlers that are returned by the filter with a few exceptions. Because everything in tiddlywiki is a tiddler if you only include what in in the filter than you would either have to include these or the wiki would not function at all.
+
+The tiddlers that are always included are:
+
+* `$:/core` - without this we can't have a working wiki
+* `$:/boot/boot.css` - without this the wiki isn't styled and is unrecognisable and possibly unusable
+* `$:/boot/boot.js` - without this the wiki doesn't load correctly
+* `$:/boot/bootprefix.js` - without this the wiki doesn't load correctly
+* `$:/themes/tiddlywiki/vanilla` - without this there is no theme for the wiki and it is very difficult, maybe impossible, to use
+
+This means that, if you give an include filter, the encryption library isn't included in the wiki unless you explictly list it. The same is true for any
+plugins or libraries you use.
 
 ! Examples
 
