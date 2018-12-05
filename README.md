@@ -121,6 +121,11 @@ server from inside the wiki.
 
 Here is a more detailed list of things added or changed by this plugin
 
+- Create new wikis from an interface inside the wiki
+  - Create wikis using editions
+  - Create wikis from existing single html file wikis
+  - Create wikis using tiddlers drawn from other existing wikis
+- Serve normal node wikis with all the features of Bob
 - Two-way real-time syncing between the browser and file system
   - Updates the wiki in the browser immediately when any changes are made to the file system
   - Immediately save changes to tiddlers made in the browser to the file system
@@ -153,9 +158,7 @@ Here is a more detailed list of things added or changed by this plugin
 - Serve files from the local file system (like images) so that they can be
   used in the wiki.
 - Build a single file version of any served wikis from within the wiki.
+- Share tiddlers between the wikis using the internalFetch mechanism
+- Build single file wikis that take tiddlers from different wikis
 - *coming soon* Exclude lists on a per-wiki and per-user basis
-- *coming soon* each wiki is part of the same node process so communication and
-  sharing tiddlers between the wikis is possible, I just haven't written the UI
-  yet.
-- *coming soon* Build single file wikis that take tiddlers from different wikis
 - *under consideration* Security and authentication to limit access and editing
