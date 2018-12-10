@@ -47,6 +47,10 @@ changes:
 9. Editing a tiddler on the file system:
   - The changes appear almost immediately in any connected browsers after the
     tiddler is saved
+  - Adding one or more tags to a tid file that doesn't already have tags listed
+    adds the tags to the tiddlers in already open wikis
+  - Removing all tags from a tid file that has one or more tags removes the
+    tags from open wikis
 10. Renaming a tiddler in the browser:
   - Changes appear in other browser tabs
   - The old .tid file is gone, a new .tid file with the correct name for the

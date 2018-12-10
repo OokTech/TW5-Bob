@@ -1,6 +1,17 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.1.0 (ongoing)
+!! Version 1.1.1 (ongoing)
+
+  - Fixed a bug that would sometimes show shadow tiddlers as being edited after
+    the edit was cancelled.
+  - Add the start of what is necessary to have access control and
+    authentication for Bob wikis without an external server
+    - so far it does nothing with out an external server, but the access
+      control is now consistent.
+  - Bump compatibility to TiddlyWiki 5.1.18
+  - Stop using $tw.boot.files
+
+!! Version 1.1.0 Actually Garlic Bagels (still)
 
 - Add `savePluginFolder` web socket message to save packaged plugins as folders
   on a server. These plugins can then be available to other served wikis and in

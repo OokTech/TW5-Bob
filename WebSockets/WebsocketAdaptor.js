@@ -20,6 +20,9 @@ var fs = $tw.node ? require("fs") : null,
 
 if($tw.node) {
 
+  $tw.Bob = $tw.Bob || {};
+  $tw.Bob.Files = $tw.Bob.Files || {};
+
   function WebsocketAdaptor(options) {
     var self = this;
     this.wiki = options.wiki;
@@ -61,8 +64,7 @@ if($tw.node) {
     // See if we've already got information about this file
     var self = this,
       title = tiddler.fields.title;
-    var internalTitle = '{' + prefix + '}' + title;
-    var fileInfo = $tw.boot.files[internalTitle];
+    var fileInfo = $tw.Bob.Files[prefix][title];
     if(fileInfo) {
       // If so, just invoke the callback
       callback(null,fileInfo);
@@ -112,7 +114,7 @@ if($tw.node) {
         // Set the final fileInfo
         fileInfo.filepath = filepath;
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
-        $tw.boot.files[internalTitle] = fileInfo;
+        $tw.Bob.Files[prefix][title] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
         if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
           $tw.Bob.Wikis[prefix].tiddlers.push(title);
@@ -148,7 +150,9 @@ if($tw.node) {
     }
     var baseFilename;
     // Check whether the user has configured a tiddler -> pathname mapping
-    var pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
+    if ($tw.Bob.Wikis[wiki].wiki) {
+      var pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
+    }
     if(pathNameFilters) {
       var source = $tw.Bob.Wikis[wiki].wiki.makeTiddlerIterator([title]);
       baseFilename = this.findFirstFilter(pathNameFilters.split("\n"),source);
@@ -292,10 +296,9 @@ if($tw.node) {
     }
     if (options.wiki) {
       var prefix = options.wiki;
-      var prefixName = '{' + prefix + '}' + title;
     }
     var self = this,
-      fileInfo = $tw.boot.files[prefixName];
+      fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
       //console.log('Delete tiddler file ', fileInfo.filepath);
@@ -305,7 +308,7 @@ if($tw.node) {
           return callback(err);
         }
         // Delete the tiddler from the internal tiddlywiki side of things
-        delete $tw.boot.files[prefixName];
+        delete $tw.Bob.Files[prefix][title];
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
         // Create a message saying to remove the tiddler
 

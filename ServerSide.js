@@ -42,6 +42,9 @@ if (!Object.entries) {
 // Make sure that $tw.settings is available.
 var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 
+$tw.Bob = $tw.Bob || {};
+$tw.Bob.Files = $tw.Bob.Files || {};
+
 /*
   This function loads a wiki that has a route listed.
 */
@@ -80,6 +83,8 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
+    $tw.Bob.Files[wikiName] = $tw.Bob.Files[wikiName] || {};
+    $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
       // If the wiki isn't loaded yet set the wiki as loaded
@@ -200,8 +205,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     getTheseTiddlers(), function(tiddlerFile) {
       if(!options.readOnly && tiddlerFile.filepath) {
         $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
-          var prefixTitle = '{' + options.prefix + '}' + tiddler.title;
-          $tw.boot.files[prefixTitle] = {
+          $tw.Bob.Files[options.prefix][tiddler.title] = {
             filepath: tiddlerFile.filepath,
             type: tiddlerFile.type,
             hasMetaFile: tiddlerFile.hasMetaFile
@@ -214,9 +218,8 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   var config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
     var output = {};
-    for(var prefixTitle in $tw.boot.files) {
-      var title = prefixTitle.replace('{' + options.prefix + '}', '');
-      output[title] = path.relative(resolvedWikiPath,$tw.boot.files[prefixTitle].filepath);
+    for(var title in $tw.Bob.Files) {
+      output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
     }
     $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
   }

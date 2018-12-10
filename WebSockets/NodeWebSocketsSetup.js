@@ -101,10 +101,10 @@ if ($tw.node) {
   }
 
   /*
-    A placeholder, I may put something here later
+    This makes sure that the token send allows the action on the wiki
   */
   function authenticateMessage(event) {
-    return true
+    return $tw.Bob.AccessCheck(event.wiki, event.token, event.type);
   }
 
   /*
@@ -132,7 +132,7 @@ if ($tw.node) {
         $tw.connections[thisIndex].wiki = eventData.wiki;
         // Make sure that the new connection has the correct list of tiddlers
         // being edited.
-        $tw.Bob.UpdateEditingTiddlers();
+        $tw.Bob.UpdateEditingTiddlers(false, eventData.wiki);
       }
       // Make sure we have a handler for the message type
       if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
@@ -175,19 +175,19 @@ if ($tw.node) {
     For privacy and security only the tiddlers that are in the wiki a
     conneciton is using are sent to that connection.
   */
-  $tw.Bob.UpdateEditingTiddlers = function (tiddler) {
+  $tw.Bob.UpdateEditingTiddlers = function (tiddler, wiki) {
     // Check if a tiddler title was passed as input and that the tiddler isn't
     // already listed as being edited.
     // If there is a title and it isn't being edited add it to the list.
-    if (tiddler && !$tw.Bob.EditingTiddlers[tiddler]) {
-      $tw.Bob.EditingTiddlers[tiddler] = true;
+    if (tiddler && !$tw.Bob.EditingTiddlers[wiki][tiddler]) {
+      $tw.Bob.EditingTiddlers[wiki][tiddler] = true;
     }
     Object.keys($tw.connections).forEach(function(index) {
-      var list = Object.keys($tw.Bob.EditingTiddlers).filter(function(title) {
-        return title.startsWith('{' + $tw.connections[index].wiki + '}');
-      }).map(function(title) {return title.replace('{'+$tw.connections[index].wiki+'}', '')});
-      var message = {type: 'updateEditingTiddlers', list: list, wiki: $tw.connections[index].wiki};
-      $tw.Bob.SendToBrowser($tw.connections[index], message);
+      if ($tw.connections[index].wiki === wiki) {
+        var list = Object.keys($tw.Bob.EditingTiddlers[wiki]);
+        var message = {type: 'updateEditingTiddlers', list: list, wiki: wiki};
+        $tw.Bob.SendToBrowser($tw.connections[index], message);
+      }
     });
   }
 

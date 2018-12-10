@@ -146,7 +146,10 @@ socket server, but it can be extended for use with other web socket servers.
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
         var token = localStorage.getItem('ws-token')
-        var message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
+        var draftTitle = event.param || event.tiddlerTitle;
+        var draftTiddler = $tw.wiki.getTiddler(draftTitle);
+        var originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
+        var message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: originalTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // Do the normal handling
         return event;

@@ -16,6 +16,8 @@ Note: all parameters for this are optional.
 |!excludeList |A filter that returns a list of tiddlers that should not be included in the output html file. (No Default) |
 |!ignoreDefaultExclude |If this is set to `true` than the default exclude list is ignored (Default: 'false') |
 |!externalTiddlers |A JSON object where each key is a wiki name and the value is a filter used to select tiddlers from that wiki to include is the output. (No Default) |
+|!transfromFilters |A JSON object where each key is a wiki name and the value is a filter used to transform the names of tiddlers imported from that wiki. (No Default) |
+|!transformFilter |A filter that is used to transform all tiddler titles pulled in from external wikis using the externalTiddlers parameter. (No Default) |
 
 Example: Build the current wiki in the default location
 
