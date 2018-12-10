@@ -16,6 +16,8 @@ else that generates the input.
 |!wikiFolder |The folder to store the created wiki in. Default: `Wikis` |
 |!wikisPath |The folder where `wikiFolder` parameter above is located. Defaults to the current working directory. |
 |!overwrite |If this is set to `true` and a `wikiName` is given and a wiki with that name already exists than the unpacked tiddlers will be added to that wiki instead of being used to make a new wiki. Default: `false` |
+|!transfromFilters |A JSON object where each key is a wiki name and the value is a filter used to transform the names of tiddlers imported from that wiki. (No Default) |
+|!transformFilter |A filter that is used to transform all tiddler titles pulled in from external wikis using the externalTiddlers parameter. (No Default) |
 
 * `tiddlers` is an array of json objects. Each element in the array lists the fields of one tiddler.
 * You only need to set `wikiFolder` or `wikisPath` if you want your newly created wiki to be located somewhere other than where your existing wikis are.

@@ -20,27 +20,29 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
+
+  function getCookie(cookie, cname) {
+    cookie = cookie || ""
+    var name = cname + "=";
+    var ca = cookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return false;
+  }
+
   var util = require("util"),
     fs = require("fs"),
     url = require("url"),
     path = require("path"),
     http = require("http"),
     qs = require("querystring");
-
-  // A placeholder function. In the future it will look at the request object
-  // and make sure that the proper authentication header is there to access
-  // the desired wiki.
-  function isAuthenticated(request, wiki, action) {
-    return true
-  }
-
-  function canPullFromWiki(request, wiki, action) {
-    return true
-  }
-
-  function canPushToWiki(request, wiki, action) {
-    return true
-  }
 
   /*
   A simple HTTP server with regexp-based routes
@@ -233,13 +235,17 @@ if($tw.node) {
       method: "GET",
       path: /^\/$/,
       handler: function(request,response,state) {
-        // Load the wiki
-        $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
-        // Get the raw html to send
-        var text = $tw.ServerSide.prepareWiki('RootWiki', true);
-        // Send the html to the server
-        response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-        response.end(text,"utf8");
+        var token = getCookie(request.headers.cookie, 'token');
+        var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
+        if (authorised) {
+          // Load the wiki
+          $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+          // Get the raw html to send
+          var text = $tw.ServerSide.prepareWiki('RootWiki', true);
+          // Send the html to the server
+          response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+          response.end(text,"utf8");
+        }
       }
     });
     // Add favicon route
@@ -319,8 +325,9 @@ if($tw.node) {
         method: "POST",
         path: pluginListRoute,
         handler: function (request, response, state) {
-          var authenticated = isAuthenticated(request)
-          if (authenticated) {
+          var token = getCookie(request.headers.cookie, 'token');
+          var authorised = $tw.Bob.AccessCheck("RootWiki", token, 'list');
+          if (authorised) {
             var pluginList = getPluginList()
             response.setHeader('Access-Control-Allow-Origin', '*')
             response.writeHead(200)
@@ -337,8 +344,9 @@ if($tw.node) {
         method: "POST",
         path: fetchPluginRoute,
         handler: function (request, response, state) {
-          var authenticated = isAuthenticated(request)
-          if (authenticated) {
+          var token = getCookie(request.headers.cookie, 'token');
+          var authorised = $tw.Bob.AccessCheck("RootWiki", token, 'fetchPlugin');
+          if (authorised) {
             var plugin = getPlugin(request)
             if (plugin) {
               response.setHeader('Access-Control-Allow-Origin', '*')
@@ -361,51 +369,49 @@ if($tw.node) {
         method: "POST",
         path: pushPathRegExp,
         handler: function (request, response, state) {
-          var authenticated = isAuthenticated(request)
-          if (authenticated) {
-            var body = ''
-            request.on('data', function(chunk){
-              body += chunk;
-              // We limit the size of a push to 5mb for now.
-              if (body.length > 5e6) {
-                response.writeHead(413, {'Content-Type': 'text/plain'}).end();
-                request.connection.destroy();
-              }
-            });
-            request.on('end', function() {
-              try {
-                var bodyData = JSON.parse(body)
-                // Make sure that the token sent here matches the https header
-                // and that the token has push access to the toWiki
-                var allowed = canPushToWiki(bodyData)
-                if (allowed) {
-                  if ($tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
-                    $tw.ServerSide.loadWiki(bodyData.toWiki, $tw.settings.wikis[bodyData.toWiki]);
-                    // Make sure that the wiki exists and is loaded
-                    if ($tw.Bob.Wikis[bodyData.toWiki]) {
-                      if ($tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
-                        if (bodyData.tiddlers && bodyData.toWiki) {
-                          Object.keys(bodyData.tiddlers).forEach(function(title) {
-                            bodyData.tiddlers[title].fields.modified = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
-                            bodyData.tiddlers[title].fields.created = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
-                            $tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
-                          });
-                          response.writeHead(200)
-                          response.end()
-                        }
+          var body = ''
+          request.on('data', function(chunk){
+            body += chunk;
+            // We limit the size of a push to 5mb for now.
+            if (body.length > 5e6) {
+              response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+              request.connection.destroy();
+            }
+          });
+          request.on('end', function() {
+            try {
+              var bodyData = JSON.parse(body)
+              // Make sure that the token sent here matches the https header
+              // and that the token has push access to the toWiki
+              var token = getCookie(request.headers.cookie, 'token');
+              var authorised = $tw.Bob.AccessCheck(bodyData.toWiki, token, 'push');
+              if (authorised) {
+                if ($tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
+                  $tw.ServerSide.loadWiki(bodyData.toWiki, $tw.settings.wikis[bodyData.toWiki]);
+                  // Make sure that the wiki exists and is loaded
+                  if ($tw.Bob.Wikis[bodyData.toWiki]) {
+                    if ($tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
+                      if (bodyData.tiddlers && bodyData.toWiki) {
+                        Object.keys(bodyData.tiddlers).forEach(function(title) {
+                          bodyData.tiddlers[title].fields.modified = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
+                          bodyData.tiddlers[title].fields.created = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
+                          $tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
+                        });
+                        response.writeHead(200)
+                        response.end()
                       }
                     }
                   }
-                } else {
-                  response.writeHead(400)
-                  response.end()
                 }
-              } catch (e) {
+              } else {
                 response.writeHead(400)
                 response.end()
               }
-            })
-          }
+            } catch (e) {
+              response.writeHead(400)
+              response.end()
+            }
+          })
         }
       });
     }
@@ -416,7 +422,7 @@ if($tw.node) {
         path: fetchPathRegExp,
         handler: function(request,response,state) {
           var body = ''
-          var list
+          var list = []
           var data = {}
           response.setHeader('Access-Control-Allow-Origin', '*')
           response.writeHead(200, {"Content-Type": "application/json"})
@@ -433,47 +439,45 @@ if($tw.node) {
             body = body.replace(/^message=/, '')
             try {
               var bodyData = JSON.parse(body)
-              var hasAccess = canPullFromWiki(bodyData)
-              if (hasAccess) {
-                if (bodyData.filter && bodyData.fromWiki) {
-                  // Make sure that the person has access to the wiki
-                  var authorised = true//canAccess(data.token, data.fromWiki)
-                  if (authorised) {
-                    // Make sure that the wiki is listed
-                    if ($tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
-                      // If the wiki isn't loaded than load it
-                      if (!$tw.Bob.Wikis[bodyData.fromWiki]) {
-                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
-                      } else if ($tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
-                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
-                      }
-                      // Make sure that the wiki exists and is loaded
-                      if ($tw.Bob.Wikis[bodyData.fromWiki]) {
-                        if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
-                          list = $tw.Bob.Wikis[bodyData.fromWiki].wiki.filterTiddlers(bodyData.filter);
-                        }
+              if (bodyData.filter && bodyData.fromWiki) {
+                // Make sure that the person has access to the wiki
+                var token = getCookie(request.headers.cookie, 'token');
+                var authorised = $tw.Bob.AccessCheck(bodyData.fromWiki, token, 'view');
+                if (authorised) {
+                  // Make sure that the wiki is listed
+                  if ($tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
+                    // If the wiki isn't loaded than load it
+                    if (!$tw.Bob.Wikis[bodyData.fromWiki]) {
+                      $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                    } else if ($tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
+                      $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                    }
+                    // Make sure that the wiki exists and is loaded
+                    if ($tw.Bob.Wikis[bodyData.fromWiki]) {
+                      if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
+                        list = $tw.Bob.Wikis[bodyData.fromWiki].wiki.filterTiddlers(bodyData.filter);
                       }
                     }
                   }
-                  var tiddlers = {};
-                  var info = {};
-                  list.forEach(function(title) {
-                    var tempTid = $tw.Bob.Wikis[bodyData.fromWiki].wiki.getTiddler(title);
-                    tiddlers[title] = tempTid;
-                    info[title] = {};
-                    if (bodyData.fieldList) {
-                      bodyData.fieldList.split(' ').forEach(function(field) {
-                        info[title][field] = tempTid.fields[field];
-                      })
-                    } else {
-                      info[title]['modified'] = tempTid.fields.modified;
-                    }
-                  })
-                  // Send the tiddlers
-                  data = {list: list, tiddlers: tiddlers, info: info};
-                  data = JSON.stringify(data) || "";
-                  response.end(data);
                 }
+                var tiddlers = {};
+                var info = {};
+                list.forEach(function(title) {
+                  var tempTid = $tw.Bob.Wikis[bodyData.fromWiki].wiki.getTiddler(title);
+                  tiddlers[title] = tempTid;
+                  info[title] = {};
+                  if (bodyData.fieldList) {
+                    bodyData.fieldList.split(' ').forEach(function(field) {
+                      info[title][field] = tempTid.fields[field];
+                    })
+                  } else {
+                    info[title]['modified'] = tempTid.fields.modified;
+                  }
+                })
+                // Send the tiddlers
+                data = {list: list, tiddlers: tiddlers, info: info};
+                data = JSON.stringify(data) || "";
+                response.end(data);
               }
             } catch (e) {
               data = JSON.stringify(data) || "";
@@ -505,58 +509,56 @@ if($tw.node) {
             body = body.replace(/^message=/, '')
             try {
               var bodyData = JSON.parse(body)
-              var hasAccess = canPullFromWiki(bodyData)
-              if (hasAccess) {
-                if (bodyData.filter && bodyData.fromWiki) {
-                  // Make sure that the person has access to the wiki
-                  var authorised = true//canAccess(data.token, data.fromWiki)
-                  if (authorised) {
-                    // Make sure that the wiki is listed
-                    if ($tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
-                      // If the wiki isn't loaded than load it
-                      if (!$tw.Bob.Wikis[bodyData.fromWiki]) {
-                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
-                      } else if ($tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
-                        $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
-                      }
-                      // Make sure that the wiki exists and is loaded
-                      if ($tw.Bob.Wikis[bodyData.fromWiki]) {
-                        if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
-                          // Make a temp wiki to run the filter on
-                          var tempWiki = new $tw.Wiki();
-                          $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
-                            var tiddler = $tw.wiki.getTiddler(internalTitle);
-                            var newTiddler = JSON.parse(JSON.stringify(tiddler));
-                            newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                            newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                            newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                            // Add all the tiddlers that belong in wiki
-                            tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
-                          })
-                          // Use the filter
-                          list = tempWiki.filterTiddlers(bodyData.filter);
-                        }
+              if (bodyData.filter && bodyData.fromWiki) {
+                // Make sure that the person has access to the wiki
+                var token = getCookie(request.headers.cookie, 'token');
+                var authorised = $tw.Bob.AccessCheck(bodyData.fromWiki, token, 'view');
+                if (authorised) {
+                  // Make sure that the wiki is listed
+                  if ($tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
+                    // If the wiki isn't loaded than load it
+                    if (!$tw.Bob.Wikis[bodyData.fromWiki]) {
+                      $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                    } else if ($tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
+                      $tw.ServerSide.loadWiki(bodyData.fromWiki, $tw.settings.wikis[bodyData.fromWiki]);
+                    }
+                    // Make sure that the wiki exists and is loaded
+                    if ($tw.Bob.Wikis[bodyData.fromWiki]) {
+                      if ($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
+                        // Make a temp wiki to run the filter on
+                        var tempWiki = new $tw.Wiki();
+                        $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
+                          var tiddler = $tw.wiki.getTiddler(internalTitle);
+                          var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                          newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                          newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                          newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                          // Add all the tiddlers that belong in wiki
+                          tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
+                        })
+                        // Use the filter
+                        list = tempWiki.filterTiddlers(bodyData.filter);
                       }
                     }
                   }
-                  var tiddlers = {}
-                  var info = {}
-                  list.forEach(function(title) {
-                    var tempTid = tempWiki.getTiddler(title)
-                    info[title] = {}
-                    if (bodyData.fieldList) {
-                      bodyData.fieldList.split(' ').forEach(function(field) {
-                        info[title][field] = tempTid.fields[field];
-                      })
-                    } else {
-                      info[title]['modified'] = tempTid.fields.modified;
-                    }
-                  })
-                  // Send the info
-                  data = {list: list, info: info}
-                  data = JSON.stringify(data) || "";
-                  response.end(data);
                 }
+                var tiddlers = {}
+                var info = {}
+                list.forEach(function(title) {
+                  var tempTid = tempWiki.getTiddler(title)
+                  info[title] = {}
+                  if (bodyData.fieldList) {
+                    bodyData.fieldList.split(' ').forEach(function(field) {
+                      info[title][field] = tempTid.fields[field];
+                    })
+                  } else {
+                    info[title]['modified'] = tempTid.fields.modified;
+                  }
+                })
+                // Send the info
+                data = {list: list, info: info}
+                data = JSON.stringify(data) || "";
+                response.end(data);
               }
             } catch (e) {
               data = JSON.stringify(data) || "";
@@ -585,61 +587,65 @@ if($tw.node) {
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
-          var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-          var pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
-          if (replace === false) {
-            var pathname = path.join(pathRoot, decodeURIComponent(request.url));
-          } else {
-            var pathname = path.join(pathRoot, decodeURIComponent(request.url).replace(replace, ''));
-          }
+          var token = getCookie(request.headers.cookie, 'token');
+          var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
+          if (authorised) {
+            var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+            var pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
+            if (replace === false) {
+              var pathname = path.join(pathRoot, decodeURIComponent(request.url));
+            } else {
+              var pathname = path.join(pathRoot, decodeURIComponent(request.url).replace(replace, ''));
+            }
 
-          // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
-          if (pathname.startsWith(pathRoot)) {
-            fs.exists(pathname, function(exists) {
-              if (!exists || fs.statSync(pathname).isDirectory()) {
-                response.statusCode = 404;
-                response.end();
-              }
-              fs.readFile(pathname, function(err, data) {
-                if (err) {
-                  console.log(err)
-                  response.statusCode = 500;
+            // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
+            if (pathname.startsWith(pathRoot)) {
+              fs.exists(pathname, function(exists) {
+                if (!exists || fs.statSync(pathname).isDirectory()) {
+                  response.statusCode = 404;
                   response.end();
-                } else {
-                  var ext = path.parse(pathname).ext.toLowerCase();
-                  var mimeMap = $tw.settings.mimeMap || {
-                    '.aac': 'audio/aac',
-                    '.avi': 'video/x-msvideo',
-                    '.csv': 'text/csv',
-                    '.doc': 'application/msword',
-                    '.epub': 'application/epub+zip',
-                    '.gif': 'image/gif',
-                    '.html': 'text/html',
-                    '.htm': 'text/html',
-                    '.ico': 'image/x-icon',
-                    '.jpg': 'image/jpeg',
-                    '.jpeg': 'image/jpeg',
-                    '.mp3': 'audio/mpeg',
-                    '.mpeg': 'video/mpeg',
-                    '.oga': 'audio/ogg',
-                    '.ogv': 'video/ogg',
-                    '.ogx': 'application/ogg',
-                    '.png': 'image/png',
-                    '.svg': 'image/svg+xml',
-                    '.weba': 'audio/weba',
-                    '.webm': 'video/webm',
-                    '.wav': 'audio/wav'
-                  };
-                  if (mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
-                    response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
-                    response.end(data);
-                  } else {
-                    response.writeHead(403);
-                    response.end();
-                  }
                 }
+                fs.readFile(pathname, function(err, data) {
+                  if (err) {
+                    console.log(err)
+                    response.statusCode = 500;
+                    response.end();
+                  } else {
+                    var ext = path.parse(pathname).ext.toLowerCase();
+                    var mimeMap = $tw.settings.mimeMap || {
+                      '.aac': 'audio/aac',
+                      '.avi': 'video/x-msvideo',
+                      '.csv': 'text/csv',
+                      '.doc': 'application/msword',
+                      '.epub': 'application/epub+zip',
+                      '.gif': 'image/gif',
+                      '.html': 'text/html',
+                      '.htm': 'text/html',
+                      '.ico': 'image/x-icon',
+                      '.jpg': 'image/jpeg',
+                      '.jpeg': 'image/jpeg',
+                      '.mp3': 'audio/mpeg',
+                      '.mpeg': 'video/mpeg',
+                      '.oga': 'audio/ogg',
+                      '.ogv': 'video/ogg',
+                      '.ogx': 'application/ogg',
+                      '.png': 'image/png',
+                      '.svg': 'image/svg+xml',
+                      '.weba': 'audio/weba',
+                      '.webm': 'video/webm',
+                      '.wav': 'audio/wav'
+                    };
+                    if (mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+                      response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
+                      response.end(data);
+                    } else {
+                      response.writeHead(403);
+                      response.end();
+                    }
+                  }
+                })
               })
-            })
+            }
           }
         }
       });
@@ -673,22 +679,26 @@ if($tw.node) {
             method: "GET",
             path: new RegExp('^\/' + fullName + '\/?$'),
             handler: function(request, response, state) {
-              // Make sure we have loaded the wiki tiddlers.
-              // This does nothing if the wiki is already loaded.
-              var exists = $tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
-              if (exists) {
-                // If servePlugin is not false than we strip out the filesystem
-                // and tiddlyweb plugins if they are there and add in the
-                // Bob plugin.
-                var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
-                // Get the full text of the html wiki to send as the response.
-                var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
-              } else {
-                var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
-              }
+              var token = getCookie(request.headers.cookie, 'token');
+              var authorised = $tw.Bob.AccessCheck(fullName, token, 'view');
+              if (authorised) {
+                // Make sure we have loaded the wiki tiddlers.
+                // This does nothing if the wiki is already loaded.
+                var exists = $tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
+                if (exists) {
+                  // If servePlugin is not false than we strip out the filesystem
+                  // and tiddlyweb plugins if they are there and add in the
+                  // Bob plugin.
+                  var servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
+                  // Get the full text of the html wiki to send as the response.
+                  var text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
+                } else {
+                  var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+                }
 
-              response.writeHead(200, {"Content-Type": state.server.get("serveType")});
-              response.end(text,"utf8");
+                response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+                response.end(text,"utf8");
+              }
             }
           });
           // And add the favicon route for the child wikis
@@ -761,6 +771,21 @@ if($tw.node) {
 
     var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
+
+    /*
+      This function checks to see if the current action is allowed with the access
+      level given by the supplied token
+
+      If access controls are not enabled than this just returns true and
+      everything is allowed.
+
+      If access controls are enabled than this needs to check the token to get
+      the list of wikis and actions that are allowed to it and if the action is
+      allowed for the wiki return true, otherwise false.
+    */
+    $tw.Bob.AccessCheck = function(wikiName, token, action) {
+      return true;
+    }
 
     $tw.httpServer.listen(port,host);
 
