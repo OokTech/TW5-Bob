@@ -8,6 +8,7 @@ there may be bugs that I don't know about. Also see notes below.
 - Multi-User support for using/editing the same wiki(s) simultaneously
 - Multi-Wiki support - run it once and serve multiple wikis
 - Create and configure new wikis from inside the root wiki
+- Export single file wikis in a variety of ways
 - Two-way real-time syncing between the browser and file system
 - All configuration can be done from inside the wiki
 - Serve external files (like images) so you can include them in your wikis
@@ -57,7 +58,7 @@ instructions:
 Clone the tiddlywiki repo and get the plugin (Only do this the first time to
 install everything):
 ```
-git clone --depth=1 --branch v5.1.17 https://github.com/Jermolene/TiddlyWiki5.git
+git clone --depth=1 --branch v5.1.18 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
 cp -r TiddlyWiki5/plugins/OokTech/Bob/MultiUserWiki TiddlyWiki5/Wikis/BobWiki/
@@ -78,7 +79,7 @@ should be immediately reflected in the browser. Open the tiddler called
 right now the tiddler says `192.168.0.15`, so I put `192.168.0.15:8080` in the
 browser of another computer on the same network to access the wiki). Now any
 changes you make to tiddlers on one computer will be reflected almost
-immediately on the other, and any chaneges you make to tiddlers or the file
+immediately on the other, and any changes you make to tiddlers or the file
 system will be almost immediately reflected in all connected wikis.
 
 If you want to use the global tiddlywiki install you have to set the
@@ -94,6 +95,42 @@ tiddlywiki editions/BobWiki  --wsserver
 
 If you want to change settings see
 <a href='./Configuration.md'>Configuration.md</a> for information.
+
+#### Updating Bob on a manual install
+
+When a new version of Bob is released you can update your plugin like this.
+If you followed the instructions above exactly than you use this. If you
+cloned the repo elsewhere than you need to cd into the folder where you
+cloned the plugin.
+
+You can do this to make sure you have the most recent version, running this
+command when you already have the newest version does nothing and won't break
+anything so you can try it if you are not sure without worrying.
+
+In a terminal type these commands:
+
+```
+cd TiddlyWiki5
+cd plugins/OokTech/Bob
+git pull
+```
+
+#### Updating TiddlyWiki on a manual install
+
+This is to update your version of tiddlywiki, not Bob.
+
+When TiddlyWiki release a new version you need to update your TiddlyWiki
+version also. This assumes that you followed the above instructions exactly.
+If you cloned the TiddlyWiki repo somewhere else than you have to cd into that
+folder instead.
+
+In a terminal type these commands:
+
+```
+cd TiddlyWiki5
+git fetch --all --tags --prune
+git checkout tags/v5.1.18
+```
 
 ### Notes
 
