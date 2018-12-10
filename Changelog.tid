@@ -1,6 +1,17 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.0.7 (ongoing)
+!! Version 1.1.1 (ongoing)
+
+  - Fixed a bug that would sometimes show shadow tiddlers as being edited after
+    the edit was cancelled.
+  - Add the start of what is necessary to have access control and
+    authentication for Bob wikis without an external server
+    - so far it does nothing with out an external server, but the access
+      control is now consistent.
+  - Bump compatibility to TiddlyWiki 5.1.18
+  - Stop using $tw.boot.files
+
+!! Version 1.1.0 Actually Garlic Bagels (still)
 
 - Add `savePluginFolder` web socket message to save packaged plugins as folders
   on a server. These plugins can then be available to other served wikis and in
@@ -12,12 +23,44 @@ title: $:/plugins/OokTech/Bob/Changelog
   - In the Bob Settings tab there is a Manage Plugins tab
 - Added an interface to save plugins to the server and to select which plugins
   from the server should be used in the current wiki
+  - It is still very crude and needs work
 - Change the internals to make one $tw.Wiki object for each wiki instead of
   having them all in $tw.wiki
   - There are lots of internal changes to make this work
   - $tw.boot.files still uses the prefixed name
 - Streamlined and simplified the file system monitor
   - It should now watch new subfolders inside the tiddlers folder
+- Environment variables are now set from the plugin, themes, and languages paths
+  given in the settings.
+  - This is needed by the core to properly list available plugins
+  - This means that you can set the location of one folder listing plugins,
+    themes and languages in the settings instead of using environment
+    variables. At the moment this is limited to one folder.
+- The `unloadWiki` message now ensures that the connection to any browsers with
+  that wiki open are closed correctly.
+- Updates to the `buildHTMLWiki` message
+  - You can now pull tiddlers in from any served wiki while making an html
+    file. This means you can combine wikis in the output.
+  - There is a default filter for excluding plugins like Bob and components
+    that are only useful on a server
+  - You can add an additional filter to exclude tiddlers from the exported html
+    wiki
+  - You can disable the default exclude list for more control
+- The `$:/config/FileSystemPaths` settings should work now
+- Added a check so it shouldn't crash when trying to load a wiki that doesn't
+  work
+- Fixed bug where the wrong port is listed in the control panel.
+- Added download wiki action widget that downloads the current wiki as a single
+  html file.
+  - By default it removes the Bob plugin and some other plugins that only work
+    with a server.
+  - It can have an `includeFilter` for tiddlers to include, an `excludeFilter`
+    for tiddlers to exclude and a suggested name for the downloaded file.
+- Fixed bug where settings file wouldn't be properly created if it didn't exist
+- Added an action widget that lets you convert a single file wiki into a wiki
+  that can be used by Bob.
+- Added interfaces for the importing/creating and exporting/saving wikis to the
+  control panel.
 
 !! Version 1.0.6 Salt Bagels 2: Bagel Harder
 

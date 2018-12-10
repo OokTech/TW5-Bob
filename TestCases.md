@@ -47,6 +47,10 @@ changes:
 9. Editing a tiddler on the file system:
   - The changes appear almost immediately in any connected browsers after the
     tiddler is saved
+  - Adding one or more tags to a tid file that doesn't already have tags listed
+    adds the tags to the tiddlers in already open wikis
+  - Removing all tags from a tid file that has one or more tags removes the
+    tags from open wikis
 10. Renaming a tiddler in the browser:
   - Changes appear in other browser tabs
   - The old .tid file is gone, a new .tid file with the correct name for the
@@ -102,6 +106,16 @@ TODO - This part
   - TODO this part
 3. Conflicts should be properly shown
   - TODO this part
+
+## Loading and Unloading Wikis
+
+1. Load the root wiki and a child wiki in a browser then unload the child wiki.
+  - The child wiki in the browser should show that it is disconnected
+  - Reloading the wiki should work
+2. Unload the root wiki from the root wiki
+  - The wiki should show that it is disconnected
+  - Reloading the wiki should work
+3. Reconnecting should do something...
 
 ## Logging
 

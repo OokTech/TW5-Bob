@@ -21,18 +21,23 @@ To enable the static file server you need to give a value for `filePathRoot` in
 the Bob settings. Set this to the path of the folder you have your images or
 other files you want to have available.
 
-By default the urls for files in that folder are prefixed with `file`, so if
+By default the urls for files in that folder are prefixed with `files`, so if
 you have a file `foo.jpg` in the folder you are using than you can access it in
 the wiki like this:
 
-`[img[./file/foo.jpg]]`
+`[img[./files/foo.jpg]]`
 
 sub-folders of the folder listed are also available, so if you have
 `filePathRoot` set to `/home/inmysocks/Pictures` and you have a folder called
 `Plants` in that folder with `aloe.jpg` in it than you could get that image
 like this:
 
-`[img[./file/Plants/aloe.jpg]]`
+`[img[./files/Plants/aloe.jpg]]`
+
+''Note about paths:'' For security you can't use any paths that would go above
+the base file path. So, using the example above, if you tried to access an
+image in `/home/inmysocks` by using the uri `./files/../foo.jpg` it would not
+work.
 
 !!File Types
 
@@ -42,17 +47,27 @@ is used as the default:
 
 ```
 mimeMap: {
-  '.ico': 'image/x-icon',
+  '.aac': 'audio/aac',
+  '.avi': 'video/x-msvideo',
+  '.csv': 'text/csv',
+  '.doc': 'application/msword',
+  '.epub': 'application/epub+zip',
+  '.gif': 'image/gif',
   '.html': 'text/html',
-  '.png': 'image/png',
+  '.htm': 'text/html',
+  '.ico': 'image/x-icon',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.wav': 'audio/wav',
   '.mp3': 'audio/mpeg',
+  '.mpeg': 'video/mpeg',
+  '.oga': 'audio/ogg',
+  '.ogv': 'video/ogg',
+  '.ogx': 'application/ogg',
+  '.png': 'image/png',
   '.svg': 'image/svg+xml',
-  '.pdf': 'application/pdf',
-  '.doc': 'application/msword',
-  '.gif': 'image/gif'
+  '.weba': 'audio/weba',
+  '.webm': 'video/webm',
+  '.wav': 'audio/wav'
 }
 ```
 

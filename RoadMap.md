@@ -1,9 +1,6 @@
 # Roadmap for version 1.1.0
 
-- Create Bob wikis from existing single file wikis. (This mostly already exists)
-  - From inside the control panel select an existing wiki file and give a name
-    and then the file is split into individual tiddler files and made into a
-    wiki.
+- When create Bob wikis from existing single file wikis:
   - (maybe) determine if the plugins used in the single file are available
     locally as node plugins and preferentially use the node plugins
   - (maybe) determine if the plugins in the single file are available locally
@@ -41,3 +38,4 @@
       - Syncing should be pretty much the same as when a browser reconnects otherwise. The local server logs into the remote server to get a token, then sends over the changes in the syncChanges message and the remote server then sends any new things to the local server. The conflicts are handled the same way as browser-server conflicts.
 - Add `@iarna/toml` as an external library and use toml instead of json for
   configuration.
+- Limit the wikis listed to the ones visible to the current person logged in

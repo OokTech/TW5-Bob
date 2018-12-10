@@ -1,0 +1,52 @@
+title: $:/plugins/OokTech/Bob/Exporting Wikis
+caption: Exporting Wikis
+tags: [[Bob Documentation]]
+description: Save or export wikis as single html files
+
+There are multiple ways to save a wiki made with Bob as a single file wiki.
+
+You can also export wikis that are a combination of tiddlers from multiple
+wikis or a subset of tiddlers from a single wiki.
+
+! Download a single html version of the current wiki
+
+This is the most direct method of saving a wiki. It downloads the wiki as a
+single file in (almost) the same way as when you click the save button on a
+single file wiki.
+
+There are a few changes:
+
+* The downloaded file has the Bob plugin removed, as well as some other
+  server-specific plugins that have no purpose in a singe file wiki. This makes
+  the resulting wiki file smaller.
+* You can use an exclude filter to exclude certain tiddlers from the downloaded
+  file
+* You can use an include fliter to only include certain tiddlers in the
+  downloaded file
+
+See [[$:/plugins/OokTech/Bob/ActionDownloadWiki]] for more documentation.
+
+! Export a single html version of tiddlers from multiple wikis to the server
+
+This method lets you pick and choose which tiddlers you want included in your
+downloaded file, not just from the current wiki but from any wiki served by
+Bob.
+
+This saves the wiki on the server, it doesn't offer it as a download. If you
+are using the computer that is running Bob than this is like it downloading the
+wiki without you needing to tell the computer where to put the file.
+
+By default the output file is called `index.html` and it is saved in the
+`output` folder of the current wiki. These are the same defaults as the normal
+build command used by the node version of tiddlywiki.
+
+See [[$:/plugins/OokTech/Bob/WebSocketMessage-buildHTMLWiki]] for more.
+
+<!--
+! Download an already exported singe file wiki from the server
+
+After you have used the second method above you can request the file from the
+server as a download.
+
+It is undocumented for now
+-->

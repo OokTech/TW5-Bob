@@ -47,7 +47,9 @@ zero-based index of the browser connection to the server.
   <$action-websocketmessage $type='test' attribute=value/>
 </$button>
 
-This will reset the tiddlywiki server. Note that if you press this button than it will break your connection to the server and you will have to refresh the page after the server has restarted.
+This will reset the tiddlywiki server. Note that if you press this button than
+it will break your connection to the server and you will have to refresh the
+page after the server has restarted.
 
 ```
 <$button>

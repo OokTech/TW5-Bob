@@ -13,8 +13,11 @@ Note: all parameters for this are optional.
 |!buildWiki |The name of the wiki to build. Defaults to the current wiki if no value is given. |
 |!outputFolder |The folder to store the output html file in. Can be absolute or relative to the wiki folder. (Default: `output`) |
 |!outputName |The to give the output html file. (Default: `index.html`) |
-|!excludeList |A filter that returns a list of tiddlers that should not be included in the output html file. (Default: `[[$:/plugins/OokTech/Bob]] [[$:/plugins/tiddlywiki/filesystem]] [[$:/plugins/tiddlywiki/tiddlyweb]]`) |
-
+|!excludeList |A filter that returns a list of tiddlers that should not be included in the output html file. (No Default) |
+|!ignoreDefaultExclude |If this is set to `true` than the default exclude list is ignored (Default: 'false') |
+|!externalTiddlers |A JSON object where each key is a wiki name and the value is a filter used to select tiddlers from that wiki to include is the output. (No Default) |
+|!transfromFilters |A JSON object where each key is a wiki name and the value is a filter used to transform the names of tiddlers imported from that wiki. (No Default) |
+|!transformFilter |A filter that is used to transform all tiddler titles pulled in from external wikis using the externalTiddlers parameter. (No Default) |
 
 Example: Build the current wiki in the default location
 
@@ -22,6 +25,24 @@ Example: Build the current wiki in the default location
 <$action-websocketmessage $type='buildHTMLWiki'/>
 ```
 
-Note: If you make your own exclude list it is a good idea to include the
-tiddlers in the default. They have no purpose in a single file wiki and may
-cause errors.
+Example: Build the current wiki with extra tiddlers from two other wikis
+
+```
+<$action-websocketmessage $type='buildHTMLWiki' externalTiddlers="""{"WikiOne":"[!is[system]]", "WikiTwo":"[tag[import]]"}"""/>
+```
+
+Note: The exclude list has two parts, there is the default exclude list that
+removes the parts that are not useful for single file wikis like the Bob plugin
+and the filter given by the `excludeList` parameter, if any.
+These two lists are combined and nothing on the combined list is included in
+the output html file.
+If you want more control you can ignore the default exclude list by setting
+`ignoreDefaultExclude=true` in the widget.
+If you do decide to ignore the defaults be careful, the included tiddlers have
+no purpose in a single file wiki and may cause errors.
+
+The defualt exclude filter is
+
+```
+[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]
+```

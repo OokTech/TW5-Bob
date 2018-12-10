@@ -31,6 +31,15 @@ if($tw.node) {
   Command.prototype.execute = function() {
     var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
+
+    // Get the ip address to display to make it easier for other computers to
+    // connect.
+    var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
+    var ipAddress = ip.address();
+    $tw.settings.serverInfo = {
+      ipAddress: ipAddress
+    };
+
     return null;
   };
 

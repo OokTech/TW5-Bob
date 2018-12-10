@@ -29,6 +29,7 @@ if ($tw.node) {
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
   $tw.connections = $tw.connections || [];
+  $tw.Bob.Files = $tw.Bob.Files || {};
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
@@ -91,16 +92,16 @@ if ($tw.node) {
       // The file name without the extension
       var baseName = path.basename(filename, fileExtension);
 
-      var fullTiddlerName = Object.keys($tw.boot.files).filter(function (item) {
+      var fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
         // A lot of this is to handle some weird edge cases I ran into
         // while making it.
         // TODO figure out why this happens.
         if (typeof item === 'string') {
           if (item === 'undefined') {
-            delete $tw.boot.files[item];
+            delete $tw.Bob.Files[prefix][item];
             return false;
           }
-          return ($tw.boot.files[item].filepath === itemPath)
+          return ($tw.Bob.Files[prefix][item].filepath === itemPath)
         } else {
           return false;
         }
@@ -117,13 +118,28 @@ if ($tw.node) {
           // should be. If not rename the file to match the rules set by
           // the wiki.
           // This is the title based on the current .tid file
-          var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title);
+          var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
           var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
           // Load the tiddler from the wiki, check if they are different (non-existent is changed)
           var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
-          //if (tiddlerFileTitle !== newTitle) {
           if ($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
             // Rename the file
+            // If $:/config/FileSystemPaths is used than the folder and
+            // newTitle may overlap.
+            // This determines if any of the title has an overlap in the path
+            if (newTitle.replace('\\','/').indexOf('/') !== -1) {
+              var pieces = newTitle.replace('\\','/').split('/')
+              var pathBits = pieces.slice(0,-1);
+              while (pathBits.length > 0) {
+                if (folder.endsWith(pathBits.join(path.sep))) {
+                  break;
+                }
+                pathBits = pathBits.slice(0,-1);
+              }
+              if (pathBits.length > 0) {
+                newTitle = pieces.slice(pathBits.length).join(path.sep);
+              }
+            }
             // translate tiddler title into filepath
             var theFilepath = path.join(folder, newTitle + fileExtension);
             if (typeof fullTiddlerName === 'string') {
@@ -184,8 +200,7 @@ if ($tw.node) {
 
     // Set the final fileInfo
     fileInfo.filepath = itemPath;
-    var internalName = "{" + prefix + "}" + title;
-    $tw.boot.files[internalName] = fileInfo;
+    $tw.Bob.Files[prefix][title] = fileInfo;
 
     // Add the newly cretaed tiddler.
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddlerObject.tiddlers[0]));
@@ -200,12 +215,10 @@ if ($tw.node) {
 
     // At this point the tiddlerName is the internal name so we need to switch
     // to the non-prefixed name for the message to the browsers
-    Object.keys($tw.boot.files).forEach(function(prefixTiddlerName) {
-      if ($tw.boot.files[prefixTiddlerName].filepath === itemPath) {
-        // Remove the tiddler info from $tw.boot.files
-        delete $tw.boot.files[prefixTiddlerName];
-        // Get the non-prefixed name
-        var tiddlerName = prefixTiddlerName.replace('{'+prefix+'}','');
+    Object.keys($tw.Bob.Files[prefix]).forEach(function(tiddlerName) {
+      if ($tw.Bob.Files[prefix][tiddlerName].filepath === itemPath) {
+        // Remove the tiddler info from $tw.Bob.Files
+        delete $tw.Bob.Files[prefix][tiddlerName];
         // Remove the tiddler on the server
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler from the browser
