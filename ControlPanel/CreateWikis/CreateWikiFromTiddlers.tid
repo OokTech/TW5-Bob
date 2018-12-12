@@ -1,0 +1,120 @@
+title: $:/plugins/OokTech/Bob/CreateWikiFromTiddlers
+caption: Create Wiki From Tiddlers
+
+The transfrom field is entirely optional. See
+[[transform filters|$:/plugins/OokTech/Bob/Transform Filters]] for more
+information.
+
+Give the wiki a name:
+<$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='wiki_name'
+/>
+
+<table>
+  <tr>
+    <th>
+      Wiki
+    </th>
+    <th>
+      Filter
+    </th>
+    <th>
+      Transfrom
+    </th>
+    <th>
+    </th>
+  </tr>
+  <$list
+    filter='[[$:/temp/NewWiki]indexes[]]'
+  >
+    <tr>
+      <td>
+        <$view
+          field='title'
+        />
+      </td>
+      <td>
+        <$edit-text
+          tiddler='$:/temp/NewWiki'
+          index=<<currentTiddler>>
+          tag=input
+        />
+      </td>
+      <td>
+        <$edit-text
+          tiddler='$:/temp/NewWiki/Transforms'
+          index=<<currentTiddler>>
+          tag=input
+        />
+      </td>
+      <td>
+        <$button>
+          Remove Filter
+          <$action-setfield
+            $tiddler='$:/temp/NewWiki'
+            $index=<<currentTiddler>>
+          />
+          <$action-setfield
+            $tiddler='$:/temp/NewWiki/Transforms'
+            $index=<<currentTiddler>>
+          />
+        </$button>
+      </td>
+    </tr>
+  </$list>
+</table>
+
+From Wiki: <$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='from_wiki_name'
+/>
+Filter: <$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='tiddler_filter'
+/>
+Transform: <$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='transform_filter'
+  tag=input
+/>
+
+<$button>
+  Add Filter
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    $index={{$:/temp/NewWiki!!from_wiki_name}}
+    $value={{$:/temp/NewWiki!!tiddler_filter}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki/Transforms'
+    $index={{$:/temp/NewWiki!!from_wiki_name}}
+    $value={{$:/temp/NewWiki!!transform_filter}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    from_wiki_name=''
+    tiddler_filter=''
+    transform_filter=''
+  />
+</$button>
+<br>
+<$button>
+  Make Wiki
+  <$action-websocketmessage
+    $type=newWikiFromTiddlers
+    wikiName={{$:/temp/NewWiki!!wiki_name}}
+    externalTiddlers={{$:/temp/NewWiki!!text}}
+    transformFilters={{$:/temp/NewWiki/Transforms!!text}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    from_wiki_name=''
+    tiddler_filter=''
+    text='{}'
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki/Transforms'
+    text='{}'
+  />
+</$button>

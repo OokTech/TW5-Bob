@@ -1,0 +1,43 @@
+title: $:/plugins/OokTech/Bob/Transform Filters
+caption: Transform Filters
+tags: [[Bob Documentation]]
+description: Filters that can be used to modify tiddler names when they are imported
+
+Transfom filters are filters that can be used to modify the names of tiddlers
+when they are imported into a wiki.
+
+The input to the filter is the original tiddler title and the output is used as
+the new title.
+
+Example:
+
+Transform Filter: `[addprefix[$:/prefix/]]`
+
+Input Title: `A Tiddler`
+
+Output Title: `$:/prefix/A Tiddler`
+
+!! Some notes about context
+
+These filters are evaluated in the context of the originating wiki, so you can use
+transclusions from that wiki to create the name.
+
+This means that if you use this filter:
+
+`[addprefix{$:/WikiName}]`
+
+and pull a tiddler called `This Tiddler` from a wiki called `MyWiki` the title
+when it gets pulled would be called:
+
+`MyWikiThis Tiddler`
+
+A perhaps more useful filter would be:
+
+`[addprefix[/]addprefix{$:/WikiName}addprefix[$:/imported/]]`
+
+which would result in the tiddler name
+
+`$:/imported/MyWiki/This Tiddler`
+
+note that the prefixes are added left to right, so reading them in the filter
+gives the opposite order than they appear in on the output.
