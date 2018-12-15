@@ -595,7 +595,7 @@ if ($tw.node) {
         }
       })
       // If there are external tiddlers to add try and add them
-      GatherTiddlers (tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.token)
+      GatherTiddlers (tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.decoded)
       // Prepare the wiki
       tempWiki.registerPluginTiddlers("plugin",["$:/core"]);
       // Unpack plugin tiddlers
@@ -675,7 +675,7 @@ if ($tw.node) {
       if (!exists || data.overwrite !== 'true') {
         // First copy the empty edition to the wikiPath to make the
         // tiddlywiki.info
-        var params = {"wiki": data.wiki, "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName, "wikiName": wikiName};
+        var params = {"wiki": data.wiki, "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName, "wikiName": wikiName, "decoded": data.decoded};
         $tw.nodeMessageHandlers.createNewWiki(params);
         // Get the folder for the wiki tiddlers
         wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
@@ -701,10 +701,12 @@ if ($tw.node) {
         count++;
       });
       // If there are external tiddlers to add try and add them
+      console.log(data)
       var tempWiki = new $tw.Wiki();
-      GatherTiddlers(tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.token);
+      GatherTiddlers(tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.decoded);
       tempWiki.allTitles().forEach(function(tidTitle) {
         $tw.syncadaptor.saveTiddler(tempWiki.getTiddler(tidTitle), wikiName);
+        count++;
       })
       if(!count) {
         console.log("No tiddlers found in the input file");
@@ -727,15 +729,18 @@ if ($tw.node) {
     externalTiddlers - a json object that lists the wikis and filters
     token - the access token, if any
   */
-  function GatherTiddlers (wiki, externalTiddlers, transformFilters, transformFilter, token) {
+  function GatherTiddlers (wiki, externalTiddlers, transformFilters, transformFilter, decodedToken) {
     if (externalTiddlers) {
       try {
         var externalData = externalTiddlers
         if (typeof externalTiddlers !== 'object') {
           externalData = JSON.parse(externalTiddlers);
         }
+        if (typeof transformFilters !== 'object') {
+          transformFilters = JSON.parse(transformFilters);
+        }
         Object.keys(externalData).forEach(function(wikiTitle) {
-          var allowed = $tw.Bob.AccessCheck(wikiTitle, token, 'view');
+          var allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view');
           if (allowed) {
             var exists = $tw.ServerSide.loadWiki(wikiTitle, $tw.settings.wikis[wikiTitle]);
             if (exists) {
@@ -1004,7 +1009,7 @@ if ($tw.node) {
   */
   $tw.nodeMessageHandlers.internalFetch = function(data) {
     // Make sure that the person has access to the wiki
-    var authorised = $tw.Bob.AccessCheck(data.fromWiki, data.token, 'view');
+    var authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'view');
     if (authorised) {
       var externalTiddlers = {};
       if (data.externalTiddlers) {
@@ -1016,7 +1021,7 @@ if ($tw.node) {
       }
       externalTiddlers[data.fromWiki] = data.filter
       var tempWiki = new $tw.Wiki();
-      GatherTiddlers(tempWiki, externalTiddlers, data.transformFilters, data.transformFilter, data.token);
+      GatherTiddlers(tempWiki, externalTiddlers, data.transformFilters, data.transformFilter, data.decoded);
 
       // Add the results to the current wiki
       // Each tiddler gets added to the requesting wiki
@@ -1149,6 +1154,45 @@ if ($tw.node) {
   }
 
   /*
+    This sends back a list of all wikis that are viewable using the current access token.
+  */
+  $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
+    function getList(obj, prefix) {
+      var output = []
+      Object.keys(obj).forEach(function(item) {
+        if (typeof obj[item] === 'string') {
+          if ($tw.ServerSide.existsListed(prefix+item, obj[item])) {
+            output.push(prefix+item);
+          }
+        } else if (typeof obj[item] === 'object') {
+          output = output.concat(getList(obj[item], prefix + item + '/'));
+        }
+      })
+      return output
+    }
+    // Get the wiki list of wiki names from the settings object
+    var wikiList = getList($tw.settings.wikis, '')
+    //console.log(wikiList)
+    //console.log($tw.settings.wikis)
+    var viewableWikis = []
+    wikiList.forEach(function(wikiName) {
+      if ($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+        viewableWikis.push(wikiName)
+      }
+    })
+    // Send viewableWikis back to the browser
+    var tiddler = {
+      fields: {
+        title: '$:/state/ViewableWikis',
+        list: $tw.utils.stringifyList(viewableWikis)
+      }
+    }
+    var message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+    sendAck(data);
+  }
+
+  /*
     This loads the tiddlywiki.info and if new versions are given it updates the
     description, list of plugins, themes and languages
   */
@@ -1187,7 +1231,7 @@ if ($tw.node) {
   $tw.nodeMessageHandlers.downloadHTMLFile = function (data) {
     if (data.wiki) {
       var downloadWiki = data.forWiki || data.wiki;
-      var allowed = $tw.Bob.AccessCheck(downloadWiki, data.token, 'view');
+      var allowed = $tw.Bob.AccessCheck(downloadWiki, {"decoded":data.decoded}, 'view');
       if (allowed) {
         const path = require('path');
         const fs = require('fs');

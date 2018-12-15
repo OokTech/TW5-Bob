@@ -1,0 +1,74 @@
+title: $:/plugins/OokTech/Bob/AvailableWikisTab
+caption: Available Wikis
+
+You can create new wikis here. Select the edition and then enter a name.
+
+Names should only have numbers and letters and no spaces or special characters.
+
+See [[creating new wikis|$:/plugins/OokTech/Bob/Creating New Wikis]] for more
+information about making wikis.
+
+Create a wiki from
+
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='edition'
+>
+  an edition
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='file'
+>
+  an html file
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='tiddlers'
+>
+  existing tiddlers
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='node'
+>
+  a node wiki
+</$radio>
+
+<$list
+  filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromEdition}}
+</$list>
+
+
+<$list
+  filter='[[$:/temp/NewWiki]method[file]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromFile}}
+</$list>
+
+<$list
+  filter='[[$:/temp/NewWiki]method[tiddlers]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromTiddlers}}
+</$list>
+
+<$list
+  filter='[[$:/temp/NewWiki]method[node]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
+</$list>
+
+{{$:/plugins/OokTech/Bob/Wiki Listing}}

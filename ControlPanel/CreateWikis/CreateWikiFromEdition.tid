@@ -1,0 +1,47 @@
+title: $:/plugins/OokTech/Bob/CreateWikiFromEdition
+caption: Create Wiki From Edition
+
+<$set
+  name=ListedEditions
+  filter='[[$:/ListedEditions]has[text]]'
+  emptyValue="[[$:/EditionsList]indexes[]]"
+  value="[enlist{$:/ListedEditions}]"
+  select=0
+>
+  Select Wiki Edition:
+  <$select
+    tiddler='$:/temp/NewWiki'
+    field='edition'
+  >
+    <$list
+      filter=<<ListedEditions>>
+    >
+      <option>
+        <<currentTiddler>>
+      </option>
+    </$list>
+  </$select>
+</$set>
+<br>
+Give the wiki a name:
+<$edit-text
+  tiddler='$:/temp/NewWiki'
+  field='wiki_name'
+/>
+
+<$button>
+  Make Wiki
+  <$action-websocketmessage
+    $type='createNewWiki'
+    path={{$:/temp/NewWiki!!wiki_name}}
+    wikiName={{$:/temp/NewWiki!!wiki_name}}
+    edition={{$:/temp/NewWiki!!edition}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/NewWiki'
+    wiki_name=''
+  />
+  <$action-websocketmessage
+    $type=updateRoutes
+  />
+</$button>

@@ -1,6 +1,16 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.1.1 (ongoing)
+!! Version 1.1.2 (ongoing)
+
+  - The control panel tab has been refactored a bit (few visible changes)
+  - Separate the function that lets you determine if a wiki exists or not from
+    the load function
+    - This lets us list only wikis that actually exist
+    - This may let us automatically detect available wikis in the future
+  - The available wikis listing now only shows wikis you have permissions to
+    view.
+
+!! Version 1.1.1 Pretzel Nubs
 
   - Fixed a bug that would sometimes show shadow tiddlers as being edited after
     the edit was cancelled.
@@ -10,6 +20,9 @@ title: $:/plugins/OokTech/Bob/Changelog
       control is now consistent.
   - Bump compatibility to TiddlyWiki 5.1.18
   - Stop using $tw.boot.files
+  - Everything that uses the internalFetch mechanism can now accept transform
+    filters for fetched tiddlers.
+    - This includes `internalFetch`, `buildHTMLWiki` and `newWikiFromTiddlers`
 
 !! Version 1.1.0 Actually Garlic Bagels (still)
 

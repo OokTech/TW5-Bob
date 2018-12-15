@@ -526,6 +526,7 @@ This has some functions that are needed by Bob in different places.
     removed later.
   */
   Shared.handleAck = function (data) {
+    //console.log('handle ack', data)
     if (data.id) {
       // a quick hack to make this work
       if ($tw.browser) {

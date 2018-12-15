@@ -46,9 +46,9 @@ $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
 /*
-  This function loads a wiki that has a route listed.
+  This checks to make sure that a wiki exists
 */
-ServerSide.loadWiki = function (wikiName, wikiFolder) {
+ServerSide.existsListed = function (wikiName, wikiFolder) {
   var listed = false;
   var exists = false;
   // First make sure that the wiki is listed
@@ -78,8 +78,16 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     // Make sure it exists
     exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
   }
+  return listed && exists;
+}
+
+/*
+  This function loads a wiki that has a route listed.
+*/
+ServerSide.loadWiki = function (wikiName, wikiFolder) {
+  var exists = ServerSide.existsListed(wikiName, wikiFolder);
   // Add tiddlers to the node process
-  if (listed && exists) {
+  if (exists) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
@@ -140,7 +148,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
   }
-  return listed && exists;
+  return exists;
 }
 
 /*

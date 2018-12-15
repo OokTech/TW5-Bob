@@ -254,7 +254,8 @@ if($tw.node) {
       path: /^\/favicon.ico$/,
       handler: function(request,response,state) {
         response.writeHead(200, {"Content-Type": "image/x-icon"});
-        var buffer = state.wiki.getTiddlerText("$:/favicon.ico","");
+        var buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+        console.log(buffer)
         response.end(buffer,"base64");
       }
     });
@@ -707,7 +708,7 @@ if($tw.node) {
             path: new RegExp('^\/' + fullName + '\/favicon.ico$'),
             handler: function(request,response,state) {
               response.writeHead(200, {"Content-Type": "image/x-icon"});
-              var buffer = state.wiki.getTiddlerText("{" + fullName + "}" + "$:/favicon.ico","");
+              var buffer = $tw.Bob.Wikis[fullName].wiki.getTiddlerText('$:/favicon.ico');
               response.end(buffer,"base64");
             }
           });

@@ -77,6 +77,7 @@ socket server, but it can be extended for use with other web socket servers.
       var token = localStorage.getItem('ws-token');
       // Start the heartbeat process
       $tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+      $tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'getViewableWikiList', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
     /*
       This is a wrapper function, each message from the websocket server has a
