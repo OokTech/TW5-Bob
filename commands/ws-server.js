@@ -219,6 +219,24 @@ if($tw.node) {
     });
   };
 
+  function findName(url) {
+      var pieces = url.split('/')
+      var name = pieces[0]
+      var settingsObj = wiki.tw.settings.wikis[name]
+      for (var i = 1; i < pieces.length; i++) {
+        if (typeof settingsObj[pieces[i]] === 'object') {
+          name = name + '/' + pieces[i]
+          settingsObj = settingsObj[pieces[i]]
+        } else if (typeof settingsObj[pieces[i]] === 'string') {
+          name = name + '/' + pieces[i]
+          break
+        } else {
+          break
+        }
+      }
+      return name
+    }
+
   var Command = function(params,commander,callback) {
     this.params = params;
     this.commander = commander;
@@ -255,7 +273,6 @@ if($tw.node) {
       handler: function(request,response,state) {
         response.writeHead(200, {"Content-Type": "image/x-icon"});
         var buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
-        console.log(buffer)
         response.end(buffer,"base64");
       }
     });
@@ -575,19 +592,22 @@ if($tw.node) {
           var pathRegExp = new RegExp('^/.+$');
           var replace = false;
         } else {
-          var pathRegExp = new RegExp('^\/' + $tw.settings.fileURLPrefix + '\/.+$');
-          var replace = new RegExp('^\/' + $tw.settings.fileURLPrefix);
+          var pathRegExp = new RegExp('\/' + $tw.settings.fileURLPrefix + '\/.+$');
+          var replace = new RegExp('\/' + $tw.settings.fileURLPrefix);
         }
       } else {
         // Use the same base path as the --listen command
-        var pathRegExp = new RegExp('^\/files\/.+$');
-        var replace = new RegExp('^\/files')
+        var pathRegExp = new RegExp('\/files\/.+$');
+        var replace = false
       }
       // Add the external files route handler
       $tw.httpServer.addRoute({
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
+          if (request.url.startsWith('/files/')) {
+            request.url = request.url.slice(6)
+          }
           var token = getCookie(request.headers.cookie, 'token');
           var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
           if (authorised) {
