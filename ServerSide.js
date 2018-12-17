@@ -226,7 +226,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   var config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
     var output = {};
-    for(var title in $tw.Bob.Files) {
+    for(var title in $tw.Bob.Files[options.prefix]) {
       output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
     }
     $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));

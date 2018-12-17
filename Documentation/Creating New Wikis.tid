@@ -21,6 +21,11 @@ using the default settings). If you are not on the computer running the server
 or have changed the settings than the url is the url of your root wiki with
 `/WikiName` added to the end.
 
+''Note:'' Wiki names are limited to what can be used in a URL. So they can be
+unaccented letters in the latin alphabet (a-z, A-Z) or digits (0-9). They can
+not contain any spaces or other whitespace. As a special restriction wikis can
+also not be named `files`.
+
 !!an edition
 
 Select the edition you want to use as the base from the drop down menu labelled

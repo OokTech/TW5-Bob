@@ -1172,8 +1172,6 @@ if ($tw.node) {
     }
     // Get the wiki list of wiki names from the settings object
     var wikiList = getList($tw.settings.wikis, '')
-    //console.log(wikiList)
-    //console.log($tw.settings.wikis)
     var viewableWikis = []
     wikiList.forEach(function(wikiName) {
       if ($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {

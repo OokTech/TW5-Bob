@@ -13,6 +13,10 @@ your home network.
 
 ---
 
+!! Globally available files
+
+These files are available to any wiki being served.
+
 You can serve files from the local filesystem to make them available in the
 wiki. This is particularly useful for things like images and pdf files that
 would make the wiki large if they were embedded as tiddlers.
@@ -25,19 +29,36 @@ By default the urls for files in that folder are prefixed with `files`, so if
 you have a file `foo.jpg` in the folder you are using than you can access it in
 the wiki like this:
 
-`[img[./files/foo.jpg]]`
+`[img[/files/foo.jpg]]`
 
 sub-folders of the folder listed are also available, so if you have
 `filePathRoot` set to `/home/inmysocks/Pictures` and you have a folder called
 `Plants` in that folder with `aloe.jpg` in it than you could get that image
 like this:
 
-`[img[./files/Plants/aloe.jpg]]`
+`[img[/files/Plants/aloe.jpg]]`
 
 ''Note about paths:'' For security you can't use any paths that would go above
 the base file path. So, using the example above, if you tried to access an
 image in `/home/inmysocks` by using the uri `./files/../foo.jpg` it would not
 work.
+
+!! Files for specific wikis
+
+These files are for specific wikis and, if you have set up access controls, are
+only available to that wiki.
+
+These are similar to the globally available files with the following
+differences:
+
+* The path root is the `files` folder located in the wiki folder, next to the tiddlers folder.
+* To access these files you use the prefix `/wikiName/files/`, so if you have a wiki called `foo` and a picture called `bar.jpg` you would use `/foo/files/bar.jpg` to access it.
+
+!! File paths
+
+You should not put a `.` at the start of the url to make it relative. It will
+work in some situations but it will not work in others. In general leaving out
+the `.` is a better idea in this situation.
 
 !!File Types
 

@@ -1,0 +1,21 @@
+title: $:/plugins/OokTech/Bob/SettingFavicons
+caption: Setting Favicons
+tags: [[Bob Documentation]]
+description: Notes about favicons with Bob
+
+To set the favicon for a wiki (a favicon is the little image shown on the
+browser tab for most browsers) you can take an image tiddler and set its title
+to `$:/favicon.ico`. This does not work with tiddlers that use `_canonical_uri`
+field.
+
+''Note:'' Due to details of how the file server component works if you set a
+favicon for the root wiki it is used as the default favicon for all of the
+child wikis. You can set the favicon for the child wikis normally and it works,
+but if there is none set it uses the same one as the root wiki.
+
+This was not intended behaviour so it may change later, but I don't think it is
+a problem and it may be convenient.
+
+If you want to set the favicon for your root wiki and have a child wiki with no
+favicon create an empty tiddler with the title `$:/favicon.ico` in the
+child wiki.
