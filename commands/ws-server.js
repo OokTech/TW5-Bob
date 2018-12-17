@@ -220,10 +220,14 @@ if($tw.node) {
   };
 
   function findName(url) {
-      var pieces = url.split('/')
-      var name = pieces[0]
-      var settingsObj = wiki.tw.settings.wikis[name]
-      for (var i = 1; i < pieces.length; i++) {
+    var pieces = url.split('/')
+    var name = ''
+    var settingsObj = $tw.settings.wikis[pieces[0]]
+    if (settingsObj) {
+      name = pieces[0]
+    }
+    for (var i = 1; i < pieces.length; i++) {
+      if (settingsObj) {
         if (typeof settingsObj[pieces[i]] === 'object') {
           name = name + '/' + pieces[i]
           settingsObj = settingsObj[pieces[i]]
@@ -234,8 +238,9 @@ if($tw.node) {
           break
         }
       }
-      return name
     }
+    return name
+  }
 
   var Command = function(params,commander,callback) {
     this.params = params;
@@ -272,7 +277,10 @@ if($tw.node) {
       path: /^\/favicon.ico$/,
       handler: function(request,response,state) {
         response.writeHead(200, {"Content-Type": "image/x-icon"});
-        var buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+        var buffer = ''
+        if ($tw.Bob.Wikis['RootWiki']) {
+          buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+        }
         response.end(buffer,"base64");
       }
     });
@@ -590,35 +598,41 @@ if($tw.node) {
       if (typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
         if ($tw.settings.fileURLPrefix === '') {
           var pathRegExp = new RegExp('^/.+$');
-          var replace = false;
         } else {
           var pathRegExp = new RegExp('\/' + $tw.settings.fileURLPrefix + '\/.+$');
-          var replace = new RegExp('\/' + $tw.settings.fileURLPrefix);
         }
       } else {
         // Use the same base path as the --listen command
         var pathRegExp = new RegExp('\/files\/.+$');
-        var replace = false
       }
       // Add the external files route handler
       $tw.httpServer.addRoute({
         method: "GET",
         path: pathRegExp,
         handler: function(request, response, state) {
-          if (request.url.startsWith('/files/')) {
-            request.url = request.url.slice(6)
+          var wikiName = findName(request.url.replace(/^\//, ''));
+          var filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
+          var urlPieces = request.url.split('/');
+          // Check to make sure that the wiki name actually matches the URL
+          // Without this you could put in foo/bar/baz and get files from
+          // foo/bar if there was a wiki tehre and not on foo/bar/baz and then
+          // it would break when someone made a wiki on foo/bar/baz
+          var ok = false;
+          if (wikiName !== '') {
+            ok = (request.url.replace(/^\//, '').split('/')[wikiName.split('/').length] === filePrefix);
+          } else {
+            ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
           }
+          var filePath = urlPieces.slice(urlPieces.indexOf(filePrefix)+1).join('/');
           var token = getCookie(request.headers.cookie, 'token');
-          var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
-          if (authorised) {
+          var authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
+          if (authorised && ok) {
             var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
             var pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
-            if (replace === false) {
-              var pathname = path.join(pathRoot, decodeURIComponent(request.url));
-            } else {
-              var pathname = path.join(pathRoot, decodeURIComponent(request.url).replace(replace, ''));
+            if (wikiName !== '') {
+              pathRoot = path.resolve($tw.Bob.Wikis[wikiName].wikiPath, 'files')
             }
-
+            var pathname = path.resolve(pathRoot, filePath)
             // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
             if (pathname.startsWith(pathRoot)) {
               fs.exists(pathname, function(exists) {
