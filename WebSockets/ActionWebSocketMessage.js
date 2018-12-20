@@ -93,7 +93,9 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // We need a message type at a minimum to send anything
   if (message.type) {
     // Send the message
-    $tw.connections[0].socket.send(JSON.stringify(message));
+    //$tw.connections[0].socket.send(JSON.stringify(message));
+    var messageData = $tw.Bob.Shared.createMessageData(message)
+    $tw.Bob.Shared.sendMessage(messageData, 0)
   }
 
 	return true; // Action was invoked

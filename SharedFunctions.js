@@ -477,6 +477,10 @@ This has some functions that are needed by Bob in different places.
 
       // Remove any messages made redundant by this message
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
+      if ($tw.browser) {
+        // Check to see if the token has changed
+        $tw.Bob.MessageQueue = Shared.removeOldTokenMessages($tw.Bob.MessageQueue);
+      }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
       var enqueuedIndex = Object.keys($tw.Bob.MessageQueue).findIndex(function(enqueuedMessageData) {
@@ -509,6 +513,25 @@ This has some functions that are needed by Bob in different places.
     }
     clearTimeout($tw.Bob.MessageQueueTimer);
     $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+  }
+
+  /*
+    If the token in the queued messages changes than remove messages that use
+    the old token
+  */
+  Shared.removeOldTokenMessages = function (messageQueue) {
+    var outQueue = [];
+    if (localStorage) {
+      if (typeof localStorage.getItem === 'function') {
+        var token = localStorage.getItem('ws-token');
+        outQueue = messageQueue.filter(function(messageData) {
+          return messageData.message.token === token
+        })
+      }
+    } else {
+      outQueue = messageQueue;
+    }
+    return outQueue
   }
 
   /*

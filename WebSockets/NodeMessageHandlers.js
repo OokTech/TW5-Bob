@@ -1157,6 +1157,7 @@ if ($tw.node) {
     This sends back a list of all wikis that are viewable using the current access token.
   */
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
+    console.log('getViewableWikiList')
     function getList(obj, prefix) {
       var output = []
       Object.keys(obj).forEach(function(item) {
@@ -1175,17 +1176,14 @@ if ($tw.node) {
     var viewableWikis = []
     wikiList.forEach(function(wikiName) {
       if ($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+        console.log('here ', $tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view'))
         viewableWikis.push(wikiName)
       }
     })
+    console.log(wikiList)
+    console.log(viewableWikis)
     // Send viewableWikis back to the browser
-    var tiddler = {
-      fields: {
-        title: '$:/state/ViewableWikis',
-        list: $tw.utils.stringifyList(viewableWikis)
-      }
-    }
-    var message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    var message = {type: 'setViewableWikis', list: $tw.utils.stringifyList(viewableWikis), wiki: data.wiki}
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
     sendAck(data);
   }
@@ -1245,6 +1243,43 @@ if ($tw.node) {
       }
     }
     sendAck(data);
+  }
+
+  /*
+    This sets up the logged in status of a wiki
+
+    It needs to:
+
+    - start the heartbeat process
+    - populate the list of viewable wikis
+    - add any configuration interface things
+  */
+  $tw.nodeMessageHandlers.setLoggedIn = function (data) {
+    console.log(data)
+    // Heartbeat. This can be done if the heartbeat is started or not because
+    // if an extra heartbeat pong is heard it just shifts the timing.
+    var message = {};
+    message.type = 'pong';
+    if (data.heartbeat) {
+      message.heartbeat = true;
+    }
+    // When the server receives a ping it sends back a pong.
+    var response = JSON.stringify(message);
+    $tw.connections[data.source_connection].socket.send(response);
+
+    // Populating the wiki list uses the same stuff as the other message.
+    $tw.nodeMessageHandlers.getViewableWikiList(data);
+
+    // Add configuration stuff
+    $tw.nodeMessageHandlers.setConfigurationInterface(data);
+  }
+
+  /*
+    This uses the token to determine which configuration options should be
+    visible on the wiki and sends the appropriate tiddlers
+  */
+  $tw.nodeMessageHandlers.setConfigurationInterface = function (data) {
+    // I need to figure out what to put here
   }
 
   /*
