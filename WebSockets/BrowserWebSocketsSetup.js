@@ -81,6 +81,16 @@ socket server, but it can be extended for use with other web socket servers.
       var message = {type: 'getViewableWikiList', token: token, wiki: $tw.wikiName};
       var messageData = $tw.Bob.Shared.createMessageData(message)
       $tw.Bob.Shared.sendMessage(messageData, 0)
+
+      var data = {
+        type: 'setLoggedIn',
+        wiki: $tw.wikiName,
+        heartbeat: true,
+        token: token
+      };
+      var messageData = $tw.Bob.Shared.createMessageData(data);
+      console.log(messageData)
+      $tw.Bob.Shared.sendMessage(messageData, 0)
     }
     /*
       This is a wrapper function, each message from the websocket server has a

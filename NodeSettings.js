@@ -112,6 +112,10 @@ if ($tw.node) {
         process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
       }
     }
+    /*
+      TODO this needs to be set up so that it only shows editions that you have
+      permissions to see
+    */
     // Create the $:/EditionsList tiddler
     var editionsList = $tw.utils.getEditionInfo();
     $tw.editionsInfo = {};

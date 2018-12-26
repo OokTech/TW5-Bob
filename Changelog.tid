@@ -9,6 +9,13 @@ title: $:/plugins/OokTech/Bob/Changelog
     - This may let us automatically detect available wikis in the future
   - The available wikis listing now only shows wikis you have permissions to
     view.
+  - You can now set the default folder for storing wikis
+    - It can be relative to the tiddlywiki folder (or the folder with the
+      executable) or an absolute path.
+  - You can now automatically detect wikis that are inside your wikis folder
+    - This can automatically populate settings.json for you
+    - This can also detect wikis that are listed but don't exist and remove
+      them from the list.
 
 !! Version 1.1.1 Pretzel Nubs
 

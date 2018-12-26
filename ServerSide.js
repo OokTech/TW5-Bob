@@ -46,12 +46,26 @@ $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
 /*
-  This checks to make sure that a wiki exists
+  This checks to make sure there is a tiddlwiki.info file in a wiki folder
 */
-ServerSide.existsListed = function (wikiName, wikiFolder) {
-  var listed = false;
+ServerSide.wikiExists = function (wikiFolder) {
   var exists = false;
-  // First make sure that the wiki is listed
+  // Make sure that the wiki actually exists
+  if (wikiFolder) {
+    $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
+    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    // Get the correct path to the tiddlywiki.info file
+    wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
+    // Make sure it exists
+    exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
+  }
+  return exists;
+}
+
+/*
+  This checks to see if a wiki is listed under a specific name
+*/
+ServerSide.wikiListed = function (wikiName) {
   if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
     listed = true;
   } else {
@@ -70,7 +84,40 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
       }
     }
   }
+  return listed;
+}
+
+/*
+  This checks to make sure that a wiki exists
+*/
+ServerSide.existsListed = function (wikiName, wikiFolder) {
+  var listed = false;
+  var exists = false;
+  // First make sure that the wiki is listed
+  listed = ServerSide.wikiListed(wikiName);
+  /*
+  if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
+    listed = true;
+  } else {
+    var parts = wikiName.split('/');
+    var obj = $tw.settings.wikis
+    for (var i = 0; i < parts.length; i++) {
+      if (obj[parts[i]]) {
+        if (i === parts.length - 1) {
+          listed = true;
+        } else {
+          obj = obj[parts[i]];
+        }
+      } else {
+        listed = false;
+        break;
+      }
+    }
+  }
+  */
   // Make sure that the wiki actually exists
+  exists = ServerSide.wikiExists(wikiFolder);
+  /*
   if (wikiFolder) {
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     // Get the correct path to the tiddlywiki.info file
@@ -78,6 +125,7 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
     // Make sure it exists
     exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
   }
+  */
   return listed && exists;
 }
 
@@ -98,8 +146,8 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       // If the wiki isn't loaded yet set the wiki as loaded
       $tw.Bob.Wikis[wikiName].State = 'loaded';
       // Save the wiki path and tiddlers path
-      $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
-      $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+      $tw.Bob.Wikis[wikiName].wikiPath = path.resolve($tw.settings.wikisPath, wikiFolder);
+      $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve($tw.settings.wikisPath, wikiFolder, 'tiddlers');
       // Make sure that the tiddlers folder exists
       var error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
       // Recursively build the folder tree structure
@@ -110,7 +158,8 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
 
       // Add tiddlers to the node process
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      var fullPath = path.resolve(basePath, $tw.Bob.Wikis[wikiName].wikiPath);
+      var wikisPath = $tw.settings.wikisPath || './Wikis';
+      var fullPath = path.resolve(basePath, wikisPath, $tw.Bob.Wikis[wikiName].wikiPath);
 
       // Create a wiki object for this wiki
       $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
@@ -268,7 +317,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
       }
     }
   }
-  $tw.CreateSettingsTiddlers(options.prefix);
+  //$tw.CreateSettingsTiddlers(options.prefix);
   return wikiInfo;
 };
 

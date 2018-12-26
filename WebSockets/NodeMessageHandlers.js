@@ -363,10 +363,19 @@ if ($tw.node) {
       var path = require('path');
       var fs = require('fs');
     }
-    var prefix = data.wiki;
-    // Get first tiddler to start out
-    var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/WikiSettings/split');
-    var settings = JSON.stringify(buildSettings(tiddler, prefix), "", 2);
+    var settings = JSON.stringify($tw.settings, "", 2);
+    if (data.fromServer !== true) {
+      var prefix = data.wiki;
+      // Get first tiddler to start out
+      var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/WikiSettings/split');
+      var settings = JSON.stringify(buildSettings(tiddler, prefix), "", 2);
+
+      // Update the $tw.settings object
+      // First clear the settings
+      $tw.settings = {};
+      // Put the updated version in.
+      $tw.updateSettings($tw.settings, JSON.parse(settings));
+    }
     // Update the settings tiddler in the wiki.
     var tiddlerFields = {
       title: '$:/WikiSettings',
@@ -374,7 +383,7 @@ if ($tw.node) {
       type: 'application/json'
     };
     // Add the tiddler
-    $tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
     $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
     // Save the updated settings
@@ -391,13 +400,8 @@ if ($tw.node) {
         console.log('Wrote settings file')
       }
     });
-    // Update the $tw.settings object
-    // First clear the settings
-    $tw.settings = {};
-    // Put the updated version in.
-    $tw.updateSettings($tw.settings, JSON.parse(settings));
 
-    $tw.CreateSettingsTiddlers();
+    $tw.CreateSettingsTiddlers(data.wiki);
     sendAck(data);
   }
 
@@ -1157,7 +1161,6 @@ if ($tw.node) {
     This sends back a list of all wikis that are viewable using the current access token.
   */
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
-    console.log('getViewableWikiList')
     function getList(obj, prefix) {
       var output = []
       Object.keys(obj).forEach(function(item) {
@@ -1176,12 +1179,9 @@ if ($tw.node) {
     var viewableWikis = []
     wikiList.forEach(function(wikiName) {
       if ($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
-        console.log('here ', $tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view'))
         viewableWikis.push(wikiName)
       }
     })
-    console.log(wikiList)
-    console.log(viewableWikis)
     // Send viewableWikis back to the browser
     var message = {type: 'setViewableWikis', list: $tw.utils.stringifyList(viewableWikis), wiki: data.wiki}
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
@@ -1255,7 +1255,6 @@ if ($tw.node) {
     - add any configuration interface things
   */
   $tw.nodeMessageHandlers.setLoggedIn = function (data) {
-    console.log(data)
     // Heartbeat. This can be done if the heartbeat is started or not because
     // if an extra heartbeat pong is heard it just shifts the timing.
     var message = {};
@@ -1272,6 +1271,8 @@ if ($tw.node) {
 
     // Add configuration stuff
     $tw.nodeMessageHandlers.setConfigurationInterface(data);
+
+    sendAck(data);
   }
 
   /*
@@ -1280,6 +1281,116 @@ if ($tw.node) {
   */
   $tw.nodeMessageHandlers.setConfigurationInterface = function (data) {
     // I need to figure out what to put here
+    var fields = {
+      title: '$:/Bob/VisibleConfigurationTabs',
+      list: "hi"
+    }
+    var tiddler = {fields: fields}
+    var message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+
+    $tw.CreateSettingsTiddlers(data.wiki);
+
+    sendAck(data);
+  }
+
+  /*
+    This looks in the wikis folder set in the configuration
+    $tw.setting.wikisPath
+    If none is set it uses ./Wikis
+  */
+  $tw.nodeMessageHandlers.findAvailableWikis = function (data) {
+    function getWikiPaths(settingsObject) {
+      var paths = Object.values(settingsObject);
+      console.log(paths)
+      var outPaths = [];
+      paths.forEach(function(thisPath) {
+        if (typeof thisPath === 'object') {
+          outPaths = outPaths.concat(getWikiPaths(thisPath));
+        } else {
+          outPaths.push(path.resolve(basePath, $tw.settings.wikisPath, thisPath));
+        }
+      })
+      return outPaths
+    }
+    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+    const fs = require('fs');
+    const path = require('path');
+    var wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
+    // Check each folder in the wikis folder to see if it has a tiddlywiki.info
+    // file
+    var realFolders = [];
+    var folderContents = fs.readdirSync(wikiFolderPath);
+    folderContents.forEach(function (item) {
+      var fullName = path.join(wikiFolderPath, item);
+      if (fs.statSync(fullName).isDirectory()) {
+        if ($tw.ServerSide.wikiExists(fullName)) {
+          realFolders.push(fullName);
+        }
+      }
+    })
+    // If it does check to see if any listed wiki has the same path, if so skip
+    // it
+    var alreadyListed = [];
+    var listedWikis = getWikiPaths($tw.settings.wikis);
+    realFolders.forEach(function(folder) {
+      // Check is the wiki is listed
+      if(listedWikis.indexOf(folder) > -1) {
+        alreadyListed.push(folder);
+      }
+    })
+    var wikisToAdd = realFolders.filter(function(folder) {
+      return alreadyListed.indexOf(folder) === -1;
+    })
+    wikisToAdd = wikisToAdd.map(function(thisPath) {
+      return path.relative(wikiFolderPath,thisPath);
+    })
+    var dontExist = listedWikis.filter(function(folder) {
+      return !$tw.ServerSide.wikiExists(folder);
+    })
+    data.update = data.update || ''
+    if (typeof data.update !== 'string') {
+      data.update = '';
+    }
+    if (data.update.toLowerCase() === 'true') {
+      wikisToAdd.forEach(function (wikiName) {
+        var nameParts = wikiName.split('/');
+        var settingsObj = $tw.settings.wikis;
+        var i;
+        for (i = 0; i < nameParts.length; i++) {
+          if (typeof settingsObj[nameParts[i]] === 'object') {
+            settingsObj = settingsObj[nameParts[i]];
+          } else {
+            settingsObj[nameParts[i]] = nameParts[i];
+          }
+        }
+      })
+    }
+    data.remove = data.remove || ''
+    if (typeof data.remove !== 'string') {
+      data.remove = '';
+    }
+    if (data.remove.toLowerCase() === 'true') {
+      Object.keys($tw.settings.wikis).forEach(function(wikiName) {
+        if (typeof $tw.settings.wikis[wikiName] === 'string') {
+          // Check if the wikiName resolves to one of the things to remove
+          if (dontExist.indexOf(path.resolve(wikiFolderPath, $tw.settings.wikis[wikiName])) > -1) {
+            // If the wiki is listed as not existing, remove it.
+            delete $tw.settings.wikis[wikiName];
+          }
+        }
+      })
+    }
+    // Save the new settings, update routes, update settings tiddlers in the
+    // browser and update the list of available wikis
+    if (data.saveSettings) {
+      $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki',fromServer:true});
+      $tw.nodeMessageHandlers.updateRoutes({wiki: 'RootWiki'});
+      $tw.nodeMessageHandlers.getViewableWikiList(data);
+    }
+
+    sendAck(data);
   }
 
   /*
