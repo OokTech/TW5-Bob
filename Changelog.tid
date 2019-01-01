@@ -1,6 +1,20 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.1.2 (ongoing)
+!! Version 1.1.3
+
+  - Don't sync tiddlers that start with `$:/WikiSettings`
+  - General improvements to message handling
+  - You can now give a path (absolute or relative) for wikis instead of always
+    making wikis in the `./Wikis` folder.
+  - Bob can now automatically detect any wikis in the wikis folder or
+    subfolders
+  - If you are logged in you can set new wikis to be prefixed by your username
+    to prevent naming collisions on multi-user systems.(currently only relevant
+    with the secure server)
+  - You can make new wikis in subfolders by giving a name like
+    path/to/wiki/wikiName
+
+!! Version 1.1.2 Unnamed Pastry
 
   - The control panel tab has been refactored a bit (few visible changes)
   - Separate the function that lets you determine if a wiki exists or not from

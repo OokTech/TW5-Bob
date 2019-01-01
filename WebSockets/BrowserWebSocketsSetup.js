@@ -75,13 +75,7 @@ socket server, but it can be extended for use with other web socket servers.
     var openSocket = function() {
       console.log('Opened socket');
       var token = localStorage.getItem('ws-token');
-      // Start the heartbeat process
-      $tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
-      //$tw.connections[connectionIndex].socket.send(JSON.stringify({type: 'getViewableWikiList', heartbeat: true, token: token, wiki: $tw.wikiName}));
-      var message = {type: 'getViewableWikiList', token: token, wiki: $tw.wikiName};
-      var messageData = $tw.Bob.Shared.createMessageData(message)
-      $tw.Bob.Shared.sendMessage(messageData, 0)
-
+      // Login with whatever credentials you have
       var data = {
         type: 'setLoggedIn',
         wiki: $tw.wikiName,
@@ -89,7 +83,6 @@ socket server, but it can be extended for use with other web socket servers.
         token: token
       };
       var messageData = $tw.Bob.Shared.createMessageData(data);
-      console.log(messageData)
       $tw.Bob.Shared.sendMessage(messageData, 0)
     }
     /*
