@@ -381,11 +381,12 @@ This has some functions that are needed by Bob in different places.
         // If the new message is one of these types for a tiddler and the
         // timestamp of the queued message is newer than the current message
         // ignore the new message
-        if (['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(messageData.type) !== -1) {
+        var nonMultipleMessageTypes = ['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler', 'setViewableWikis', 'listTiddlers', 'setLoggedIn', 'updateEditingTiddlers'];
+        if (nonMultipleMessageTypes.indexOf(messageData.type) !== -1) {
           // Look at each queued message
           queue.forEach(function(queuedMessageData){
             // If the queued message has one of these types
-            if (['deleteTiddler', 'saveTiddler'].indexOf(queuedMessageData.type) !== -1) {
+            if (nonMultipleMessageTypes.indexOf(queuedMessageData.type) !== -1) {
               // if the queued message is newer than the current message ignore
               // the current message
               if (queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
@@ -477,6 +478,10 @@ This has some functions that are needed by Bob in different places.
 
       // Remove any messages made redundant by this message
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
+      if ($tw.browser) {
+        // Check to see if the token has changed
+        $tw.Bob.MessageQueue = Shared.removeOldTokenMessages($tw.Bob.MessageQueue);
+      }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
       var enqueuedIndex = Object.keys($tw.Bob.MessageQueue).findIndex(function(enqueuedMessageData) {
@@ -509,6 +514,25 @@ This has some functions that are needed by Bob in different places.
     }
     clearTimeout($tw.Bob.MessageQueueTimer);
     $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+  }
+
+  /*
+    If the token in the queued messages changes than remove messages that use
+    the old token
+  */
+  Shared.removeOldTokenMessages = function (messageQueue) {
+    var outQueue = [];
+    if (localStorage) {
+      if (typeof localStorage.getItem === 'function') {
+        var token = localStorage.getItem('ws-token');
+        outQueue = messageQueue.filter(function(messageData) {
+          return messageData.message.token === token
+        })
+      }
+    } else {
+      outQueue = messageQueue;
+    }
+    return outQueue
   }
 
   /*
@@ -565,6 +589,10 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.pruneMessageQueue = function (inQueue) {
     inQueue = inQueue || [];
+    var token = false
+    if ($tw.browser && localStorage) {
+      var token = localStorage.getItem('ws-token');
+    }
     // We can not remove messages immediately or else they won't be around to
     // prevent duplicates when the message from the file system monitor comes
     // in.
@@ -577,9 +605,14 @@ This has some functions that are needed by Bob in different places.
     // messageData.ack.ctime is the time that a message received all the acks
     // it was waiting for. If it doesn't exist than it is still waiting.
     var outQueue = inQueue.filter(function(messageData) {
-      // if there is a ctime than check if it is more than 10000ms ago, if so
-      // remove the message.
-      if (messageData.ctime) {
+      if ((token && messageData.message.token && messageData.message.token !== token) || (token && !messageData.message.token) ) {
+        // If we have a token, the message has a token and they are not the same than drop the message.
+        // If we have a token and the message doesn't have a token than drop it
+        // If we don't have a token and the message does than what?
+        return false
+      } else if (messageData.ctime) {
+        // if there is a ctime than check if it is more than 10000ms ago, if so
+        // remove the message.
         if (Date.now() - messageData.ctime > 10000) {
           return false;
         } else {

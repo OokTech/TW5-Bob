@@ -141,6 +141,9 @@ it will overwrite this file.
     // Send the response JSON as a string.
     var token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    //var message = {type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}
+    //var messageData = $tw.Bob.Shared.createMessageData(message)
+    //$tw.Bob.Shared.sendMessage(messageData, 0)
     sendAck(data);
   }
 
@@ -294,6 +297,20 @@ it will overwrite this file.
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    }
+    sendAck(data);
+  }
+
+  /*
+    Set the viewable wikis
+  */
+  $tw.browserMessageHandlers.setViewableWikis = function (data) {
+    if (data.list) {
+      var fields = {
+        title: '$:/state/ViewableWikis',
+        list: data.list
+      }
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
     sendAck(data);
   }

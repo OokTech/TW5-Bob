@@ -134,16 +134,24 @@ if ($tw.node) {
         // being edited.
         $tw.Bob.UpdateEditingTiddlers(false, eventData.wiki);
       }
-      // Make sure we have a handler for the message type
-      if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
-        // Check authorisation
-        var authorised = authenticateMessage(eventData)
-        if (authorised) {
-          eventData.decoded = authorised
-          $tw.nodeMessageHandlers[eventData.type](eventData);
+      // Make sure that the connection is from the wiki the message is for.
+      // This may not be a necessary security measure.
+      // I don't think that not having this would open up any exploits but I am not sure.
+      // TODO figure out if this is needed.
+      if (eventData.wiki === $tw.connections[thisIndex].wiki) {
+        // Make sure we have a handler for the message type
+        if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+          // Check authorisation
+          var authorised = authenticateMessage(eventData)
+          if (authorised) {
+            eventData.decoded = authorised
+            $tw.nodeMessageHandlers[eventData.type](eventData);
+          }
+        } else {
+          console.log('No handler for message of type ', eventData.type);
         }
       } else {
-        console.log('No handler for message of type ', eventData.type);
+        console.log('Target wiki and connected wiki don\'t match');
       }
     } catch (e) {
       console.log("WebSocket error, probably closed connection: ", e);

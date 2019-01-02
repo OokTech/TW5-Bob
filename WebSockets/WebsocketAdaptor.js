@@ -188,7 +188,7 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/')) {
+    if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/') && !tiddler.fields.title.startsWith('$:/WikiSettings')) {
       var self = this;
       self.getTiddlerFileInfo(tiddler, prefix,
        function(err,fileInfo) {

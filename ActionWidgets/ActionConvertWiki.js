@@ -83,7 +83,8 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
             "wiki": wikiName,
             "overwrite": self.overwrite
           }
-          $tw.connections[0].socket.send(JSON.stringify(message));
+          var messageData = $tw.Bob.Shared.createMessageData(message)
+          $tw.Bob.Shared.sendMessage(messageData, 0)
         } else {
           console.log("No tiddlers found in input file!");
         }
