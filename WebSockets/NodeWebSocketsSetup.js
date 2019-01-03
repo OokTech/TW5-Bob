@@ -22,32 +22,32 @@ exports.platforms = ["node"];
 exports.after = ["node-settings"];
 exports.synchronous = true;
 
-if (!$tw.settings) {
-  // Make sure that $tw.settings is available.
-  var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
-}
+
+// Make sure that $tw.settings is available.
+$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
+
 
 if ($tw.node) {
-  // require the websockets module if we are running node
-  var WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
-  var fs = require("fs");
-  var http = require("http");
-  var path = require("path");
+  //var fs = require("fs");
+  //var http = require("http");
+  //var path = require("path");
   //  var TOML = $tw.node ? require('$:/plugins/OokTech/Bob/External/@iarna/toml/toml.js') : undefined;
   // Import shared commands
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
+  $tw.Bob = $tw.Bob || {};
+  $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
+  $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
+  // Initialise connections array
+  $tw.connections = $tw.connections || [];
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
   var setup = function () {
+    // require the websockets module if we are running node
+    var WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-    $tw.Bob = $tw.Bob || {};
-    $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
-    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
-    // Initialise connections array
-    $tw.connections = $tw.connections || [];
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
@@ -68,6 +68,9 @@ if ($tw.node) {
           console.log('closed connection ', connection);
         });
       }
+      $tw.PruneTimeout = setInterval(function(){
+        $tw.Bob.PruneConnections();
+      }, 10000);
     }
 
     finishSetup();
@@ -154,7 +157,7 @@ if ($tw.node) {
         console.log('Target wiki and connected wiki don\'t match');
       }
     } catch (e) {
-      console.log("WebSocket error, probably closed connection: ", e);
+      console.log("WebSocket error: ", e);
     }
   }
 
@@ -168,6 +171,18 @@ if ($tw.node) {
       if (connectionIndex.wiki === wiki) {
         // Close the websocket connection
         connectionIndex.socket.terminate();
+      }
+    })
+  }
+
+  /*
+    This checks to see if a wiki has no connected sockets and if not it unloads
+    the wiki.
+  */
+  $tw.Bob.PruneConnections = function () {
+    $tw.connections.forEach(function(connection) {
+      if (connection.socket.readyState !== 1) {
+        connection.socket.terminate();
       }
     })
   }
@@ -284,7 +299,12 @@ if ($tw.node) {
 
   // Only act if we are running on node. Otherwise WebSocketServer will be
   // undefined.
-  setup();
+  // Also we don't do this if we have an external server running things
+  // we have to use the command line arguments because the externalserver
+  // command hasn't run yet so we can't check $tw.ExternalServer
+  if ($tw.boot.argv.indexOf('--externalserver') === -1) {
+    setup();
+  }
 }
 
 })();

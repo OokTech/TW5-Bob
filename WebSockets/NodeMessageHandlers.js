@@ -1415,6 +1415,19 @@ if ($tw.node) {
   }
 
   /*
+    This only really matters in the secure wiki server for now
+    public - true or false to set the wiki as public or not
+    viewers - the list of people who can view the wiki
+    editors - the list of people who can edit the wiki
+  */
+  $tw.nodeMessageHandlers.setWikiPermissions = function(data) {
+    // If the person doing this is owner of the wiki they can continue
+    if ($tw.ExternalServer) {
+      $tw.ExternalServer.updatePermissions(data);
+    }
+  }
+
+  /*
     This handles ack messages.
   */
   $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;
