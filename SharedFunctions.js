@@ -90,6 +90,8 @@ This has some functions that are needed by Bob in different places.
                 }
               })
             }
+          } else if (empty1 !== empty2) {
+            changed = true;
           }
         } else {
           changed = true;
@@ -203,10 +205,12 @@ This has some functions that are needed by Bob in different places.
           var index = item.index;
           // Here make sure that the connection is live and hasn't already
           // sent an ack for the current message.
-          if (!messageData.ack[index] && $tw.connections[index].socket.readyState === 1) {
-            // If we haven't received an ack from this connection yet than
-            // resend the message
-            $tw.connections[index].socket.send(JSON.stringify(messageData.message));
+          if ($tw.connections[index].socket !== undefined) {
+            if (!messageData.ack[index] && $tw.connections[index].socket.readyState === 1) {
+              // If we haven't received an ack from this connection yet than
+              // resend the message
+              $tw.connections[index].socket.send(JSON.stringify(messageData.message));
+            }
           }
         });
       });
@@ -550,7 +554,6 @@ This has some functions that are needed by Bob in different places.
     removed later.
   */
   Shared.handleAck = function (data) {
-    //console.log('handle ack', data)
     if (data.id) {
       // a quick hack to make this work
       if ($tw.browser) {

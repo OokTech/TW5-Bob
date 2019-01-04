@@ -123,7 +123,6 @@ if ($tw.node) {
               $tw.Bob.Wikis[prefix].modified = true;
             }
           }
-          //delete $tw.Bob.EditingTiddlers[data.wiki][internalTitle];
           delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
           $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
         }
@@ -147,10 +146,7 @@ if ($tw.node) {
       // Set the wiki as modified
       $tw.Bob.Wikis[data.wiki].modified = true;
       // Remove the tiddler from the list of tiddlers being edited.
-      //var internalTitle = '{'+data.wiki+'}'+title;
-      //if ($tw.Bob.EditingTiddlers[internalTitle]) {
       if ($tw.Bob.EditingTiddlers[data.wiki][title]) {
-        //delete $tw.Bob.EditingTiddlers[internalTitle];
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
         $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
       }
@@ -169,8 +165,6 @@ if ($tw.node) {
     if (title) {
       // Add the tiddler to the list of tiddlers being edited to prevent
       // multiple people from editing it at the same time.
-      //var internalTitle = '{'+data.wiki+'}'+title;
-      //$tw.Bob.UpdateEditingTiddlers(internalTitle, data.wiki);
       $tw.Bob.UpdateEditingTiddlers(title, data.wiki);
     }
     // Acknowledge the message.
@@ -189,11 +183,8 @@ if ($tw.node) {
       if (title.startsWith("Draft of '")) {
         title = title.slice(10,-1);
       }
-      //var internalName = '{'+data.wiki+'}' + title;
       // Remove the current tiddler from the list of tiddlers being edited.
-      //if ($tw.Bob.EditingTiddlers[internalName]) {
       if ($tw.Bob.EditingTiddlers[data.wiki][title]) {
-        //delete $tw.Bob.EditingTiddlers[internalName];
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
       }
       $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
@@ -970,9 +961,9 @@ if ($tw.node) {
     them. But I don't know how to do that without deleting the tiddlers.
   */
   $tw.nodeMessageHandlers.unloadWiki = function (data) {
-    console.log('Unload wiki ', data.wikiName)
     // make sure that there is a wiki name given.
     if (data.wikiName) {
+      console.log('Unload wiki ', data.wikiName)
       // Make sure that the wiki is loaded
       if ($tw.Bob.Wikis[data.wikiName]) {
         if ($tw.Bob.Wikis[data.wikiName].State === 'loaded') {

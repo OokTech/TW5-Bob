@@ -6,13 +6,21 @@ title: $:/plugins/OokTech/Bob/Changelog
   - General improvements to message handling
   - You can now give a path (absolute or relative) for wikis instead of always
     making wikis in the `./Wikis` folder.
-  - Bob can now automatically detect any wikis in the wikis folder or
+  - Bob can now automatically detect and list any wikis in the wikis folder or
     subfolders
+    - Wikis that are listed but don't exist can also optionally be removed.
   - If you are logged in you can set new wikis to be prefixed by your username
     to prevent naming collisions on multi-user systems.(currently only relevant
     with the secure server)
   - You can make new wikis in subfolders by giving a name like
     path/to/wiki/wikiName
+  - Fixed a bug that would sometimes prevent changes to the tags field from
+    being properly synced.
+  - Automatically unload wikis that have no active connections to reduce ram
+    usage
+  - Automatically close and remove socket objects that are no logner connected
+  - If you have authentication only wikis you are authorised to view will be
+    listed.
 
 !! Version 1.1.2 Unnamed Pastry
 
