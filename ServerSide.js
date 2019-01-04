@@ -16,6 +16,7 @@ var ServerSide = {}
 
 var path = require('path')
 var fs = require('fs')
+var os = require('os')
 
 // A polyfilL to make this work with older node installs
 
@@ -115,6 +116,14 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      if ($tw.settings.wikiBasePath === 'homedir') {
+        basePath = os.homedir();
+      } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      } else {
+        basePath = path.resolve($tw.settings.wikiBasePath);
+      }
+
       // If the wiki isn't loaded yet set the wiki as loaded
       $tw.Bob.Wikis[wikiName].State = 'loaded';
       // Save the wiki path and tiddlers path
