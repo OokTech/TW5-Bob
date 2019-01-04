@@ -837,7 +837,6 @@ if ($tw.node) {
       data.wikisFolder = data.wikisFolder || '';
       // If no basepath is given than the default is to make the folder a
       // sibling of the index wiki folder
-      //var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       if ($tw.settings.wikiPathBase === 'homedir') {
         rootPath = os.homedir();
@@ -929,7 +928,6 @@ if ($tw.node) {
       // Use relative paths here.
       // Note this that is dependent on process.cwd()!!
       function listWiki(wikiName, currentLevel, wikiPath) {
-        console.log(wikiName, currentLevel, wikiPath)
         var nameParts = wikiName.split(path.sep);
         if (typeof currentLevel[nameParts[0]] === 'object' && nameParts.length > 1) {
           listWiki(nameParts.slice(1).join(path.sep), currentLevel[nameParts[0]], wikiPath);
