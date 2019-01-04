@@ -10,8 +10,6 @@
     wiki and any editing can be done as a normal multi-user wiki.
   - Saving exports the changed wiki to overwrite the single file wiki (or save
     under a new name if that is what you want)
-- Make sure that closed connections are being pruned (make sure that
-  connections are being closed!)
 - If a connection isn't authenticated than serve the wiki without the Bob
   plugin to make it smaller.
 - See if we can store the tiddlywiki core and Bob plugin in localstorage and
@@ -38,4 +36,3 @@
       - Syncing should be pretty much the same as when a browser reconnects otherwise. The local server logs into the remote server to get a token, then sends over the changes in the syncChanges message and the remote server then sends any new things to the local server. The conflicts are handled the same way as browser-server conflicts.
 - Add `@iarna/toml` as an external library and use toml instead of json for
   configuration.
-- Limit the wikis listed to the ones visible to the current person logged in
