@@ -182,6 +182,7 @@ if ($tw.node) {
     the wiki.
   */
   $tw.Bob.PruneConnections = function () {
+    /*
     $tw.connections.forEach(function(connection) {
       if (connection.socket !== undefined) {
         if (connection.socket.readyState !== 1) {
@@ -191,6 +192,7 @@ if ($tw.node) {
         }
       }
     })
+    */
   }
 
   /*
