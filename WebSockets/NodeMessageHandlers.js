@@ -653,12 +653,12 @@ if ($tw.node) {
       } else {
         //basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-        if ($tw.settings.wikiBasePath === 'homedir') {
+        if ($tw.settings.wikiPathBase === 'homedir') {
           basePath = os.homedir();
-        } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+        } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
           basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
         } else {
-          basePath = path.resolve($tw.settings.wikiBasePath);
+          basePath = path.resolve($tw.settings.wikiPathBase);
         }
       }
 
@@ -839,12 +839,12 @@ if ($tw.node) {
       // sibling of the index wiki folder
       //var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if ($tw.settings.wikiBasePath === 'homedir') {
+      if ($tw.settings.wikiPathBase === 'homedir') {
         rootPath = os.homedir();
-      } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+      } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
         rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       } else {
-        rootPath = path.resolve($tw.settings.wikiBasePath);
+        rootPath = path.resolve($tw.settings.wikiPathBase);
       }
       var basePath = data.basePath || path.resolve(rootPath, $tw.settings.wikisPath);
       // This is the path given by the person making the wiki, it needs to be
@@ -1353,12 +1353,12 @@ if ($tw.node) {
     }
     //var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if ($tw.settings.wikiBasePath === 'homedir') {
+    if ($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();
-    } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+    } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
       basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     } else {
-      basePath = path.resolve($tw.settings.wikiBasePath);
+      basePath = path.resolve($tw.settings.wikiPathBase);
     }
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     const fs = require('fs');

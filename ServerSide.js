@@ -55,12 +55,12 @@ ServerSide.wikiExists = function (wikiFolder) {
   if (wikiFolder) {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if ($tw.settings.wikiBasePath === 'homedir') {
+    if ($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();
-    } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+    } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
       basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     } else {
-      basePath = path.resolve($tw.settings.wikiBasePath);
+      basePath = path.resolve($tw.settings.wikiPathBase);
     }
     // Get the correct path to the tiddlywiki.info file
     wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
@@ -123,12 +123,12 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
       var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if ($tw.settings.wikiBasePath === 'homedir') {
+      if ($tw.settings.wikiPathBase === 'homedir') {
         basePath = os.homedir();
-      } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+      } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       } else {
-        basePath = path.resolve($tw.settings.wikiBasePath);
+        basePath = path.resolve($tw.settings.wikiPathBase);
       }
 
       // If the wiki isn't loaded yet set the wiki as loaded
