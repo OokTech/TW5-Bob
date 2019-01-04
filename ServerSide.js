@@ -55,6 +55,13 @@ ServerSide.wikiExists = function (wikiFolder) {
   if (wikiFolder) {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    if ($tw.settings.wikiBasePath === 'homedir') {
+      basePath = os.homedir();
+    } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    } else {
+      basePath = path.resolve($tw.settings.wikiBasePath);
+    }
     // Get the correct path to the tiddlywiki.info file
     wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
     // Make sure it exists
