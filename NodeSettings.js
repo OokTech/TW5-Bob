@@ -142,10 +142,10 @@ if ($tw.node) {
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split", data);
-    // Save the lists of plugins, languages and themes in tiddlywiki.info
-    var wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
     var wikiInfo
     try {
+      // Save the lists of plugins, languages and themes in tiddlywiki.info
+      var wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
       wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
     } catch(e) {
       console.log(e)

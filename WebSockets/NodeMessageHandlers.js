@@ -651,7 +651,15 @@ if ($tw.node) {
       if (data.wikisPath) {
         basePath = data.wikisPath;
       } else {
+        //basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+        if ($tw.settings.wikiBasePath === 'homedir') {
+          basePath = os.homedir();
+        } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+          basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+        } else {
+          basePath = path.resolve($tw.settings.wikiBasePath);
+        }
       }
 
       // even if overwrite is set to true we need to make sure the wiki already
@@ -829,7 +837,15 @@ if ($tw.node) {
       data.wikisFolder = data.wikisFolder || '';
       // If no basepath is given than the default is to make the folder a
       // sibling of the index wiki folder
+      //var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       var rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      if ($tw.settings.wikiBasePath === 'homedir') {
+        rootPath = os.homedir();
+      } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+        rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      } else {
+        rootPath = path.resolve($tw.settings.wikiBasePath);
+      }
       var basePath = data.basePath || path.resolve(rootPath, $tw.settings.wikisPath);
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath
@@ -1335,7 +1351,15 @@ if ($tw.node) {
       })
       return prunedSettings
     }
+    //var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    if ($tw.settings.wikiBasePath === 'homedir') {
+      basePath = os.homedir();
+    } else if ($tw.settings.wikiBasePath === 'cwd' || !$tw.settings.wikiBasePath) {
+      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    } else {
+      basePath = path.resolve($tw.settings.wikiBasePath);
+    }
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     const fs = require('fs');
     const path = require('path');
