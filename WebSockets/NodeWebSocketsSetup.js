@@ -169,8 +169,10 @@ if ($tw.node) {
   $tw.Bob.DisconnectWiki = function (wiki) {
     $tw.connections.forEach(function(connectionIndex) {
       if (connectionIndex.wiki === wiki) {
-        // Close the websocket connection
-        connectionIndex.socket.terminate();
+        if (connectionIndex.socket !== undefined) {
+          // Close the websocket connection
+          connectionIndex.socket.terminate();
+        }
       }
     })
   }
@@ -181,8 +183,12 @@ if ($tw.node) {
   */
   $tw.Bob.PruneConnections = function () {
     $tw.connections.forEach(function(connection) {
-      if (connection.socket.readyState !== 1) {
-        connection.socket.terminate();
+      if (connection.socket !== undefined) {
+        if (connection.socket.readyState !== 1) {
+          $tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
+          connection.socket.terminate();
+          connection.socket = undefined;
+        }
       }
     })
   }
@@ -231,8 +237,10 @@ if ($tw.node) {
     var messageData = $tw.Bob.Shared.createMessageData(message);
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
-      if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
-        $tw.Bob.Shared.sendMessage(messageData, connection.index);
+      if (connection.socket) {
+        if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+          $tw.Bob.Shared.sendMessage(messageData, connection.index);
+        }
       }
     })
   }
@@ -250,8 +258,10 @@ if ($tw.node) {
     $tw.Bob.UpdateHistory(message);
     var messageData = $tw.Bob.Shared.createMessageData(message);
     // If the connection is open, send the message
-    if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
-      $tw.Bob.Shared.sendMessage(messageData, connection.index);
+    if (connection.socket) {
+      if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+        $tw.Bob.Shared.sendMessage(messageData, connection.index);
+      }
     }
   }
 

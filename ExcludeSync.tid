@@ -5,3 +5,7 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [[$:/plugins/OokTech/Bob/Server Warning]]
 [[$:/plugins/OokTech/Bob/Unsent]]
 [[$:/Bob/VisibleConfigurationTabs]]
+[[$:/Bob/ActiveLanguagesList]]
+[[$:/Bob/ActiveThemesList]]
+[[$:/Bob/ActivePluginList]]
+[[$:/ServerIP]]

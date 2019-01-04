@@ -24,7 +24,6 @@ if($tw.node) {
   $tw.Bob.Files = $tw.Bob.Files || {};
 
   function WebsocketAdaptor(options) {
-    var self = this;
     this.wiki = options.wiki;
     this.logger = new $tw.utils.Logger("WebsocketAdaptor",{colour: "blue"});
   }
@@ -62,8 +61,7 @@ if($tw.node) {
       }
     }
     // See if we've already got information about this file
-    var self = this,
-      title = tiddler.fields.title;
+    var title = tiddler.fields.title;
     var fileInfo = $tw.Bob.Files[prefix][title];
     if(fileInfo) {
       // If so, just invoke the callback
@@ -91,7 +89,7 @@ if($tw.node) {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
       var tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
-      var baseFilepath = path.resolve(tiddlersPath, self.generateTiddlerBaseFilepath(title, prefix));
+      var baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
       fs.readdir(path.dirname(baseFilepath),function(err,files) {
@@ -142,12 +140,6 @@ if($tw.node) {
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
   WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
-    if (title.startsWith('{')) {
-      var ending = title.indexOf('}');
-      // If ending is -1 than this just returns the title, otherwise it cuts
-      // off the prefix.
-      title = title.slice(ending+1)
-    }
     var baseFilename;
     // Check whether the user has configured a tiddler -> pathname mapping
     if ($tw.Bob.Wikis[wiki].wiki) {
@@ -189,8 +181,7 @@ if($tw.node) {
     }
     prefix = prefix || 'RootWiki';
     if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/') && !tiddler.fields.title.startsWith('$:/WikiSettings')) {
-      var self = this;
-      self.getTiddlerFileInfo(tiddler, prefix,
+      this.getTiddlerFileInfo(tiddler, prefix,
        function(err,fileInfo) {
         if(err) {
           return callback(err);
@@ -297,8 +288,7 @@ if($tw.node) {
     if (options.wiki) {
       var prefix = options.wiki;
     }
-    var self = this,
-      fileInfo = $tw.Bob.Files[prefix][title];
+    var fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
       //console.log('Delete tiddler file ', fileInfo.filepath);
