@@ -299,44 +299,48 @@ if($tw.node) {
           }
           var pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
           if(fs.existsSync(pluginsPath)) {
-            var pluginAuthors = fs.readdirSync(pluginsPath)
-            pluginAuthors.forEach(function (author) {
-              var pluginAuthorPath = path.join(pluginsPath, './', author)
-              if (fs.statSync(pluginAuthorPath).isDirectory()) {
-                var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
-                for(var t=0; t<pluginAuthorFolders.length; t++) {
-                  var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
-                  var pluginFields = $tw.loadPluginFolder(fullPluginFolder)
-                  if(pluginFields) {
-                    var readme = ""
-                    var readmeText = ''
-                    try {
-                      // Try pulling out the plugin readme
-                      var pluginJSON = JSON.parse(pluginFields.text).tiddlers
-                      readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
-                        return title.toLowerCase().endsWith('/readme')
-                      })[0]]
-                    } catch (e) {
-                      console.log('Error parsing plugin', e)
+            try {
+              var pluginAuthors = fs.readdirSync(pluginsPath)
+              pluginAuthors.forEach(function (author) {
+                var pluginAuthorPath = path.join(pluginsPath, './', author)
+                if (fs.statSync(pluginAuthorPath).isDirectory()) {
+                  var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
+                  for(var t=0; t<pluginAuthorFolders.length; t++) {
+                    var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
+                    var pluginFields = $tw.loadPluginFolder(fullPluginFolder)
+                    if(pluginFields) {
+                      var readme = ""
+                      var readmeText = ''
+                      try {
+                        // Try pulling out the plugin readme
+                        var pluginJSON = JSON.parse(pluginFields.text).tiddlers
+                        readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
+                          return title.toLowerCase().endsWith('/readme')
+                        })[0]]
+                      } catch (e) {
+                        console.log('Error parsing plugin', e)
+                      }
+                      if (readme) {
+                        readmeText = readme.text
+                      }
+                      var nameParts = pluginFields.title.split('/')
+                      var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
+                      var listInfo = {
+                        name: name,
+                        description: pluginFields.description,
+                        tiddlerName: pluginFields.title,
+                        version: pluginFields.version,
+                        author: pluginFields.author,
+                        readme: readmeText
+                      }
+                      pluginList.push(listInfo)
                     }
-                    if (readme) {
-                      readmeText = readme.text
-                    }
-                    var nameParts = pluginFields.title.split('/')
-                    var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
-                    var listInfo = {
-                      name: name,
-                      description: pluginFields.description,
-                      tiddlerName: pluginFields.title,
-                      version: pluginFields.version,
-                      author: pluginFields.author,
-                      readme: readmeText
-                    }
-                    pluginList.push(listInfo)
                   }
                 }
-              }
-            })
+              })
+            } catch (e) {
+              console.log('Problem loading plugin', e)
+            }
           }
         }
         return pluginList

@@ -202,7 +202,11 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     pluginFields;
   // Bail if we don't have a wiki info file
   if(fs.existsSync(wikiInfoPath)) {
-    wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    try {
+      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    } catch (e) {
+      console.log('Error reading wiki info', e);
+    }
   } else {
     return null;
   }
@@ -274,34 +278,46 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   // Load any plugins within the wiki folder
   var wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
   if(fs.existsSync(wikiPluginsPath)) {
-    var pluginFolders = fs.readdirSync(wikiPluginsPath);
-    for(var t=0; t<pluginFolders.length; t++) {
-      pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
-      if(pluginFields) {
-        $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+    try {
+      var pluginFolders = fs.readdirSync(wikiPluginsPath);
+      for(var t=0; t<pluginFolders.length; t++) {
+        pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
+        if(pluginFields) {
+          $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+        }
       }
+    } catch (e) {
+      console.log('error loading plugin folder', e);
     }
   }
   // Load any themes within the wiki folder
   var wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
   if(fs.existsSync(wikiThemesPath)) {
-    var themeFolders = fs.readdirSync(wikiThemesPath);
-    for(var t=0; t<themeFolders.length; t++) {
-      pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
-      if(pluginFields) {
-        $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+    try {
+      var themeFolders = fs.readdirSync(wikiThemesPath);
+      for(var t=0; t<themeFolders.length; t++) {
+        pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
+        if(pluginFields) {
+          $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+        }
       }
+    } catch (e) {
+      console.log('error loading theme folder', e);
     }
   }
   // Load any languages within the wiki folder
   var wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
   if(fs.existsSync(wikiLanguagesPath)) {
-    var languageFolders = fs.readdirSync(wikiLanguagesPath);
-    for(var t=0; t<languageFolders.length; t++) {
-      pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
-      if(pluginFields) {
-        $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+    try {
+      var languageFolders = fs.readdirSync(wikiLanguagesPath);
+      for(var t=0; t<languageFolders.length; t++) {
+        pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
+        if(pluginFields) {
+          $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+        }
       }
+    } catch (e) {
+      console.log('Error loading language folder', e);
     }
   }
   return wikiInfo;
@@ -403,11 +419,16 @@ ServerSide.loadPlugin = function(name,paths, wikiName) {
   Determine which sub-folders are in the current folder
 */
 var getDirectories = function(source) {
-  return fs.readdirSync(source).map(function(name) {
-    return path.join(source,name)
-  }).filter(function (source) {
-    return fs.lstatSync(source).isDirectory();
-  });
+  try {
+    return fs.readdirSync(source).map(function(name) {
+      return path.join(source,name)
+    }).filter(function (source) {
+      return fs.lstatSync(source).isDirectory();
+    });
+  } catch (e) {
+    console.log('Error getting directories', e);
+    return [];
+  }
 }
 /*
   This recursively builds a tree of all of the subfolders in the tiddlers

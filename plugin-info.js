@@ -25,23 +25,27 @@ exports.getPluginInfo = function() {
 		for(var pluginIndex=0; pluginIndex<pluginPaths.length; pluginIndex++) {
 			var pluginPath = pluginPaths[pluginIndex];
 			// Enumerate the folders
-			var authors = fs.readdirSync(pluginPath);
-			for(var authorIndex=0; authorIndex<authors.length; authorIndex++) {
-				var pluginAuthor = authors[authorIndex];
-        var pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));
-        pluginNames.forEach(function(pluginName) {
-  				// Check if directories have a valid plugin.info
-  				if(!pluginInfo[pluginAuthor + '/' + pluginName] && $tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor,pluginName))) {
-  					var info;
-  					try {
-  						info = JSON.parse(fs.readFileSync(path.resolve(pluginPath,pluginAuthor, pluginName,"plugin.info"),"utf8"));
-  					} catch(ex) {
-  					}
-  					if(info) {
-  						pluginInfo[pluginAuthor + '/' + pluginName] = info;
-  					}
-  				}
-        })
+			try {
+				var authors = fs.readdirSync(pluginPath);
+				for(var authorIndex=0; authorIndex<authors.length; authorIndex++) {
+					var pluginAuthor = authors[authorIndex];
+	        var pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));
+	        pluginNames.forEach(function(pluginName) {
+	  				// Check if directories have a valid plugin.info
+	  				if(!pluginInfo[pluginAuthor + '/' + pluginName] && $tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor,pluginName))) {
+	  					var info;
+	  					try {
+	  						info = JSON.parse(fs.readFileSync(path.resolve(pluginPath,pluginAuthor, pluginName,"plugin.info"),"utf8"));
+	  					} catch(ex) {
+	  					}
+	  					if(info) {
+	  						pluginInfo[pluginAuthor + '/' + pluginName] = info;
+	  					}
+	  				}
+	        })
+				}
+			} catch (e) {
+				console.log('Error getting plugin info' e)
 			}
 		}
 	}

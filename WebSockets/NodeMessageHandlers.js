@@ -811,7 +811,7 @@ if ($tw.node) {
         path = require("path");
 
       function specialCopy (source, destination) {
-        fs.mkdirSync(destination);
+        fs.mkdirSync(destination, {recursive: true});
         var currentDir = fs.readdirSync(source)
         currentDir.forEach(function (item) {
           if (fs.statSync(path.join(source, item)).isFile()) {
@@ -891,8 +891,12 @@ if ($tw.node) {
             editionPath = pluginPath;
           }
           if (editionPath) {
-            specialCopy(editionPath, fullPath);
-            console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+            try {
+              specialCopy(editionPath, fullPath);
+              console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+            } catch (e) {
+              console.log('error copying edition', e);
+            }
           } else {
             console.log("Edition not found");
           }
@@ -921,7 +925,12 @@ if ($tw.node) {
       }
       // Tweak the tiddlywiki.info to remove any included wikis
       var packagePath = path.join(fullPath, "tiddlywiki.info");
-      var packageJson = JSON.parse(fs.readFileSync(packagePath));
+      var packageJson = {};
+      try {
+        packageJson = JSON.parse(fs.readFileSync(packagePath));
+      } catch (e) {
+        console.log('failed to load tiddlywiki.info file', e);
+      }
       delete packageJson.includeWikis;
       fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
 
@@ -1323,21 +1332,25 @@ if ($tw.node) {
       // Check each folder in the wikis folder to see if it has a tiddlywiki.info
       // file
       var realFolders = [];
-      var folderContents = fs.readdirSync(startPath);
-      folderContents.forEach(function (item) {
-        var fullName = path.join(startPath, item);
-        if (fs.statSync(fullName).isDirectory()) {
-          if ($tw.ServerSide.wikiExists(fullName)) {
-            realFolders.push(fullName);
-          } else {
-            // Check if there are subfolders that contain wikis and recurse
-            var nextPath = path.join(startPath,item)
-            if (fs.statSync(nextPath).isDirectory()) {
-              realFolders = realFolders.concat(getRealPaths(nextPath));
+      try {
+        var folderContents = fs.readdirSync(startPath);
+        folderContents.forEach(function (item) {
+          var fullName = path.join(startPath, item);
+          if (fs.statSync(fullName).isDirectory()) {
+            if ($tw.ServerSide.wikiExists(fullName)) {
+              realFolders.push(fullName);
+            } else {
+              // Check if there are subfolders that contain wikis and recurse
+              var nextPath = path.join(startPath,item)
+              if (fs.statSync(nextPath).isDirectory()) {
+                realFolders = realFolders.concat(getRealPaths(nextPath));
+              }
             }
           }
-        }
-      })
+        })
+      } catch (e) {
+        console.log('Error getting wiki paths', e);
+      }
       return realFolders;
     }
     // This takes the list of wikis in the settings and returns a new object
