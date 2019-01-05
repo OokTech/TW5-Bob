@@ -45,7 +45,7 @@ exports.getPluginInfo = function() {
 	        })
 				}
 			} catch (e) {
-				console.log('Error getting plugin info' e)
+				console.log('Error getting plugin info', e)
 			}
 		}
 	}
