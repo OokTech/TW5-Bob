@@ -932,7 +932,11 @@ if ($tw.node) {
         console.log('failed to load tiddlywiki.info file', e);
       }
       delete packageJson.includeWikis;
-      fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+      try {
+        fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+      } catch (e) {
+        console.log('failed to write settings', e)
+      }
 
       // Use relative paths here.
       // Note this that is dependent on process.cwd()!!
