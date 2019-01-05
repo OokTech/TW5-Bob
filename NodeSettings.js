@@ -104,11 +104,20 @@ if ($tw.node) {
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if (typeof $tw.settings.editionsPath === 'string') {
-      // We need to make sure this doesn't overwrite existing thing
-      if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + $tw.settings.editionsPath;
+      var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      if ($tw.settings.wikiPathBase === 'homedir') {
+        basePath = os.homedir();
+      } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       } else {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = $tw.settings.editionsPath;
+        basePath = path.resolve($tw.settings.wikiPathBase);
+      }
+      // We need to make sure this doesn't overwrite existing thing
+      var fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
+      if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + fullEditionsPath;
+      } else {
+        process.env["TIDDLYWIKI_EDITION_PATH"] = fullEditionsPath;
       }
     }
     /*

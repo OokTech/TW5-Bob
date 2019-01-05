@@ -289,7 +289,15 @@ if($tw.node) {
       var getPluginList = function () {
         var pluginList = []
         if (typeof $tw.settings.pluginsPath === 'string') {
-          var pluginsPath = path.resolve($tw.settings.pluginsPath)
+          var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          if ($tw.settings.wikiPathBase === 'homedir') {
+            basePath = os.homedir();
+          } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+            basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          } else {
+            basePath = path.resolve($tw.settings.wikiPathBase);
+          }
+          var pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
           if(fs.existsSync(pluginsPath)) {
             var pluginAuthors = fs.readdirSync(pluginsPath)
             pluginAuthors.forEach(function (author) {
@@ -336,7 +344,15 @@ if($tw.node) {
       var getPlugin = function (request) {
         var urlParts = request.url.split('/')
         if (typeof $tw.settings.pluginsPath === 'string') {
-          var pluginsPath = path.resolve($tw.settings.pluginsPath)
+          var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          if ($tw.settings.wikiPathBase === 'homedir') {
+            basePath = os.homedir();
+          } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+            basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+          } else {
+            basePath = path.resolve($tw.settings.wikiPathBase);
+          }
+          var pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
           var pluginPath = path.resolve(pluginsPath, urlParts[urlParts.length-2], urlParts[urlParts.length-1])
           if (fs.statSync(pluginPath).isDirectory()) {
             var pluginFields = $tw.loadPluginFolder(pluginPath)
@@ -779,8 +795,16 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
+    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    if ($tw.settings.wikiPathBase === 'homedir') {
+      basePath = os.homedir();
+    } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    } else {
+      basePath = path.resolve($tw.settings.wikiPathBase);
+    }
     if (typeof $tw.settings.pluginsPath === 'string') {
-      var resolvedpluginspath = path.resolve($tw.settings.pluginsPath);
+      var resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);
       if (process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
         process.env["TIDDLYWIKI_PLUGIN_PATH"] = process.env["TIDDLYWIKI_PLUGIN_PATH"] + path.delimiter + resolvedpluginspath;
       } else {
@@ -788,7 +812,7 @@ if($tw.node) {
       }
     }
     if (typeof $tw.settings.themesPath === 'string') {
-      var resolvedthemespath = path.resolve($tw.settings.themesPath);
+      var resolvedthemespath = path.resolve(basePath, $tw.settings.themesPath);
       if (process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
         process.env["TIDDLYWIKI_THEME_PATH"] = process.env["TIDDLYWIKI_THEME_PATH"] + path.delimiter + resolvedthemespath;
       } else {
@@ -796,7 +820,7 @@ if($tw.node) {
       }
     }
     if (typeof $tw.settings.editionsPath === 'string') {
-      var resolvededitionspath = path.resolve($tw.settings.editionsPath)
+      var resolvededitionspath = path.resolve(basePath, $tw.settings.editionsPath)
       if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
         process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
       } else {
