@@ -182,17 +182,17 @@ if ($tw.node) {
     the wiki.
   */
   $tw.Bob.PruneConnections = function () {
-    /*
-    $tw.connections.forEach(function(connection) {
-      if (connection.socket !== undefined) {
-        if (connection.socket.readyState !== 1) {
-          $tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
-          connection.socket.terminate();
-          connection.socket = undefined;
+    if ($tw.settings.autoUnloadWikis === "true") {
+      $tw.connections.forEach(function(connection) {
+        if (connection.socket !== undefined) {
+          if (connection.socket.readyState !== 1) {
+            $tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
+            connection.socket.terminate();
+            connection.socket = undefined;
+          }
         }
-      }
-    })
-    */
+      })
+    }
   }
 
   /*

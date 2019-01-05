@@ -14,8 +14,13 @@ used. If the json isn't formatted correctly than default values will be used.
   "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
   "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
   "pluginsPath": "/home/inmysocks/TiddlyWiki/Plugins",
-  "suppressBrowser": false,
+  "themesPath": "./Themes"
+  "suppressBrowser": "false",
   "fileURLPrefix": "files",
+  "autoUnloadWikis": "false",
+  "wikiPathBase": "cwd",
+  "wikisPath": "./Wikis",
+  "namespacedWikis": "false",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -29,11 +34,12 @@ used. If the json isn't formatted correctly than default values will be used.
   "ws-server": {
     "port": 8080,
     "host": "127.0.0.1",
-    "autoIncrementPort": false,
-    "servePlugin": true
+    "autoIncrementPort": "false",
+    "servePlugin": "true"
   },
   "heartbeat": {
-    "interval": 1000
+    "interval": 1000,
+    "timeout": 5000
   },
   "mimeMap": {
     ".ico": "image/x-icon",
@@ -75,9 +81,12 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   to set this to a parent folder of where the pictures are. If none is given
   than local files aren't served.
 - `editionsPath` is the folder that holds any custom editions you want to be
-  able to use when making wikis using the control panel.
+  able to use when making wikis using the control panel.  If relative it is
+  relative to `wikiPathBase`.
 - `pluginsPath` is the path to the plugins folder if you are using the as a
-  plugin library.
+  plugin library.  If relative it is relative to `wikiPathBase`.
+- `themesPath` is the path to the folder where you have your themes.  If
+  relative it is relative to `wikiPathBase`.
 - `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
   has the normal restrictions on names as any URL, so avoid special characters.
   This defaults to `files` and only have an affect if you have also set
@@ -85,11 +94,27 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   Note: If you set this to an empty string it will use the default value of
   `files` unless you set the `acceptance` value described below. This will break
   things and no tech support will be provided.
+- `autoUnloadWikis` if this is set to `true` than wikis with no active
+  connections will be automatically unloaded from memory. (experimental, may
+  cause problems)
+- `wikiPathBase` relative paths for everything other than serving files are
+  relative to this path. It defaults to the current working directory.
+- `wikisPath` the name of the default wikis folder to use. If relative it is
+  relative to `wikiPathBase`.
+- `includePluginList` is an array of plugin names that will be included in
+  every wiki served. You do not have to include Bob in this list.
+- `excludePluginList` is an array of plugin names that will not be included in
+  any wiki served, even if it is listed in the tiddlywiki.info file. This does
+  not prevent someone from installing the plugin via drag-and-drop or from a
+  plugin library, it just affects plugins listed in `tiddlywiki.info` files.
 - `mimeMap` lists the file extensions and their associated mime-types that the
   server is allowed to serve. This only has an effect if `filePathRoot` is set.
 - `suppressBrowser` is only used if you are using the single executable
   version. If it is set to `true` than the browser isn't opened automatically
   when the server is started.
+- `namespacedWikis` this only has an effect if you are using an external
+  server with a login. If so this prefixes the wiki path with the currently
+  logged in persons name when creating a wiki.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined
@@ -111,10 +136,11 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   can serve wikis that don't normally have the plugin and edit them as though
   they did.
 - `heartbeat` settings for the heartbeat that makes sure the browser and server
-  are still connected. You can almost certainly ignore this setting. The only
-  setting is `interval`, the heartbeat message is sent every `interval`
-  milliseconds (1000 milliseconds = 1 second). On slower hardware a longer
-  heartbeat may be needed to prevent error messages when there is no error.
+  are still connected. You can almost certainly ignore these settings.
+  - `interval` the heartbeat message is sent every `interval` milliseconds
+  (1000 milliseconds = 1 second).
+  - `timeout` is the length of time to wait for a heartbeat signal before
+  assuming that the connection is no longer working.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no

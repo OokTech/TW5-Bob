@@ -1071,7 +1071,15 @@ if ($tw.node) {
       var pluginTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.plugin)
       if (pluginTiddler) {
         var pluginName = data.plugin.replace(/^\$:\/plugins\//, '')
-        var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
+        var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+        if ($tw.settings.wikiPathBase === 'homedir') {
+          basePath = os.homedir();
+        } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+          basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+        } else {
+          basePath = path.resolve($tw.settings.wikiPathBase);
+        }
+        var pluginFolderPath = path.resolve(basePath, $tw.settings.pluginsPath, pluginName)
         var pluginInfoPath = path.join(pluginFolderPath, 'plugin.info')
         var isNewVersion = true
         // Check if the plugin folder exists
