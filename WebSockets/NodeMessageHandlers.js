@@ -931,7 +931,9 @@ if ($tw.node) {
       } catch (e) {
         console.log('failed to load tiddlywiki.info file', e);
       }
+      console.log('here 1')
       delete packageJson.includeWikis;
+      console.log('here 2')
       try {
         fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
       } catch (e) {
@@ -954,27 +956,35 @@ if ($tw.node) {
           currentLevel[nameParts[0]] = wikiPath;
         }
       }
+      console.log('here 3')
       listWiki(relativePath, currentWikis, relativePath)
+      console.log('here 4')
 
       // This is here as a hook for an external server. It is defined by the
       // external server and shouldn't be defined here or it will break
       // If you are not using an external server than this does nothing
       if ($tw.ExternalServer) {
         if (typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+          console.log('here 5')
           $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
+          console.log('here 6')
         }
       }
 
       // Update the settings
       setTimeout(function() {
         data.saveSettings = true
+        console.log('here 7')
         $tw.nodeMessageHandlers.findAvailableWikis(data);
+        console.log('here 8')
       }, 1000);
+      console.log('here 9')
       // Then clear all the routes to the non-root wiki
       $tw.httpServer.clearRoutes();
       // The re-add all the routes from the settings
       // This reads the settings so we don't need to give it any arguments
       $tw.httpServer.addOtherRoutes();
+      console.log('here 10')
     }
     sendAck(data);
   }
@@ -1232,7 +1242,11 @@ if ($tw.node) {
       if (data.languageList || data.languageList === "") {
         wikiInfo.languages = $tw.utils.parseStringArray(data.languageList);
       }
-      fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
+      try {
+        fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
+      } catch (e) {
+        console.log(e)
+      }
     }
     sendAck(data);
   }
