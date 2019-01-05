@@ -1388,6 +1388,8 @@ if ($tw.node) {
       })
       return prunedSettings
     }
+    const fs = require('fs');
+    const path = require('path');
     //var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     if ($tw.settings.wikiPathBase === 'homedir') {
@@ -1398,8 +1400,6 @@ if ($tw.node) {
       basePath = path.resolve($tw.settings.wikiPathBase);
     }
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-    const fs = require('fs');
-    const path = require('path');
     var wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
     // Check each folder in the wikis folder to see if it has a tiddlywiki.info
     // file.
