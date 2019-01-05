@@ -42,11 +42,16 @@ if ($tw.node) {
     Determine which sub-folders are in the current folder
   */
   var getDirectories = function(source) {
-    return fs.readdirSync(source).map(function(name) {
-      return path.join(source,name)
-    }).filter(function (source) {
-      return fs.lstatSync(source).isDirectory();
-    });
+    try {
+      return fs.readdirSync(source).map(function(name) {
+        return path.join(source,name);
+      }).filter(function (source) {
+        return fs.lstatSync(source).isDirectory();
+      });
+    } catch (e) {
+      console.log('Error getting directories', e);
+      return [];
+    }
   }
 
   /*
@@ -73,110 +78,114 @@ if ($tw.node) {
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
-    fs.watch(folder, function (eventType, filename) {
-      //console.log('Monitor:',eventType,'on',filename)
-      var isFile = false;
-      var isFolder = false;
-      // The full path to the current item
-      var itemPath = path.join(folder, filename);
-      // Determine if it exists and if it is a file or folder
-      var exists = fs.existsSync(itemPath);
-      if (exists) {
-        isFile = fs.lstatSync(itemPath).isFile();
-        if (!isFile) {
-          isFolder = fs.lstatSync(itemPath).isDirectory();
+    try {
+      fs.watch(folder, function (eventType, filename) {
+        //console.log('Monitor:',eventType,'on',filename)
+        var isFile = false;
+        var isFolder = false;
+        // The full path to the current item
+        var itemPath = path.join(folder, filename);
+        // Determine if it exists and if it is a file or folder
+        var exists = fs.existsSync(itemPath);
+        if (exists) {
+          isFile = fs.lstatSync(itemPath).isFile();
+          if (!isFile) {
+            isFolder = fs.lstatSync(itemPath).isDirectory();
+          }
         }
-      }
-      // The file extension, if no file extension than an empty string
-      var fileExtension = path.extname(filename);
-      // The file name without the extension
-      var baseName = path.basename(filename, fileExtension);
+        // The file extension, if no file extension than an empty string
+        var fileExtension = path.extname(filename);
+        // The file name without the extension
+        var baseName = path.basename(filename, fileExtension);
 
-      var fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
-        // A lot of this is to handle some weird edge cases I ran into
-        // while making it.
-        // TODO figure out why this happens.
-        if (typeof item === 'string') {
-          if (item === 'undefined') {
-            delete $tw.Bob.Files[prefix][item];
+        var fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
+          // A lot of this is to handle some weird edge cases I ran into
+          // while making it.
+          // TODO figure out why this happens.
+          if (typeof item === 'string') {
+            if (item === 'undefined') {
+              delete $tw.Bob.Files[prefix][item];
+              return false;
+            }
+            return ($tw.Bob.Files[prefix][item].filepath === itemPath)
+          } else {
             return false;
           }
-          return ($tw.Bob.Files[prefix][item].filepath === itemPath)
-        } else {
-          return false;
-        }
-      })[0];
+        })[0];
 
-      // If it is a new file or a change an existing file and it is a .tid or
-      // .meta file
-      if (isFile && exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
-        // Load tiddler data from the file
-        var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
-        // Make sure that it at least has a title
-        if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
-          // Test to see if the filename matches what the wiki says it
-          // should be. If not rename the file to match the rules set by
-          // the wiki.
-          // This is the title based on the current .tid file
-          var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
-          var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
-          // Load the tiddler from the wiki, check if they are different (non-existent is changed)
-          var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
-          if ($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
-            // Rename the file
-            // If $:/config/FileSystemPaths is used than the folder and
-            // newTitle may overlap.
-            // This determines if any of the title has an overlap in the path
-            if (newTitle.replace('\\','/').indexOf('/') !== -1) {
-              var pieces = newTitle.replace('\\','/').split('/')
-              var pathBits = pieces.slice(0,-1);
-              while (pathBits.length > 0) {
-                if (folder.endsWith(pathBits.join(path.sep))) {
-                  break;
+        // If it is a new file or a change an existing file and it is a .tid or
+        // .meta file
+        if (isFile && exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+          // Load tiddler data from the file
+          var tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
+          // Make sure that it at least has a title
+          if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
+            // Test to see if the filename matches what the wiki says it
+            // should be. If not rename the file to match the rules set by
+            // the wiki.
+            // This is the title based on the current .tid file
+            var newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
+            var existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
+            // Load the tiddler from the wiki, check if they are different (non-existent is changed)
+            var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
+            if ($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
+              // Rename the file
+              // If $:/config/FileSystemPaths is used than the folder and
+              // newTitle may overlap.
+              // This determines if any of the title has an overlap in the path
+              if (newTitle.replace('\\','/').indexOf('/') !== -1) {
+                var pieces = newTitle.replace('\\','/').split('/')
+                var pathBits = pieces.slice(0,-1);
+                while (pathBits.length > 0) {
+                  if (folder.endsWith(pathBits.join(path.sep))) {
+                    break;
+                  }
+                  pathBits = pathBits.slice(0,-1);
                 }
-                pathBits = pathBits.slice(0,-1);
+                if (pathBits.length > 0) {
+                  newTitle = pieces.slice(pathBits.length).join(path.sep);
+                }
               }
-              if (pathBits.length > 0) {
-                newTitle = pieces.slice(pathBits.length).join(path.sep);
+              // translate tiddler title into filepath
+              var theFilepath = path.join(folder, newTitle + fileExtension);
+              if (typeof fullTiddlerName === 'string') {
+                // create the new tiddler and delete the old one.
+                // Make the new file path
+                var tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
               }
+              if (typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
+                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                // Remove the old tiddler
+                $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
+              }
+              if (itemPath !== theFilepath) {
+                // Delete the old file, the normal delete action takes care
+                // of the rest.
+                fs.unlinkSync(itemPath);
+              }
+              // Thing
+              // Create the new tiddler
+              $tw.Bob.MakeTiddlerInfo(folder, newTitle + fileExtension, tiddlerObject, prefix);
+              // Put the tiddler object in the correct form
+              // This gets saved to the file sysetm so non-prefixed title
+              var newTiddler = {fields: tiddlerObject.tiddlers[0]};
+              // Save the new file
+              $tw.syncadaptor.saveTiddler(newTiddler, prefix);
             }
-            // translate tiddler title into filepath
-            var theFilepath = path.join(folder, newTitle + fileExtension);
-            if (typeof fullTiddlerName === 'string') {
-              // create the new tiddler and delete the old one.
-              // Make the new file path
-              var tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
-            }
-            if (typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
-              console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
-              // Remove the old tiddler
-              $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
-            }
-            if (itemPath !== theFilepath) {
-              // Delete the old file, the normal delete action takes care
-              // of the rest.
-              fs.unlinkSync(itemPath);
-            }
-            // Thing
-            // Create the new tiddler
-            $tw.Bob.MakeTiddlerInfo(folder, newTitle + fileExtension, tiddlerObject, prefix);
-            // Put the tiddler object in the correct form
-            // This gets saved to the file sysetm so non-prefixed title
-            var newTiddler = {fields: tiddlerObject.tiddlers[0]};
-            // Save the new file
-            $tw.syncadaptor.saveTiddler(newTiddler, prefix);
           }
         }
-      }
-      // If the file doesn't exist anymore remove it from the wiki
-      if (!exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
-        $tw.Bob.DeleteTiddler(folder, filename, prefix);
-      }
-      // If it is a new folder than watch that folder too
-      if (exists && isFolder) {
-        $tw.Bob.WatchFolder(itemPath, prefix)
-      }
-    });
+        // If the file doesn't exist anymore remove it from the wiki
+        if (!exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+          $tw.Bob.DeleteTiddler(folder, filename, prefix);
+        }
+        // If it is a new folder than watch that folder too
+        if (exists && isFolder) {
+          $tw.Bob.WatchFolder(itemPath, prefix)
+        }
+      });
+    } catch (e) {
+      console.log('Failed to watch folder!', e);
+    }
   }
 
   $tw.Bob.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
