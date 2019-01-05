@@ -66,6 +66,7 @@ used. If the json isn't formatted correctly than default values will be used.
 ```
 
 ''Note:'' All paths can be either absolute or relative. Relative paths are
+relative to the path listed in `wikiPathBase`, if none is listed they are
 relative to the folder with tiddlywiki.js in it if you are using the plugin
 version or the folder with the executable file if you are using the BobEXE version.
 
