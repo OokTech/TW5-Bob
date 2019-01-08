@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.1.3
+!! Version 1.2.0 Wibbly Wobbly
 
   - Don't sync tiddlers that start with `$:/WikiSettings`
   - General improvements to message handling
@@ -16,8 +16,8 @@ title: $:/plugins/OokTech/Bob/Changelog
     path/to/wiki/wikiName
   - Fixed a bug that would sometimes prevent changes to the tags field from
     being properly synced.
-  - Automatically unload wikis that have no active connections to reduce ram
-    usage
+  - Optionally set the server to automatically unload wikis that have no active
+    connections to reduce ram usage (experimental)
   - Automatically close and remove socket objects that are no logner connected
   - If you have authentication only wikis you are authorised to view will be
     listed.
