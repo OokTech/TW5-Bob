@@ -71,4 +71,27 @@ Create a wiki from
   {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
 </$list>
 
+---
+
+Click this button to automatically list all wikis in your wikis folder.
+Checking the box will also remove any links to wikis that don't exist.
+
+<$button>
+  Auto-populate list from Wikis folder
+  <$action-websocketmessage
+    $type='findAvailableWikis'
+    remove={{$:/state/Bob/removemissingwikis!!text}}
+    update='true'
+    saveSettings='true'
+  />
+</$button>
+
+<$checkbox
+  tiddler='$:/state/Bob/removemissingwikis'
+  checked='true'
+  unchecked='false'
+>
+  Remove links to missing wikis
+</$checkbox>
+
 {{$:/plugins/OokTech/Bob/Wiki Listing}}

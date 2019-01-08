@@ -643,7 +643,7 @@ if($tw.node) {
           } else {
             ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
           }
-          var filePath = urlPieces.slice(urlPieces.indexOf(filePrefix)+1).join('/');
+          var filePath = decodeURIComponent(urlPieces.slice(urlPieces.indexOf(filePrefix)+1).join('/'));
           var token = getCookie(request.headers.cookie, 'token');
           var authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
           if (authorised && ok) {
