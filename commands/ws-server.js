@@ -262,9 +262,13 @@ if($tw.node) {
         var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
         if (authorised) {
           // Load the wiki
-          $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
-          // Get the raw html to send
-          var text = $tw.ServerSide.prepareWiki('RootWiki', true);
+          var exists = $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+          if (exists) {
+            // Get the raw html to send
+            var text = $tw.ServerSide.prepareWiki('RootWiki', true);
+          } else {
+            var text = "<html><p>RootWiki not found! If you have autoUnloadWikis set to true setting it to false may fix this problem.</p></html>"
+          }
           // Send the html to the server
           response.writeHead(200, {"Content-Type": state.server.get("serveType")});
           response.end(text,"utf8");

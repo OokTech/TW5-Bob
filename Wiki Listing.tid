@@ -5,7 +5,7 @@ caption: Wiki Listing
 
 !!Available Wikis
 ---
-
+<!--
 <$button>
   Update Wiki List
   <$action-websocketmessage
@@ -16,7 +16,7 @@ caption: Wiki Listing
   />
 </$button>
 <$checkbox tiddler='$:/state/findAvailableWikis/remove' checked='true' unchecked='false'> Remove paths to non-existant wikis</$checkbox>
-
+-->
 <$list
   filter='[list[$:/state/ViewableWikis]]'
   variable=WikiName
