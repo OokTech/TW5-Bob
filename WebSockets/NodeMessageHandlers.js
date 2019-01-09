@@ -876,7 +876,7 @@ if ($tw.node) {
         //name = path.join(data.decoded.name, name);
         $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
       }
-      var fullPath = path.join(basePath, relativePath)
+      var fullPath = path.join(basePath, data.wikisFolder, relativePath)
       var tiddlersPath = path.join(fullPath, 'tiddlers')
       // For now we only support creating wikis with one edition, multi edition
       // things like in the normal init command can come later.
