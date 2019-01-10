@@ -11,3 +11,4 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [[$:/ServerIP]]
 [[$:/EditionsList]]
 [[$:/state/ViewableWikis]]
+[[$:/status/UserName]]

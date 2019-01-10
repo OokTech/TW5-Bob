@@ -3,13 +3,21 @@ tags: [[Websocket Message]] [[Human Usable]]
 caption: saveSettings
 description: Save changed made to the settings from within the wiki.
 
+''Note:'' you should very rarely have a reason to use this. The
+`$action-savesettings` widget is a better choice unless you have a manually
+created string you want to send as your full configuration file.
+
 ''Note:'' this currently only works for the root wiki!! (that is the wiki at
 the root level served on `localhost:8080` if you are using the defaults).
 
 This saves any changes to the Bob settings made in the wiki to the file system.
 
-This message takes no inputs.
+You shouldn't use this, use the button under the manual settings interface or
+the `$action-savesettings` widget instead.
+
+|!Parameter |!Description |
+|!settingsString |A stringified JSON object that contains the full settings object. |
 
 !!Usage
 
-`<$action-websocketmessage $type='saveSettings'/>`
+`<$action-websocketmessage $type='saveSettings' settingsString=<<SettingsString>>/>`

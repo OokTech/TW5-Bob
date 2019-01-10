@@ -352,11 +352,10 @@ if ($tw.node) {
       var fs = require('fs');
     }
     var settings = JSON.stringify($tw.settings, "", 2);
-    if (data.fromServer !== true) {
+    if (data.fromServer !== true && data.settingsString) {
       var prefix = data.wiki;
       // Get first tiddler to start out
-      var tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/WikiSettings/split');
-      var settings = JSON.stringify(buildSettings(tiddler, prefix), "", 2);
+      settings = data.settingsString;
 
       // Update the $tw.settings object
       // First clear the settings
