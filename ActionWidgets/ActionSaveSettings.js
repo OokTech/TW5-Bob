@@ -1,0 +1,100 @@
+/*\
+title: $:/plugins/OokTech/Bob/action-savesettings.js
+type: application/javascript
+module-type: widget
+
+Action widget to save the settings to the server
+
+<$action-savesettings/>
+
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+"use strict";
+
+var Widget = require("$:/core/modules/widgets/widget.js").widget;
+
+var ActionSaveSettings = function(parseTreeNode,options) {
+	this.initialise(parseTreeNode,options);
+};
+
+/*
+Inherit from the base widget class
+*/
+ActionSaveSettings.prototype = new Widget();
+
+/*
+Render this widget into the DOM
+*/
+ActionSaveSettings.prototype.render = function(parent,nextSibling) {
+	this.computeAttributes();
+	this.execute();
+};
+
+/*
+Compute the internal state of the widget
+*/
+ActionSaveSettings.prototype.execute = function() {
+};
+
+/*
+Refresh the widget by ensuring our attributes are up to date
+*/
+ActionSaveSettings.prototype.refresh = function(changedTiddlers) {
+	var changedAttributes = this.computeAttributes();
+	if(Object.keys(changedAttributes).length) {
+		this.refreshSelf();
+		return true;
+	}
+	return this.refreshChildren(changedTiddlers);
+};
+
+/*
+Invoke the action associated with this widget
+*/
+ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
+  var self = this;
+	var tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
+	var settings = JSON.stringify(buildSettings(tiddler), "", 2);
+	var token = localStorage.getItem('ws-token');
+	var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
+	var message = {
+		"type": "saveSettings",
+		"settingsString": settings,
+		"token": token,
+		"wiki": wikiName
+	}
+	var messageData = $tw.Bob.Shared.createMessageData(message)
+	$tw.Bob.Shared.sendMessage(messageData, 0)
+  return true; // Action was invoked
+};
+
+function buildSettings (tiddler) {
+	var settings = {};
+	if (tiddler) {
+		if (tiddler.fields) {
+			var object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
+			Object.keys(object).forEach(function (field) {
+				if (typeof object[field] === 'string' || typeof object[field] === 'number') {
+					if (String(object[field]).startsWith('$:/WikiSettings/split')) {
+						// Recurse!
+						var newTiddler = $tw.wiki.getTiddler(object[field]);
+						settings[field] = buildSettings(newTiddler);
+					} else {
+						// Actual thingy!
+						settings[field] = object[field];
+					}
+				} else {
+					settings[field] = "";
+				}
+			});
+		}
+	}
+	return settings;
+}
+
+exports["action-savesettings"] = ActionSaveSettings;
+
+})();

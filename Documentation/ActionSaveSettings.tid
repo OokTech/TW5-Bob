@@ -1,0 +1,23 @@
+title: $:/plugins/OokTech/Bob/ActionSaveSettings
+tags: ActionWidgets Widgets [[Bob Documentation]]
+caption: ActionConvertWiki
+description: An action widget that saves Bob settings to the server
+
+! Introduction
+
+This widget saves the current contents of the manual settings to the server.
+
+! Content and Attributes
+
+Any content of the `action-convertwiki` widget is ignored.
+
+This widget hsa no attributes.
+
+! Example
+
+```
+<$button>
+Save settings
+<$action-savesettings'/>
+</$button>
+```

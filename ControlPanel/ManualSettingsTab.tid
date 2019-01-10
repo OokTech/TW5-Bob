@@ -17,7 +17,7 @@ discard the new property.
 
 <$button>
   Update Settings
-  <$action-websocketmessage $type=saveSettings/>
+  <$action-savesettings/>
 </$button>
 
 <$button>
