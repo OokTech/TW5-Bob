@@ -117,4 +117,9 @@ Transform: <$edit-text
     $tiddler='$:/temp/NewWiki/Transforms'
     text='{}'
   />
+  <$action-websocketmessage
+    $type='findAvailableWikis'
+    update='true'
+    saveSettings='true'
+  />
 </$button>
