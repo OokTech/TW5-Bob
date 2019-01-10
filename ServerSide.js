@@ -158,12 +158,13 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       if (!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
         $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       }
+      // Add tiddlers to the wiki
+      var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
       $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
       // Unpack plugin tiddlers
   	  $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
       $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-      // Add tiddlers to the wiki
-      var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
+      
 
       // Add plugins, themes and languages
       ServerSide.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
