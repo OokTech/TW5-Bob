@@ -257,12 +257,14 @@ if ($tw.node) {
     connection has a list of message ids that are still waiting for acks.
   */
   $tw.Bob.SendToBrowser = function (connection, message) {
-    $tw.Bob.UpdateHistory(message);
-    var messageData = $tw.Bob.Shared.createMessageData(message);
-    // If the connection is open, send the message
-    if (connection.socket) {
-      if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
-        $tw.Bob.Shared.sendMessage(messageData, connection.index);
+    if (connection) {
+      $tw.Bob.UpdateHistory(message);
+      var messageData = $tw.Bob.Shared.createMessageData(message);
+      // If the connection is open, send the message
+      if (connection.socket) {
+        if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+          $tw.Bob.Shared.sendMessage(messageData, connection.index);
+        }
       }
     }
   }

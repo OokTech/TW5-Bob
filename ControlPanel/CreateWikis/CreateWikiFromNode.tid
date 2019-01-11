@@ -4,13 +4,13 @@ caption: Create Wiki From Node
 Note: After adding a wiki like this you may have to click the `Add Wiki`
 button, wait a few seconds and then click on it again without entering a name
 or a path in order to make the wiki load correctly.
-
+<br>
 Give the wiki a name:
 <$edit-text
   tiddler='$:/temp/NewWiki'
   field='wiki_name'
 />
-
+<br>
 Path to wiki folder:
 <$edit-text
   tiddler='$:/temp/NewWiki'
@@ -27,9 +27,7 @@ Path to wiki folder:
       $index={{$:/temp/NewWiki!!wiki_name}}
       $value={{$:/temp/NewWiki!!wiki_folder_path}}
     />
-    <$action-websocketmessage
-      $type=saveSettings
-    />
+    <$action-savesettings/>
     <$action-websocketmessage
       $type=updateRoutes
     />
@@ -38,11 +36,10 @@ Path to wiki folder:
       wiki_name=''
       wiki_folder_path=''
     />
+    <$action-websocketmessage
+      $type='findAvailableWikis'
+      update='true'
+      saveSettings='true'
+    />
   </$list>
-  <$action-websocketmessage
-    $type=saveSettings
-  />
-  <$action-websocketmessage
-    $type=updateRoutes
-  />
 </$button>
