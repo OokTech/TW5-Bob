@@ -262,6 +262,7 @@ if($tw.node) {
         var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
         if (authorised) {
           // Load the wiki
+          console.log($tw.boot.wikiPath)
           var exists = $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
           if (exists) {
             // Get the raw html to send

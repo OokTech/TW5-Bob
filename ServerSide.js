@@ -103,8 +103,10 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
   var exists = false;
   // First make sure that the wiki is listed
   listed = ServerSide.wikiListed(wikiName);
+  console.log('listed', listed);
   // Make sure that the wiki actually exists
   exists = ServerSide.wikiExists(wikiFolder);
+  console.log('exists', exists)
   return listed && exists;
 }
 
@@ -164,7 +166,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       // Unpack plugin tiddlers
   	  $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
       $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-      
+
 
       // Add plugins, themes and languages
       ServerSide.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
