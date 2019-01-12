@@ -65,10 +65,17 @@ ServerSide.wikiExists = function (wikiFolder) {
     }
     console.log('cwd', process.cwd())
     console.log('basePath',basePath)
-    // Get the correct path to the tiddlywiki.info file
-    wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
-    console.log('resolved wikiFolder', wikiFolder)
-    // Make sure it exists
+    // This is a bit hacky to get around problems with loading the root wiki
+    // This tests if the wiki is the root wiki and ignores the other pathing
+    // bits
+    if (wikiFolder === $tw.boot.wikiPath) {
+      wikiFolder = path.resolve($tw.boot.wikiPath)
+    } else {
+      // Get the correct path to the tiddlywiki.info file
+      wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
+      console.log('resolved wikiFolder', wikiFolder)
+      // Make sure it exists
+    }
     exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
   }
   return exists;
