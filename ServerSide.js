@@ -53,7 +53,6 @@ ServerSide.wikiExists = function (wikiFolder) {
   var exists = false;
   // Make sure that the wiki actually exists
   if (wikiFolder) {
-    console.log('wikiFolder',wikiFolder)
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
     var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     if ($tw.settings.wikiPathBase === 'homedir') {
@@ -63,8 +62,6 @@ ServerSide.wikiExists = function (wikiFolder) {
     } else {
       basePath = path.resolve($tw.settings.wikiPathBase);
     }
-    console.log('cwd', process.cwd())
-    console.log('basePath',basePath)
     // This is a bit hacky to get around problems with loading the root wiki
     // This tests if the wiki is the root wiki and ignores the other pathing
     // bits
@@ -73,7 +70,6 @@ ServerSide.wikiExists = function (wikiFolder) {
     } else {
       // Get the correct path to the tiddlywiki.info file
       wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
-      console.log('resolved wikiFolder', wikiFolder)
       // Make sure it exists
     }
     exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
@@ -114,10 +110,8 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
   var exists = false;
   // First make sure that the wiki is listed
   listed = ServerSide.wikiListed(wikiName);
-  console.log('listed', listed);
   // Make sure that the wiki actually exists
   exists = ServerSide.wikiExists(wikiFolder);
-  console.log('exists', exists)
   return listed && exists;
 }
 
@@ -126,6 +120,10 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
 */
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
   var exists = ServerSide.existsListed(wikiName, wikiFolder);
+  // A hacky way to make the root wiki work on termux
+  if (wikiName === 'RootWiki') {
+    wikiFolder = path.resolve(wikiFolder);
+  }
   // Add tiddlers to the node process
   if (exists) {
     $tw.Bob = $tw.Bob || {};
@@ -214,6 +212,8 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo),
     wikiInfo,
     pluginFields;
+  console.log('wikiPath',wikiPath)
+  console.log('wikiInfoPath',wikiInfoPath)
   // Bail if we don't have a wiki info file
   if(fs.existsSync(wikiInfoPath)) {
     try {
