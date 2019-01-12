@@ -280,12 +280,25 @@ if($tw.node) {
       method: "GET",
       path: /^\/favicon.ico$/,
       handler: function(request,response,state) {
-        response.writeHead(200, {"Content-Type": "image/x-icon"});
-        var buffer = ''
-        if ($tw.Bob.Wikis['RootWiki']) {
-          buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+        var token = getCookie(request.headers.cookie, 'token');
+        var authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
+        if (authorised) {
+          // Load the wiki
+          var exists = $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+          if (exists) {
+            response.writeHead(200, {"Content-Type": "image/x-icon"});
+            var buffer = ''
+            if ($tw.Bob.Wikis['RootWiki']) {
+              buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+            }
+          } else {
+            var buffer = "";
+          }
+          response.end(buffer,"base64");
+        } else {
+          response.writeHead(404);
+          response.end();
         }
-        response.end(buffer,"base64");
       }
     });
     $tw.settings.API = $tw.settings.API || {};
@@ -783,6 +796,8 @@ if($tw.node) {
   }
 
   Command.prototype.execute = function() {
+    $tw.Bob = $tw.Bob || {};
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     if(!$tw.boot.wikiTiddlersPath) {
       $tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
     }
