@@ -212,8 +212,6 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo),
     wikiInfo,
     pluginFields;
-  console.log('wikiPath',wikiPath)
-  console.log('wikiInfoPath',wikiInfoPath)
   // Bail if we don't have a wiki info file
   if(fs.existsSync(wikiInfoPath)) {
     try {
