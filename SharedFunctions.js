@@ -18,8 +18,8 @@ This has some functions that are needed by Bob in different places.
   exports.after = ["render"];
   exports.synchronous = true;
 
-  var Shared = {};
-  var idNumber = 0;
+  let Shared = {};
+  let idNumber = 0;
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
@@ -42,10 +42,10 @@ This has some functions that are needed by Bob in different places.
     if (!tiddler.fields && otherTiddler.fields) {
       return true;
     }
-    var changed = false;
+    let changed = false;
     // Some cleverness that gives a list of all fields in both tiddlers without
     // duplicates.
-    var allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
+    const allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
       return Object.keys(tiddler.fields).indexOf(item) < 0;
     }));
     // check to see if the field values are the same, ignore modified for now
@@ -59,13 +59,13 @@ This has some functions that are needed by Bob in different places.
         if ((tiddler.fields[field] || tiddler.fields[field] === '' || tiddler.fields[field] === []) && (otherTiddler.fields[field] || otherTiddler.fields[field] === '' || otherTiddler.fields[field] === [])) {
           // We need a special check to check against empty arrays and empty
           // strings, which in this context match.
-          var empty1 = false;
-          var empty2 = false;
-          var field1 = tiddler.fields[field]
+          let empty1 = false;
+          let empty2 = false;
+          let field1 = tiddler.fields[field]
           if (!Array.isArray(field1)) {
             field1 = $tw.utils.parseStringArray(field1);
           }
-          var field2 = otherTiddler.fields[field]
+          let field2 = otherTiddler.fields[field]
           if (!Array.isArray(field2)) {
             field2 = $tw.utils.parseStringArray(field2);
           }
@@ -83,7 +83,7 @@ This has some functions that are needed by Bob in different places.
             if (field1.length !== field2.length) {
               changed = true;
             } else {
-              var arrayList = field2;
+              const arrayList = field2;
               arrayList.forEach(function(item) {
                 if (field1.indexOf(item) === -1) {
                   changed = true;
@@ -98,8 +98,8 @@ This has some functions that are needed by Bob in different places.
         }
       } else if (field === 'modified' || field === 'created') {
         // Make sure the fields are parsed as strings then check if they match.
-        var date1;
-        var date2;
+        let date1;
+        let date2;
         if (typeof tiddler.fields[field] === 'string') {
           date1 = tiddler.fields[field];
         } else if (typeof tiddler.fields[field] === 'object') {
@@ -147,9 +147,9 @@ This has some functions that are needed by Bob in different places.
     boolean indicating if the ack has been received yet or not.
   */
   Shared.createMessageData = function (message) {
-    var id = $tw.Bob.Shared.makeId();
+    const id = $tw.Bob.Shared.makeId();
     message.id = id;
-    var title = undefined;
+    let title = undefined;
     if (['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
       title = message.tiddler.fields.title;
     }
@@ -191,7 +191,7 @@ This has some functions that are needed by Bob in different places.
       // Check if there are any messages that are more than 500ms old and have
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
-      var oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
+      const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
         if (Date.now() - messageData.time > 500) {
           return true;
         } else {
@@ -202,7 +202,7 @@ This has some functions that are needed by Bob in different places.
         // If we are in the browser there is only one connection, but
         // everything here is the same.
         $tw.connections.forEach(function(item) {
-          var index = item.index;
+          const index = item.index;
           // Here make sure that the connection is live and hasn't already
           // sent an ack for the current message.
           if ($tw.connections[index].socket !== undefined) {
@@ -231,7 +231,7 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.makeId = function () {
     idNumber = idNumber + 1;
-    var newId = ($tw.browser?'b':'s') + idNumber;
+    const newId = ($tw.browser?'b':'s') + idNumber;
     return newId;
   }
 
@@ -262,7 +262,7 @@ This has some functions that are needed by Bob in different places.
   Shared.removeRedundantMessages = function (messageData, queue) {
     // Get a list of any duplicate messages or any that are now redundant
     // because of the new message.
-    var duplicateIndicies = queue.map(function(item, index) {
+    const duplicateIndicies = queue.map(function(item, index) {
       // Messages with the same id are the same message and not considered
       // redudant here. There are other checks to make sure that the same
       // message isn't enqueued twice.
@@ -291,7 +291,7 @@ This has some functions that are needed by Bob in different places.
       // item.message and all the keys in item.message that don't have the same
       // value in message.
       // If match has any elements in it than they are different messages.
-      var match = Object.keys(messageData.message).filter(function(key) {
+      const match = Object.keys(messageData.message).filter(function(key) {
         return (messageData.message[key] !== item.message[key])
       }).concat(Object.keys(item.message).filter(function(key) {
         return (messageData.message[key] !== item.message[key])
@@ -303,7 +303,7 @@ This has some functions that are needed by Bob in different places.
       return -1;
     }).filter(function(item) {return item > -1;});
     // Remove the messages that are overruled by the new message.
-    var outQueue = queue.filter(function(item, index) {
+    const outQueue = queue.filter(function(item, index) {
       return duplicateIndicies.indexOf(index) < 0;
     });
     // return the new queue
@@ -337,7 +337,7 @@ This has some functions that are needed by Bob in different places.
     connectionIndex = connectionIndex || 0;
     queue = queue || [];
     // Start out saying that a message shouldn't be sent
-    var send = false;
+    let send = false;
     // Make sure that the tags field is an array so it fits what is expected
     if (messageData.type === 'saveTiddler') {
       if (messageData.message.tiddler.fields.tags) {
@@ -365,17 +365,18 @@ This has some functions that are needed by Bob in different places.
     // is sending a message to the server. No wiki listed in the message means
     // it is a general message from the browser to all wikis.
     if (messageData.message.wiki === $tw.connections[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
-      var ignore = false;
+      let ignore = false;
       // Ignore saveTiddler, deleteTiddler and editingTiddler messages for
       // tiddlers that are listed by the sync exclude filter.
       // We do not ignore cancelEditingTiddler messages because they are sent
       // with draft tiddler titles which would be ignored, but that prevents
       // the lock from being removed from the non-draft tiddler.
+      let list = [];
       if (['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
         if ($tw.node) {
-          var list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
         } else {
-          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
         }
         if (list.indexOf(messageData.title) !== -1) {
           ignore = true;
@@ -385,7 +386,7 @@ This has some functions that are needed by Bob in different places.
         // If the new message is one of these types for a tiddler and the
         // timestamp of the queued message is newer than the current message
         // ignore the new message
-        var nonMultipleMessageTypes = ['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler', 'setViewableWikis', 'listTiddlers', 'setLoggedIn', 'updateEditingTiddlers'];
+        const nonMultipleMessageTypes = ['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler', 'setViewableWikis', 'listTiddlers', 'setLoggedIn', 'updateEditingTiddlers'];
         if (nonMultipleMessageTypes.indexOf(messageData.type) !== -1) {
           // Look at each queued message
           queue.forEach(function(queuedMessageData){
@@ -488,7 +489,7 @@ This has some functions that are needed by Bob in different places.
       }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
-      var enqueuedIndex = Object.keys($tw.Bob.MessageQueue).findIndex(function(enqueuedMessageData) {
+      const enqueuedIndex = Object.keys($tw.Bob.MessageQueue).findIndex(function(enqueuedMessageData) {
         return enqueuedMessageData.id === messageData.id;
       });
       if (enqueuedIndex !== -1) {
@@ -525,10 +526,10 @@ This has some functions that are needed by Bob in different places.
     the old token
   */
   Shared.removeOldTokenMessages = function (messageQueue) {
-    var outQueue = [];
+    let outQueue = [];
     if (localStorage) {
       if (typeof localStorage.getItem === 'function') {
-        var token = localStorage.getItem('ws-token');
+        const token = localStorage.getItem('ws-token');
         outQueue = messageQueue.filter(function(messageData) {
           return messageData.message.token === token
         })
@@ -559,14 +560,14 @@ This has some functions that are needed by Bob in different places.
       if ($tw.browser) {
         data.source_connection = 0;
       }
-      var index = $tw.Bob.MessageQueue.findIndex(function(messageData) {
+      const index = $tw.Bob.MessageQueue.findIndex(function(messageData) {
         return messageData.id === data.id;
       })
       if ($tw.Bob.MessageQueue[index]) {
         // Set the message as acknowledged.
         $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
         // Check if all the expected acks have been received
-        var complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
+        const complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
           return $tw.Bob.MessageQueue[index].ack[value] === false;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
@@ -592,9 +593,9 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.pruneMessageQueue = function (inQueue) {
     inQueue = inQueue || [];
-    var token = false
+    let token = false
     if ($tw.browser && localStorage) {
-      var token = localStorage.getItem('ws-token');
+      token = localStorage.getItem('ws-token');
     }
     // We can not remove messages immediately or else they won't be around to
     // prevent duplicates when the message from the file system monitor comes
@@ -607,7 +608,7 @@ This has some functions that are needed by Bob in different places.
 
     // messageData.ack.ctime is the time that a message received all the acks
     // it was waiting for. If it doesn't exist than it is still waiting.
-    var outQueue = inQueue.filter(function(messageData) {
+    const outQueue = inQueue.filter(function(messageData) {
       if ((token && messageData.message.token && messageData.message.token !== token) || (token && !messageData.message.token) ) {
         // If we have a token, the message has a token and they are not the same than drop the message.
         // If we have a token and the message doesn't have a token than drop it

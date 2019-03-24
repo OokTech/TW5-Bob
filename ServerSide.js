@@ -12,11 +12,11 @@ This is server functions that can be shared between different server types
 /*global $tw: false */
 
 
-var ServerSide = {}
+let ServerSide = {}
 
-var path = require('path')
-var fs = require('fs')
-var os = require('os')
+const path = require('path')
+const fs = require('fs')
+const os = require('os')
 
 // A polyfilL to make this work with older node installs
 
@@ -41,7 +41,7 @@ if (!Object.entries) {
 // END POLYFILL
 
 // Make sure that $tw.settings is available.
-var settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
+const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
@@ -50,11 +50,11 @@ $tw.Bob.Files = $tw.Bob.Files || {};
   This checks to make sure there is a tiddlwiki.info file in a wiki folder
 */
 ServerSide.wikiExists = function (wikiFolder) {
-  var exists = false;
+  let exists = false;
   // Make sure that the wiki actually exists
   if (wikiFolder) {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
-    var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     if ($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();
     } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
@@ -84,8 +84,8 @@ ServerSide.wikiListed = function (wikiName) {
   if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
     listed = true;
   } else {
-    var parts = wikiName.split('/');
-    var obj = $tw.settings.wikis
+    const parts = wikiName.split('/');
+    const obj = $tw.settings.wikis
     for (var i = 0; i < parts.length; i++) {
       if (obj[parts[i]]) {
         if (i === parts.length - 1) {
@@ -106,8 +106,8 @@ ServerSide.wikiListed = function (wikiName) {
   This checks to make sure that a wiki exists
 */
 ServerSide.existsListed = function (wikiName, wikiFolder) {
-  var listed = false;
-  var exists = false;
+  let listed = false;
+  let exists = false;
   // First make sure that the wiki is listed
   listed = ServerSide.wikiListed(wikiName);
   // Make sure that the wiki actually exists
@@ -119,7 +119,7 @@ ServerSide.existsListed = function (wikiName, wikiFolder) {
   This function loads a wiki that has a route listed.
 */
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
-  var exists = ServerSide.existsListed(wikiName, wikiFolder);
+  const exists = ServerSide.existsListed(wikiName, wikiFolder);
   // A hacky way to make the root wiki work on termux
   if (wikiName === 'RootWiki') {
     wikiFolder = path.resolve(wikiFolder);
@@ -133,7 +133,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-      var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      const basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       if ($tw.settings.wikiPathBase === 'homedir') {
         basePath = os.homedir();
       } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
@@ -148,7 +148,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.Bob.Wikis[wikiName].wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
       $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder, 'tiddlers');
       // Make sure that the tiddlers folder exists
-      var error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
+      const error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
       // Recursively build the folder tree structure
       $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
@@ -156,8 +156,8 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
 
       // Add tiddlers to the node process
-      var wikisPath = $tw.settings.wikisPath || './Wikis';
-      var fullPath = path.resolve(basePath, wikisPath, $tw.Bob.Wikis[wikiName].wikiPath);
+      const wikisPath = $tw.settings.wikisPath || './Wikis';
+      const fullPath = path.resolve(basePath, wikisPath, $tw.Bob.Wikis[wikiName].wikiPath);
 
       // Create a wiki object for this wiki
       $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
@@ -170,7 +170,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
         $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       }
       // Add tiddlers to the wiki
-      var wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
+      const wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
       $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
       // Unpack plugin tiddlers
   	  $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
@@ -190,7 +190,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
         return '$:/themes/' + name;
       });
     }
-    var fields = {
+    const fields = {
       title: '$:/WikiName',
       text: wikiName
     };
@@ -208,10 +208,10 @@ options:
 ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   options = options || {};
   options.prefix = options.prefix || '';
-  var parentPaths = options.parentPaths || [],
-    wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo),
-    wikiInfo,
-    pluginFields;
+  const parentPaths = options.parentPaths || []
+  const wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo)
+  let wikiInfo;
+  let pluginFields;
   // Bail if we don't have a wiki info file
   if(fs.existsSync(wikiInfoPath)) {
     try {
@@ -251,9 +251,9 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   ServerSide.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, options.prefix);
   ServerSide.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, options.prefix);
   // Load the wiki files, registering them as writable
-  var resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
+  const resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
   function getTheseTiddlers() {
-    var out = [];
+    let out = [];
     try {
       out = $tw.loadTiddlersFromPath(resolvedWikiPath);
     } catch(e) {
@@ -275,9 +275,9 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
       $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
   });
   // Save the original tiddler file locations if requested
-  var config = wikiInfo.config || {};
+  const config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
-    var output = {};
+    let output = {};
     for(var title in $tw.Bob.Files[options.prefix]) {
       output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
     }
@@ -288,10 +288,10 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   $tw.Bob.Wikis[options.prefix] = $tw.Bob.Wikis[options.prefix] || {};
   $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
   // Load any plugins within the wiki folder
-  var wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
+  const wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
   if(fs.existsSync(wikiPluginsPath)) {
     try {
-      var pluginFolders = fs.readdirSync(wikiPluginsPath);
+      const pluginFolders = fs.readdirSync(wikiPluginsPath);
       for(var t=0; t<pluginFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
         if(pluginFields) {
@@ -303,10 +303,10 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     }
   }
   // Load any themes within the wiki folder
-  var wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
+  const wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
   if(fs.existsSync(wikiThemesPath)) {
     try {
-      var themeFolders = fs.readdirSync(wikiThemesPath);
+      const themeFolders = fs.readdirSync(wikiThemesPath);
       for(var t=0; t<themeFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
         if(pluginFields) {
@@ -318,10 +318,10 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     }
   }
   // Load any languages within the wiki folder
-  var wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
+  const wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
   if(fs.existsSync(wikiLanguagesPath)) {
     try {
-      var languageFolders = fs.readdirSync(wikiLanguagesPath);
+      const languageFolders = fs.readdirSync(wikiLanguagesPath);
       for(var t=0; t<languageFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
         if(pluginFields) {
@@ -357,7 +357,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     $tw.settings.includePluginList = $tw.settings.includePluginList || [];
     $tw.settings.excludePluginList = $tw.settings.excludePluginList || [];
     // Add any plugins that should be included in every wiki
-    var includeList = Object.values($tw.settings.includePluginList).filter(function(plugin) {
+    const includeList = Object.values($tw.settings.includePluginList).filter(function(plugin) {
       return $tw.Bob.Wikis[fullName].plugins.indexOf(plugin) === -1;
     }).map(function(pluginName) {return '$:/plugins/'+pluginName;})
     $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.concat(includeList);
@@ -367,7 +367,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
       return Object.values($tw.settings.excludePluginList).indexOf(plugin) === -1;
     })
     // Make sure that all the plugins are actually loaded.
-    var missingPlugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
+    const missingPlugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
       return !$tw.Bob.Wikis[fullName].wiki.tiddlerExists(plugin);
     }).map(function(pluginTiddler) {
       return pluginTiddler.replace(/^\$:\/plugins\//, '')
@@ -377,8 +377,8 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     }
     // This makes the wikiTiddlers variable a filter that lists all the
     // tiddlers for this wiki.
-    var wikiName = fullName;
-    var options = {
+    const wikiName = fullName;
+    const options = {
       variables: {
         wikiTiddlers:
           $tw.Bob.Wikis[fullName].wiki.allTitles().concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
@@ -387,7 +387,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         wikiName: wikiName
       }
     };
-    var text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", "$:/core/save/all", options);
+    const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
     if (text.length < 10*1024*1024) {
       $tw.Bob.Wikis[fullName].cached = text;
@@ -406,7 +406,7 @@ envVar: Environment variable name for these plugins
 */
 ServerSide.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
 	if(plugins) {
-		var pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
+		const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
 		for(var t=0; t<plugins.length; t++) {
 			ServerSide.loadPlugin(plugins[t],pluginPaths, wikiName);
 		}
@@ -418,9 +418,9 @@ name: Name of the plugin to load
 paths: array of file paths to search for it
 */
 ServerSide.loadPlugin = function(name,paths, wikiName) {
-	var pluginPath = $tw.findLibraryItem(name,paths);
+	const pluginPath = $tw.findLibraryItem(name,paths);
 	if(pluginPath) {
-		var pluginFields = $tw.loadPluginFolder(pluginPath);
+		const pluginFields = $tw.loadPluginFolder(pluginPath);
 		if(pluginFields) {
 			$tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
 		}
@@ -430,7 +430,7 @@ ServerSide.loadPlugin = function(name,paths, wikiName) {
 /*
   Determine which sub-folders are in the current folder
 */
-var getDirectories = function(source) {
+const getDirectories = function(source) {
   try {
     return fs.readdirSync(source).map(function(name) {
       return path.join(source,name)
@@ -447,12 +447,12 @@ var getDirectories = function(source) {
   folder.
   This can be used to selectively watch folders of tiddlers.
 */
-var buildTree = function(location, parent) {
-  var folders = getDirectories(path.join(parent,location));
-  var parentTree = {'path': path.join(parent,location), folders: {}};
+const buildTree = function(location, parent) {
+  const folders = getDirectories(path.join(parent,location));
+  let parentTree = {'path': path.join(parent,location), folders: {}};
   if (folders.length > 0) {
     folders.forEach(function(folder) {
-      var apex = folder.split(path.sep).pop();
+      const apex = folder.split(path.sep).pop();
       parentTree.folders[apex] = {};
       parentTree.folders[apex] = buildTree(apex, path.join(parent,location));
     })

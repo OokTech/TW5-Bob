@@ -15,7 +15,7 @@ A sync adaptor module for synchronising using Websockets
 exports.platforms = ["node"];
 
 // Get a reference to the file system
-var fs = $tw.node ? require("fs") : null,
+const fs = $tw.node ? require("fs") : null,
   path = $tw.node ? require("path") : null;
 
 if($tw.node) {
@@ -61,19 +61,19 @@ if($tw.node) {
       }
     }
     // See if we've already got information about this file
-    var title = tiddler.fields.title;
-    var fileInfo = $tw.Bob.Files[prefix][title];
+    const title = tiddler.fields.title;
+    let fileInfo = $tw.Bob.Files[prefix][title];
     if(fileInfo) {
       // If so, just invoke the callback
       callback(null,fileInfo);
     } else {
       // Otherwise, we'll need to generate it
       fileInfo = {};
-      var tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
+      const tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
       // Get the content type info
-      var contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
+      const contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
       // Get the file type by looking up the extension
-      var extension = contentTypeInfo.extension || ".tid";
+      let extension = contentTypeInfo.extension || ".tid";
       fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
       // Use a .meta file unless we're saving a .tid file.
       // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
@@ -88,8 +88,8 @@ if($tw.node) {
       if (prefix === 'RootWiki') {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
-      var tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
-      var baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
+      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
+      const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
       fs.readdir(path.dirname(baseFilepath),function(err,files) {
@@ -97,12 +97,12 @@ if($tw.node) {
           return callback(err);
         }
         // Start with the base filename plus the extension
-        var filepath = baseFilepath;
+        const filepath = baseFilepath;
         if(filepath.substr(-extension.length).toLocaleLowerCase() !== extension.toLocaleLowerCase()) {
           filepath = filepath + extension;
         }
-        var filename = path.basename(filepath),
-          count = 1;
+        const filename = path.basename(filepath)
+        let count = 1;
         // Add a discriminator if we're clashing with an existing filename while
         // handling case-insensitive filesystems (NTFS, FAT/FAT32, etc.)
         while(files.some(function(value) {return value.toLocaleLowerCase() === filename.toLocaleLowerCase();})) {
@@ -128,7 +128,7 @@ if($tw.node) {
   */
   WebsocketAdaptor.prototype.findFirstFilter = function(filters,source) {
     for(var i=0; i<filters.length; i++) {
-      var result = this.wiki.filterTiddlers(filters[i],null,source);
+      const result = this.wiki.filterTiddlers(filters[i],null,source);
       if(result.length > 0) {
         return result[0];
       }
@@ -140,13 +140,14 @@ if($tw.node) {
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
   WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
-    var baseFilename;
+    let baseFilename;
+    let pathNameFilters;
     // Check whether the user has configured a tiddler -> pathname mapping
     if ($tw.Bob.Wikis[wiki].wiki) {
-      var pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
+      pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
     }
     if(pathNameFilters) {
-      var source = $tw.Bob.Wikis[wiki].wiki.makeTiddlerIterator([title]);
+      const source = $tw.Bob.Wikis[wiki].wiki.makeTiddlerIterator([title]);
       baseFilename = this.findFirstFilter(pathNameFilters.split("\n"),source);
       if(baseFilename) {
         // Interpret "/" and "\" as path separator
@@ -158,7 +159,7 @@ if($tw.node) {
       baseFilename = title.replace(/\/|\\/g,"_");
     }
     // Remove any of the characters that are illegal in Windows filenames
-    var baseFilename = $tw.utils.transliterate(baseFilename.replace(/<|>|\:|\"|\||\?|\*|\^/g,"_"));
+    baseFilename = $tw.utils.transliterate(baseFilename.replace(/<|>|\:|\"|\||\?|\*|\^/g,"_"));
     // Truncate the filename if it is too long
     if(baseFilename.length > 200) {
       baseFilename = baseFilename.substr(0,200);
@@ -195,10 +196,10 @@ if($tw.node) {
         internalSave(tiddler, prefix);
         // Handle saving to the file system
         if(fileInfo.hasMetaFile) {
-          var title = tiddler.fields.title
+          const title = tiddler.fields.title
           // Save the tiddler as a separate body and meta file
-          var typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          var content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
+          const typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
+          const content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
           fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
             if(err) {
               return callback(err);
@@ -225,9 +226,9 @@ if($tw.node) {
             }
           });
         } else {
-          var title = tiddler.fields.title;
+          const title = tiddler.fields.title;
           // Save the tiddler as a self contained templated file
-          var content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
+          const content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
           // If we aren't passed a path
           fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
             if(err) {
@@ -244,7 +245,7 @@ if($tw.node) {
   // After the tiddler file is saved this takes care of the internal part
   function internalSave (tiddler, prefix) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
-    var message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
+    const message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
     $tw.Bob.SendToBrowsers(message);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
@@ -285,10 +286,8 @@ if($tw.node) {
     if (typeof options !== 'object') {
       options = {}
     }
-    if (options.wiki) {
-      var prefix = options.wiki;
-    }
-    var fileInfo = $tw.Bob.Files[prefix][title];
+    const prefix = options.wiki;
+    const fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
       //console.log('Delete tiddler file ', fileInfo.filepath);
@@ -303,8 +302,8 @@ if($tw.node) {
         // Create a message saying to remove the tiddler
 
         // Remove the prefix from the tiddler
-        var tiddlerName = title;
-        var message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
+        const tiddlerName = title;
+        const message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
         //self.logger.log("Deleted file",fileInfo.filepath);

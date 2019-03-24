@@ -35,7 +35,7 @@ both include and exclude filters.
 /*global $tw: false */
 "use strict";
 
-var Widget = require("$:/core/modules/widgets/widget.js").widget;
+const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 var ActionDownloadWiki = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
@@ -68,7 +68,7 @@ ActionDownloadWiki.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionDownloadWiki.prototype.refresh = function(changedTiddlers) {
-	var changedAttributes = this.computeAttributes();
+	const changedAttributes = this.computeAttributes();
 	if(Object.keys(changedAttributes).length) {
 		this.refreshSelf();
 		return true;
@@ -82,25 +82,25 @@ Invoke the action associated with this widget
 ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
   // Otherwise we want to ignore the server-specific plugins to keep things
   // small.
-  var excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+  const excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
   if (this.excludeFilter) {
     excludeList = $tw.wiki.filterTiddlers(this.excludeFilter)
   }
 
   if (this.ignoreDefaultExclude !== 'true') {
-    var defaultExclude = $tw.wiki.filterTiddlers('[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]');
+    const defaultExclude = $tw.wiki.filterTiddlers('[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]');
     excludeList = excludeList.concat(defaultExclude);
   }
 
-  var options = {};
-  var tempWiki = new $tw.Wiki();
+  let options = {};
+  let tempWiki = new $tw.Wiki();
   // Load the boot tiddlers
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/core'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/boot.css'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/boot.js'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/bootprefix.js'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/themes/tiddlywiki/vanilla'))
-  var includeList
+  let includeList
   if (this.includeFilter) {
     includeList = $tw.wiki.filterTiddlers(this.includeFilter)
   } else {
@@ -115,13 +115,13 @@ ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
   tempWiki.readPluginInfo();
   tempWiki.unpackPluginTiddlers();
 
-  var text = tempWiki.renderTiddler("text/plain", "$:/core/save/all", options);
+  const text = tempWiki.renderTiddler("text/plain", "$:/core/save/all", options);
 
   let a = document.createElement('a');
   // This is the suggested file name for the download on systems that support
   // it.
   a.download = this.defaultName;
-  var thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
+  const thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
   a.setAttribute('href', thisStr);
   document.body.appendChild(a);
   a.click();

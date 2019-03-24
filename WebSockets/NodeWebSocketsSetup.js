@@ -50,10 +50,10 @@ if ($tw.node) {
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
-    var ServerPort = Number($tw.settings['ws-server'].port) || 8080;
-    var host = $tw.settings['ws-server'].host || '127.0.0.1';
+    //const ServerPort = Number($tw.settings['ws-server'].port) || 8080;
+    //const host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-    var server;
+    //var server;
     /*
       Setup the websocket server if we aren't using an external one
     */
@@ -99,7 +99,7 @@ if ($tw.node) {
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
     $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
-    var message = {type: 'listTiddlers'}
+    const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
   }
 
@@ -116,9 +116,9 @@ if ($tw.node) {
   $tw.Bob.handleMessage = function(event) {
     var self = this;
     // Determine which connection the message came from
-    var thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
+    const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
     try {
-      var eventData = JSON.parse(event);
+      let eventData = JSON.parse(event);
       // Add the source to the eventData object so it can be used later.
       eventData.source_connection = thisIndex;
       // If the wiki on this connection hasn't been determined yet, take it
@@ -145,7 +145,7 @@ if ($tw.node) {
         // Make sure we have a handler for the message type
         if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
           // Check authorisation
-          var authorised = authenticateMessage(eventData)
+          const authorised = authenticateMessage(eventData)
           if (authorised) {
             eventData.decoded = authorised
             $tw.nodeMessageHandlers[eventData.type](eventData);
@@ -207,19 +207,26 @@ if ($tw.node) {
     conneciton is using are sent to that connection.
   */
   $tw.Bob.UpdateEditingTiddlers = function (tiddler, wiki) {
-    // Check if a tiddler title was passed as input and that the tiddler isn't
-    // already listed as being edited.
-    // If there is a title and it isn't being edited add it to the list.
-    if (tiddler && !$tw.Bob.EditingTiddlers[wiki][tiddler]) {
-      $tw.Bob.EditingTiddlers[wiki][tiddler] = true;
-    }
-    Object.keys($tw.connections).forEach(function(index) {
-      if ($tw.connections[index].wiki === wiki) {
-        var list = Object.keys($tw.Bob.EditingTiddlers[wiki]);
-        var message = {type: 'updateEditingTiddlers', list: list, wiki: wiki};
-        $tw.Bob.SendToBrowser($tw.connections[index], message);
+    // Make sure that the wiki is loaded
+    const exists = $tw.ServerSide.loadWiki(wiki, $tw.settings.wikis[wiki]);
+    // This should never be false, but then this shouldn't every have been a
+    // problem to start.
+    if (exists) {
+      // Check if a tiddler title was passed as input and that the tiddler isn't
+      // already listed as being edited.
+      // If there is a title and it isn't being edited add it to the list.
+      if (tiddler && !$tw.Bob.EditingTiddlers[wiki][tiddler]) {
+        $tw.Bob.EditingTiddlers[wiki][tiddler] = true;
       }
-    });
+      Object.keys($tw.connections).forEach(function(index) {
+        if ($tw.connections[index].wiki === wiki) {
+          $tw.Bob.EditingTiddlers[wiki] = $tw.Bob.EditingTiddlers[wiki] || {};
+          const list = Object.keys($tw.Bob.EditingTiddlers[wiki]);
+          const message = {type: 'updateEditingTiddlers', list: list, wiki: wiki};
+          $tw.Bob.SendToBrowser($tw.connections[index], message);
+        }
+      });
+    }
   }
 
   /*
@@ -236,7 +243,7 @@ if ($tw.node) {
   */
   $tw.Bob.SendToBrowsers = function (message) {
     $tw.Bob.UpdateHistory(message);
-    var messageData = $tw.Bob.Shared.createMessageData(message);
+    const messageData = $tw.Bob.Shared.createMessageData(message);
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
       if (connection.socket) {
@@ -259,7 +266,7 @@ if ($tw.node) {
   $tw.Bob.SendToBrowser = function (connection, message) {
     if (connection) {
       $tw.Bob.UpdateHistory(message);
-      var messageData = $tw.Bob.Shared.createMessageData(message);
+      const messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if (connection.socket) {
         if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
@@ -295,10 +302,10 @@ if ($tw.node) {
     if (['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
       $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
       $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || [];
-      var entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
+      const entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
         return entry.title === message.tiddler.fields.title;
       })
-      var entry = {
+      const entry = {
         timestamp: Date.now(),
         title: message.tiddler.fields.title,
         type: message.type

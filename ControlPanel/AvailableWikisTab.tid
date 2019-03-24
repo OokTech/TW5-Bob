@@ -1,6 +1,12 @@
 title: $:/plugins/OokTech/Bob/AvailableWikisTab
 caption: Available Wikis
 
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
 You can create new wikis here. Select the edition and then enter a name.
 
 Names should only have numbers and letters and no spaces or special characters.
@@ -93,5 +99,95 @@ Checking the box will also remove any links to wikis that don't exist.
 >
   Remove links to missing wikis
 </$checkbox>
+</$reveal>
+
+<$reveal
+  type='match'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+Create wiki from
+
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='edition'
+>
+  an edition
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='file'
+>
+  an html file
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='tiddlers'
+>
+  existing tiddlers
+</$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='node'
+>
+  a node wiki
+</$radio>
+
+<$list
+  filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromEdition}}
+</$list>
+
+
+<$list
+  filter='[[$:/temp/NewWiki]method[file]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromFile}}
+</$list>
+
+<$list
+  filter='[[$:/temp/NewWiki]method[tiddlers]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromTiddlers}}
+</$list>
+
+<$list
+  filter='[[$:/temp/NewWiki]method[node]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
+</$list>
+
+---
+
+<$button>
+  Auto-populate list
+  <$action-websocketmessage
+    $type='findAvailableWikis'
+    remove={{$:/state/Bob/removemissingwikis!!text}}
+    update='true'
+    saveSettings='true'
+  />
+</$button>
+<$checkbox
+  tiddler='$:/state/Bob/removemissingwikis'
+  checked='true'
+  unchecked='false'
+>
+  Remove missing wikis
+</$checkbox>
+</$reveal>
 
 {{$:/plugins/OokTech/Bob/Wiki Listing}}

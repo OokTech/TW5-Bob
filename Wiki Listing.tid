@@ -3,20 +3,9 @@ caption: Wiki Listing
 
 \define thisMakeURL() ./$(WikiName)$
 
-!!Available Wikis
+!!Available Wikis (<span style='font-size:12px;'><$checkbox tiddler='$:/plugins/OokTech/Bob/Wiki Listing' tag='$:/tags/SideBar'> List in sidebar</$checkbox></span>)
 ---
-<!--
-<$button>
-  Update Wiki List
-  <$action-websocketmessage
-    $type='findAvailableWikis'
-    update='true'
-    remove='true'
-    saveSettings='true'
-  />
-</$button>
-<$checkbox tiddler='$:/state/findAvailableWikis/remove' checked='true' unchecked='false'> Remove paths to non-existant wikis</$checkbox>
--->
+
 <$list
   filter='[list[$:/state/ViewableWikis]]'
   variable=WikiName

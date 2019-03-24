@@ -12,37 +12,39 @@ Information about the available plugins
 /*global $tw: false */
 "use strict";
 
-var fs = require("fs"),
-	path = require("path");
+const fs = require("fs");
+const path = require("path");
 
-var pluginInfo;
+let pluginInfo;
 
 exports.getPluginInfo = function() {
 	if(!pluginInfo) {
 		// Enumerate the plugin paths
-		var pluginPaths = $tw.getLibraryItemSearchPaths($tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+		const pluginPaths = $tw.getLibraryItemSearchPaths($tw.config.pluginsPath,$tw.config.pluginsEnvVar);
 		pluginInfo = {};
 		for(var pluginIndex=0; pluginIndex<pluginPaths.length; pluginIndex++) {
-			var pluginPath = pluginPaths[pluginIndex];
+			const pluginPath = path.resolve(pluginPaths[pluginIndex]);
 			// Enumerate the folders
 			try {
-				var authors = fs.readdirSync(pluginPath);
+				const authors = fs.readdirSync(pluginPath);
 				for(var authorIndex=0; authorIndex<authors.length; authorIndex++) {
-					var pluginAuthor = authors[authorIndex];
-	        var pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));
-	        pluginNames.forEach(function(pluginName) {
-	  				// Check if directories have a valid plugin.info
-	  				if(!pluginInfo[pluginAuthor + '/' + pluginName] && $tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor,pluginName))) {
-	  					var info;
-	  					try {
-	  						info = JSON.parse(fs.readFileSync(path.resolve(pluginPath,pluginAuthor, pluginName,"plugin.info"),"utf8"));
-	  					} catch(ex) {
-	  					}
-	  					if(info) {
-	  						pluginInfo[pluginAuthor + '/' + pluginName] = info;
-	  					}
-	  				}
-	        })
+					const pluginAuthor = authors[authorIndex];
+          if ($tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor))) {
+  	        const pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));
+  	        pluginNames.forEach(function(pluginName) {
+  	  				// Check if directories have a valid plugin.info
+  	  				if(!pluginInfo[pluginAuthor + '/' + pluginName] && $tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor,pluginName))) {
+  	  					let info;
+  	  					try {
+  	  						info = JSON.parse(fs.readFileSync(path.resolve(pluginPath,pluginAuthor, pluginName,"plugin.info"),"utf8"));
+  	  					} catch(ex) {
+  	  					}
+  	  					if(info) {
+  	  						pluginInfo[pluginAuthor + '/' + pluginName] = info;
+  	  					}
+  	  				}
+  	        })
+          }
 				}
 			} catch (e) {
 				console.log('Error getting plugin info', e)

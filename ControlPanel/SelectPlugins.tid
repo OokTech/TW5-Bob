@@ -1,6 +1,12 @@
 title: $:/plugins/OokTech/Bob/SelectPlugins
 caption: Manage Plugins
 
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
 This lists any plugins on the server. Click this button to update the list.
 
 <$button>
@@ -10,6 +16,7 @@ This lists any plugins on the server. Click this button to update the list.
   />
 </$button>
 
+<!--
 You can add plugins to the library by selecting them here and click
 `Save Plugin As Folder`. You may want to click `Update Plugin List` below to
 make sure you don't try and save a plugin you already have saved.
@@ -46,6 +53,7 @@ make sure you don't try and save a plugin you already have saved.
     plugin={{$:/state/Bob/SavePluginFolder}}
   />
 </$button>
+-->
 
 Select which plugins you want in this wiki below then click `Update Plugins`
 then reload the page.
@@ -104,3 +112,74 @@ then reload the page.
     <br>
   </$list>
 </$list>
+
+</$reveal>
+
+<$reveal
+  type='match'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+<$button>
+  Update Plugin List
+  <$action-websocketmessage
+    $type='getPluginList'
+  />
+</$button>
+<$button>
+  Save Plugin Selection
+  <$action-websocketmessage
+    $type='updateTiddlyWikiInfo'
+    pluginList={{$:/Bob/ActivePluginList!!list}}
+  />
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button>
+<a href='javascript:history.go(0)'>Refresh Page</a>
+
+<br>
+<$list
+  filter='[list[$:/Bob/AvailablePluginList]]'
+>
+  <$list
+    filter='[list[$:/Bob/ActivePluginList]is[current]]'
+    emptyMessage="""
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+      />
+      <$view
+        field='title'
+      />
+      <$action-listops
+        $tiddler='$:/Bob/ActivePluginList'
+        $subfilter='+[append<currentTiddler>]'
+      />
+    </$button>
+    <br>"""
+  >
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+        checked
+      />
+      <$view
+        field='title'
+      />
+      <$action-listops
+        $tiddler='$:/Bob/ActivePluginList'
+        $subfilter='+[remove<currentTiddler>]'
+      />
+    </$button>
+    <br>
+  </$list>
+</$list>
+
+</$reveal>

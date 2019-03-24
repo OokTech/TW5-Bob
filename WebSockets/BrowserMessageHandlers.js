@@ -49,7 +49,7 @@ it will overwrite this file.
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 
   var sendAck = function (data) {
-    var token = localStorage.getItem('ws-token')
+    const token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
   }
 
@@ -77,7 +77,7 @@ it will overwrite this file.
         if (typeof data.tiddler.fields.title === 'string') {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
-          var changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
+          const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
           if (changed) {
             console.log('Create Tiddler', data.tiddler.fields.title);
             $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
@@ -99,9 +99,9 @@ it will overwrite this file.
   $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
     // make sure there is actually a list sent
     if (data.list) {
-        var listField = $tw.utils.stringifyList(data.list);
+        const listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields
-        var tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
+        const tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
         // Add the tiddler
         $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
@@ -121,7 +121,7 @@ it will overwrite this file.
     if (data.wiki === $tw.wikiName) {
       data.tiddler = data.tiddler || {};
       data.tiddler.fields = data.tiddler.fields || {};
-      var title = data.tiddler.fields.title;
+      const title = data.tiddler.fields.title;
       if (title) {
         $tw.wiki.deleteTiddler(title);
       }
@@ -137,9 +137,9 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.listTiddlers = function(data) {
     // This is an array of tiddler titles, each title is a string.
-    var response = $tw.wiki.allTitles();
+    const response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
-    var token = localStorage.getItem('ws-token')
+    const token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
     //var message = {type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}
     //var messageData = $tw.Bob.Shared.createMessageData(message)
@@ -157,17 +157,17 @@ it will overwrite this file.
   $tw.browserMessageHandlers.conflict = function(data) {
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
-    var wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
+    let wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
     if (wikiTiddler) {
       wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
       wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
       wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
       // Only add the tiddler if it is different
       if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
-        var newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
+        const newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
         $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
         // we have conflicts so open the conflict list tiddler
-        var storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+        const storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
         storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
         $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
       }
@@ -187,10 +187,10 @@ it will overwrite this file.
     console.log('import', data.tiddler.fields.title)
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
-    var newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
+    const newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
     $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields, {title: newTitle}));
     // we have conflicts so open the conflict list tiddler
-    var storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+    const storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
     storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
     $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
     sendAck(data);
@@ -202,8 +202,8 @@ it will overwrite this file.
     The pong response also echos back whatever was sent along with the ping.
   */
   $tw.browserMessageHandlers.ping = function (data) {
-    var token = localStorage.getItem('ws-token')
-    var message = {};
+    const token = localStorage.getItem('ws-token')
+    let message = {};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
@@ -211,7 +211,7 @@ it will overwrite this file.
     message.token = token;
     message.wiki = $tw.wikiName;
     // The message is just the message type
-    var response = JSON.stringify(message);
+    const response = JSON.stringify(message);
     // Send the response
     $tw.connections[0].socket.send(response);
   }
@@ -232,8 +232,8 @@ it will overwrite this file.
       $tw.settings.heartbeat = $tw.settings.heartbeat || {};
 
       if (!$tw.settings.heartbeat.interval) {
-        var heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
-        var heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
+        const heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
+        const heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
@@ -244,7 +244,7 @@ it will overwrite this file.
       // Clear the retry timeout.
       clearTimeout($tw.settings.heartbeat.retry);
       setTimeout(function () {
-        var token = localStorage.getItem('ws-token')
+        const token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
@@ -255,7 +255,7 @@ it will overwrite this file.
     if ($tw.connections[0].socket.readyState !== 1) {
       handleDisconnected();
     } else {
-      var token = localStorage.getItem('ws-token')
+      const token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
     }
   }
@@ -266,20 +266,20 @@ it will overwrite this file.
   */
   function handleDisconnected() {
     console.log('Disconnected from server');
-    var text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
-    var tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
+    const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
+    const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       if ($tw.connections[0].socket.readyState === 1) {
-        var token = localStorage.getItem('ws-token')
+        const token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }
     }, $tw.settings.heartbeat.interval);
-    var queue = [];
+    let queue = [];
     $tw.Bob.MessageQueue.forEach(function(message) {
       queue.push(message)
     })
-    var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: Date.now()-Number($tw.settings.heartbeat.timeout)};
+    const tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: Date.now()-Number($tw.settings.heartbeat.timeout)};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 
@@ -288,11 +288,11 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.downloadFile = function (data) {
     if (data) {
-      var text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
+      const text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
       let a = document.createElement('a');
       a.download = 'index.html';
-      var thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
-      console.log(thisStr)
+      const thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
+      //console.log(thisStr)
       a.setAttribute('href', thisStr);
       document.body.appendChild(a);
       a.click();
@@ -306,7 +306,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.setViewableWikis = function (data) {
     if (data.list) {
-      var fields = {
+      const fields = {
         title: '$:/state/ViewableWikis',
         list: data.list
       }

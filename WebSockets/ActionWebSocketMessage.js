@@ -28,7 +28,7 @@ sends:
 /*global $tw: false */
 "use strict";
 
-var Widget = require("$:/core/modules/widgets/widget.js").widget;
+const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 var ActionWebSocketMessage = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
@@ -59,7 +59,7 @@ ActionWebSocketMessage.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionWebSocketMessage.prototype.refresh = function(changedTiddlers) {
-	var changedAttributes = this.computeAttributes();
+	const changedAttributes = this.computeAttributes();
 	if(Object.keys(changedAttributes).length) {
 		this.refreshSelf();
 		return true;
@@ -72,13 +72,13 @@ Invoke the action associated with this widget
 */
 ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event) {
   // Create the empty message object
-  var message = {};
+  let message = {};
   // Add in the message type and param, if they exist
   message.type = this.type;
   message.param = this.param;
 
   // This is needed for when you serve multiple wikis
-  var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
+  const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   message.wiki = wikiName?wikiName:'';
 
   // For any other attributes passed to the widget add them to the message as
@@ -88,13 +88,13 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
       message[name] = attribute;
 		}
 	});
-  var token = localStorage.getItem('ws-token');
+  const token = localStorage.getItem('ws-token');
   message["token"] = token;
   // We need a message type at a minimum to send anything
   if (message.type) {
     // Send the message
     //$tw.connections[0].socket.send(JSON.stringify(message));
-    var messageData = $tw.Bob.Shared.createMessageData(message)
+    const messageData = $tw.Bob.Shared.createMessageData(message)
     $tw.Bob.Shared.sendMessage(messageData, 0)
   }
 

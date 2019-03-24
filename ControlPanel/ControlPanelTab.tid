@@ -7,40 +7,96 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
 </pre>
 
-See [[exporting wikis|$:/plugins/OokTech/Bob/Exporting Wikis]] for information about different ways to save or export
-your wikis.
-
-This saves the wiki to the server, it doesn't download it.
-<$button>
-  Save Single File Wiki
-  <$action-websocketmessage
-    $type='buildHTMLWiki'
-  />
-</$button>
-
-This downloads the current wiki as a single file wiki.
-<$button>
-  Download Single File Version
-  <$action-downloadwiki
-  />
-</$button>
+<$radio
+  tiddler='$:/settings/Bob/Verbose'
+  field='text'
+  value='false'
+>
+  Compact Help
+</$radio>
+<$radio
+  tiddler='$:/settings/Bob/Verbose'
+  field='text'
+  value='true'
+>
+  Verbose Help
+</$radio>
 
 <$reveal
-  type='match'
-  state='$:/WikiName'
-  text='RootWiki'
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
 >
 
-<$checkbox
-  tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
-  tag='$:/tags/SideBar'
->
-  List available wikis in sidebar
-</$checkbox>
+  See [[exporting wikis|$:/plugins/OokTech/Bob/Exporting Wikis]] for information
+  about different ways to save or export your wikis.
+
+  This saves the wiki to the server, it doesn't download it.
+  <$button>
+    Save Single File Wiki
+    <$action-websocketmessage
+      $type='buildHTMLWiki'
+    />
+  </$button>
+
+  This downloads the current wiki as a single file wiki.
+  <$button>
+    Download Single File Version
+    <$action-downloadwiki
+    />
+  </$button>
+
+  <!--
+  <$reveal
+    type='match'
+    state='$:/WikiName'
+    text='RootWiki'
+  >
+
+    <$checkbox
+      tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
+      tag='$:/tags/SideBar'
+    >
+      List available wikis in sidebar
+    </$checkbox>
+
+  </$reveal>
+  -->
+</$reveal>
+
+<$reveal type='match' state='$:/settings/Bob/Verbose' text='false'>
+
+  <$button>
+    Save HTML Wiki to Server
+    <$action-websocketmessage
+      $type='buildHTMLWiki'
+    />
+  </$button>
+  <$button>
+    Download HTML Version
+    <$action-downloadwiki
+    />
+  </$button>
+
+  <!--
+  <$reveal
+    type='match'
+    state='$:/WikiName'
+    text='RootWiki'
+  >
+
+    <$checkbox
+      tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
+      tag='$:/tags/SideBar'
+    >
+      List available wikis in sidebar
+    </$checkbox>
+
+  </$reveal>
+  -->
+</$reveal>
 
 <<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
-
-</$reveal>
 
 <$reveal
   type='nomatch'
@@ -48,14 +104,7 @@ This downloads the current wiki as a single file wiki.
   text='RootWiki'
 >
 
-!! Available Wikis
-
-<$checkbox
-  tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
-  tag='$:/tags/SideBar'
->
-  List available wikis in sidebar
-</$checkbox>
+!! Available Wikis <$checkbox tiddler='$:/plugins/OokTech/Bob/Wiki Listing' tag='$:/tags/SideBar'> List available wikis in sidebar</$checkbox>
 
 Other settings should only be changed from the root wiki.
 

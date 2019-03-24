@@ -14,7 +14,7 @@ Action widget that reconnects to a wiki server
 /*global $tw: false */
 "use strict";
 
-var Widget = require("$:/core/modules/widgets/widget.js").widget;
+const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 var ActionReconnect = function(parseTreeNode,options) {
   this.initialise(parseTreeNode,options);
@@ -44,7 +44,7 @@ ActionReconnect.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionReconnect.prototype.refresh = function(changedTiddlers) {
-  var changedAttributes = this.computeAttributes();
+  const changedAttributes = this.computeAttributes();
   if(Object.keys(changedAttributes).length) {
     this.refreshSelf();
     return true;

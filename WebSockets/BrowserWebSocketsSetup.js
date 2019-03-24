@@ -36,7 +36,7 @@ socket server, but it can be extended for use with other web socket servers.
     $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
     $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
     // In the browser there is only one connection, so set the connection index
-    var connectionIndex = 0;
+    const connectionIndex = 0;
 
     // Do all actions on startup.
     $tw.Bob.setup = function(reconnect) {
@@ -44,9 +44,9 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.connections = null;
       }
       $tw.Syncer.isDirty = false;
-      var IPAddress = window.location.hostname;
-      var WSSPort = window.location.port;
-      var WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
+      const IPAddress = window.location.hostname;
+      const WSSPort = window.location.port;
+      const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
 
       $tw.connections = $tw.connections || [];
       $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
@@ -57,7 +57,7 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
 
       // Get the name for this wiki for websocket messages
-      var tiddler = $tw.wiki.getTiddler("$:/WikiName");
+      const tiddler = $tw.wiki.getTiddler("$:/WikiName");
       if (tiddler) {
         $tw.wikiName = tiddler.fields.text;
       } else {
@@ -74,15 +74,15 @@ socket server, but it can be extended for use with other web socket servers.
     */
     var openSocket = function() {
       console.log('Opened socket');
-      var token = localStorage.getItem('ws-token');
+      const token = localStorage.getItem('ws-token');
       // Login with whatever credentials you have
-      var data = {
+      const data = {
         type: 'setLoggedIn',
         wiki: $tw.wikiName,
         heartbeat: true,
         token: token
       };
-      var messageData = $tw.Bob.Shared.createMessageData(data);
+      const messageData = $tw.Bob.Shared.createMessageData(data);
       $tw.Bob.Shared.sendMessage(messageData, 0)
     }
     /*
@@ -91,7 +91,7 @@ socket server, but it can be extended for use with other web socket servers.
       than the data is passed to the handler function.
     */
     var parseMessage = function(event) {
-      var eventData = JSON.parse(event.data);
+      const eventData = JSON.parse(event.data);
       if (eventData.type) {
         if (typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
           $tw.browserMessageHandlers[eventData.type](eventData);
@@ -100,15 +100,15 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     var sendToServer = function (message) {
-      var messageData = $tw.Bob.Shared.createMessageData(message);
+      const messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if ($tw.connections[connectionIndex].socket.readyState === 1) {
         $tw.Bob.Shared.sendMessage(messageData, 0);
       } else {
         // If the connection is not open than store the message in the queue
-        var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
-        var queue = [];
-        var start = Date.now();
+        const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+        let queue = [];
+        let start = Date.now();
         if (tiddler) {
           if (typeof tiddler.fields.text === 'string') {
             queue = JSON.parse(tiddler.fields.text);
@@ -127,7 +127,7 @@ socket server, but it can be extended for use with other web socket servers.
           if (messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
             queue.push(messageData);
           }
-          var tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: start};
+          const tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: start};
           $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
         }
       }
@@ -145,18 +145,18 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.wikiName = '';
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
-        var token = localStorage.getItem('ws-token')
-        var message = {type: 'editingTiddler', tiddler: {fields: {title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
+        const token = localStorage.getItem('ws-token')
+        const message = {type: 'editingTiddler', tiddler: {fields: {title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
-        var token = localStorage.getItem('ws-token')
-        var draftTitle = event.param || event.tiddlerTitle;
-        var draftTiddler = $tw.wiki.getTiddler(draftTitle);
-        var originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
-        var message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: originalTitle}}, wiki: $tw.wikiName, token: token};
+        const token = localStorage.getItem('ws-token')
+        const draftTitle = event.param || event.tiddlerTitle;
+        const draftTiddler = $tw.wiki.getTiddler(draftTitle);
+        const originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
+        const message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: originalTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // Do the normal handling
         return event;
@@ -180,13 +180,13 @@ socket server, but it can be extended for use with other web socket servers.
           if (tiddlerTitle === '$:/plugins/OokTech/Bob/ExcludeSync') {
             $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
           }
-          var list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          const list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
           if (list.indexOf(tiddlerTitle) === -1) {
             if (changes[tiddlerTitle].modified) {
-              var token = localStorage.getItem('ws-token')
-              var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
+              const token = localStorage.getItem('ws-token')
+              const tiddler = $tw.wiki.getTiddler(tiddlerTitle);
               if (tiddler) {
-                var tempTid = {fields:{}};
+                let tempTid = {fields:{}};
                 Object.keys(tiddler.fields).forEach(function (field) {
                     if (field !== 'created' && field !== 'modified') {
                       tempTid.fields[field] = tiddler.fields[field];
@@ -195,12 +195,12 @@ socket server, but it can be extended for use with other web socket servers.
                     }
                   }
                 );
-                var message = {type: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
+                const message = {type: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
                 sendToServer(message);
               }
             } else if (changes[tiddlerTitle].deleted) {
-              var token = localStorage.getItem('ws-token')
-              var message = {type: 'deleteTiddler', tiddler:{fields:{title:tiddlerTitle}} , wiki: $tw.wikiName, token: token};
+              const token = localStorage.getItem('ws-token')
+              const message = {type: 'deleteTiddler', tiddler:{fields:{title:tiddlerTitle}} , wiki: $tw.wikiName, token: token};
               sendToServer(message);
             }
           } else {
@@ -244,11 +244,11 @@ socket server, but it can be extended for use with other web socket servers.
             aren't the same.
           */
           // Get the tiddler with the info about local changes
-          var tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+          const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
           // Ask the server for a listing of changes since the browser was
           // disconnected
-          var token = localStorage.getItem('ws-token');
-          var message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, wiki: $tw.wikiName, token: token};
+          const token = localStorage.getItem('ws-token');
+          const message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, wiki: $tw.wikiName, token: token};
           sendToServer(message);
         }
       }

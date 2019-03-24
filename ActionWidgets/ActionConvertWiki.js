@@ -16,7 +16,7 @@ where #fileInput is the name given to the file input html element used.
 /*global $tw: false */
 "use strict";
 
-var Widget = require("$:/core/modules/widgets/widget.js").widget;
+const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 var ActionConvertWiki = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
@@ -50,7 +50,7 @@ ActionConvertWiki.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionConvertWiki.prototype.refresh = function(changedTiddlers) {
-	var changedAttributes = this.computeAttributes();
+	const changedAttributes = this.computeAttributes();
 	if(Object.keys(changedAttributes).length) {
 		this.refreshSelf();
 		return true;
@@ -64,16 +64,16 @@ Invoke the action associated with this widget
 ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
   var self = this;
   // Find the file input html element, get the file from that.
-  var fileElement = document.getElementById(this.inputName);
+  const fileElement = document.getElementById(this.inputName);
   if (fileElement) {
-    var file = fileElement.files[0];
-    var wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
+    const file = fileElement.files[0];
+    const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
     // Read the file and pass it to the parsing stuff
     if (file) {
       $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
         if (output.length > 0) {
-          var token = localStorage.getItem('ws-token')
-          var message = {
+          const token = localStorage.getItem('ws-token')
+          const message = {
             "type": "newWikiFromTiddlers",
             "tiddlers": output,
             "wikisPath": self.wikisPath,
@@ -83,7 +83,7 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
             "wiki": wikiName,
             "overwrite": self.overwrite
           }
-          var messageData = $tw.Bob.Shared.createMessageData(message)
+          const messageData = $tw.Bob.Shared.createMessageData(message)
           $tw.Bob.Shared.sendMessage(messageData, 0)
         } else {
           console.log("No tiddlers found in input file!");

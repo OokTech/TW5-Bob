@@ -23,14 +23,14 @@ $tw.settings = $tw.settings || {};
 $tw.settings.wikis = $tw.settings.wikis || {};
 
 if ($tw.node) {
-  var fs = require("fs"),
-    path = require("path");
+  const fs = require("fs");
+  const path = require("path");
   /*
     Only load the settings if you are running node
   */
   var startup = function () {
     // The user settings path
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     $tw.loadSettings($tw.settings, userSettingsPath);
   }
 
@@ -42,10 +42,10 @@ if ($tw.node) {
   */
   $tw.loadSettings = function(settings, newSettingsPath) {
     if ($tw.node && !fs) {
-      var fs = require('fs')
+      const fs = require('fs')
     }
-  	var rawSettings;
-  	var newSettings;
+  	let rawSettings;
+  	let newSettings;
 
   	// try/catch in case defined path is invalid.
   	try {
@@ -104,7 +104,7 @@ if ($tw.node) {
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if (typeof $tw.settings.editionsPath === 'string') {
-      var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       if ($tw.settings.wikiPathBase === 'homedir') {
         basePath = os.homedir();
       } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
@@ -113,7 +113,7 @@ if ($tw.node) {
         basePath = path.resolve($tw.settings.wikiPathBase);
       }
       // We need to make sure this doesn't overwrite existing thing
-      var fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
+      const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
       if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
         process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + fullEditionsPath;
       } else {
@@ -125,12 +125,12 @@ if ($tw.node) {
       permissions to see
     */
     // Create the $:/EditionsList tiddler
-    var editionsList = $tw.utils.getEditionInfo();
+    const editionsList = $tw.utils.getEditionInfo();
     $tw.editionsInfo = {};
     Object.keys(editionsList).forEach(function(index) {
       $tw.editionsInfo[index] = editionsList[index].description;
     });
-    var message = {
+    let message = {
       type: 'saveTiddler',
       tiddler: {fields:{title: "$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}},
       wiki: data.wiki
@@ -141,8 +141,8 @@ if ($tw.node) {
     message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     // Save the settings to a tiddler.
-    var settingsString = JSON.stringify($tw.settings, null, 2);
-    var tiddlerFields = {
+    const settingsString = JSON.stringify($tw.settings, null, 2);
+    const tiddlerFields = {
       title: '$:/WikiSettings',
       text: settingsString,
       type: 'application/json'
@@ -151,7 +151,7 @@ if ($tw.node) {
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split", data);
-    var wikiInfo
+    let wikiInfo
     try {
       // Save the lists of plugins, languages and themes in tiddlywiki.info
       var wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
@@ -161,19 +161,19 @@ if ($tw.node) {
     }
     if (typeof wikiInfo === 'object') {
       // Get plugin list
-      var fieldsPluginList = {
+      const fieldsPluginList = {
         title: '$:/Bob/ActivePluginList',
         list: $tw.utils.stringifyList(wikiInfo.plugins)
       }
       message.tiddler = {fields: fieldsPluginList};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-      var fieldsThemesList = {
+      const fieldsThemesList = {
         title: '$:/Bob/ActiveThemesList',
         list: $tw.utils.stringifyList(wikiInfo.themes)
       }
       message.tiddler = {fields: fieldsThemesList};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-      var fieldsLanguagesList = {
+      const fieldsLanguagesList = {
         title: '$:/Bob/ActiveLanguagesList',
         list: $tw.utils.stringifyList(wikiInfo.languages)
       }
@@ -183,7 +183,7 @@ if ($tw.node) {
   }
 
   function doThisLevel (inputObject, currentName, data) {
-    var currentLevel = {};
+    let currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if (typeof inputObject[property] === 'object') {
         // Call recursive function to walk through properties
@@ -194,12 +194,12 @@ if ($tw.node) {
         currentLevel[property] = inputObject[property];
       }
     });
-    var tiddlerFields = {
+    const tiddlerFields = {
       title: currentName,
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
-    var message = {
+    let message = {
       type: 'saveTiddler',
       wiki: data.wiki
     };
