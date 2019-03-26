@@ -12,5 +12,8 @@
   },
   "heartbeat": {
     "interval": 1000
-  }
+  },
+  "wikisPath": "./Wikis",
+  "pluginsPath": "./Plugins",
+  "themesPath": "./Themes"
 }
