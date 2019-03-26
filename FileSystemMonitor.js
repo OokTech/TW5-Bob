@@ -198,7 +198,7 @@ if ($tw.node) {
     // Get the content type info
     const contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
     // Get the file type by looking up the extension
-    const extension = contentTypeInfo.extension || ".tid";
+    let extension = contentTypeInfo.extension || ".tid";
     fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
     // Use a .meta file unless we're saving a .tid file.
     // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)

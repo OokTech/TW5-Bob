@@ -155,26 +155,30 @@ it will overwrite this file.
     version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
-    data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
-    data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
-    let wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
-    if (wikiTiddler) {
-      wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
-      wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
-      wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
-      // Only add the tiddler if it is different
-      if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
-        const newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
-        $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
-        // we have conflicts so open the conflict list tiddler
-        const storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
-        storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
-        $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
+    if (data.tiddler) {
+      if (data.tiddler.fields) {
+        data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
+        data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
+        let wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
+        if (wikiTiddler) {
+          wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
+          wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
+          wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
+          // Only add the tiddler if it is different
+          if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
+            const newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
+            $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
+            // we have conflicts so open the conflict list tiddler
+            let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+            storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
+            $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
+          }
+        } else {
+          // If the tiddler doesn't actually have a conflicting version than just
+          // add the tiddler.
+          $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields));
+        }
       }
-    } else {
-      // If the tiddler doesn't actually have a conflicting version than just
-      // add the tiddler.
-      $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields));
     }
     sendAck(data);
   }

@@ -97,7 +97,7 @@ if($tw.node) {
           return callback(err);
         }
         // Start with the base filename plus the extension
-        const filepath = baseFilepath;
+        let filepath = baseFilepath;
         if(filepath.substr(-extension.length).toLocaleLowerCase() !== extension.toLocaleLowerCase()) {
           filepath = filepath + extension;
         }

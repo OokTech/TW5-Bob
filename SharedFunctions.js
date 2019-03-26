@@ -102,12 +102,12 @@ This has some functions that are needed by Bob in different places.
         let date2;
         if (typeof tiddler.fields[field] === 'string') {
           date1 = tiddler.fields[field];
-        } else if (typeof tiddler.fields[field] === 'object') {
+        } else if (typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
           date1 = $tw.utils.stringifyDate(tiddler.fields[field]);
         }
         if (typeof otherTiddler.fields[field] === 'string') {
           date2 = otherTiddler.fields[field];
-        } else if (typeof otherTiddler.fields[field] === 'object'){
+        } else if (typeof otherTiddler.fields[field] === 'object' && otherTiddler.fields[field] !== null){
           date2 = $tw.utils.stringifyDate(otherTiddler.fields[field]);
         }
         if (date1 !== date2) {
@@ -153,7 +153,7 @@ This has some functions that are needed by Bob in different places.
     if (['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
       title = message.tiddler.fields.title;
     }
-    var messageData = {
+    let messageData = {
       message: message,
       id: id,
       time: Date.now(),
@@ -332,6 +332,13 @@ This has some functions that are needed by Bob in different places.
       message
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
+    if ($tw.node && messageData.message.wiki) {
+      if (messageData.message.wiki === 'RootWiki') {
+        const exists = $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+      } else {
+        const exists = $tw.ServerSide.loadWiki(messageData.message.wiki, $tw.settings.wikis[messageData.message.wiki]);
+      }
+    }
     // Make sure that the connectionIndex and queue exist. This may be over
     // paranoid
     connectionIndex = connectionIndex || 0;
@@ -628,6 +635,115 @@ This has some functions that are needed by Bob in different places.
     })
 
     return outQueue;
+  }
+
+  /*
+    This is a simple and fast hashing function that we can use to test if a
+    tiddler has changed or not.
+    This doesn't need to be at all secure, and doesn't even need to be that
+    robust against collisions, it just needs to make collisions rare for a very
+    easy value of rare, like 0.1% would be more than enough to make this very
+    useful, and this should be much better than that.
+  */
+  function normalizeTiddler(tiddler) {
+    let newTid = {};
+    if (tiddler) {
+      if (tiddler.fields) {
+        let fields = Object.keys(tiddler.fields) || []
+        fields.sort()
+        fields.forEach(function(field) {
+          if (field === 'list' || field === 'tags') {
+            if (Array.isArray(tiddler.fields[field])) {
+              newTid[field] = tiddler.fields[field].slice().sort()
+            } else if (tiddler.fields[field] === '') {
+              newTid[field] = []
+            } else {
+              newTid[field] = tiddler.fields[field]
+            }
+          } else if (field === 'modified' || field === 'created') {
+            if (typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
+              newTid[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
+            } else {
+              newTid[field] = tiddler.fields[field]
+            }
+          } else {
+            newTid[field] = tiddler.fields[field]
+          }
+        })
+      }
+    }
+    return newTid
+  }
+  // This is a stable json stringify function from https://github.com/epoberezkin/fast-json-stable-stringify
+  function stableStringify (data, opts) {
+    if (!opts) opts = {};
+    if (typeof opts === 'function') opts = { cmp: opts };
+    var cycles = (typeof opts.cycles === 'boolean') ? opts.cycles : false;
+
+    var cmp = opts.cmp && (function (f) {
+        return function (node) {
+            return function (a, b) {
+                var aobj = { key: a, value: node[a] };
+                var bobj = { key: b, value: node[b] };
+                return f(aobj, bobj);
+            };
+        };
+    })(opts.cmp);
+
+    var seen = [];
+    return (function stringify (node) {
+        if (node && node.toJSON && typeof node.toJSON === 'function') {
+            node = node.toJSON();
+        }
+
+        if (node === undefined) return;
+        if (typeof node == 'number') return isFinite(node) ? '' + node : 'null';
+        if (typeof node !== 'object') return JSON.stringify(node);
+
+        var i, out;
+        if (Array.isArray(node)) {
+            out = '[';
+            for (i = 0; i < node.length; i++) {
+                if (i) out += ',';
+                out += stringify(node[i]) || 'null';
+            }
+            return out + ']';
+        }
+
+        if (node === null) return 'null';
+
+        if (seen.indexOf(node) !== -1) {
+            if (cycles) return JSON.stringify('__cycle__');
+            throw new TypeError('Converting circular structure to JSON');
+        }
+
+        var seenIndex = seen.push(node) - 1;
+        var keys = Object.keys(node).sort(cmp && cmp(node));
+        out = '';
+        for (i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var value = stringify(node[key]);
+
+            if (!value) continue;
+            if (out) out += ',';
+            out += JSON.stringify(key) + ':' + value;
+        }
+        seen.splice(seenIndex, 1);
+        return '{' + out + '}';
+    })(data);
+  };
+  Shared.getTiddlerHash = function(tiddler) {
+    const tiddlerString = stableStringify(normalizeTiddler(tiddler))
+    let hash = 0;
+    if (tiddlerString.length == 0) {
+        return hash;
+    }
+    for (let i = 0; i < tiddlerString.length; i++) {
+        const char = tiddlerString.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
   }
 
   module.exports = Shared;

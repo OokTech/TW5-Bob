@@ -28,7 +28,7 @@ if ($tw.node) {
   // existing copy.
   $tw.BrowserTiddlerList = $tw.BrowserTiddlerList || {};
 
-  var sendAck = function (data) {
+  const sendAck = function (data) {
     if (data.id) {
       if (data.source_connection !== undefined && data.source_connection !== -1) {
         $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
@@ -206,11 +206,31 @@ if ($tw.node) {
       id: messageID,
       source_connection: connectionIndex
     }
+
+    This misses any changes that happened to the server since it was started
+    this time. So if there are changes to the server after it is disconnected
+    and then the server is reset none of those changes are synced.
+
+    How do we do a test to figure out if anything has changed on the server?
+    Comparing hashes of tiddlers may work.
+    We could send an object that has the tiddler names as keys and a hash of
+    the contets that can be checked against the server version.
+    This may give different results for windows and linux because of the NLCR
+    thing.
+    We would need a computationally inexpensive hashing algorithm, I think that
+    there are plenty of them.
+
+    For now we can send a list of tiddlers in the browser and any on the server
+    that aren't listed need to be sent.
   */
   $tw.nodeMessageHandlers.syncChanges = function(data) {
     // Make sure that the wiki that the syncing is for is actually loaded
     // TODO make sure that this works for wikis that are under multiple levels
-    $tw.ServerSide.loadWiki(data.wiki, $tw.settings.wikis[data.wiki]);
+    if (data.wiki === 'RootWiki') {
+      $tw.ServerSide.loadWiki(data.wiki, $tw.boot.wikiPath);
+    } else {
+      $tw.ServerSide.loadWiki(data.wiki, $tw.settings.wikis[data.wiki]);
+    }
     // Make sure that the server history exists
     $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
     $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
@@ -264,24 +284,28 @@ if ($tw.node) {
     recentServer.forEach(function(messageData) {
       if (conflicts.indexOf(messageData.title) === -1) {
         let message = {type: messageData.type, wiki: data.wiki}
-        let tiddler = {}
+        let tiddler
         if (messageData.type === 'saveTiddler') {
           const longTitle = messageData.title;
           const tempTid = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
-          tiddler = JSON.parse(JSON.stringify(tempTid));
-          tiddler.fields.title = messageData.title;
-          // Making the copy above does something that breaks the date fields
-          if (tempTid.fields.created) {
-            tiddler.fields.created = $tw.utils.stringifyDate(tempTid.fields.created);
-          }
-          if (tempTid.fields.modified) {
-            tiddler.fields.modified = $tw.utils.stringifyDate(tempTid.fields.modified);
+          if (typeof tempTid === 'object') {
+            tiddler = JSON.parse(JSON.stringify(tempTid));
+            tiddler.fields.title = messageData.title;
+            // Making the copy above does something that breaks the date fields
+            if (tempTid.fields.created) {
+              tiddler.fields.created = $tw.utils.stringifyDate(tempTid.fields.created);
+            }
+            if (tempTid.fields.modified) {
+              tiddler.fields.modified = $tw.utils.stringifyDate(tempTid.fields.modified);
+            }
           }
         } else {
           tiddler = {fields:{title:messageData.title}}
         }
         message.tiddler = tiddler;
-        $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+        if (typeof tiddler === 'object') {
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+        }
       }
     });
     // Then do something with the conflicts
@@ -304,6 +328,41 @@ if ($tw.node) {
         if (message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
         }
+      }
+    })
+    // There aren't any changes in the browser that aren't synced at this
+    // point, so if we send every other tiddler to the browser here it will be
+    // a brute force way to do it.
+    const serverTiddlerList = $tw.Bob.Wikis[data.wiki].wiki.allTitles();
+    const browserChangedTitles = queue.filter(function(messageData) {
+      return messageData.type === 'saveTiddler'
+    }).map(function(messageData) {
+      return messageData.title
+    })
+    const excludeFilter = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync')
+    const excludeList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(excludeFilter.fields.text)
+    const updateTiddlersList = serverTiddlerList.filter(function(tidTitle) {
+      return (browserChangedTitles.indexOf(tidTitle) === -1 && recentServer.indexOf(tidTitle) === -1 && excludeList.indexOf(tidTitle) === -1 && $tw.Bob.Wikis[data.wiki].plugins.indexOf(tidTitle) === -1 && $tw.Bob.Wikis[data.wiki].themes.indexOf(tidTitle) === -1)
+    })
+    updateTiddlersList.forEach(function(tidTitle) {
+      const tid = JSON.parse(JSON.stringify($tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle)));
+      let message = {
+        wiki: data.wiki,
+        tiddler: tid
+      };
+      if (tid) {
+        if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(tid)) {
+          // Send the updated tiddler
+          message.type = 'saveTiddler'
+        }
+      } else {
+        // Tiddler has been removed on the server, so send a conflict delete
+        // message
+        message.type = 'conflict'
+        message.message = 'deleteTiddler'
+      }
+      if (message.type) {
+        $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
       }
     })
     // Acknowledge the message.

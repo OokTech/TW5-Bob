@@ -122,7 +122,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
   const exists = ServerSide.existsListed(wikiName, wikiFolder);
   // A hacky way to make the root wiki work on termux
   if (wikiName === 'RootWiki') {
-    wikiFolder = path.resolve(wikiFolder);
+    wikiFolder = path.resolve($tw.boot.wikiPath);
   }
   // Add tiddlers to the node process
   if (exists) {
@@ -133,7 +133,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
     // Make sure it isn't loaded already
     if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-      const basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       if ($tw.settings.wikiPathBase === 'homedir') {
         basePath = os.homedir();
       } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {

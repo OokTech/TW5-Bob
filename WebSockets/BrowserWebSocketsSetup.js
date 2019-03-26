@@ -245,10 +245,19 @@ socket server, but it can be extended for use with other web socket servers.
           */
           // Get the tiddler with the info about local changes
           const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+          let tiddlerHashes = {};
+          const allTitles = $tw.wiki.allTitles()
+          const list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          allTitles.forEach(function(tidTitle) {
+            if (list.indexOf(tidTitle) === -1) {
+              const tid = $tw.wiki.getTiddler(tidTitle);
+              tiddlerHashes[tidTitle] = $tw.Bob.Shared.getTiddlerHash(tid);
+            }
+          })
           // Ask the server for a listing of changes since the browser was
           // disconnected
           const token = localStorage.getItem('ws-token');
-          const message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, wiki: $tw.wikiName, token: token};
+          const message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, hashes: tiddlerHashes, wiki: $tw.wikiName, token: token};
           sendToServer(message);
         }
       }
