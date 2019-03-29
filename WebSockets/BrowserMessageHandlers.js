@@ -194,7 +194,7 @@ it will overwrite this file.
     const newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
     $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields, {title: newTitle}));
     // we have conflicts so open the conflict list tiddler
-    const storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+    let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
     storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
     $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
     sendAck(data);

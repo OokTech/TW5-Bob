@@ -2,14 +2,16 @@ title: $:/plugins/OokTech/Bob/Changelog
 
 !! Version 1.2.2 Fried Potatoes
 
-- Wikis can now be hosted on paths to other wikis. You can have both '/students' and '/students/eve'
-  - No wikis can have the name `__path`
-  - The way that wiki paths are listed has changed, but settings files are updated automatically without needing any manual editing.
-- Lots of small back-end optimisations that hopefully reduce the memory usage.
-- Improvements for reconnecting to and resyncing with a server after being disconnected
-- Added an option to have verbose or compact help and documentation in the control panel.
-- Fix the manual settings losing focus problem
-- Improve the manual settings layout and interface a little
+  - Wikis can now be hosted on paths to other wikis. You can have both '/students' and '/students/eve'
+    - No wikis can have the name `__path`
+    - The way that wiki paths are listed has changed, but settings files are updated automatically without needing any manual editing.
+  - Lots of small back-end optimisations that hopefully reduce the memory usage.
+  - Improvements for reconnecting to and resyncing with a server after being disconnected
+  - Added an option to have verbose or compact help and documentation in the control panel.
+  - Fix the manual settings losing focus problem
+  - Improve the manual settings layout and interface a little
+  - Fix some situations where the tiddlywiki/filesystem and tiddlywiki/tiddlyweb were included when they shouldn't be
+  - Fix a bug that prevented internal fetch from working with a transform filter (and possibly in other situations)
 
 !! Version 1.2.1 Timey Wimey
 

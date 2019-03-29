@@ -12,11 +12,11 @@ This is server functions that can be shared between different server types
 /*global $tw: false */
 
 
-let ServerSide = {}
+let ServerSide = {};
 
-const path = require('path')
-const fs = require('fs')
-const os = require('os')
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
 
 // A polyfilL to make this work with older node installs
 
@@ -141,9 +141,9 @@ ServerSide.existsListed = function (wikiName) {
   // Make sure that the wiki actually exists
   exists = ServerSide.wikiExists(path);
   if(exists) {
-    return path
+    return path;
   } else {
-    return exists
+    return exists;
   }
 }
 
@@ -231,8 +231,8 @@ options:
 ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   options = options || {};
   options.prefix = options.prefix || '';
-  const parentPaths = options.parentPaths || []
-  const wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo)
+  const parentPaths = options.parentPaths || [];
+  const wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo);
   let wikiInfo;
   let pluginFields;
   // Bail if we don't have a wiki info file
@@ -247,7 +247,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   }
   // Load any parent wikis
   if(wikiInfo.includeWikis) {
-    console.log('Bob error: includeWikis is not supported yet!')
+    console.log('Bob error: includeWikis is not supported yet!');
     /*
     parentPaths = parentPaths.slice(0);
     parentPaths.push(wikiPath);
@@ -286,6 +286,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   }
   $tw.utils.each(
     getTheseTiddlers(), function(tiddlerFile) {
+      let use = true;
       if(!options.readOnly && tiddlerFile.filepath) {
         $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
           $tw.Bob.Files[options.prefix][tiddler.title] = {
@@ -293,10 +294,16 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
             type: tiddlerFile.type,
             hasMetaFile: tiddlerFile.hasMetaFile
           };
+          if(['$:/plugins/tiddlywiki/tiddlyweb', '$:/plugins/tiddlywiki/filesystem'].indexOf(tiddler.title) !== -1) {
+            use = false;
+          }
         });
       }
-      $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
-  });
+      if(use) {
+        $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
+      }
+    }
+  );
   // Save the original tiddler file locations if requested
   const config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
@@ -371,7 +378,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
       // The wikis aren't actually modified, this is just hov they are
       // served.
       $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
-        return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
+        return plugin !== 'tiddlywiki/filesystem' && plugin !== 'tiddlywiki/tiddlyweb';
       });
       if($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
         $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
@@ -431,7 +438,9 @@ ServerSide.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
 	if(plugins) {
 		const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
 		for(let t=0; t<plugins.length; t++) {
-			ServerSide.loadPlugin(plugins[t],pluginPaths, wikiName);
+      if(plugins[t] !== 'tiddlywiki/filesystem' && plugins[t] !== 'tiddlywiki/tiddlyweb') {
+        ServerSide.loadPlugin(plugins[t],pluginPaths, wikiName);
+      }
 		}
 	}
 };

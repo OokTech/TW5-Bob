@@ -899,6 +899,7 @@ if ($tw.node) {
         if (typeof externalTiddlers !== 'object') {
           externalData = JSON.parse(externalTiddlers);
         }
+        transformFilters = transformFilters || '{}'
         if (typeof transformFilters !== 'object') {
           transformFilters = JSON.parse(transformFilters);
         }
@@ -927,7 +928,7 @@ if ($tw.node) {
           }
         });
       } catch (e) {
-        console.log("Couldn't parse externalTiddlers input");
+        console.log("Couldn't parse externalTiddlers input:", e);
       }
     }
     return wiki;
