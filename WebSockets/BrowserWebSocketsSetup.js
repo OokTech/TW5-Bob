@@ -72,7 +72,7 @@ socket server, but it can be extended for use with other web socket servers.
       When the socket is opened the heartbeat process starts. This lets us know
       if the connection to the server gets interrupted.
     */
-    var openSocket = function() {
+    const openSocket = function() {
       console.log('Opened socket');
       const token = localStorage.getItem('ws-token');
       // Login with whatever credentials you have
@@ -90,7 +90,7 @@ socket server, but it can be extended for use with other web socket servers.
       message type and if that message type matches a handler that is defined
       than the data is passed to the handler function.
     */
-    var parseMessage = function(event) {
+    const parseMessage = function(event) {
       const eventData = JSON.parse(event.data);
       if (eventData.type) {
         if (typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
@@ -99,7 +99,7 @@ socket server, but it can be extended for use with other web socket servers.
       }
     }
 
-    var sendToServer = function (message) {
+    const sendToServer = function (message) {
       const messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if ($tw.connections[connectionIndex].socket.readyState === 1) {
@@ -140,7 +140,7 @@ socket server, but it can be extended for use with other web socket servers.
       Some unused hooks have commented out skeletons for adding those hooks in
       the future if they are needed.
     */
-    var addHooks = function() {
+    const addHooks = function() {
       if (!$tw.wikiName) {
         $tw.wikiName = '';
       }
@@ -174,7 +174,7 @@ socket server, but it can be extended for use with other web socket servers.
         This ignores tiddlers that are in the exclude filter
       */
     	$tw.wiki.addEventListener("change",function(changes) {
-        for (var tiddlerTitle in changes) {
+        for (let tiddlerTitle in changes) {
           // If the changed tiddler is the one that holds the exclude filter
           // than update the exclude filter.
           if (tiddlerTitle === '$:/plugins/OokTech/Bob/ExcludeSync') {

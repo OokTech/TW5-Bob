@@ -42,9 +42,9 @@ if ($tw.node) {
   /*
     This sets up the websocket server and attaches it to the $tw object
   */
-  var setup = function () {
+  const setup = function () {
     // require the websockets module if we are running node
-    var WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
+    const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
@@ -114,7 +114,7 @@ if ($tw.node) {
     The handle message function, split out so we can use it other places
   */
   $tw.Bob.handleMessage = function(event) {
-    var self = this;
+    let self = this;
     // Determine which connection the message came from
     const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
     try {
@@ -206,23 +206,23 @@ if ($tw.node) {
     For privacy and security only the tiddlers that are in the wiki a
     conneciton is using are sent to that connection.
   */
-  $tw.Bob.UpdateEditingTiddlers = function (tiddler, wiki) {
+  $tw.Bob.UpdateEditingTiddlers = function (tiddler, wikiName) {
     // Make sure that the wiki is loaded
-    const exists = $tw.ServerSide.loadWiki(wiki, $tw.settings.wikis[wiki]);
+    const exists = $tw.ServerSide.loadWiki(wikiName);
     // This should never be false, but then this shouldn't every have been a
     // problem to start.
     if (exists) {
       // Check if a tiddler title was passed as input and that the tiddler isn't
       // already listed as being edited.
       // If there is a title and it isn't being edited add it to the list.
-      if (tiddler && !$tw.Bob.EditingTiddlers[wiki][tiddler]) {
-        $tw.Bob.EditingTiddlers[wiki][tiddler] = true;
+      if (tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
+        $tw.Bob.EditingTiddlers[wikiName][tiddler] = true;
       }
       Object.keys($tw.connections).forEach(function(index) {
-        if ($tw.connections[index].wiki === wiki) {
-          $tw.Bob.EditingTiddlers[wiki] = $tw.Bob.EditingTiddlers[wiki] || {};
-          const list = Object.keys($tw.Bob.EditingTiddlers[wiki]);
-          const message = {type: 'updateEditingTiddlers', list: list, wiki: wiki};
+        if ($tw.connections[index].wiki === wikiName) {
+          $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
+          const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
+          const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
           $tw.Bob.SendToBrowser($tw.connections[index], message);
         }
       });

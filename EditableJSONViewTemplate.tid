@@ -4,6 +4,8 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
 
 \define thisNewItemState() $:/state/$(currentTiddler)$/$(item)$/newItem
 
+\define thisNewItemValues() $:/state/$(currentTiddler)$/$(item)$/values
+
 \define EditButton()
 <$reveal
   type='nomatch'
@@ -14,10 +16,17 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
     class='tc-btn-invisible'
   >
     "<$view index=<<item>>/>"
-    <$action-setfield
-      $tiddler=<<thisEditingState>>
-      text=editing
-    />
+    <$reveal type='match'
+      state='$:/state/Bob/EditManualSettings'
+      text='true'
+      tag='span'
+    >
+      <$action-setfield
+        $tiddler=<<thisEditingState>>
+        text=editing
+      />
+      {{$:/core/images/edit-button}}
+    </$reveal>
   </$button>
 </$reveal>
 <$reveal
@@ -31,7 +40,9 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
     index=<<item>>
     tag=input
   />
-  <$button>
+  <$button
+    tooltip='Finish Editing'
+  >
     Done
     <$action-setfield
       $tiddler=<<thisEditingState>>
@@ -43,6 +54,7 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
   </$button>
   <$button
     class='tc-btn-invisible'
+    tooltip='Delete Field'
   >
     {{$:/core/images/delete-button}}
     <$action-setfield
@@ -54,6 +66,25 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
 \end
 
 {
+<$reveal type='match'
+  state='$:/state/Bob/EditManualSettings'
+  text='true'
+>
+  <$list
+    filter='[<currentTiddler>!title[$:/WikiSettings/split]]'
+  >
+    <$button
+      class='tc-btn-invisible'
+      tooltip='Delete Section'
+    >
+      <$action-deletetiddler
+        $tiddler=<<currentTiddler>>
+      />
+      {{$:/core/images/delete-button}}
+    </$button>
+  </$list>
+</$reveal>
+
 <ul>
   <$list
     filter='[<currentTiddler>indexes[]butlast[]]'
@@ -86,14 +117,22 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
     state=<<thisNewItemState>>
     text=editing
   >
-    <$button>
-      {{$:/core/images/new-button}}
-      <$action-setfield
-        $tiddler=<<thisNewItemState>>
-        text=editing
-        item_type=Field
-      />
-    </$button>
+    <$reveal type='match'
+      state='$:/state/Bob/EditManualSettings'
+      text='true'
+      tag='span'
+    >
+      <$button
+        tooltip='Add Property'
+      >
+        {{$:/core/images/new-button}}
+        <$action-setfield
+          $tiddler=<<thisNewItemState>>
+          text=editing
+          item_type=Field
+        />
+      </$button>
+    </$reveal>
   </$reveal>
   <$reveal
     type='match'
@@ -101,7 +140,7 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
     text=editing
   >
     <$edit-text
-      tiddler=<<thisNewItemState>>
+      tiddler=<<thisNewItemValues>>
       field='new_name'
     />:
     <$radio
@@ -124,37 +163,36 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
       emptyMessage="<br>"
     >
       <$edit-text
-        tiddler=<<thisNewItemState>>
+        tiddler=<<thisNewItemValues>>
         field='new_value'
         class='tc-edit-texteditor'
       />
     </$list>
     <$button
       class='tc-btn-invisible'
+      tooltip='Save'
     >
       {{$:/core/images/save-button}}
       <$set
         name=CurrentLevel
         value=<<currentTiddler>>
       >
-        <$tiddler
-          tiddler=<<thisNewItemState>>
-        >
-          <$reveal
-            type='nomatch'
-            state='!!item_type'
-            text='Object'
+        <$list
+          filter='[<thisNewItemState>item_type[Object]]'
+          variable=unused
+          emptyMessage="""
+          <$tiddler
+            tiddler=<<thisNewItemValues>>
           >
-            <$action-setfield
-              $tiddler=<<CurrentLevel>>
-              $index={{!!new_name}}
-              $value={{!!new_value}}
-            />
-          </$reveal>
-          <$reveal
-            type='match'
-            state='!!item_type'
-            text='Object'
+          <$action-setfield
+            $tiddler=<<CurrentLevel>>
+            $index={{!!new_name}}
+            $value={{!!new_value}}
+          />
+          </$tiddler>"""
+        >
+          <$tiddler
+            tiddler=<<thisNewItemValues>>
           >
             <$list
               filter='[<CurrentLevel>addsuffix[/]addsuffix{!!new_name}]'
@@ -171,8 +209,8 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
                 $value=<<NewName>>
               />
             </$list>
-          </$reveal>
-        </$tiddler>
+          </$tiddler>
+        </$list>
       </$set>
       <$action-setfield
         $tiddler=<<thisNewItemState>>
@@ -181,9 +219,17 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
       <$action-deletetiddler
         $tiddler=<<thisNewItemState>>
       />
+      <$action-setfield
+        $tiddler=<<thisNewItemValues>>
+        text=''
+      />
+      <$action-deletetiddler
+        $tiddler=<<thisNewItemValues>>
+      />
     </$button>
     <$button
       class='tc-btn-invisible'
+      tooltip='Cancel'
     >
       {{$:/core/images/cancel-button}}
       <$action-setfield
@@ -195,6 +241,5 @@ title: $:/plugins/OokTech/Bob/EditableJSONViewTemplate
       />
     </$button>
   </$reveal>
-  <br>
 </ul>
 }

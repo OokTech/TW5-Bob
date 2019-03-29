@@ -3,6 +3,9 @@ caption: Creating New Wikis
 tags: [[Bob Documentation]]
 description: Create and serve new wikis from inside a wiki.
 
+Reading about [[wiki paths|$:/plugins/OokTech/Bob/Wiki Paths]] may be useful In addition to the information
+presented here.
+
 There are multiple ways to make new wikis with Bob.
 
 To create a new wiki go to the `Bob Settings` tab of the $:/ControlPanel and
@@ -24,7 +27,7 @@ or have changed the settings than the url is the url of your root wiki with
 ''Note:'' Wiki names are limited to what can be used in a URL. So they can be
 unaccented letters in the latin alphabet (a-z, A-Z) or digits (0-9). They can
 not contain any spaces or other whitespace. As a special restriction wikis can
-also not be named `files`.
+also not be named `files` or `__path`.
 
 !!an edition
 

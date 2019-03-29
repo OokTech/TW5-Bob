@@ -13,6 +13,15 @@ save it, or click
 <$button class='tc-btn-invisible'>{{$:/core/images/cancel-button}}</$button> to
 discard the new property.
 
+<$checkbox
+  tiddler='$:/state/Bob/EditManualSettings'
+  field='text'
+  checked='true'
+  unchecked='false'
+>
+  Enable Editing
+</$checkbox>
+
 {{$:/WikiSettings/split||$:/plugins/OokTech/Bob/EditableJSONViewTemplate}}
 
 <$button>

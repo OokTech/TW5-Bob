@@ -22,12 +22,12 @@ exports.getPluginInfo = function() {
 		// Enumerate the plugin paths
 		const pluginPaths = $tw.getLibraryItemSearchPaths($tw.config.pluginsPath,$tw.config.pluginsEnvVar);
 		pluginInfo = {};
-		for(var pluginIndex=0; pluginIndex<pluginPaths.length; pluginIndex++) {
+		for(let pluginIndex=0; pluginIndex<pluginPaths.length; pluginIndex++) {
 			const pluginPath = path.resolve(pluginPaths[pluginIndex]);
 			// Enumerate the folders
 			try {
 				const authors = fs.readdirSync(pluginPath);
-				for(var authorIndex=0; authorIndex<authors.length; authorIndex++) {
+				for(let authorIndex=0; authorIndex<authors.length; authorIndex++) {
 					const pluginAuthor = authors[authorIndex];
           if ($tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor))) {
   	        const pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));

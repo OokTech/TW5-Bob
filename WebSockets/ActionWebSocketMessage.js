@@ -30,7 +30,7 @@ sends:
 
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
-var ActionWebSocketMessage = function(parseTreeNode,options) {
+const ActionWebSocketMessage = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
 };
 

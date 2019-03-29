@@ -20,7 +20,7 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
-  var Command = function(params,commander,callback) {
+  const Command = function(params,commander,callback) {
     this.params = params;
     this.commander = commander;
     this.callback = callback;
@@ -29,13 +29,13 @@ if($tw.node) {
   };
 
   Command.prototype.execute = function() {
-    var bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
+    const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
 
     // Get the ip address to display to make it easier for other computers to
     // connect.
-    var ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
-    var ipAddress = ip.address();
+    const ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
+    const ipAddress = ip.address();
     $tw.settings.serverInfo = {
       ipAddress: ipAddress
     };

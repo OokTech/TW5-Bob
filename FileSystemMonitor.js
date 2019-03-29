@@ -41,7 +41,7 @@ if ($tw.node) {
   /*
     Determine which sub-folders are in the current folder
   */
-  var getDirectories = function(source) {
+  const getDirectories = function(source) {
     try {
       return fs.readdirSync(source).map(function(name) {
         return path.join(source,name);
@@ -59,7 +59,7 @@ if ($tw.node) {
     folder.
     This can be used to selectively watch folders of tiddlers.
   */
-  var buildTree = function(location, parent) {
+  const buildTree = function(location, parent) {
     const folders = getDirectories(path.join(parent,location));
     const parentTree = {'path': path.join(parent,location), folders: {}};
     if (folders.length > 0) {

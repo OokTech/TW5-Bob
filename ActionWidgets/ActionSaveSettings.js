@@ -16,7 +16,7 @@ Action widget to save the settings to the server
 
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
-var ActionSaveSettings = function(parseTreeNode,options) {
+const ActionSaveSettings = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
 };
 
@@ -55,7 +55,7 @@ ActionSaveSettings.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
-  var self = this;
+  let self = this;
 	const tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
 	const settings = JSON.stringify(buildSettings(tiddler), "", 2);
 	const token = localStorage.getItem('ws-token');

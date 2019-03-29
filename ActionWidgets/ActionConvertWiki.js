@@ -18,7 +18,7 @@ where #fileInput is the name given to the file input html element used.
 
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
-var ActionConvertWiki = function(parseTreeNode,options) {
+const ActionConvertWiki = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
 };
 
@@ -62,7 +62,7 @@ ActionConvertWiki.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
-  var self = this;
+  let self = this;
   // Find the file input html element, get the file from that.
   const fileElement = document.getElementById(this.inputName);
   if (fileElement) {

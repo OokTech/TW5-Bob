@@ -1,0 +1,34 @@
+title: $:/plugins/OokTech/Bob/Wiki Paths
+caption: Wiki paths
+tags: [[Bob Documentation]]
+description: Information about the relationship between file system paths, urls, and wiki names.
+
+First some definitions:
+
+- `file system paths` can be thought of as addresses for where files live on your computer. File system paths generally look something like: `C:\Users\me\documents` (on windows) or `/home/me/documents` on OSX or linux.
+- `urls` refer to locations or files that are made available by a web server. The internet uses urls because everything that you access on the internet is sent to you by a server somewhere.
+- `wiki names` refer to the names used to distinguish between wikis in Bob. The url of wikis served by Bob generally ends with the wiki name.
+
+One very important thing to understand that the url you type in to access a
+wiki while using Bob is not the same as a file system path. By default Bob uses
+a structure that mostly mirrors the way that wikis are laid out on the file
+system, but that doesn't mean that the urls and the file system structure are
+the same thing. This is a very important distinction when it comes to serving
+files that can be used in Bob wikis.
+
+As of Bob version 1.2.2 wiki urls can be part of the path to another wiki. That
+is you an have a wiki available on `localhost:8080/MyWiki` and another wiki on
+`localhost:8080/MyWiki/MyOtherWiki`. This is new in version 1.2.2 and will not
+work in any older versions.
+
+!! Setting wiki paths
+
+The easiest way to add wikis is using the tools in the $:/ControlPanel, so
+unless you want to do something that you can't do using them this next part
+isn't necessary.
+
+You can set the wiki url by where you place it in the wikis property of the settings, wiki names need to be unique only within the same group, so you can have `localhost:8080/foo/baz` and `localhost:8080/bar/baz` without trouble.
+
+The way that the file system paths of wikis are listed in the settings changed in version 1.2.2. Previously it was `wikiName: wikiPath`, you can still list them that way but they will automatically get updated to the form `wikiName: {'__path': wikiPath}`, this is necessary in order to allow wikis on nested urls.
+
+**I need to write this part at some point**

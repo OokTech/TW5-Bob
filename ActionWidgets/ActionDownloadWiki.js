@@ -37,7 +37,7 @@ both include and exclude filters.
 
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
-var ActionDownloadWiki = function(parseTreeNode,options) {
+const ActionDownloadWiki = function(parseTreeNode,options) {
 	this.initialise(parseTreeNode,options);
 };
 

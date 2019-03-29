@@ -127,7 +127,7 @@ if($tw.node) {
   Given a list of filters, apply every one in turn to source, and return the first result of the first filter with non-empty result.
   */
   WebsocketAdaptor.prototype.findFirstFilter = function(filters,source) {
-    for(var i=0; i<filters.length; i++) {
+    for(let i=0; i<filters.length; i++) {
       const result = this.wiki.filterTiddlers(filters[i],null,source);
       if(result.length > 0) {
         return result[0];
@@ -187,7 +187,7 @@ if($tw.node) {
         if(err) {
           return callback(err);
         }
-        var filepath = fileInfo.filepath,
+        const filepath = fileInfo.filepath,
           error = $tw.utils.createDirectory(path.dirname(filepath));
         if(error) {
           return callback(error);

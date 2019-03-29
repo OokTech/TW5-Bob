@@ -17,6 +17,7 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if ($tw.node) {
+  let WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js')
   $tw.connections = $tw.connections || [];
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
@@ -195,6 +196,113 @@ if ($tw.node) {
   }
 
   /*
+    Sync servers takes a filter and syncs all of the tiddlers returned by the
+    filter with a remote server.
+    It should use the same process as the syncChanges message, possibly they
+    should be combined.
+
+    The data object has:
+    {
+      type: 'syncServer',
+      wiki: wikiName,
+      token: token,
+      id: messageID,
+      source_connection: connectionIndex,
+      remoteUrl: remoteUrl,
+      remoteWiki: remoteWikiName,
+      syncFilter: syncFilter,
+      syncType: syncType,
+      conflictType: conflictType,
+      remoteToken: remoteToken
+    }
+
+    this takes the tiddlers returned by the syncFilter in the wiki named in
+    wikiName and syncs them with the server at remoteUrl using syncType, any
+    conflicts are handled using conflictType. If the remote server requires an
+    access token it has to be suppiled in remoteToken. If the remote wiki
+    doesn't have the same name as the local wiki than it needs to be given as
+    remoteWiki.
+
+    syncType can be:
+      - pushOnly: local tiddlers are pushed to the remote server but no changes
+      are pulled from the remote server.
+      - pullOnly: changes on the remote server are fetched but no local
+      tiddlers are sent.
+      - bidirectional: local changes are sent and remote changes are pulled
+
+    conflictType can be:
+      - localWins: if there are conflicts the local tiddlers are kept even if
+      remote tiddlers have been changed, tiddlers that didn't exist previously
+      are synced.
+      - remoteWins: in the case of conflicts, remote tiddlers overwrite local
+      tiddlers, only tiddlers that don't exist on the remote server are sent,
+      if applicable.
+      - newestWins: in case of conflicts, the tiddlers with the most recent
+      changes are kept regardless of which server it is from.
+      - oldestWins: least recently modified tiddlers are kept in case of
+      conflicts.
+  */
+  $tw.nodeMessageHandlers.syncServer = function(data) {
+    // We need at least the remote url or we can't act.
+    if (data.remoteUrl) {
+      // Try to connect to the remote server
+      $tw.Bob.RemoteServers[data.remoteUrl] = $tw.Bob.RemoteServers[data.remoteUrl] || {}
+
+      data.syncFilter = data.syncFilter || '[!is[system]]'
+      data.syncType = data.syncType || 'bidirectional'
+      data.conflictType = data.conflictType || 'newestWins'
+      data.remoteWiki = data.remoteWiki || data.wiki
+
+      $tw.Bob.RemoteServers[data.remoteUrl].socket = $tw.Bob.RemoteServers[data.remoteUrl].socket || {}
+
+      if($tw.Bob.RemoteServers[data.remoteUrl].socket.readyState !== 1) {
+        // Get the url for the remote websocket
+        const URL = require('url')
+        const remoteUrl = new URL(data.remoteUrl)
+        const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://'
+        // connect web socket
+        const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname)
+        // Save the socket for future use
+        $tw.Bob.RemoteServers[data.remoteUrl].socket = socket
+        socket.on('open', function() {
+          startRemoteSync($tw.Bob.RemoteServers[data.remoteUrl])
+        })
+      } else {
+        startRemoteSync($tw.Bob.RemoteServers[data.remoteUrl], data)
+      }
+    }
+    sendAck(data)
+  }
+  function startRemoteSync(remoteServerObject, data) {
+    // Get a list of tiddlers from the local wiki that should be synced if
+    // syncType is bidirectional or pushOnly
+    let pushList = []
+    if (['bidirectional','pushOnly'].indexOf(data.syncType) !== -1) {
+      pushList = $tw.Bob.Wikis[data.wiki].filterTiddlers(data.syncFilter)
+    }
+    let tiddlerHashes = {}
+    pushList.forEach(function(tidName) {
+      tiddlerHashes[tidName] = $tw.Bob.Shared.getTiddlerHash(tidName)
+    })
+    // send a sync message with the filter and accompanying tiddler hashes.
+    let message = {
+      syncType: data.syncType,
+      syncFilter: data.syncFilter,
+      conflictType: data.conflictType
+    }
+    remoteServerObject.send(JSON.stringify(message))
+
+    // The remote server should reply with a list/lists depending on the
+    // syncType.
+    //    - The names of tiddlers that the remote is missing
+    //    - the names of tiddlers that the local server is missing
+    //    - hashes of any tiddlers that don't mach
+
+    // Depending on the sync type than the two servers send the changed
+    // tiddlers to the others.
+  }
+
+  /*
     This is for resyncing with a wiki that was disconnected and has reconnected
     The data object should have the form:
     {
@@ -226,11 +334,7 @@ if ($tw.node) {
   $tw.nodeMessageHandlers.syncChanges = function(data) {
     // Make sure that the wiki that the syncing is for is actually loaded
     // TODO make sure that this works for wikis that are under multiple levels
-    if (data.wiki === 'RootWiki') {
-      $tw.ServerSide.loadWiki(data.wiki, $tw.boot.wikiPath);
-    } else {
-      $tw.ServerSide.loadWiki(data.wiki, $tw.settings.wikis[data.wiki]);
-    }
+    $tw.ServerSide.loadWiki(data.wiki);
     // Make sure that the server history exists
     $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
     $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
@@ -331,8 +435,8 @@ if ($tw.node) {
       }
     })
     // There aren't any changes in the browser that aren't synced at this
-    // point, so if we send every other tiddler to the browser here it will be
-    // a brute force way to do it.
+    // point, so find any changes on the server that aren't in the browser and
+    // send them to the browser.
     const serverTiddlerList = $tw.Bob.Wikis[data.wiki].wiki.allTitles();
     const browserChangedTitles = queue.filter(function(messageData) {
       return messageData.type === 'saveTiddler'
@@ -408,10 +512,8 @@ if ($tw.node) {
     TODO update this to work with child wikis
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
-    if (!path) {
-      const path = require('path');
-      const fs = require('fs');
-    }
+    const path = require('path');
+    const fs = require('fs');
     let settings = JSON.stringify($tw.settings, "", 2);
     if (data.fromServer !== true && data.settingsString) {
       //var prefix = data.wiki;
@@ -497,9 +599,9 @@ if ($tw.node) {
     simultaneously.
   */
   // This holds
-  var scriptQueue = {};
-  var scriptActive = {};
-  var childproc = false;
+  let scriptQueue = {};
+  let scriptActive = {};
+  let childproc = false;
   // This function checks if a script is currently running, if not it runs the
   // next script in the queue.
   function processScriptQueue (queue) {
@@ -608,9 +710,9 @@ if ($tw.node) {
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
     const path = require('path');
     const fs = require('fs');
-    var wikiPath, fullName, excludeList = [];
+    let wikiPath, fullName, excludeList = [];
     if (data.buildWiki) {
-      const exists = $tw.ServerSide.loadWiki(data.buildWiki, $tw.settings.wikis[data.buildWiki]);
+      const exists = $tw.ServerSide.loadWiki(data.buildWiki);
       if (exists) {
         wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
@@ -695,7 +797,7 @@ if ($tw.node) {
     if (data.tiddlers || data.externalTiddlers) {
       const path = require('path');
       const fs = require('fs')
-      var wikiName, wikiTiddlersPath, basePath;
+      let wikiName, wikiTiddlersPath, basePath;
       const wikiFolder = data.wikiFolder || "Wikis";
       // If there is no wikiname given create one
       if (data.wikiName) {
@@ -729,12 +831,12 @@ if ($tw.node) {
       let exists = false;
       const wikiPath = path.join(basePath, wikiFolder, wikiName)
       if (data.overwrite === 'true') {
-        exists = $tw.ServerSide.loadWiki(wikiName, wikiPath)
+        exists = $tw.ServerSide.loadWiki(wikiName)
       }
 
       // If we aren't overwriting or it doesn't already exist than make the new
       // wiki and load it
-      if (!exists || data.overwrite !== 'true') {
+      if (!(typeof exists === 'string') || data.overwrite !== 'true') {
         // First copy the empty edition to the wikiPath to make the
         // tiddlywiki.info
         const params = {"wiki": data.wiki, "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName, "wikiName": wikiName, "decoded": data.decoded, "fromServer": true};
@@ -749,7 +851,7 @@ if ($tw.node) {
           console.log('Tiddlers Folder Exists:', wikiTiddlersPath);
         }
         // Load the empty wiki
-        $tw.ServerSide.loadWiki(wikiName, wikiPath)
+        $tw.ServerSide.loadWiki(wikiName)
       }
       // Add all the received tiddlers to the loaded wiki
       let count = 0;
@@ -803,7 +905,7 @@ if ($tw.node) {
         Object.keys(externalData).forEach(function(wikiTitle) {
           const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view');
           if (allowed) {
-            const exists = $tw.ServerSide.loadWiki(wikiTitle, $tw.settings.wikis[wikiTitle]);
+            const exists = $tw.ServerSide.loadWiki(wikiTitle);
             if (exists) {
               const includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
               includeList.forEach(function(tiddlerTitle) {
@@ -842,27 +944,27 @@ if ($tw.node) {
     fullName = fullName || wikiName;
     wikiObj = wikiObj || $tw.settings.wikis;
     const nameParts = wikiName.split('/');
-    if (!wikiObj[nameParts[0]]) {
+    if(nameParts.length === 1) {
+      updatedName = nameParts[0];
+      while (wikiObj[updatedName + String(count)]) {
+        count = count + 1;
+      }
+      if(count > 0) {
+        return fullName + String(count);
+      } else {
+        return fullName;
+      }
+    } else if(!wikiObj[nameParts[0]]) {
       if (count > 0) {
         return fullName + String(count);
       } else {
         return fullName;
       }
-    } else if (typeof wikiObj[nameParts[0]] === 'object') {
+    }
+    if(nameParts.length > 1) {
       return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
     } else {
-      // Try the next name and recurse
-      if (wikiName.endsWith(count)) {
-        // If the name ends in a number increment it
-        wikiName = wikiName.slice(0, -1*String(count).length);
-        count = Number(count) + 1;
-        updatedName = wikiName + String(count);
-      } else {
-        // If the name doesn't end in a number than add a 1 to start out.
-        count = Number(count) + 1;
-        updatedName = wikiName + String(count);
-      }
-      return GetWikiName(updatedName, count, wikiObj, fullName);
+      return undefined
     }
   }
 
@@ -899,7 +1001,7 @@ if ($tw.node) {
       data.wikisFolder = data.wikisFolder || '';
       // If no basepath is given than the default is to make the folder a
       // sibling of the index wiki folder
-      const rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+      let rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       if ($tw.settings.wikiPathBase === 'homedir') {
         rootPath = os.homedir();
       } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
@@ -922,7 +1024,6 @@ if ($tw.node) {
         name = 'newWiki'
       }
 
-      const currentWikis = $tw.settings.wikis;
       // Make sure we have a unique name by appending a number to the wiki name
       // if it exists.
       name = GetWikiName(name)
@@ -1013,10 +1114,10 @@ if ($tw.node) {
           // For now assume that they mean what they say and overwrite anything
           // here if it exists.
           // List the wiki in the appropriate place
-          currentLevel[nameParts[0]] = wikiPath;
+          currentLevel[nameParts[0]] = {'__path': wikiPath};
         }
       }
-      listWiki(relativePath, currentWikis, relativePath)
+      listWiki(relativePath, $tw.settings.wikis, relativePath)
 
       // This is here as a hook for an external server. It is defined by the
       // external server and shouldn't be defined here or it will break
@@ -1250,8 +1351,16 @@ if ($tw.node) {
       let output = []
       Object.keys(obj).forEach(function(item) {
         if (typeof obj[item] === 'string') {
-          if ($tw.ServerSide.existsListed(prefix+item, obj[item])) {
-            output.push(prefix+item);
+          if($tw.ServerSide.existsListed(prefix+item)) {
+            if(item == '__path') {
+              if(prefix.endsWith('/')) {
+                output.push(prefix.slice(0,-1));
+              } else {
+                output.push(prefix);
+              }
+            } else {
+              output.push(prefix+item);
+            }
           }
         } else if (typeof obj[item] === 'object') {
           output = output.concat(getList(obj[item], prefix + item + '/'));
@@ -1448,7 +1557,6 @@ if ($tw.node) {
     }
     const fs = require('fs');
     const path = require('path');
-    //var basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     if ($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();

@@ -16,7 +16,7 @@ Action widget that reconnects to a wiki server
 
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
-var ActionReconnect = function(parseTreeNode,options) {
+const ActionReconnect = function(parseTreeNode,options) {
   this.initialise(parseTreeNode,options);
 };
 

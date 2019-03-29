@@ -96,6 +96,7 @@ Checking the box will also remove any links to wikis that don't exist.
   tiddler='$:/state/Bob/removemissingwikis'
   checked='true'
   unchecked='false'
+  field='text'
 >
   Remove links to missing wikis
 </$checkbox>
@@ -185,6 +186,7 @@ Create wiki from
   tiddler='$:/state/Bob/removemissingwikis'
   checked='true'
   unchecked='false'
+  field='text'
 >
   Remove missing wikis
 </$checkbox>

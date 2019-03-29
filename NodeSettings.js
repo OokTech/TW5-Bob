@@ -28,10 +28,29 @@ if ($tw.node) {
   /*
     Only load the settings if you are running node
   */
-  var startup = function () {
+  const startup = function () {
     // The user settings path
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     $tw.loadSettings($tw.settings, userSettingsPath);
+    updateSettingsWikiPaths($tw.settings.wikis);
+  }
+
+  /*
+    This allows people to add wikis using name: path in the settings.json and
+    still have them work correctly with the name: {__path: path} setup.
+
+    It takes the wikis section of the settings and changes any entries that are
+    in the form name: path and puts them in the form name: {__path: path}, and
+    recursively walks through all the wiki entries.
+  */
+  function updateSettingsWikiPaths(inputObj) {
+    Object.keys(inputObj).forEach(function(entry) {
+      if(typeof inputObj[entry] === 'string' && entry !== '__path') {
+        inputObj[entry] = {'__path': inputObj[entry]}
+      } else if (typeof inputObj[entry] === 'object') {
+        updateSettingsWikiPaths(inputObj[entry])
+      }
+    })
   }
 
   /*
@@ -154,7 +173,7 @@ if ($tw.node) {
     let wikiInfo
     try {
       // Save the lists of plugins, languages and themes in tiddlywiki.info
-      var wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
+      const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
       wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
     } catch(e) {
       console.log(e)

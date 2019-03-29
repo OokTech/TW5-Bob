@@ -27,13 +27,13 @@ const isEnumerable = Function.bind.call(Function.call, Object.prototype.property
 const concat = Function.bind.call(Function.call, Array.prototype.concat);
 const keys = Reflect.ownKeys;
 
-if (!Object.values) {
+if(!Object.values) {
   Object.values = function values(O) {
     return reduce(keys(O), (v, k) => concat(v, typeof k === 'string' && isEnumerable(O, k) ? [O[k]] : []), []);
   };
 }
 
-if (!Object.entries) {
+if(!Object.entries) {
   Object.entries = function entries(O) {
     return reduce(keys(O), (e, k) => concat(e, typeof k === 'string' && isEnumerable(O, k) ? [[k, O[k]]] : []), []);
   };
@@ -47,17 +47,70 @@ $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
 /*
+  Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
+  listed this returns undefined.
+  This can be used to determine if a wiki is listed or not.
+*/
+ServerSide.getWikiPath = function(wikiName) {
+  let wikiPath = undefined;
+  if (wikiName === 'RootWiki') {
+    wikiPath = path.resolve($tw.boot.wikiPath);
+  } else if(wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) {
+    if (typeof $tw.settings.wikis[wikiName] === 'string') {
+      wikiPath = $tw.settings.wikis[wikiName];
+    } else if (typeof $tw.settings.wikis[wikiName].__path === 'string') {
+      wikiPath = $tw.settings.wikis[wikiName].__path;
+    }
+  } else {
+    const parts = wikiName.split('/');
+    let obj = $tw.settings.wikis;
+    for (let i = 0; i < parts.length; i++) {
+      if(obj[parts[i]]) {
+        if(i === parts.length - 1) {
+          if(typeof obj[parts[i]] === 'string') {
+            wikiPath = obj[parts[i]];
+          } else if(typeof obj[parts[i]] === 'object') {
+            if(typeof obj[parts[i]].__path === 'string') {
+              wikiPath = obj[parts[i]].__path;
+            }
+          }
+        } else {
+          obj = obj[parts[i]];
+        }
+      } else {
+        break;
+      }
+    }
+  }
+  // If the wikiPath exists convert it to an absolute path
+  if (typeof wikiPath !== 'undefined') {
+    $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || '.';
+    $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    if($tw.settings.wikiPathBase === 'homedir') {
+      basePath = os.homedir();
+    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    } else {
+      basePath = path.resolve($tw.settings.wikiPathBase);
+    }
+    wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiPath);
+  }
+  return wikiPath;
+}
+
+/*
   This checks to make sure there is a tiddlwiki.info file in a wiki folder
 */
 ServerSide.wikiExists = function (wikiFolder) {
   let exists = false;
   // Make sure that the wiki actually exists
-  if (wikiFolder) {
+  if(wikiFolder) {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
     let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if ($tw.settings.wikiPathBase === 'homedir') {
+    if($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();
-    } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
       basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     } else {
       basePath = path.resolve($tw.settings.wikiPathBase);
@@ -65,7 +118,7 @@ ServerSide.wikiExists = function (wikiFolder) {
     // This is a bit hacky to get around problems with loading the root wiki
     // This tests if the wiki is the root wiki and ignores the other pathing
     // bits
-    if (wikiFolder === $tw.boot.wikiPath) {
+    if(wikiFolder === $tw.boot.wikiPath) {
       wikiFolder = path.resolve($tw.boot.wikiPath)
     } else {
       // Get the correct path to the tiddlywiki.info file
@@ -78,75 +131,48 @@ ServerSide.wikiExists = function (wikiFolder) {
 }
 
 /*
-  This checks to see if a wiki is listed under a specific name
-*/
-ServerSide.wikiListed = function (wikiName) {
-  if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
-    listed = true;
-  } else {
-    const parts = wikiName.split('/');
-    const obj = $tw.settings.wikis
-    for (var i = 0; i < parts.length; i++) {
-      if (obj[parts[i]]) {
-        if (i === parts.length - 1) {
-          listed = true;
-        } else {
-          obj = obj[parts[i]];
-        }
-      } else {
-        listed = false;
-        break;
-      }
-    }
-  }
-  return listed;
-}
-
-/*
   This checks to make sure that a wiki exists
 */
-ServerSide.existsListed = function (wikiName, wikiFolder) {
-  let listed = false;
+ServerSide.existsListed = function (wikiName) {
   let exists = false;
   // First make sure that the wiki is listed
-  listed = ServerSide.wikiListed(wikiName);
+  //listed = ServerSide.wikiListed(wikiName);
+  const path = ServerSide.getWikiPath(wikiName);
   // Make sure that the wiki actually exists
-  exists = ServerSide.wikiExists(wikiFolder);
-  return listed && exists;
+  exists = ServerSide.wikiExists(path);
+  if(exists) {
+    return path
+  } else {
+    return exists
+  }
 }
 
 /*
   This function loads a wiki that has a route listed.
 */
-ServerSide.loadWiki = function (wikiName, wikiFolder) {
-  const exists = ServerSide.existsListed(wikiName, wikiFolder);
+ServerSide.loadWiki = function (wikiName) {
+  const wikiFolder = ServerSide.existsListed(wikiName);
+  /*
   // A hacky way to make the root wiki work on termux
-  if (wikiName === 'RootWiki') {
+  // This shouldn't be required anymore
+  if(wikiName === 'RootWiki') {
     wikiFolder = path.resolve($tw.boot.wikiPath);
   }
+  */
   // Add tiddlers to the node process
-  if (exists) {
+  if(wikiFolder) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
     $tw.Bob.Files[wikiName] = $tw.Bob.Files[wikiName] || {};
     $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
     // Make sure it isn't loaded already
-    if ($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-      let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if ($tw.settings.wikiPathBase === 'homedir') {
-        basePath = os.homedir();
-      } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      } else {
-        basePath = path.resolve($tw.settings.wikiPathBase);
-      }
-
+    if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
       // If the wiki isn't loaded yet set the wiki as loaded
       $tw.Bob.Wikis[wikiName].State = 'loaded';
       // Save the wiki path and tiddlers path
-      $tw.Bob.Wikis[wikiName].wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
-      $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder, 'tiddlers');
+      $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
+      $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
       // Make sure that the tiddlers folder exists
       const error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
       // Recursively build the folder tree structure
@@ -156,9 +182,6 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
 
       // Add tiddlers to the node process
-      const wikisPath = $tw.settings.wikisPath || './Wikis';
-      const fullPath = path.resolve(basePath, wikisPath, $tw.Bob.Wikis[wikiName].wikiPath);
-
       // Create a wiki object for this wiki
       $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
       // Load the boot tiddlers
@@ -166,11 +189,11 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     		$tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
     	});
     	// Load the core tiddlers
-      if (!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
+      if(!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
         $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       }
       // Add tiddlers to the wiki
-      const wikiInfo = ServerSide.loadWikiTiddlers(fullPath, {prefix: wikiName});
+      const wikiInfo = ServerSide.loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
       $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
       // Unpack plugin tiddlers
   	  $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
@@ -196,7 +219,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
   }
-  return exists;
+  return wikiFolder;
 }
 
 /*
@@ -278,7 +301,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   const config = wikiInfo.config || {};
   if(config["retain-original-tiddler-path"]) {
     let output = {};
-    for(var title in $tw.Bob.Files[options.prefix]) {
+    for(let title in $tw.Bob.Files[options.prefix]) {
       output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
     }
     $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
@@ -292,7 +315,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   if(fs.existsSync(wikiPluginsPath)) {
     try {
       const pluginFolders = fs.readdirSync(wikiPluginsPath);
-      for(var t=0; t<pluginFolders.length; t++) {
+      for(let t=0; t<pluginFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
         if(pluginFields) {
           $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
@@ -307,7 +330,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   if(fs.existsSync(wikiThemesPath)) {
     try {
       const themeFolders = fs.readdirSync(wikiThemesPath);
-      for(var t=0; t<themeFolders.length; t++) {
+      for(let t=0; t<themeFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
         if(pluginFields) {
           $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
@@ -322,7 +345,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
   if(fs.existsSync(wikiLanguagesPath)) {
     try {
       const languageFolders = fs.readdirSync(wikiLanguagesPath);
-      for(var t=0; t<languageFolders.length; t++) {
+      for(let t=0; t<languageFolders.length; t++) {
         pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
         if(pluginFields) {
           $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
@@ -338,11 +361,11 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
 ServerSide.prepareWiki = function (fullName, servePlugin) {
   // Only rebuild the wiki if there have been changes since the last time it
   // was built, otherwise use the cached version.
-  if (typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
+  if(typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
     $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
     $tw.Bob.Wikis[fullName].themes = $tw.Bob.Wikis[fullName].themes || [];
     $tw.Bob.Wikis[fullName].tiddlers = $tw.Bob.Wikis[fullName].tiddlers || [];
-    if (servePlugin) {
+    if(servePlugin) {
       // By default the normal file system plugins removed and the
       // multi-user plugin added instead so that they all work the same.
       // The wikis aren't actually modified, this is just hov they are
@@ -350,7 +373,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
       $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins.filter(function(plugin) {
         return plugin !== '$:/plugins/tiddlywiki/filesystem' && plugin !== '$:/plugins/tiddlywiki/tiddlyweb';
       });
-      if ($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
+      if($tw.Bob.Wikis[fullName].plugins.indexOf('$:/plugins/OokTech/Bob') === -1) {
         $tw.Bob.Wikis[fullName].plugins.push('$:/plugins/OokTech/Bob');
       }
     }
@@ -372,7 +395,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     }).map(function(pluginTiddler) {
       return pluginTiddler.replace(/^\$:\/plugins\//, '')
     });
-    if (missingPlugins.length > 0) {
+    if(missingPlugins.length > 0) {
       ServerSide.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, fullName);
     }
     // This makes the wikiTiddlers variable a filter that lists all the
@@ -389,7 +412,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     };
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
-    if (text.length < 10*1024*1024) {
+    if(text.length < 10*1024*1024) {
       $tw.Bob.Wikis[fullName].cached = text;
       $tw.Bob.Wikis[fullName].modified = false;
     } else {
@@ -407,7 +430,7 @@ envVar: Environment variable name for these plugins
 ServerSide.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
 	if(plugins) {
 		const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
-		for(var t=0; t<plugins.length; t++) {
+		for(let t=0; t<plugins.length; t++) {
 			ServerSide.loadPlugin(plugins[t],pluginPaths, wikiName);
 		}
 	}
@@ -450,7 +473,7 @@ const getDirectories = function(source) {
 const buildTree = function(location, parent) {
   const folders = getDirectories(path.join(parent,location));
   let parentTree = {'path': path.join(parent,location), folders: {}};
-  if (folders.length > 0) {
+  if(folders.length > 0) {
     folders.forEach(function(folder) {
       const apex = folder.split(path.sep).pop();
       parentTree.folders[apex] = {};

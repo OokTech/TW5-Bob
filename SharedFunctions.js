@@ -333,11 +333,7 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     if ($tw.node && messageData.message.wiki) {
-      if (messageData.message.wiki === 'RootWiki') {
-        const exists = $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
-      } else {
-        const exists = $tw.ServerSide.loadWiki(messageData.message.wiki, $tw.settings.wikis[messageData.message.wiki]);
-      }
+      $tw.ServerSide.loadWiki(messageData.message.wiki);
     }
     // Make sure that the connectionIndex and queue exist. This may be over
     // paranoid
@@ -678,19 +674,19 @@ This has some functions that are needed by Bob in different places.
   function stableStringify (data, opts) {
     if (!opts) opts = {};
     if (typeof opts === 'function') opts = { cmp: opts };
-    var cycles = (typeof opts.cycles === 'boolean') ? opts.cycles : false;
+    let cycles = (typeof opts.cycles === 'boolean') ? opts.cycles : false;
 
-    var cmp = opts.cmp && (function (f) {
+    let cmp = opts.cmp && (function (f) {
         return function (node) {
             return function (a, b) {
-                var aobj = { key: a, value: node[a] };
-                var bobj = { key: b, value: node[b] };
+                const aobj = { key: a, value: node[a] };
+                const bobj = { key: b, value: node[b] };
                 return f(aobj, bobj);
             };
         };
     })(opts.cmp);
 
-    var seen = [];
+    let seen = [];
     return (function stringify (node) {
         if (node && node.toJSON && typeof node.toJSON === 'function') {
             node = node.toJSON();
@@ -700,7 +696,7 @@ This has some functions that are needed by Bob in different places.
         if (typeof node == 'number') return isFinite(node) ? '' + node : 'null';
         if (typeof node !== 'object') return JSON.stringify(node);
 
-        var i, out;
+        let i, out;
         if (Array.isArray(node)) {
             out = '[';
             for (i = 0; i < node.length; i++) {
@@ -717,12 +713,12 @@ This has some functions that are needed by Bob in different places.
             throw new TypeError('Converting circular structure to JSON');
         }
 
-        var seenIndex = seen.push(node) - 1;
-        var keys = Object.keys(node).sort(cmp && cmp(node));
+        let seenIndex = seen.push(node) - 1;
+        let keys = Object.keys(node).sort(cmp && cmp(node));
         out = '';
         for (i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var value = stringify(node[key]);
+            let key = keys[i];
+            let value = stringify(node[key]);
 
             if (!value) continue;
             if (out) out += ',';
@@ -744,6 +740,25 @@ This has some functions that are needed by Bob in different places.
         hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
+  }
+
+  /*
+    This sends a message to a remote server. This is used for syncing for now,
+    in the future it may be used for other things.
+  */
+  Shared.sendToRemoteServer = function(message) {
+    let ok = true
+    if (typeof message === 'string') {
+      try{
+        message = JSON.parse(message)
+      } catch (e) {
+        ok = false
+      }
+      if (ok) {
+        message.source_server = 'ThisServerURL'
+        message.access_token = 'ThisAccessToken'
+      }
+    }
   }
 
   module.exports = Shared;

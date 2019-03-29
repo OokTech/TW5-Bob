@@ -7,6 +7,12 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
 </pre>
 
+<$reveal type='nomatch' state='$:/settings/Bob/Verbose' text='false'>
+
+  If you are comfortable with Bob and don't need long labels you can set this to `Compact Help` and remove many of the help labels to make the interface more compact.
+
+</$reveal>
+
 <$radio
   tiddler='$:/settings/Bob/Verbose'
   field='text'
