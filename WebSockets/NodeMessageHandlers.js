@@ -1375,6 +1375,21 @@ if ($tw.node) {
   }
 
   /*
+    This sends a list of all available plugins to the wiki
+  */
+  $tw.nodeMessageHandlers.getThemeList = function (data) {
+    const themeNames = $tw.utils.getThemeInfo();
+    const fields = {
+      title: '$:/Bob/AvailableThemeList',
+      list: $tw.utils.stringifyList(Object.keys(themeNames))
+    }
+    const tiddler = {fields: fields}
+    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+    sendAck(data);
+  }
+
+  /*
     This sends back a list of all wikis that are viewable using the current access token.
   */
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {

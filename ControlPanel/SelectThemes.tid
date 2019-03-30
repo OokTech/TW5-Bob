@@ -1,0 +1,267 @@
+title: $:/plugins/OokTech/Bob/SelectThemes
+caption: Manage Themes
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+This lists any themes on the server. Click this button to update the list.
+
+<$button>
+  Update Theme List
+  <$action-websocketmessage
+    $type='getThemeList'
+  />
+</$button>
+
+<!--
+You can add plugins to the library by selecting them here and click
+`Save Plugin As Folder`. You may want to click `Update Plugin List` below to
+make sure you don't try and save a plugin you already have saved.
+
+<$select
+  tiddler='$:/state/Bob/SavePluginFolder'
+>
+  <option
+    value=''
+  >
+    --
+  </option>
+  <$list
+    filter='[prefix[$:/plugins/]]'
+  >
+    <$list
+      filter='[all[current]plugin-type[plugin]removeprefix[$:/plugins/]]-[list[$:/Bob/AvailablePluginList]]'
+      variable=ShortName
+    >
+      <option
+        value=<<currentTiddler>>
+      >
+        <$text
+          text=<<ShortName>>
+        />
+      </option>
+    </$list>
+  </$list>
+</$select>
+<$button>
+  Save Plugin As Folder
+  <$action-websocketmessage
+    $type='savePluginFolder'
+    plugin={{$:/state/Bob/SavePluginFolder}}
+  />
+</$button>
+-->
+
+Select which themes you want available in this wiki below then click `Update Themes`
+then reload the page.
+
+<$button>
+  Save Theme Selection
+  <$action-websocketmessage
+    $type='updateTiddlyWikiInfo'
+    themeList={{$:/Bob/ActiveThemeList!!list}}
+  />
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button>
+<a href='javascript:history.go(0)'>Refresh Page</a>
+
+<br>
+<$list
+  filter='[list[$:/Bob/AvailableThemeList]]'
+>
+  <$list
+    filter='[list[$:/Bob/ActiveThemeList]is[current]]'
+    emptyMessage="""
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+      />
+      <$view
+        field='title'
+      />
+      <$action-listops
+        $tiddler='$:/Bob/ActiveThemeList'
+        $subfilter='+[append<currentTiddler>]'
+      />
+    </$button>
+    <br>"""
+  >
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+        checked
+      />
+      <$view
+        field='title'
+      />
+      <$action-listops
+        $tiddler='$:/Bob/ActiveThemeList'
+        $subfilter='+[remove<currentTiddler>]'
+      />
+    </$button>
+    <br>
+  </$list>
+</$list>
+
+</$reveal>
+
+<$reveal
+  type='match'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+<$button>
+  Update Theme List
+  <$action-websocketmessage
+    $type='getThemeList'
+  />
+</$button>
+<$button>
+  Save Theme Selection
+  <$action-websocketmessage
+    $type='updateTiddlyWikiInfo'
+    themeList={{$:/Bob/ActiveThemeList!!list}}
+  />
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button>
+<a href='javascript:history.go(0)'>Refresh Page</a>
+
+<br>
+Select Theme Author: <$select
+  tiddler='$:/state/Bob/SelectedAuthor'
+  default='all'
+>
+  <option
+    value='all'
+  >
+    All
+  </option>
+  <$list
+    filter='[list[$:/Bob/AvailableThemeList]splitbefore[/]]'
+    variable='themeAuthor'
+  >
+    <option>
+      <<themeAuthor>>
+    </option>
+  </$list>
+</$select>
+
+<$list
+  filter='[[$:/state/Bob/SelectedAuthor]has[text]!text[all]]'
+  variable='unused'
+>
+  <$set
+    name=themeAuthor
+    value={{$:/state/Bob/SelectedAuthor}}
+  >
+    <h2><$text text=<<themeAuthor>>></$text></h2>
+    <$list
+      filter='[list[$:/Bob/AvailableThemeList]prefix<themeAuthor>]'
+    >
+      <$list
+        filter='[list[$:/Bob/ActiveThemeList]is[current]]'
+        emptyMessage="""
+        <$button
+          class='tc-btn-invisible'
+        >
+          <input
+            type='checkbox'
+          />
+          <$view
+            field='title'
+          />
+          <$action-listops
+            $tiddler='$:/Bob/ActiveThemeList'
+            $subfilter='+[append<currentTiddler>]'
+          />
+        </$button>
+        <br>"""
+      >
+        <$button
+          class='tc-btn-invisible'
+        >
+          <input
+            type='checkbox'
+            checked
+          />
+          <$view
+            field='title'
+          />
+          <$action-listops
+            $tiddler='$:/Bob/ActiveThemeList'
+            $subfilter='+[remove<currentTiddler>]'
+          />
+        </$button>
+        <br>
+      </$list>
+    </$list>
+  </$set>
+</$list>
+
+<$list
+  filter='[[$:/state/Bob/SelectedAuthor]text[all]][[$:/state/Bob/SelectedAuthor]!has[text]] +[limit[1]]'
+  variable='unused'
+>
+  <$list
+    filter='[list[$:/Bob/AvailableThemeList]splitbefore[/]]'
+    variable='themeAuthor'
+  >
+    <h2><$text text=<<themeAuthor>>></$text></h2>
+    <$list
+      filter='[list[$:/Bob/AvailableThemeList]prefix<themeAuthor>]'
+    >
+      <$list
+        filter='[list[$:/Bob/ActiveThemeList]is[current]]'
+        emptyMessage="""
+        <$button
+          class='tc-btn-invisible'
+        >
+          <input
+            type='checkbox'
+          />
+          <$view
+            field='title'
+          />
+          <$action-listops
+            $tiddler='$:/Bob/ActiveThemeList'
+            $subfilter='+[append<currentTiddler>]'
+          />
+        </$button>
+        <br>"""
+      >
+        <$button
+          class='tc-btn-invisible'
+        >
+          <input
+            type='checkbox'
+            checked
+          />
+          <$view
+            field='title'
+          />
+          <$action-listops
+            $tiddler='$:/Bob/ActiveThemeList'
+            $subfilter='+[remove<currentTiddler>]'
+          />
+        </$button>
+        <br>
+      </$list>
+    </$list>
+  </$list>
+</$list>
+
+</$reveal>
