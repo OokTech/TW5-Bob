@@ -84,9 +84,9 @@ ServerSide.getWikiPath = function(wikiName) {
   }
   // If the wikiPath exists convert it to an absolute path
   if (typeof wikiPath !== 'undefined') {
-    $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || '.';
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
     if($tw.settings.wikiPathBase === 'homedir') {
       basePath = os.homedir();
     } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {

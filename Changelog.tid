@@ -12,6 +12,8 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Improve the manual settings layout and interface a little
   - Fix some situations where the tiddlywiki/filesystem and tiddlywiki/tiddlyweb were included when they shouldn't be
   - Fix a bug that prevented internal fetch from working with a transform filter (and possibly in other situations)
+  - (BobEXE) the Wikis, Plugins, Themes and Editions folders are all now created automatically in a default location in the same folder as the executable.
+  - Fixed another bug that would sometimes allow a wiki with the same name as an existing wiki to be created
 
 !! Version 1.2.1 Timey Wimey
 
