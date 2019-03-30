@@ -947,8 +947,17 @@ if ($tw.node) {
     const nameParts = wikiName.split('/');
     if(nameParts.length === 1) {
       updatedName = nameParts[0];
-      while (wikiObj[updatedName + String(count)]) {
-        count = count + 1;
+      if(wikiObj[updatedName]) {
+        if(wikiObj[updatedName].__path) {
+          count = count + 1;
+          while (wikiObj[updatedName + String(count)]) {
+            if(wikiObj[updatedName + String(count)].__path) {
+              count = count + 1;
+            } else {
+              break;
+            }
+          }
+        }
       }
       if(count > 0) {
         return fullName + String(count);
@@ -961,9 +970,20 @@ if ($tw.node) {
       } else {
         return fullName;
       }
+    }/* else if(!wikiObj[nameParts[0]].__path) {
+      if (count > 0) {
+        return fullName + String(count);
+      } else {
+        return fullName;
+      }
     }
+    */
     if(nameParts.length > 1) {
-      return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
+      if(wikiObj[nameParts[0]]) {
+        return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
+      } else {
+        return fullName;
+      }
     } else {
       return undefined
     }
