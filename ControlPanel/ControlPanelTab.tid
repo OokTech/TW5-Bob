@@ -30,6 +30,21 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 
 <$reveal
   type='nomatch'
+  state='$:/WikiName!!text'
+  text='RootWiki'
+>
+  <$checkbox
+    tiddler='$:/settings/Bob/DisplayOnChildWikis'
+    field='text'
+    checked='yes'
+    unchecked='no'
+  >
+    Show Full Settings
+  </$checkbox>
+</$reveal>
+
+<$reveal
+  type='nomatch'
   state='$:/settings/Bob/Verbose'
   text='false'
 >
@@ -52,22 +67,6 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
     />
   </$button>
 
-  <!--
-  <$reveal
-    type='match'
-    state='$:/WikiName'
-    text='RootWiki'
-  >
-
-    <$checkbox
-      tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
-      tag='$:/tags/SideBar'
-    >
-      List available wikis in sidebar
-    </$checkbox>
-
-  </$reveal>
-  -->
 </$reveal>
 
 <$reveal type='match' state='$:/settings/Bob/Verbose' text='false'>
@@ -84,36 +83,11 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
     />
   </$button>
 
-  <!--
-  <$reveal
-    type='match'
-    state='$:/WikiName'
-    text='RootWiki'
-  >
-
-    <$checkbox
-      tiddler='$:/plugins/OokTech/Bob/Wiki Listing'
-      tag='$:/tags/SideBar'
-    >
-      List available wikis in sidebar
-    </$checkbox>
-
-  </$reveal>
-  -->
 </$reveal>
 
-<<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
-
-<$reveal
-  type='nomatch'
-  state='$:/WikiName'
-  text='RootWiki'
+<$list
+  filter='[[$:/WikiName]text[RootWiki]][[$:/settings/Bob/DisplayOnChildWikis]text[yes]] +[limit[1]]'
+  emptyMessage="""<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/Wiki Listing">>"""
 >
-
-!! Available Wikis <$checkbox tiddler='$:/plugins/OokTech/Bob/Wiki Listing' tag='$:/tags/SideBar'> List available wikis in sidebar</$checkbox>
-
-Other settings should only be changed from the root wiki.
-
-<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugins/OokTech/Bob/SelectPlugins]]" "$:/plugins/OokTech/Bob/Wiki Listing">>
-
-</$reveal>
+  <<tabs "[[$:/plugins/OokTech/Bob/AvailableWikisTab]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/AvailableWikisTab">>
+</$list>

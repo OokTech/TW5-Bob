@@ -14,6 +14,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Fix a bug that prevented internal fetch from working with a transform filter (and possibly in other situations)
   - (BobEXE) the Wikis, Plugins, Themes and Editions folders are all now created automatically in a default location in the same folder as the executable.
   - Fixed another bug that would sometimes allow a wiki with the same name as an existing wiki to be created
+  - You can now access the full settings interface from any wiki by checking a box in the control panel.
 
 !! Version 1.2.1 Timey Wimey
 

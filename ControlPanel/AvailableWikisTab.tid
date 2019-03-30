@@ -108,88 +108,88 @@ Checking the box will also remove any links to wikis that don't exist.
   text='false'
 >
 
-Create wiki from
+  Create wiki from
 
-<$radio
-  tiddler='$:/temp/NewWiki'
-  field='method'
-  value='edition'
->
-  an edition
-</$radio>
-<br>
-<$radio
-  tiddler='$:/temp/NewWiki'
-  field='method'
-  value='file'
->
-  an html file
-</$radio>
-<br>
-<$radio
-  tiddler='$:/temp/NewWiki'
-  field='method'
-  value='tiddlers'
->
-  existing tiddlers
-</$radio>
-<br>
-<$radio
-  tiddler='$:/temp/NewWiki'
-  field='method'
-  value='node'
->
-  a node wiki
-</$radio>
+  <$radio
+    tiddler='$:/temp/NewWiki'
+    field='method'
+    value='edition'
+  >
+    an edition
+  </$radio>
+  <br>
+  <$radio
+    tiddler='$:/temp/NewWiki'
+    field='method'
+    value='file'
+  >
+    an html file
+  </$radio>
+  <br>
+  <$radio
+    tiddler='$:/temp/NewWiki'
+    field='method'
+    value='tiddlers'
+  >
+    existing tiddlers
+  </$radio>
+  <br>
+  <$radio
+    tiddler='$:/temp/NewWiki'
+    field='method'
+    value='node'
+  >
+    a node wiki
+  </$radio>
 
-<$list
-  filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'
-  variable=null
->
-  {{$:/plugins/OokTech/Bob/CreateWikiFromEdition}}
-</$list>
+  <$list
+    filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'
+    variable=null
+  >
+    {{$:/plugins/OokTech/Bob/CreateWikiFromEdition}}
+  </$list>
 
 
-<$list
-  filter='[[$:/temp/NewWiki]method[file]]'
-  variable=null
->
-  {{$:/plugins/OokTech/Bob/CreateWikiFromFile}}
-</$list>
+  <$list
+    filter='[[$:/temp/NewWiki]method[file]]'
+    variable=null
+  >
+    {{$:/plugins/OokTech/Bob/CreateWikiFromFile}}
+  </$list>
 
-<$list
-  filter='[[$:/temp/NewWiki]method[tiddlers]]'
-  variable=null
->
-  {{$:/plugins/OokTech/Bob/CreateWikiFromTiddlers}}
-</$list>
+  <$list
+    filter='[[$:/temp/NewWiki]method[tiddlers]]'
+    variable=null
+  >
+    {{$:/plugins/OokTech/Bob/CreateWikiFromTiddlers}}
+  </$list>
 
-<$list
-  filter='[[$:/temp/NewWiki]method[node]]'
-  variable=null
->
-  {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
-</$list>
+  <$list
+    filter='[[$:/temp/NewWiki]method[node]]'
+    variable=null
+  >
+    {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
+  </$list>
 
 ---
 
-<$button>
-  Auto-populate list
-  <$action-websocketmessage
-    $type='findAvailableWikis'
-    remove={{$:/state/Bob/removemissingwikis!!text}}
-    update='true'
-    saveSettings='true'
-  />
-</$button>
-<$checkbox
-  tiddler='$:/state/Bob/removemissingwikis'
-  checked='true'
-  unchecked='false'
-  field='text'
->
-  Remove missing wikis
-</$checkbox>
+  <$button>
+    Auto-populate list
+    <$action-websocketmessage
+      $type='findAvailableWikis'
+      remove={{$:/state/Bob/removemissingwikis!!text}}
+      update='true'
+      saveSettings='true'
+    />
+  </$button>
+  <$checkbox
+    tiddler='$:/state/Bob/removemissingwikis'
+    checked='true'
+    unchecked='false'
+    field='text'
+  >
+    Remove missing wikis
+  </$checkbox>
 </$reveal>
 
 {{$:/plugins/OokTech/Bob/Wiki Listing}}
