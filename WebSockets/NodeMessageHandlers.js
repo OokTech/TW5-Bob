@@ -787,7 +787,7 @@ if ($tw.node) {
     externalTiddlers - a json object that has filters to import tiddlers from
     existing wikis.
 
-    If overwrite is not set to 'true' than wiki names are made unique. If you
+    If overwrite is not set to 'yes' than wiki names are made unique. If you
     already have a wiki called MyWiki and give MyWiki as the wikiName parameter
     than a number will be appended to the end of the name to make it unique,
     similarly to how new tiddler titles are made unique.
@@ -801,7 +801,7 @@ if ($tw.node) {
       const wikiFolder = data.wikiFolder || "Wikis";
       // If there is no wikiname given create one
       if (data.wikiName) {
-        if (data.overwrite !== 'true') {
+        if (data.overwrite !== 'yes') {
           // If a name is given use it
           wikiName = GetWikiName(data.wikiName);
         } else {
@@ -809,13 +809,12 @@ if ($tw.node) {
         }
       } else {
         // Otherwise create a new wikiname
-        wikiName = GetWikiName("NewWiki");
+        wikiName = GetWikiName();
       }
       // If there is no output path given use a default one
       if (data.wikisPath) {
         basePath = data.wikisPath;
       } else {
-        //basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
         if ($tw.settings.wikiPathBase === 'homedir') {
           basePath = os.homedir();
@@ -839,7 +838,16 @@ if ($tw.node) {
       if (!(typeof exists === 'string') || data.overwrite !== 'true') {
         // First copy the empty edition to the wikiPath to make the
         // tiddlywiki.info
-        const params = {"wiki": data.wiki, "basePath": basePath, "wikisFolder": wikiFolder, "edition": "empty", "path": wikiName, "wikiName": wikiName, "decoded": data.decoded, "fromServer": true};
+        const params = {
+          "wiki": data.wiki,
+          "basePath": basePath,
+          "wikisFolder": wikiFolder,
+          "edition": "empty",
+          "path": wikiName,
+          "wikiName": wikiName,
+          "decoded": data.decoded,
+          "fromServer": true
+        };
         $tw.nodeMessageHandlers.createNewWiki(params);
         // Get the folder for the wiki tiddlers
         wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
@@ -938,11 +946,16 @@ if ($tw.node) {
     This ensures that the wikiName used is unique by appending a number to the
     end of the name and incrementing the number if needed until an unused name
     is created.
+    If on name is given it defualts to NewWiki
   */
   function GetWikiName (wikiName, count, wikiObj, fullName) {
     let updatedName;
     count = count || 0;
-    fullName = fullName || wikiName;
+    wikiName = wikiName || ''
+    if(wikiName.trim() === '') {
+      wikiName = 'NewWiki'
+    }
+    fullName = fullName || wikiName || 'NewWiki';
     wikiObj = wikiObj || $tw.settings.wikis;
     const nameParts = wikiName.split('/');
     if(nameParts.length === 1) {
@@ -970,14 +983,7 @@ if ($tw.node) {
       } else {
         return fullName;
       }
-    }/* else if(!wikiObj[nameParts[0]].__path) {
-      if (count > 0) {
-        return fullName + String(count);
-      } else {
-        return fullName;
-      }
     }
-    */
     if(nameParts.length > 1) {
       if(wikiObj[nameParts[0]]) {
         return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
@@ -1039,15 +1045,17 @@ if ($tw.node) {
       // I need better names here.
       $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
 
+      /*
       // Get desired name for the new wiki
-      let name = data.wikiName || 'newWiki';
+      let name = data.wikiName || 'NewWiki';
       if (name.trim() === '') {
-        name = 'newWiki'
+        name = 'NewWiki'
       }
+      */
 
       // Make sure we have a unique name by appending a number to the wiki name
       // if it exists.
-      name = GetWikiName(name)
+      let name = GetWikiName(data.wikiName)
       let relativePath = name;
       // This only does something for the secure wiki server
       if ($tw.settings.namespacedWikis === 'true') {
