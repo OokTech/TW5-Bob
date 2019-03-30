@@ -1528,6 +1528,8 @@ if ($tw.node) {
     This looks in the wikis folder set in the configuration
     $tw.setting.wikisPath
     If none is set it uses ./Wikis
+
+    This walks though subfolders too.
   */
   $tw.nodeMessageHandlers.findAvailableWikis = function (data) {
     // This gets the paths of all wikis listed in the settings
@@ -1545,8 +1547,8 @@ if ($tw.node) {
     }
     // This gets a list of all wikis in the wikis folder and subfolders
     function getRealPaths(startPath) {
-      // Check each folder in the wikis folder to see if it has a tiddlywiki.info
-      // file
+      // Check each folder in the wikis folder to see if it has a
+      // tiddlywiki.info file
       let realFolders = [];
       try {
         const folderContents = fs.readdirSync(startPath);
@@ -1555,12 +1557,11 @@ if ($tw.node) {
           if (fs.statSync(fullName).isDirectory()) {
             if ($tw.ServerSide.wikiExists(fullName)) {
               realFolders.push(fullName);
-            } else {
-              // Check if there are subfolders that contain wikis and recurse
-              const nextPath = path.join(startPath,item)
-              if (fs.statSync(nextPath).isDirectory()) {
-                realFolders = realFolders.concat(getRealPaths(nextPath));
-              }
+            }
+            // Check if there are subfolders that contain wikis and recurse
+            const nextPath = path.join(startPath,item)
+            if (fs.statSync(nextPath).isDirectory()) {
+              realFolders = realFolders.concat(getRealPaths(nextPath));
             }
           }
         })
