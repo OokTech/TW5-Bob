@@ -681,7 +681,7 @@ if ($tw.node) {
   // This updates what wikis are being served and where they are being served
   $tw.nodeMessageHandlers.updateRoutes = function (data) {
     // This is only usable on the root wiki!
-    if (data.wiki === 'RootWiki') {
+    if (data.wiki === 'RootWiki' || true) {
       // Then clear all the routes to the non-root wiki
       $tw.httpServer.clearRoutes();
       // The re-add all the routes from the settings
@@ -793,6 +793,9 @@ if ($tw.node) {
     similarly to how new tiddler titles are made unique.
   */
   $tw.nodeMessageHandlers.newWikiFromTiddlers = function (data) {
+    // send ack first because otherwise it often takes too long to run this
+    // command and the message is sent again.
+    sendAck(data);
     // Do nothing unless there is an input file path given
     if (data.tiddlers || data.externalTiddlers) {
       const path = require('path');
@@ -887,7 +890,6 @@ if ($tw.node) {
     } else {
       console.log('No tiddlers given!');
     }
-    sendAck(data);
   }
 
   /*
@@ -1655,7 +1657,7 @@ if ($tw.node) {
       data.fromServer = true;
       $tw.nodeMessageHandlers.saveSettings(data);
       $tw.nodeMessageHandlers.updateRoutes(data);
-      $tw.nodeMessageHandlers.getViewableWikiList(data);
+      setTimeout($tw.nodeMessageHandlers.getViewableWikiList,1000,data)
     }
 
     sendAck(data);
