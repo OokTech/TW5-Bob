@@ -14,7 +14,7 @@
       "file": "README.md",
       "fields": {
         "type": "text/plain",
-        "title": "$:/plugins/OokTech/Bob/External/followRedirects/README.tid",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/README.tid"
       },
       "prefix": "",
       "suffix": ""
@@ -23,7 +23,7 @@
       "file": "LICENSE",
       "fields": {
         "type": "text/plain",
-        "title": "$:/plugins/OokTech/Bob/External/followRedirects/LICENSE.tid",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/LICENSE.tid"
       },
       "prefix": "",
       "suffix": ""
@@ -32,7 +32,7 @@
       "file": "note.tid",
       "fields": {
         "type": "text/plain",
-        "title": "$:/plugins/OokTech/Bob/External/followRedirects/notes.tid",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/notes.tid"
       },
       "prefix": "",
       "suffix": ""

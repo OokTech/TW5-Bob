@@ -17,6 +17,10 @@ title: $:/plugins/OokTech/Bob/Changelog
   - You can now access the full settings interface from any wiki by checking a box in the control panel.
   - Hopefully fix a race condition that could result in multiple wikis being created for a single command.
   - Add an interface to manage themes like the manage plugins interface.
+  - You can now fetch plugins directly from github. This needs an interface still.
+    - This required two external modules that are now included in the Bob plugin
+      - An updated (and not backwards compatible) jszip
+      - follow-redirects
 
 !! Version 1.2.1 Timey Wimey
 
