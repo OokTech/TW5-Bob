@@ -1,0 +1,14 @@
+title: $:/plugins/OokTech/Bob/FetchPlugins.tid
+caption: Fetch Plugins
+
+!WARNING - This is very experimental back up your wikis and use at your own risk
+
+To use this you get the url of a zipped plugin, enter the url into the plugin url field and then click Save Plugin to Server. Afterward you should be able to access that plugin like any other from Bob's plugin manager.
+
+Plugin URL: <$edit-text tiddler='$:/state/Bob/GetGitPlugin' field='url' class='tc-edit-texteditor'/>
+
+<$button>
+Save Plugin to Server
+<$action-websocketmessage $type='getGitPlugin' url={{$:/state/Bob/GetGitPlugin!!url}}/>
+<$action-setfield $tiddler='$:/state/Bob/GetGitPlugin' url=''/>
+</$button>

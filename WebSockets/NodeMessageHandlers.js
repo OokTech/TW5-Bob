@@ -1695,12 +1695,20 @@ if ($tw.node) {
   $tw.nodeMessageHandlers.getGitPlugin = function(data) {
     sendAck(data)
     if(data.url) {
+      // Special handling for github, we will see about other things later.
+      if(!data.url.toLowerCase().endsWith('.zip')) {
+        if(data.url.toLowerCase().startsWith('https://github.com')) {
+          data.url = data.url + '/archive/master.zip';
+        } else if (data.url.toLowerCase().startsWith('https://gitlab.com')) {
+          const repoName = data.url.toLowerCase().split('/').pop()
+          data.url = data.url + '/-/archive/master/' + repoName + '-master.zip'
+        }
+      }
       const path = require('path');
       const fs = require('fs')
       const protocol = data.url.startsWith('https')?'https':'http';
-      const JSZip = require("$:/plugins/OokTech/Bob/External/jzip/jzip.js");
+      const JSZip = require("$:/plugins/OokTech/Bob/External/jszip/jszip.js");
       const http = require("$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js")[protocol];
-      //var req = http.get("https://github.com/OokTech/TW5-Bob/archive/master.zip", function (res) {
       var req = http.get(data.url, function (res) {
         if (res.statusCode !== 200) {
           console.log(res.statusCode);
@@ -1708,19 +1716,14 @@ if ($tw.node) {
           return;
         }
         var data = [], dataLen = 0;
-
-        // don't set the encoding, it will break everything !
-        // or, if you must, set it to null. In that case the chunk will be a string.
-
         res.on("data", function (chunk) {
           data.push(chunk);
           dataLen += chunk.length;
         });
-
         res.on("end", function () {
           var buf = Buffer.concat(data);
           // here we go !
-          let zipObj
+          let zipObj;
           let rootFolder;
           JSZip.loadAsync(buf).then(function (zip) {
             zipObj = zip;
@@ -1730,20 +1733,18 @@ if ($tw.node) {
               return goodFolder && correctName;
             })[0]
             rootFolder = pluginInfo.name.split('/')[0];
-            //console.log(pluginInfo)
-            //console.log(rootFolder)
             return pluginInfo.async('string');
           }).then(function(info) {
             const infoObj = JSON.parse(info.trim());
             // Check if we have the plugin already, if so check if this version
             // is newer than our local version. If not skip it.
-            const pluginName = infoObj.title.replace('$:/plugins/','')
+            const pluginName = infoObj.title.replace('$:/plugins/','');
             const pluginNames = Object.keys($tw.utils.getPluginInfo());
             let exists = false;
             let newer = false;
             if(pluginNames.indexOf(pluginName) !== 0) {
               // Check versions
-              exists = true
+              exists = true;
             }
             let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
             if($tw.settings.wikiPathBase === 'homedir') {
@@ -1753,7 +1754,7 @@ if ($tw.node) {
             } else {
               basePath = path.resolve($tw.settings.wikiPathBase);
             }
-            const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
+            const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath);
             // If we don't have the plugin than create the plugin folder, also
             // creating the author folder if we don't have it already.
             if(!exists) {
@@ -1777,27 +1778,20 @@ if ($tw.node) {
                   file.nodeStream()
                   .pipe(fs.createWriteStream(path.join(pluginsPath,pluginName,relativePath)))
                   .on('finish', function() {
-                    console.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath))
+                    console.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath));
                   })
                 }
               });
             }
           }).catch(function(err) {
-            console.log(err)
-          });
-          /*
-            return zip.file("TW5-Bob-master/plugin.info").async("string");
-          }).then(function (text) {
-            console.log(text);
-          }).catch(function(err) {
             console.log(err);
           });
-          */
         });
       });
 
       req.on("error", function(err){
         // handle error
+        console.log('Rocks fall, everyone dies: ',err);
       });
     }
   }

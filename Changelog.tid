@@ -17,10 +17,14 @@ title: $:/plugins/OokTech/Bob/Changelog
   - You can now access the full settings interface from any wiki by checking a box in the control panel.
   - Hopefully fix a race condition that could result in multiple wikis being created for a single command.
   - Add an interface to manage themes like the manage plugins interface.
-  - You can now fetch plugins directly from github. This needs an interface still.
+  - You can now fetch plugins directly from github. (VERY EXPERIMENTAL)
     - This required two external modules that are now included in the Bob plugin
       - An updated (and not backwards compatible) jszip
       - follow-redirects
+    - On GitHub.com or GitLab.com you can give the repo url to get the plugin
+      - For github the repo url will be something like this `https://github.com/OokTech/TW5-RandomValue`, there is some special handling to get the zip url from the repo url for github.
+      - for gitlab the repo url will be something like this `https://gitlab.com/inmysocks/ookbot`, there is also special handling to get the url for the zip from gitlab.com repos.
+    - Anywhere else you have to give the full url for the zip file itself.
 
 !! Version 1.2.1 Timey Wimey
 
