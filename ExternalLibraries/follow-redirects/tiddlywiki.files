@@ -1,0 +1,42 @@
+{
+  "tiddlers": [
+    {
+      "file": "index.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "README.md",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/README.tid",
+      },
+      "prefix": "",
+      "suffix": ""
+    },
+    {
+      "file": "LICENSE",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/LICENSE.tid",
+      },
+      "prefix": "",
+      "suffix": ""
+    },
+    {
+      "file": "note.tid",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/followRedirects/notes.tid",
+      },
+      "prefix": "",
+      "suffix": ""
+    }
+
+  ]
+}

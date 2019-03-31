@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/External/followRedirects/notes.tid
+
+Repo url: https://github.com/follow-redirects/follow-redirects
+
+This has been modified from the original repo in the following ways:
+
+- Everything but index.js, LICENSE and README.md has been removed
+- In index.js lines 7, 327 and 395 have been commented out to remove the dependency on the debug npm module.

@@ -18,7 +18,7 @@ const path = require("path");
 let pluginInfo;
 
 exports.getPluginInfo = function() {
-	if(!pluginInfo) {
+	if(!pluginInfo || true) {
 		// Enumerate the plugin paths
 		const pluginPaths = $tw.getLibraryItemSearchPaths($tw.config.pluginsPath,$tw.config.pluginsEnvVar);
 		pluginInfo = {};

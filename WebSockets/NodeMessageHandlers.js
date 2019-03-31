@@ -1692,6 +1692,116 @@ if ($tw.node) {
     }
   }
 
+  $tw.nodeMessageHandlers.getGitPlugin = function(data) {
+    sendAck(data)
+    if(data.url) {
+      const path = require('path');
+      const fs = require('fs')
+      const protocol = data.url.startsWith('https')?'https':'http';
+      const JSZip = require("$:/plugins/OokTech/Bob/External/jzip/jzip.js");
+      const http = require("$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js")[protocol];
+      //var req = http.get("https://github.com/OokTech/TW5-Bob/archive/master.zip", function (res) {
+      var req = http.get(data.url, function (res) {
+        if (res.statusCode !== 200) {
+          console.log(res.statusCode);
+          // handle error
+          return;
+        }
+        var data = [], dataLen = 0;
+
+        // don't set the encoding, it will break everything !
+        // or, if you must, set it to null. In that case the chunk will be a string.
+
+        res.on("data", function (chunk) {
+          data.push(chunk);
+          dataLen += chunk.length;
+        });
+
+        res.on("end", function () {
+          var buf = Buffer.concat(data);
+          // here we go !
+          let zipObj
+          let rootFolder;
+          JSZip.loadAsync(buf).then(function (zip) {
+            zipObj = zip;
+            const pluginInfo = zip.filter(function(relativePath,file) {
+              const goodFolder = relativePath.split('/').length === 2;
+              const correctName = relativePath.endsWith('plugin.info');
+              return goodFolder && correctName;
+            })[0]
+            rootFolder = pluginInfo.name.split('/')[0];
+            //console.log(pluginInfo)
+            //console.log(rootFolder)
+            return pluginInfo.async('string');
+          }).then(function(info) {
+            const infoObj = JSON.parse(info.trim());
+            // Check if we have the plugin already, if so check if this version
+            // is newer than our local version. If not skip it.
+            const pluginName = infoObj.title.replace('$:/plugins/','')
+            const pluginNames = Object.keys($tw.utils.getPluginInfo());
+            let exists = false;
+            let newer = false;
+            if(pluginNames.indexOf(pluginName) !== 0) {
+              // Check versions
+              exists = true
+            }
+            let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+            if($tw.settings.wikiPathBase === 'homedir') {
+              basePath = os.homedir();
+            } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+              basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+            } else {
+              basePath = path.resolve($tw.settings.wikiPathBase);
+            }
+            const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
+            // If we don't have the plugin than create the plugin folder, also
+            // creating the author folder if we don't have it already.
+            if(!exists) {
+              // Make plugin folder
+              $tw.utils.createDirectory(path.join(pluginsPath,pluginName));
+            }
+            if(!(exists && newer)) {
+              // Then walk though the zip file and add all files and folders in
+              // the zip file to our local folder.
+              zipObj.folder(rootFolder).forEach(function(relativePath, file) {
+                // Check if folder exists, if not create it.
+                // This is for every file because I am not sure order is
+                // gaurenteed so you may not get the folder before you get
+                // files in the folder.
+                if(!fs.existsSync(path.join(pluginsPath, pluginName, relativePath.split('/').slice(0,-1).join('/')))) {
+                  // Make a folder
+                  $tw.utils.createDirectory(path.join(pluginsPath, pluginName, relativePath.split('/').slice(0,-1).join('/')));
+                }
+                if(!file.dir) {
+                  // save the file in the correct folder
+                  file.nodeStream()
+                  .pipe(fs.createWriteStream(path.join(pluginsPath,pluginName,relativePath)))
+                  .on('finish', function() {
+                    console.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath))
+                  })
+                }
+              });
+            }
+          }).catch(function(err) {
+            console.log(err)
+          });
+          /*
+            return zip.file("TW5-Bob-master/plugin.info").async("string");
+          }).then(function (text) {
+            console.log(text);
+          }).catch(function(err) {
+            console.log(err);
+          });
+          */
+        });
+      });
+
+      req.on("error", function(err){
+        // handle error
+      });
+    }
+  }
+
   /*
     This handles ack messages.
   */

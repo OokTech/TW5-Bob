@@ -18,7 +18,7 @@ const path = require("path");
 let themeInfo;
 
 exports.getThemeInfo = function() {
-	if(!themeInfo) {
+	if(!themeInfo || true) {
 		// Enumerate the theme paths
 		const themePaths = $tw.getLibraryItemSearchPaths($tw.config.themesPath,$tw.config.themesEnvVar);
 		themeInfo = {};

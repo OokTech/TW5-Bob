@@ -1,0 +1,14 @@
+{
+  "tiddlers": [
+    {
+      "file": "jszip.min.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/jszip/jszip.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    }
+  ]
+}
