@@ -90,11 +90,14 @@ if($tw.node) {
     const pathprefix = this.get("pathprefix") || "";
     for(let t=0; t<this.routes.length; t++) {
       const potentialRoute = this.routes[t];
-      let pathname = state.urlInfo.pathname;
+      let pathname = decodeURIComponent(state.urlInfo.pathname);
       let match;
       if(pathprefix) {
-        if(pathname.substr(0,pathprefix.length) === pathprefix) {
-          pathname = pathname.substr(pathprefix.length);
+        //if(pathname.substr(0,pathprefix.length) === pathprefix) {
+          //pathname = pathname.substr(pathprefix.length);
+        // This should help with some unicode names
+        if(pathname.startsWith(pathprefix)) {
+          pathname = pathname.replace(pathprefix,'');
           match = potentialRoute.path.exec(pathname);
         } else {
           match = false;

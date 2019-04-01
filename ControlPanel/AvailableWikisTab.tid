@@ -9,7 +9,10 @@ caption: Available Wikis
 
 You can create new wikis here. Select the edition and then enter a name.
 
-Names should only have numbers and letters and no spaces or special characters.
+Wiki names should be able to contain any unicode characters, although there may
+be errors in some browsers which do not support unicode urls.
+
+So 💩 is a valid wiki name.
 
 See [[creating new wikis|$:/plugins/OokTech/Bob/Creating New Wikis]] for more
 information about making wikis.

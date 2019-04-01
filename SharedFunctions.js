@@ -633,15 +633,7 @@ This has some functions that are needed by Bob in different places.
     return outQueue;
   }
 
-  /*
-    This is a simple and fast hashing function that we can use to test if a
-    tiddler has changed or not.
-    This doesn't need to be at all secure, and doesn't even need to be that
-    robust against collisions, it just needs to make collisions rare for a very
-    easy value of rare, like 0.1% would be more than enough to make this very
-    useful, and this should be much better than that.
-  */
-  function normalizeTiddler(tiddler) {
+  Shared.normalizeTiddler = function(tiddler) {
     let newTid = {};
     if (tiddler) {
       if (tiddler.fields) {
@@ -670,6 +662,15 @@ This has some functions that are needed by Bob in different places.
     }
     return newTid
   }
+
+  /*
+    This is a simple and fast hashing function that we can use to test if a
+    tiddler has changed or not.
+    This doesn't need to be at all secure, and doesn't even need to be that
+    robust against collisions, it just needs to make collisions rare for a very
+    easy value of rare, like 0.1% would be more than enough to make this very
+    useful, and this should be much better than that.
+  */
   // This is a stable json stringify function from https://github.com/epoberezkin/fast-json-stable-stringify
   function stableStringify (data, opts) {
     if (!opts) opts = {};
@@ -729,7 +730,7 @@ This has some functions that are needed by Bob in different places.
     })(data);
   };
   Shared.getTiddlerHash = function(tiddler) {
-    const tiddlerString = stableStringify(normalizeTiddler(tiddler))
+    const tiddlerString = stableStringify(Shared.normalizeTiddler(tiddler))
     let hash = 0;
     if (tiddlerString.length == 0) {
         return hash;
