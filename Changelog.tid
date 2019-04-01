@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.2.2 Fried Potatoes
+!! Version 1.2.2r5 Fried Potatoes
 
   - Wikis can now be hosted on paths to other wikis. You can have both '/students' and '/students/eve'
     - No wikis can have the name `__path`
@@ -16,6 +16,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Fixed another bug that would sometimes allow a wiki with the same name as an existing wiki to be created
   - You can now access the full settings interface from any wiki by checking a box in the control panel.
   - Hopefully fix a race condition that could result in multiple wikis being created for a single command.
+  - Automatically populating the wiki list will now properly find wikis inside other wiki folders.
   - Add an interface to manage themes like the manage plugins interface.
   - You can now fetch plugins directly from github. (VERY EXPERIMENTAL)
     - This required two external modules that are now included in the Bob plugin
