@@ -51,9 +51,9 @@ if($tw.node) {
   */
   WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
     prefix = prefix || '';
-    if (!callback) {
+    if(!callback) {
       callback = function (err, fileInfo) {
-        if (err) {
+        if(err) {
           console.log(err);
         } else {
           return fileInfo;
@@ -85,7 +85,7 @@ if($tw.node) {
       $tw.Bob.Wikis = $tw.Bob.Wikis || {};
       $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
       // A cludge to make things work
-      if (prefix === 'RootWiki') {
+      if(prefix === 'RootWiki') {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
       const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
@@ -114,7 +114,7 @@ if($tw.node) {
   console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
         $tw.Bob.Files[prefix][title] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-        if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
+        if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
           $tw.Bob.Wikis[prefix].tiddlers.push(title);
         }
         // Pass it to the callback
@@ -143,7 +143,7 @@ if($tw.node) {
     let baseFilename;
     let pathNameFilters;
     // Check whether the user has configured a tiddler -> pathname mapping
-    if ($tw.Bob.Wikis[wiki].wiki) {
+    if($tw.Bob.Wikis[wiki].wiki) {
       pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
     }
     if(pathNameFilters) {
@@ -171,17 +171,17 @@ if($tw.node) {
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
   WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
-    if (typeof prefix === 'function') {
+    if(typeof prefix === 'function') {
       callback = prefix;
       prefix = null;
     }
-    if (typeof callback !== 'function') {
+    if(typeof callback !== 'function') {
       callback = function () {
 
       }
     }
     prefix = prefix || 'RootWiki';
-    if (tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/') && !tiddler.fields.title.startsWith('$:/WikiSettings')) {
+    if(tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/') && !tiddler.fields.title.startsWith('$:/WikiSettings')) {
       this.getTiddlerFileInfo(tiddler, prefix,
        function(err,fileInfo) {
         if(err) {
@@ -210,7 +210,7 @@ if($tw.node) {
             // It is because the internalSave keeps waiting for a response about
             // the non-.meta file and it dosen't exist. I don't have a fix for
             // it yet.
-            if (tiddler.fields.text && tiddler.fields.text !== '' || true) {
+            if(tiddler.fields.text && tiddler.fields.text !== '' || true) {
               // TODO figure out why renaming inside the wiki isn't working here
               fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
                 if(err) {
@@ -251,7 +251,7 @@ if($tw.node) {
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
     $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-    if ($tw.Bob.Wikis[prefix].tiddlers.indexOf(tiddler.fields.title) === -1) {
+    if($tw.Bob.Wikis[prefix].tiddlers.indexOf(tiddler.fields.title) === -1) {
       $tw.Bob.Wikis[prefix].tiddlers.push(tiddler.fields.title);
     }
   }
@@ -262,7 +262,7 @@ if($tw.node) {
   We don't need to implement loading for the file system adaptor, because all the tiddler files will have been loaded during the boot process.
   */
   WebsocketAdaptor.prototype.loadTiddler = function(title,callback) {
-    if (!callback) {
+    if(!callback) {
       callback = function () {
 
       }
@@ -274,16 +274,16 @@ if($tw.node) {
   Delete a tiddler and invoke the callback with (err)
   */
   WebsocketAdaptor.prototype.deleteTiddler = function(title, callback, options) {
-    if (typeof callback === 'object') {
+    if(typeof callback === 'object') {
       options = callback;
       callback = null;
     }
-    if (!callback || typeof callback === 'object') {
+    if(!callback || typeof callback === 'object') {
       callback = function () {
         // Just a blank function to prevent errors
       }
     }
-    if (typeof options !== 'object') {
+    if(typeof options !== 'object') {
       options = {}
     }
     const prefix = options.wiki;

@@ -29,7 +29,7 @@ exports.getPluginInfo = function() {
 				const authors = fs.readdirSync(pluginPath);
 				for(let authorIndex=0; authorIndex<authors.length; authorIndex++) {
 					const pluginAuthor = authors[authorIndex];
-          if ($tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor))) {
+          if($tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor))) {
   	        const pluginNames = fs.readdirSync(path.join(pluginPath,pluginAuthor));
   	        pluginNames.forEach(function(pluginName) {
   	  				// Check if directories have a valid plugin.info

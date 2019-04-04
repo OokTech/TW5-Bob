@@ -22,7 +22,7 @@ exports.synchronous = true;
 $tw.settings = $tw.settings || {};
 $tw.settings.wikis = $tw.settings.wikis || {};
 
-if ($tw.node) {
+if($tw.node) {
   const fs = require("fs");
   const path = require("path");
   /*
@@ -47,7 +47,7 @@ if ($tw.node) {
     Object.keys(inputObj).forEach(function(entry) {
       if(typeof inputObj[entry] === 'string' && entry !== '__path') {
         inputObj[entry] = {'__path': inputObj[entry]}
-      } else if (typeof inputObj[entry] === 'object') {
+      } else if(typeof inputObj[entry] === 'object') {
         updateSettingsWikiPaths(inputObj[entry])
       }
     })
@@ -60,7 +60,7 @@ if ($tw.node) {
     json file at newSettingsPath
   */
   $tw.loadSettings = function(settings, newSettingsPath) {
-    if ($tw.node && !fs) {
+    if($tw.node && !fs) {
       const fs = require('fs')
     }
   	let rawSettings;
@@ -107,8 +107,8 @@ if ($tw.node) {
   $tw.updateSettings = function (globalSettings, localSettings) {
     //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
     Object.keys(localSettings).forEach(function(key,index){
-      if (typeof localSettings[key] === 'object') {
-        if (!globalSettings[key]) {
+      if(typeof localSettings[key] === 'object') {
+        if(!globalSettings[key]) {
           globalSettings[key] = {};
         }
         //do this again!
@@ -122,18 +122,18 @@ if ($tw.node) {
   $tw.CreateSettingsTiddlers = function (data) {
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
-    if (typeof $tw.settings.editionsPath === 'string') {
+    if(typeof $tw.settings.editionsPath === 'string') {
       let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if ($tw.settings.wikiPathBase === 'homedir') {
+      if($tw.settings.wikiPathBase === 'homedir') {
         basePath = os.homedir();
-      } else if ($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
         basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
       } else {
         basePath = path.resolve($tw.settings.wikiPathBase);
       }
       // We need to make sure this doesn't overwrite existing thing
       const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
-      if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+      if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
         process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + fullEditionsPath;
       } else {
         process.env["TIDDLYWIKI_EDITION_PATH"] = fullEditionsPath;
@@ -178,7 +178,7 @@ if ($tw.node) {
     } catch(e) {
       console.log(e)
     }
-    if (typeof wikiInfo === 'object') {
+    if(typeof wikiInfo === 'object') {
       // Get plugin list
       const fieldsPluginList = {
         title: '$:/Bob/ActivePluginList',
@@ -204,7 +204,7 @@ if ($tw.node) {
   function doThisLevel (inputObject, currentName, data) {
     let currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
-      if (typeof inputObject[property] === 'object') {
+      if(typeof inputObject[property] === 'object') {
         // Call recursive function to walk through properties
         doThisLevel(inputObject[property], currentName + '/' + property, data);
         currentLevel[property] = currentName + '/' + property;

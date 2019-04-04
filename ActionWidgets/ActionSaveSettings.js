@@ -73,12 +73,12 @@ ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
 
 function buildSettings (tiddler) {
 	let settings = {};
-	if (tiddler) {
-		if (tiddler.fields) {
+	if(tiddler) {
+		if(tiddler.fields) {
 			let object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
 			Object.keys(object).forEach(function (field) {
-				if (typeof object[field] === 'string' || typeof object[field] === 'number') {
-					if (String(object[field]).startsWith('$:/WikiSettings/split')) {
+				if(typeof object[field] === 'string' || typeof object[field] === 'number') {
+					if(String(object[field]).startsWith('$:/WikiSettings/split')) {
 						// Recurse!
 						const newTiddler = $tw.wiki.getTiddler(object[field]);
 						settings[field] = buildSettings(newTiddler);

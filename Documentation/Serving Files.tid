@@ -13,6 +13,37 @@ your home network.
 
 ---
 
+!! Enabling the file server
+
+Bob, like the node.js version of tiddlywiki, does not handle external files the
+same way that the html wikis do.
+This means that you can't just reference files by their location on your
+harddrive the way you can with the single file wikis.
+To access files on your harddrive you have to enable the file server component
+of Bob. To do this open the $:/ControlPanel, then the tab `Bob Settings` and
+under that the tab `File Server` and check the `Enable File Server` checkbox.
+
+!!! Setting up the file server
+
+After enabling the file server it is easiest to just use the default settings.
+Unless you have some compelling reason to change than it is recommended that
+you stick with the defaults.
+
+If you have a reason to change the settings there are two relevant settings:
+
+* `filePathRoot` - This is the base folder for the files that are served.
+* `fileURLPrefix` - this is the uri prefix to use for accessing files.
+
+By default globally available files are served from the folder `files` in the
+same folder as the executable (for BobEXE) or the current working directory for
+the plugin version.
+
+Files that are only available to one wiki are served by default from the folder
+called `files` inside the wiki folder, next to the `tiddlers` folder.
+
+These defaults give the same paths to files as a single file wiki in the same
+place.
+
 !! Globally available files
 
 These files are available to any wiki being served.
@@ -20,10 +51,6 @@ These files are available to any wiki being served.
 You can serve files from the local filesystem to make them available in the
 wiki. This is particularly useful for things like images and pdf files that
 would make the wiki large if they were embedded as tiddlers.
-
-To enable the static file server you need to give a value for `filePathRoot` in
-the Bob settings. Set this to the path of the folder you have your images or
-other files you want to have available.
 
 By default the urls for files in that folder are prefixed with `files`, so if
 you have a file `foo.jpg` in the folder you are using than you can access it in

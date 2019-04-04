@@ -55,7 +55,7 @@ exports.params = [
 Run the macro
 */
 exports.run = function(key, root) {
-  if (!key) {
+  if(!key) {
     // If no key is given return an empty string.
     return "";
   } else {
@@ -63,11 +63,11 @@ exports.run = function(key, root) {
     var keys = key.split('##');
   }
   // If no root is given use the default.
-  if (!root) {
+  if(!root) {
     root = "$:/WikiSettings/split";
   }
   var tiddler = $tw.wiki.getTiddler(root);
-  if (!tiddler) {
+  if(!tiddler) {
     // if the root doesn't exist return an empty string.
     return "";
   }
@@ -84,11 +84,11 @@ tiddler.
 function walk(keys, tiddler) {
   try {
     var currentLevel = JSON.parse(tiddler.fields.text);
-    if (typeof currentLevel[keys[0]] === 'string') {
+    if(typeof currentLevel[keys[0]] === 'string') {
       // If the current level is a tiddler holding the next nested object pass
       // that into the walk function, otherwise return the value of the key at
       // this level.
-      if (currentLevel[keys[0]].startsWith(tiddler.fields.title)) {
+      if(currentLevel[keys[0]].startsWith(tiddler.fields.title)) {
         var newTiddler = $tw.wiki.getTiddler(currentLevel[keys[0]]);
         keys.shift();
         return walk(keys, newTiddler);

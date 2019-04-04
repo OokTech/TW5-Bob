@@ -53,12 +53,12 @@ $tw.Bob.Files = $tw.Bob.Files || {};
 */
 ServerSide.getWikiPath = function(wikiName) {
   let wikiPath = undefined;
-  if (wikiName === 'RootWiki') {
+  if(wikiName === 'RootWiki') {
     wikiPath = path.resolve($tw.boot.wikiPath);
   } else if(wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) {
-    if (typeof $tw.settings.wikis[wikiName] === 'string') {
+    if(typeof $tw.settings.wikis[wikiName] === 'string') {
       wikiPath = $tw.settings.wikis[wikiName];
-    } else if (typeof $tw.settings.wikis[wikiName].__path === 'string') {
+    } else if(typeof $tw.settings.wikis[wikiName].__path === 'string') {
       wikiPath = $tw.settings.wikis[wikiName].__path;
     }
   } else {
@@ -83,7 +83,7 @@ ServerSide.getWikiPath = function(wikiName) {
     }
   }
   // If the wikiPath exists convert it to an absolute path
-  if (typeof wikiPath !== 'undefined') {
+  if(typeof wikiPath !== 'undefined') {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
     $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;

@@ -36,7 +36,7 @@ it will overwrite this file.
   exports.synchronous = true;
 
   // Polyfill because IE uses old javascript
-  if (!String.prototype.startsWith) {
+  if(!String.prototype.startsWith) {
     String.prototype.startsWith = function(search, pos) {
       return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
     };
@@ -48,11 +48,12 @@ it will overwrite this file.
   $tw.connections = $tw.connections || [];
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 
+  /*
   const sendAck = function (data) {
     const token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
   }
-
+  */
   /*
     TODO - determine if we should sanitise the tiddler titles and field names
 
@@ -71,14 +72,14 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.saveTiddler = function(data) {
     // Ignore the message if it isn't for this wiki
-    if (data.wiki === $tw.wikiName) {
+    if(data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
-      if (data.tiddler.fields) {
-        if (typeof data.tiddler.fields.title === 'string') {
+      if(data.tiddler.fields) {
+        if(typeof data.tiddler.fields.title === 'string') {
           // if the tiddler exists already only update it if the update is
           // different than the existing one.
           const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
-          if (changed) {
+          if(changed) {
             console.log('Create Tiddler', data.tiddler.fields.title);
             $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
           }
@@ -89,7 +90,7 @@ it will overwrite this file.
         console.log("No tiddler fields given");
       }
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -98,7 +99,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
     // make sure there is actually a list sent
-    if (data.list) {
+    if(data.list) {
         const listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields
         const tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
@@ -107,7 +108,7 @@ it will overwrite this file.
     } else {
       console.log("No tiddler list given");
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -118,15 +119,15 @@ it will overwrite this file.
     deleting the tiddler.
   */
   $tw.browserMessageHandlers.deleteTiddler = function (data) {
-    if (data.wiki === $tw.wikiName) {
+    if(data.wiki === $tw.wikiName) {
       data.tiddler = data.tiddler || {};
       data.tiddler.fields = data.tiddler.fields || {};
       const title = data.tiddler.fields.title;
-      if (title) {
+      if(title) {
         $tw.wiki.deleteTiddler(title);
       }
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -144,7 +145,7 @@ it will overwrite this file.
     //var message = {type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}
     //var messageData = $tw.Bob.Shared.createMessageData(message)
     //$tw.Bob.Shared.sendMessage(messageData, 0)
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -155,17 +156,17 @@ it will overwrite this file.
     version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
-    if (data.tiddler) {
-      if (data.tiddler.fields) {
+    if(data.tiddler) {
+      if(data.tiddler.fields) {
         data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
         data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
         let wikiTiddler = $tw.wiki.getTiddler(data.tiddler.fields.title);
-        if (wikiTiddler) {
+        if(wikiTiddler) {
           wikiTiddler = JSON.parse(JSON.stringify(wikiTiddler));
           wikiTiddler.fields.modified = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.modified))
           wikiTiddler.fields.created = $tw.utils.stringifyDate(new Date(wikiTiddler.fields.created))
           // Only add the tiddler if it is different
-          if ($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
+          if($tw.Bob.Shared.TiddlerHasChanged(data.tiddler, wikiTiddler)) {
             const newTitle = '$:/state/Bob/Conflicts/' + data.tiddler.fields.title;
             $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
             // we have conflicts so open the conflict list tiddler
@@ -180,7 +181,7 @@ it will overwrite this file.
         }
       }
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -197,7 +198,7 @@ it will overwrite this file.
     let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
     storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
     $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -228,14 +229,14 @@ it will overwrite this file.
     // If this pong is part of a heartbeat than use a setTimeout to send
     // another beat in the interval defined in $tw.settings.heartbeat.interval
     // the timeout id is stored in $tw.settings.heartbeat.timeoutid
-    if (data.heartbeat) {
-      if ($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
+    if(data.heartbeat) {
+      if($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
         $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Server Warning');
       }
 
       $tw.settings.heartbeat = $tw.settings.heartbeat || {};
 
-      if (!$tw.settings.heartbeat.interval) {
+      if(!$tw.settings.heartbeat.interval) {
         const heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
         const heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
@@ -256,7 +257,7 @@ it will overwrite this file.
   }
 
   function checkDisconnected() {
-    if ($tw.connections[0].socket.readyState !== 1) {
+    if($tw.connections[0].socket.readyState !== 1) {
       handleDisconnected();
     } else {
       const token = localStorage.getItem('ws-token')
@@ -274,7 +275,7 @@ it will overwrite this file.
     const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
-      if ($tw.connections[0].socket.readyState === 1) {
+      if($tw.connections[0].socket.readyState === 1) {
         const token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
       }
@@ -291,7 +292,7 @@ it will overwrite this file.
     Download the file in the message data
   */
   $tw.browserMessageHandlers.downloadFile = function (data) {
-    if (data) {
+    if(data) {
       const text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
       let a = document.createElement('a');
       a.download = 'index.html';
@@ -302,21 +303,21 @@ it will overwrite this file.
       a.click();
       document.body.removeChild(a);
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
     Set the viewable wikis
   */
   $tw.browserMessageHandlers.setViewableWikis = function (data) {
-    if (data.list) {
+    if(data.list) {
       const fields = {
         title: '$:/state/ViewableWikis',
         list: data.list
       }
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
-    sendAck(data);
+    $tw.Bob.Shared.sendAck(data);
   }
 
   /*

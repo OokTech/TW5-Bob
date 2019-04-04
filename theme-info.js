@@ -29,7 +29,7 @@ exports.getThemeInfo = function() {
 				const authors = fs.readdirSync(themePath);
 				for(let authorIndex=0; authorIndex<authors.length; authorIndex++) {
 					const themeAuthor = authors[authorIndex];
-          if ($tw.utils.isDirectory(path.resolve(themePath,themeAuthor))) {
+          if($tw.utils.isDirectory(path.resolve(themePath,themeAuthor))) {
   	        const themeNames = fs.readdirSync(path.join(themePath,themeAuthor));
   	        themeNames.forEach(function(themeName) {
   	  				// Check if directories have a valid plugin.info

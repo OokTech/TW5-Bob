@@ -65,13 +65,13 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
   let self = this;
   // Find the file input html element, get the file from that.
   const fileElement = document.getElementById(this.inputName);
-  if (fileElement) {
+  if(fileElement) {
     const file = fileElement.files[0];
     const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
     // Read the file and pass it to the parsing stuff
-    if (file) {
+    if(file) {
       $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
-        if (output.length > 0) {
+        if(output.length > 0) {
           const token = localStorage.getItem('ws-token')
           const message = {
             "type": "newWikiFromTiddlers",

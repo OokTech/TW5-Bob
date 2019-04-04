@@ -21,7 +21,7 @@ exports.after = ["load-modules"];
 exports.platforms = ["node"];
 exports.synchronous = true;
 
-if ($tw.node) {
+if($tw.node) {
   // require the fs module if we are running node
   const fs = require("fs");
   const path = require("path");
@@ -62,7 +62,7 @@ if ($tw.node) {
   const buildTree = function(location, parent) {
     const folders = getDirectories(path.join(parent,location));
     const parentTree = {'path': path.join(parent,location), folders: {}};
-    if (folders.length > 0) {
+    if(folders.length > 0) {
       folders.forEach(function(folder) {
         const apex = folder.split(path.sep).pop();
         parentTree.folders[apex] = {};
@@ -87,9 +87,9 @@ if ($tw.node) {
         const itemPath = path.join(folder, filename);
         // Determine if it exists and if it is a file or folder
         const exists = fs.existsSync(itemPath);
-        if (exists) {
+        if(exists) {
           isFile = fs.lstatSync(itemPath).isFile();
-          if (!isFile) {
+          if(!isFile) {
             isFolder = fs.lstatSync(itemPath).isDirectory();
           }
         }
@@ -102,8 +102,8 @@ if ($tw.node) {
           // A lot of this is to handle some weird edge cases I ran into
           // while making it.
           // TODO figure out why this happens.
-          if (typeof item === 'string') {
-            if (item === 'undefined') {
+          if(typeof item === 'string') {
+            if(item === 'undefined') {
               delete $tw.Bob.Files[prefix][item];
               return false;
             }
@@ -115,11 +115,11 @@ if ($tw.node) {
 
         // If it is a new file or a change an existing file and it is a .tid or
         // .meta file
-        if (isFile && exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+        if(isFile && exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
           // Load tiddler data from the file
           const tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
           // Make sure that it at least has a title
-          if (Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
+          if(Object.keys(tiddlerObject.tiddlers[0]).indexOf('title') !== -1) {
             // Test to see if the filename matches what the wiki says it
             // should be. If not rename the file to match the rules set by
             // the wiki.
@@ -128,38 +128,38 @@ if ($tw.node) {
             let existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
             // Load the tiddler from the wiki, check if they are different (non-existent is changed)
             //var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
-            if ($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
+            if($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
               // Rename the file
               // If $:/config/FileSystemPaths is used than the folder and
               // newTitle may overlap.
               // This determines if any of the title has an overlap in the path
-              if (newTitle.replace('\\','/').indexOf('/') !== -1) {
+              if(newTitle.replace('\\','/').indexOf('/') !== -1) {
                 const pieces = newTitle.replace('\\','/').split('/')
                 let pathBits = pieces.slice(0,-1);
                 while (pathBits.length > 0) {
-                  if (folder.endsWith(pathBits.join(path.sep))) {
+                  if(folder.endsWith(pathBits.join(path.sep))) {
                     break;
                   }
                   pathBits = pathBits.slice(0,-1);
                 }
-                if (pathBits.length > 0) {
+                if(pathBits.length > 0) {
                   newTitle = pieces.slice(pathBits.length).join(path.sep);
                 }
               }
               // translate tiddler title into filepath
               const theFilepath = path.join(folder, newTitle + fileExtension);
               let tiddlerName = fullTiddlerName
-              if (typeof fullTiddlerName === 'string') {
+              if(typeof fullTiddlerName === 'string') {
                 // create the new tiddler and delete the old one.
                 // Make the new file path
                 tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
               }
-              if (typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
+              if(typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
                 console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
                 // Remove the old tiddler
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
-              if (itemPath !== theFilepath) {
+              if(itemPath !== theFilepath) {
                 // Delete the old file, the normal delete action takes care
                 // of the rest.
                 fs.unlinkSync(itemPath);
@@ -176,11 +176,11 @@ if ($tw.node) {
           }
         }
         // If the file doesn't exist anymore remove it from the wiki
-        if (!exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+        if(!exists && ['.tid', '.meta'].indexOf(fileExtension) !== -1) {
           $tw.Bob.DeleteTiddler(folder, filename, prefix);
         }
         // If it is a new folder than watch that folder too
-        if (exists && isFolder) {
+        if(exists && isFolder) {
           $tw.Bob.WatchFolder(itemPath, prefix)
         }
       });
@@ -225,7 +225,7 @@ if ($tw.node) {
     // At this point the tiddlerName is the internal name so we need to switch
     // to the non-prefixed name for the message to the browsers
     Object.keys($tw.Bob.Files[prefix]).forEach(function(tiddlerName) {
-      if ($tw.Bob.Files[prefix][tiddlerName].filepath === itemPath) {
+      if($tw.Bob.Files[prefix][tiddlerName].filepath === itemPath) {
         // Remove the tiddler info from $tw.Bob.Files
         delete $tw.Bob.Files[prefix][tiddlerName];
         // Remove the tiddler on the server
@@ -260,8 +260,8 @@ if ($tw.node) {
   */
   $tw.Bob.WatchAllFolders = function (folderTree, prefix) {
     // Watch the current folder after making sure that the path exists
-    if (typeof folderTree.path === 'string') {
-      if (fs.existsSync(folderTree.path)) {
+    if(typeof folderTree.path === 'string') {
+      if(fs.existsSync(folderTree.path)) {
         $tw.Bob.WatchFolder(folderTree.path, prefix);
       }
     }

@@ -82,12 +82,12 @@ Invoke the action associated with this widget
 ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
   // Otherwise we want to ignore the server-specific plugins to keep things
   // small.
-  const excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
-  if (this.excludeFilter) {
+  let excludeList = ['$:/plugins/OokTech/Bob', '$:/plugins/tiddlywiki/filesystem', '$:/plugins/tiddlywiki/tiddlyweb'];
+  if(this.excludeFilter) {
     excludeList = $tw.wiki.filterTiddlers(this.excludeFilter)
   }
 
-  if (this.ignoreDefaultExclude !== 'true') {
+  if(this.ignoreDefaultExclude !== 'true') {
     const defaultExclude = $tw.wiki.filterTiddlers('[prefix[$:/plugins/OokTech/Bob/]][[$:/plugins/OokTech/Bob]][prefix[$:/WikiSettings]][prefix[$:/Bob/]][[$:/ServerIP]][[$:/plugins/tiddlywiki/filesystem]][[$:/plugins/tiddlywiki/tiddlyweb]]');
     excludeList = excludeList.concat(defaultExclude);
   }
@@ -101,7 +101,7 @@ ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/bootprefix.js'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/themes/tiddlywiki/vanilla'))
   let includeList
-  if (this.includeFilter) {
+  if(this.includeFilter) {
     includeList = $tw.wiki.filterTiddlers(this.includeFilter)
   } else {
     includeList = $tw.wiki.allTitles()

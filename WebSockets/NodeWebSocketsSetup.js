@@ -27,7 +27,7 @@ exports.synchronous = true;
 $tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
 
 
-if ($tw.node) {
+if($tw.node) {
   //var fs = require("fs");
   //var http = require("http");
   //var path = require("path");
@@ -58,7 +58,7 @@ if ($tw.node) {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
-      if (!$tw.settings['ws-server'].useExternalWSS) {
+      if(!$tw.settings['ws-server'].useExternalWSS) {
         $tw.wss = new WebSocketServer({noServer: true});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
@@ -131,7 +131,7 @@ if ($tw.node) {
       // This is really only a concern for the secure server, in that case
       // you authenticate the token and it only works if the wiki matches
       // and the token has access to that wiki.
-      if (eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+      if(eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
         $tw.connections[thisIndex].wiki = eventData.wiki;
         // Make sure that the new connection has the correct list of tiddlers
         // being edited.
@@ -141,12 +141,12 @@ if ($tw.node) {
       // This may not be a necessary security measure.
       // I don't think that not having this would open up any exploits but I am not sure.
       // TODO figure out if this is needed.
-      if (eventData.wiki === $tw.connections[thisIndex].wiki) {
+      if(eventData.wiki === $tw.connections[thisIndex].wiki) {
         // Make sure we have a handler for the message type
-        if (typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+        if(typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
           // Check authorisation
           const authorised = authenticateMessage(eventData)
-          if (authorised) {
+          if(authorised) {
             eventData.decoded = authorised
             $tw.nodeMessageHandlers[eventData.type](eventData);
           }
@@ -168,8 +168,8 @@ if ($tw.node) {
   */
   $tw.Bob.DisconnectWiki = function (wiki) {
     $tw.connections.forEach(function(connectionIndex) {
-      if (connectionIndex.wiki === wiki) {
-        if (connectionIndex.socket !== undefined) {
+      if(connectionIndex.wiki === wiki) {
+        if(connectionIndex.socket !== undefined) {
           // Close the websocket connection
           connectionIndex.socket.terminate();
         }
@@ -182,10 +182,10 @@ if ($tw.node) {
     the wiki.
   */
   $tw.Bob.PruneConnections = function () {
-    if ($tw.settings.autoUnloadWikis === "true") {
+    if($tw.settings.autoUnloadWikis === "true") {
       $tw.connections.forEach(function(connection) {
-        if (connection.socket !== undefined) {
-          if (connection.socket.readyState !== 1) {
+        if(connection.socket !== undefined) {
+          if(connection.socket.readyState !== 1) {
             $tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
             connection.socket.terminate();
             connection.socket = undefined;
@@ -211,15 +211,15 @@ if ($tw.node) {
     const exists = $tw.ServerSide.loadWiki(wikiName);
     // This should never be false, but then this shouldn't every have been a
     // problem to start.
-    if (exists) {
+    if(exists) {
       // Check if a tiddler title was passed as input and that the tiddler isn't
       // already listed as being edited.
       // If there is a title and it isn't being edited add it to the list.
-      if (tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
+      if(tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
         $tw.Bob.EditingTiddlers[wikiName][tiddler] = true;
       }
       Object.keys($tw.connections).forEach(function(index) {
-        if ($tw.connections[index].wiki === wikiName) {
+        if($tw.connections[index].wiki === wikiName) {
           $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
           const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
           const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
@@ -246,8 +246,8 @@ if ($tw.node) {
     const messageData = $tw.Bob.Shared.createMessageData(message);
     // Send message to all connections.
     $tw.connections.forEach(function (connection) {
-      if (connection.socket) {
-        if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+      if(connection.socket) {
+        if(connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
           $tw.Bob.Shared.sendMessage(messageData, connection.index);
         }
       }
@@ -264,12 +264,12 @@ if ($tw.node) {
     connection has a list of message ids that are still waiting for acks.
   */
   $tw.Bob.SendToBrowser = function (connection, message) {
-    if (connection) {
+    if(connection) {
       $tw.Bob.UpdateHistory(message);
       const messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
-      if (connection.socket) {
-        if (connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
+      if(connection.socket) {
+        if(connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
           $tw.Bob.Shared.sendMessage(messageData, connection.index);
         }
       }
@@ -299,7 +299,7 @@ if ($tw.node) {
   */
   $tw.Bob.UpdateHistory = function(message) {
     // Only save saveTiddler or deleteTiddler events that have a wiki listed
-    if (['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
+    if(['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
       $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
       $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || [];
       const entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
@@ -310,7 +310,7 @@ if ($tw.node) {
         title: message.tiddler.fields.title,
         type: message.type
       }
-      if (entryIndex > -1) {
+      if(entryIndex > -1) {
         $tw.Bob.ServerHistory[message.wiki][entryIndex] = entry;
       } else {
         $tw.Bob.ServerHistory[message.wiki].push(entry);
@@ -323,7 +323,7 @@ if ($tw.node) {
   // Also we don't do this if we have an external server running things
   // we have to use the command line arguments because the externalserver
   // command hasn't run yet so we can't check $tw.ExternalServer
-  if ($tw.boot.argv.indexOf('--externalserver') === -1) {
+  if($tw.boot.argv.indexOf('--externalserver') === -1) {
     setup();
   }
 }

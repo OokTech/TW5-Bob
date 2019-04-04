@@ -91,7 +91,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   const token = localStorage.getItem('ws-token');
   message["token"] = token;
   // We need a message type at a minimum to send anything
-  if (message.type) {
+  if(message.type) {
     // Send the message
     //$tw.connections[0].socket.send(JSON.stringify(message));
     const messageData = $tw.Bob.Shared.createMessageData(message)

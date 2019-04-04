@@ -634,7 +634,7 @@ if($tw.node) {
         }
       });
     }
-    if(typeof $tw.settings.filePathRoot !== 'undefined') {
+    if($tw.settings.enableFileServer === 'true') {
       // Start with the same base path as the --listen command
       let pathRegExp = new RegExp('\/files\/.+$');
       if(typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
@@ -744,7 +744,7 @@ if($tw.node) {
         if(typeof inputObject[wikiName] === 'string') {
           let fullName = wikiName;
           if(prefix !== '') {
-            if (wikiName !== '__path') {
+            if(wikiName !== '__path') {
               fullName = prefix + '/' + wikiName;
             } else {
               fullName = prefix;
@@ -785,7 +785,7 @@ if($tw.node) {
             path: new RegExp('^\/' + fullName + '\/favicon.ico$'),
             handler: function(request,response,state) {
               const exists = $tw.ServerSide.loadWiki(fullName);
-              if (exists) {
+              if(exists) {
                 response.writeHead(200, {"Content-Type": "image/x-icon"});
                 const buffer = $tw.Bob.Wikis[fullName].wiki.getTiddlerText('$:/favicon.ico');
                 response.end(buffer,"base64");
