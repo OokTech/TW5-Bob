@@ -8,6 +8,7 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [[$:/Bob/ActiveLanguagesList]]
 [[$:/Bob/ActiveThemesList]]
 [[$:/Bob/ActivePluginList]]
+[[$:/Bob/AlertHistory]]
 [[$:/ServerIP]]
 [[$:/EditionsList]]
 [[$:/state/ViewableWikis]]

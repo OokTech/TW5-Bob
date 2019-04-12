@@ -462,24 +462,46 @@ ServerSide.loadPlugin = function(name,paths, wikiName) {
   both source and destination are paths
   This uses absolute paths, so make sure you get them before passing them to
   this function.
+
+  source - the folder to copy
+  destination - the folder to create containing a copy of the source folder
+  copyChildren - if set to true than any child wikis inside the source folder will be copied as well, otherwise no child wikis will be copied.
+  cb - an optional callback function, it is passed source, destination and copyChildren as arguments
+
+  note: The callback is called only once for the original function call, it
+  isn't called for any of the recursive calls used for sub-directories.
 */
-ServerSide.specialCopy = function(source, destination, cb) {
-  fs.mkdirSync(destination, {recursive: true});
-  const currentDir = fs.readdirSync(source)
-  currentDir.forEach(function (item) {
-    if(fs.statSync(path.join(source, item)).isFile()) {
-      const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
-      fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
-    } else {
-      //Recurse!! Because it is a folder.
-      // But make sure it is a directory first.
-      if(fs.statSync(path.join(source, item)).isDirectory()) {
-        ServerSide.specialCopy(path.join(source, item), path.join(destination, item));
+ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
+  let err = undefined;
+  // Check to make sure inputs are what we expect
+  if(typeof source !== 'string' || typeof destination !== 'string') {
+    cb('The source or destination given is not a string.')
+    return;
+  }
+  if(typeof copyChildren === 'function') {
+    cb = copyChildren;
+    copyChildren = false;
+  }
+  try {
+    fs.mkdirSync(destination, {recursive: true});
+    const currentDir = fs.readdirSync(source)
+    currentDir.forEach(function (item) {
+      if(fs.statSync(path.join(source, item)).isFile()) {
+        const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
+        fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
+      } else {
+        //Recurse!! Because it is a folder.
+        // But make sure it is a directory first.
+        if(fs.statSync(path.join(source, item)).isDirectory() && (!fs.existsSync(path.join(source, item, 'tiddlywiki.info')) || copyChildren)) {
+          ServerSide.specialCopy(path.join(source, item), path.join(destination, item), copyChildren);
+        }
       }
-    }
-  });
+    });
+  } catch (e) {
+    err = e;
+  }
   if(typeof cb === 'function') {
-    cb()
+    cb(err, source, destination, copyChildren)
   }
 }
 
@@ -514,6 +536,93 @@ const buildTree = function(location, parent) {
     })
   }
   return parentTree;
+}
+
+/*
+  This sends an alert to the connected browser(s)
+
+  Who alerts are sent to can be filtered by:
+  - wiki: only browsers that are viewing the listed wiki(s) receive the alert.
+  - authentication level: only people who are logged in with one of the listed
+      authentication levels gets the alerm.
+  - specific connections: only the browser(s) using the listed connection(s)
+      get the alert.
+
+  or the alert can be sent to all connected browsers.
+
+  {
+    authentications: [authenticationLevel],
+    wikis: [wikiName],
+    connections: [connectionIndex],
+    alert: alertMessage
+  }
+
+  wikis - an array of wiki names to send the alert to
+  connections - an array of connection indicies to send the alert to
+  alert - the text of the alert to send
+
+  The authentications, wikis and connections can be combined so only people
+  who meet all the listed criteria get the alert.
+
+  NOTE: we don't have a good way to do these next ones for now, but we need to
+  in the future.
+  authentications - an array of authentication levels to receive the alert
+  access - an array of wikis and access levels (like can view the wiki in
+  question, or edit it)
+*/
+ServerSide.sendBrowserAlert = function(input) {
+  const message = {
+    type:'browserAlert',
+    alert: input.alert
+  }
+  input.wikis = input.wikis || [];
+  input.connections = input.connections || [];
+  input.authentications = input.authentications || [];
+  input.alert = input.alert || '';
+  if(input.alert.length > 0) {
+    let wikisList = false;
+    let connectionsList = false;
+    let authenticationsList = false;
+    if(input.connections.length > 0) {
+      $tw.connections.forEach(function(connection) {
+        if(input.connections.indexOf(connection.index) !== -1) {
+          connectionsList.push(connection.index);
+        }
+      });
+    }
+    if(input.wikis.length > 0) {
+      $tw.connectiotns.forEach(function(connection) {
+        if(input.wikis.indexOf(connection.wiki) !== -1) {
+          wikisList.push(connection.index);
+        }
+      })
+    }
+    if(input.authentications.length > 0) {
+      // Nothing here yet
+    }
+    // Get the intersection of all of the things listed above to get the
+    // connections to send this to.
+    wikisListThing = wikisList || []
+    connectionsListThing = connectionsList || []
+    authenticationsListThing = authenticationsList || []
+    if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
+      let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
+      if(wikisList) {
+        intersection = new Set([...intersection].filter(x => wikisList.has(x)));
+      }
+      if(connectionsList) {
+        intersection = new Set([...intersection].filter(x => connectionsList.has(x)));
+      }
+      if(authenticationsList) {
+        intersection = new Set([...intersection].filter(x => authenticationsList.has(x)));
+      }
+      intersection.forEach(function(index) {
+        $tw.Bob.SendToBrowser($tw.connections[index], message);
+      });
+    } else {
+      $tw.Bob.SendToBrowsers(message);
+    }
+  }
 }
 
 module.exports = ServerSide

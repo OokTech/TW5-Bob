@@ -49,12 +49,6 @@ it will overwrite this file.
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 
   /*
-  const sendAck = function (data) {
-    const token = localStorage.getItem('ws-token')
-    $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
-  }
-  */
-  /*
     TODO - determine if we should sanitise the tiddler titles and field names
 
     This message handler takes care of saveTiddler messages going to the
@@ -71,6 +65,7 @@ it will overwrite this file.
     }
   */
   $tw.browserMessageHandlers.saveTiddler = function(data) {
+    $tw.Bob.Shared.sendAck(data);
     // Ignore the message if it isn't for this wiki
     if(data.wiki === $tw.wikiName) {
       // The title must exist and must be a string, everything else is optional
@@ -90,7 +85,6 @@ it will overwrite this file.
         console.log("No tiddler fields given");
       }
     }
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -98,6 +92,7 @@ it will overwrite this file.
     special handler to support multi-wikis.
   */
   $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
+    $tw.Bob.Shared.sendAck(data);
     // make sure there is actually a list sent
     if(data.list) {
         const listField = $tw.utils.stringifyList(data.list);
@@ -108,7 +103,6 @@ it will overwrite this file.
     } else {
       console.log("No tiddler list given");
     }
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -119,6 +113,7 @@ it will overwrite this file.
     deleting the tiddler.
   */
   $tw.browserMessageHandlers.deleteTiddler = function (data) {
+    $tw.Bob.Shared.sendAck(data);
     if(data.wiki === $tw.wikiName) {
       data.tiddler = data.tiddler || {};
       data.tiddler.fields = data.tiddler.fields || {};
@@ -127,7 +122,6 @@ it will overwrite this file.
         $tw.wiki.deleteTiddler(title);
       }
     }
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -137,15 +131,12 @@ it will overwrite this file.
     system or if you only want a sub-set of existing tiddlers in the browser.
   */
   $tw.browserMessageHandlers.listTiddlers = function(data) {
+    $tw.Bob.Shared.sendAck(data);
     // This is an array of tiddler titles, each title is a string.
     const response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     const token = localStorage.getItem('ws-token')
     $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
-    //var message = {type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}
-    //var messageData = $tw.Bob.Shared.createMessageData(message)
-    //$tw.Bob.Shared.sendMessage(messageData, 0)
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -156,6 +147,7 @@ it will overwrite this file.
     version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
+    $tw.Bob.Shared.sendAck(data);
     if(data.tiddler) {
       if(data.tiddler.fields) {
         data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
@@ -181,7 +173,6 @@ it will overwrite this file.
         }
       }
     }
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -189,6 +180,7 @@ it will overwrite this file.
     using the wiki
   */
   $tw.browserMessageHandlers.import = function(data) {
+    $tw.Bob.Shared.sendAck(data);
     console.log('import', data.tiddler.fields.title)
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
@@ -198,7 +190,6 @@ it will overwrite this file.
     let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
     storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
     $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
@@ -292,6 +283,7 @@ it will overwrite this file.
     Download the file in the message data
   */
   $tw.browserMessageHandlers.downloadFile = function (data) {
+    $tw.Bob.Shared.sendAck(data);
     if(data) {
       const text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
       let a = document.createElement('a');
@@ -303,13 +295,13 @@ it will overwrite this file.
       a.click();
       document.body.removeChild(a);
     }
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
     Set the viewable wikis
   */
   $tw.browserMessageHandlers.setViewableWikis = function (data) {
+    $tw.Bob.Shared.sendAck(data);
     if(data.list) {
       const fields = {
         title: '$:/state/ViewableWikis',
@@ -317,7 +309,40 @@ it will overwrite this file.
       }
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
+  }
+
+  /*
+    This takes an alert from the server and displays it in the browser.
+    And appends it to a message history list.
+  */
+  $tw.browserMessageHandlers.browserAlert = function (data) {
     $tw.Bob.Shared.sendAck(data);
+    if(data.alert) {
+      // Update the message history
+      let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
+      let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
+      if(tiddler) {
+        tidObj = JSON.parse(JSON.stringify(tiddler.fields))
+      }
+      const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
+        return Number(item.replace(/^Server Alert /, ''))
+      }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
+      const AlertTitle = 'Server Alert ' + newNumber;
+      tidObj.text = JSON.parse(tidObj.text);
+      tidObj.text[AlertTitle] = data.alert;
+      tidObj.text = JSON.stringify(tidObj.text);
+      $tw.wiki.addTiddler(tidObj);
+
+      // Make a tiddler that has the tag $:/tags/Alert that has the text of the
+      // alert.
+      const fields = {
+        component: 'Server Message',
+        title: AlertTitle,
+        text: data.alert,
+        tags: '$:/tags/Alert'
+      }
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+    }
   }
 
   /*

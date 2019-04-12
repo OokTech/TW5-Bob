@@ -1,0 +1,50 @@
+title: $:/plugins/OokTech/Bob/RenameWikis
+caption: Rename Wikis
+
+\define updateNameActions()
+<$action-websocketmessage
+  $type='renameWiki'
+  newWiki={{$:/state/RenameWiki!!new_name}}
+  oldWiki={{$:/state/RenameWiki!!old_name}}
+/>
+<$action-setfield
+  $tiddler='$:/state/RenameWiki'
+  new_name=''
+  old_name=''
+/>
+\end
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+</$reveal>
+
+Select Wiki:
+<$select
+  tiddler='$:/state/RenameWiki'
+  field='old_name'
+>
+  <option
+    value=''
+  >
+    Select Wiki
+  </option>
+  <$list
+    filter='[listed[$:/state/ViewableWikis]]'
+  >
+    <option>
+      <<currentTiddler>>
+    </option>
+  </$list>
+</$select>
+
+New Name: <$edit-text tiddler='$:/state/RenameWiki' field='new_name'/>
+
+<$button
+  actions=<<updateNameActions>>
+>
+  Update Name
+</$button>

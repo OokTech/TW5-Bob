@@ -1,0 +1,19 @@
+title: $:/plugins/OokTech/Bob/ManageWikis
+caption: Manage Wikis
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+These are different things you can do for managing wikis.
+
+* `Wiki Listing` shows all of the wikis that are currently available. You can display this list in the sidebar.
+* `Create Wikis` has different methods for creating or adding new wikis to Bob.
+* `Rename Wikis` lets you rename or move existing wikis.
+* `Delete Wikis` lets you delete existing wikis. This is permanent and can not be undone.
+
+</$reveal>
+
+<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugnis/OokTech/Bob/CreateWikis]][[$:/plugins/OokTech/Bob/RenameWikis]][[$:/plugins/OokTech/Bob/DeleteWikis]]" "$:/plugins/OokTech/Bob/Wiki Listing">>

@@ -80,7 +80,6 @@ if($tw.node) {
     prefix = prefix || '';
     try {
       fs.watch(folder, function (eventType, filename) {
-        //console.log('Monitor:',eventType,'on',filename)
         let isFile = false;
         let isFolder = false;
         // The full path to the current item

@@ -68,11 +68,6 @@ if($tw.node) {
       const outputFile = path.resolve(wikiPath, outputFolder, outputName);
       $tw.utils.createFileDirectories(outputFile);
       let tempWiki = new $tw.Wiki();
-      /*
-      var wikiTiddlers = $tw.Bob.Wikis[fullName].tiddlers.concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).filter(function(tidInfo) {
-        return (excludeList.indexOf(tidInfo) === -1)
-      })
-      */
       $tw.Bob.Wikis[fullName].wiki.allTitles().forEach(function(title) {
         if(excludeList.indexOf(title) === -1) {
           tempWiki.addTiddler($tw.Bob.Wikis[fullName].wiki.getTiddler(title));
@@ -91,6 +86,11 @@ if($tw.node) {
             console.log(err);
           } else {
             console.log('Built Wiki: ', outputFile);
+            const message = {
+              alert: `Saved html file ` + outputFile + ' to the server.',
+              wikis: [data.buildWiki, data.wiki]
+            };
+            $tw.ServerSide.sendBrowserAlert(message);
           }
       });
     } else {
@@ -205,7 +205,12 @@ if($tw.node) {
       if(!count) {
         console.log("No tiddlers found in the input file");
       } else {
-        console.log("Wiki created")
+        console.log("Wiki created");
+        const message = {
+          alert: 'Created wiki ' + wikiName,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
       }
     } else {
       console.log('No tiddlers given!');
@@ -325,39 +330,17 @@ if($tw.node) {
         path = require("path");
 
       // Paths are relative to the root wiki path
-      if(process.pkg) {
-        // This is for handling when it is a single executable
-        // Base path is where the executable is by default
-        data.basePath = data.basePath || path.dirname(process.argv[0]);
-        data.wikisFolder = data.wikisFolder || 'Wikis';
-      }
-      data.wikisFolder = data.wikisFolder || '';
-      // If no basepath is given than the default is to make the folder a
-      // sibling of the index wiki folder
-      let rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if($tw.settings.wikiPathBase === 'homedir') {
-        rootPath = os.homedir();
-      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-        rootPath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      } else {
-        rootPath = path.resolve($tw.settings.wikiPathBase);
-      }
-      const basePath = data.basePath || path.resolve(rootPath, $tw.settings.wikisPath);
+      $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
+      data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
+      // If no basepath is given than the default is to place the folder in the
+      // default wikis folder
+      const basePath = data.basePath || $tw.ServerSide.getBasePath();
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath
       // data.wikisFolder is an optional sub-folder to use. If it is set to
       // Wikis than wikis created will be in the basepath/Wikis/relativePath
-      // folder
-      // I need better names here.
+      // folder I need better names here.
       $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
-
-      /*
-      // Get desired name for the new wiki
-      let name = data.wikiName || 'NewWiki';
-      if(name.trim() === '') {
-        name = 'NewWiki'
-      }
-      */
 
       // Make sure we have a unique name by appending a number to the wiki name
       // if it exists.
@@ -370,8 +353,6 @@ if($tw.node) {
         name = data.decoded.name + '/' + name;
         name = GetWikiName(name);
         relativePath = name;
-        //relativePath = path.join(data.decoded.name, name);
-        //name = path.join(data.decoded.name, name);
         $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
       }
       const fullPath = path.join(basePath, data.wikisFolder, relativePath)
@@ -436,6 +417,7 @@ if($tw.node) {
         console.log('failed to write settings', e)
       }
 
+      /*
       // Use relative paths here.
       // Note this that is dependent on process.cwd()!!
       function listWiki(wikiName, currentLevel, wikiPath) {
@@ -446,14 +428,14 @@ if($tw.node) {
           currentLevel[nameParts[0]] = {};
           listWiki(nameParts.slice(1).join(path.sep), currentLevel[nameParts[0]], wikiPath);
         } else if(nameParts.length === 1) {
-          // For now assume that they mean what they say and overwrite anything
-          // here if it exists.
           // List the wiki in the appropriate place
-          currentLevel[nameParts[0]] = {'__path': wikiPath};
+          currentLevel[nameParts[0]] = currentLevel[nameParts[0]] || {};
+          currentLevel[nameParts[0]].__path = wikiPath;
+          //currentLevel[nameParts[0]] = {'__path': wikiPath};
         }
       }
       listWiki(relativePath, $tw.settings.wikis, relativePath)
-
+      */
       // This is here as a hook for an external server. It is defined by the
       // external server and shouldn't be defined here or it will break
       // If you are not using an external server than this does nothing
@@ -463,6 +445,7 @@ if($tw.node) {
         }
       }
 
+      /*
       // Update the settings
       setTimeout(function() {
         data.saveSettings = true;
@@ -473,6 +456,16 @@ if($tw.node) {
       // The re-add all the routes from the settings
       // This reads the settings so we don't need to give it any arguments
       $tw.httpServer.addOtherRoutes();
+      */
+      data.update = 'true';
+      data.saveSettings = 'true';
+      $tw.nodeMessageHandlers.findAvailableWikis(data);
+
+      const message = {
+        alert: 'Created wiki ' + name,
+        connections: [data.source_connection]
+      };
+      $tw.ServerSide.sendBrowserAlert(message);
     }
   }
 
@@ -563,6 +556,58 @@ if($tw.node) {
       }
       message = {type: 'saveTiddler', tiddler: importListTiddler, wiki: data.wiki}
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+      const message = {
+        alert: 'Fetched Tiddlers, see import list',
+        wikis: [data.wiki]
+      };
+      $tw.ServerSide.sendBrowserAlert(message);
+    }
+  }
+
+  /*
+    This creates a duplicate of an existing wiki, complete with any
+    wiki-specific media files
+
+    {
+      wiki: callingWiki,
+      fromWiki: fromWikiName,
+      newWiki: newWikiName,
+      copyChildren: copyChildren
+    }
+
+    fromWiki - the name of the wiki to duplicate
+    newWiki - the name of the new wiki created
+    copyChildren - if true than any child wikis contained in the fromWiki
+    folder are also copied.
+
+    If no fromWiki is given, or the name doesn't match an existing wiki, than
+    the empty edition is used, if no newWiki is given than the default new name
+    is used.
+  */
+  $tw.nodeMessageHandlers.duplicateWiki = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    // Make sure that the wiki to duplicate exists and that the target wiki
+    // name isn't in use
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+    if ($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
+      const wikiName = getWikiName(data.newWiki);
+      // Get the paths for the source and destination
+      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+      const source = $tw.ServerSide.getWikiPath(data.fromWiki);
+      const destination = path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+      data.copyChildren = data.copyChildren || 'no';
+      const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
+      // Make the duplicate
+      $tw.ServerSide.specialCopy(source, destination, copyChildren, function() {
+        // Refresh wiki listing
+        data.update = 'true';
+        $tw.nodeMessageHandlers.findAvailableWikis(data);
+        const message = {
+          alert: `Created wiki ` + wikiName,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      });
     }
   }
 }

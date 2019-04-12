@@ -156,6 +156,11 @@ if($tw.node) {
     try {
       queue = JSON.parse(data.changes);
     } catch (e) {
+      const message = {
+        alert: 'Can\'t parse changes from the server!',
+        connections: [data.source_connection]
+      };
+      $tw.ServerSide.sendBrowserAlert(message);
       console.log("Can't parse server changes!!");
     }
     // Only look at changes more recent than when the browser disconnected
@@ -324,6 +329,11 @@ if($tw.node) {
     }
     fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
       if(err) {
+        const message = {
+          alert: 'Error saving settings:' + err,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
         console.log(err);
       } else {
         console.log('Wrote settings file')
@@ -331,6 +341,11 @@ if($tw.node) {
     });
 
     $tw.CreateSettingsTiddlers(data);
+    const message = {
+      alert: 'Saved wiki settings.',
+      wikis: [data.wiki]
+    };
+    $tw.ServerSide.sendBrowserAlert(message);
   }
 
   /*
@@ -601,6 +616,10 @@ if($tw.node) {
                   })
                 }
               });
+              const message = {
+                alert: `Saved ` + pluginName + 'to server library.'
+              };
+              $tw.ServerSide.sendBrowserAlert(message);
             }
           }).catch(function(err) {
             console.log(err);
@@ -632,60 +651,68 @@ if($tw.node) {
 
   */
   $tw.nodeMessageHandlers.makeImagesExternal = function(data) {
-    const path = require('path');
-    const fs = require('fs');
     $tw.Bob.Shared.sendAck(data);
-    // Get all the tiddlers that have a media type we care about
-    // Get files path
-    const basePath = $tw.ServerSide.getBasePath()
-    let midPath;
-    if(data.storeIn !== 'wiki') {
-      midPath = path.join($tw.settings.wikisPath, data.wiki);
-    } else {
-      midPath = $tw.settings.filePathRoot;
-    }
-    let filesPath;
-    if(data.storeIn !== 'wiki') {
-      filesPath = path.resolve(basePath, midPath, 'files');
-    } else {
-      filesPath = path.resolve(basePath, midPath);
-    }
-    // Make sure that filesPath exists
-    $tw.utils.createDirectory(filesPath);
-    let tiddlersToMove = [];
-    $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(tidTitle) {
-      const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle);
-      if(tiddler) {
-        if(tiddler.fields.type) {
-          const typeParts = tiddler.fields.type.split('/')
-          if((['image', 'audio', 'video'].indexOf(typeParts[0]) !== -1 || tiddler.fields.type === 'application/pdf') && (!tiddler.fields._canonical_uri || tiddler.fields._canonical_uri === '')) {
-            // Move the file from the tiddlers folder to the files folder,
-            if($tw.Bob.Files[data.wiki][tidTitle]) {
-              const fileName = $tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(-1)[0]
-              fs.rename($tw.Bob.Files[data.wiki][tidTitle].filepath, path.join(filesPath, fileName), function(e) {
-                if(e) {
-                  console.log(e);
-                } else {
-                  let newFields = JSON.parse(JSON.stringify(tiddler.fields));
-                  newFields.text = ''
-                  if(data.storeIn === 'wiki') {
-                    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || `files`
-                    newFields._canonical_uri = path.join('/', data.wiki, $tw.settings.fileURLPrefix, fileName);
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'admin');
+    if(authorised) {
+      const path = require('path');
+      const fs = require('fs');
+      // Get all the tiddlers that have a media type we care about
+      // Get files path
+      const basePath = $tw.ServerSide.getBasePath()
+      let midPath;
+      if(data.storeIn !== 'wiki') {
+        midPath = path.join($tw.settings.wikisPath, data.wiki);
+      } else {
+        midPath = $tw.settings.filePathRoot;
+      }
+      let filesPath;
+      if(data.storeIn !== 'wiki') {
+        filesPath = path.resolve(basePath, midPath, 'files');
+      } else {
+        filesPath = path.resolve(basePath, midPath);
+      }
+      // Make sure that filesPath exists
+      $tw.utils.createDirectory(filesPath);
+      let tiddlersToMove = [];
+      $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(tidTitle) {
+        const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle);
+        if(tiddler) {
+          if(tiddler.fields.type) {
+            const typeParts = tiddler.fields.type.split('/')
+            if((['image', 'audio', 'video'].indexOf(typeParts[0]) !== -1 || tiddler.fields.type === 'application/pdf') && (!tiddler.fields._canonical_uri || tiddler.fields._canonical_uri === '')) {
+              // Move the file from the tiddlers folder to the files folder,
+              if($tw.Bob.Files[data.wiki][tidTitle]) {
+                const fileName = $tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(-1)[0]
+                fs.rename($tw.Bob.Files[data.wiki][tidTitle].filepath, path.join(filesPath, fileName), function(e) {
+                  if(e) {
+                    console.log(e);
                   } else {
-                    newFields._canonical_uri = path.join('/', $tw.settings.fileURLPrefix, fileName);
+                    let newFields = JSON.parse(JSON.stringify(tiddler.fields));
+                    newFields.text = ''
+                    if(data.storeIn === 'wiki') {
+                      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || `files`
+                      newFields._canonical_uri = path.join('/', data.wiki, $tw.settings.fileURLPrefix, fileName);
+                    } else {
+                      newFields._canonical_uri = path.join('/', $tw.settings.fileURLPrefix, fileName);
+                    }
+                    //delete the original tiddler
+                    $tw.Bob.DeleteTiddler($tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(0,-1).join('/'), fileName, data.wiki);
+                    // create the tiddler with the same name and give it a
+                    // _canonical_uri field pointing to the correct file.
+                    $tw.syncadaptor.saveTiddler(new $tw.Tiddler(newFields), data.wiki);
                   }
-                  //delete the original tiddler
-                  $tw.Bob.DeleteTiddler($tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(0,-1).join('/'), fileName, data.wiki);
-                  // create the tiddler with the same name and give it a
-                  // _canonical_uri field pointing to the correct file.
-                  $tw.syncadaptor.saveTiddler(new $tw.Tiddler(newFields), data.wiki);
-                }
-              });
+                });
+              }
             }
           }
         }
-      }
-    })
+      })
+      const message = {
+        alert: `Made media external for ` + data.wiki,
+        wikis: [data.wiki]
+      };
+      $tw.ServerSide.sendBrowserAlert(message);
+    }
   }
 
   /*
@@ -706,7 +733,8 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const path = require('path')
     const fs = require('fs')
-    if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki)) {
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+    if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
       // Unload the old wiki
       $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
       const basePath = $tw.ServerSide.getBasePath();
@@ -719,6 +747,10 @@ if($tw.node) {
           // Refresh the wiki listing
           data.update = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
+          const message = {
+            alert: 'Renamed ' + data.oldWiki + 'to' + data.newWiki
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
         }
       })
     }
@@ -729,60 +761,52 @@ if($tw.node) {
 
     {
       wiki: callingWiki,
-      deleteWiki: wikiToDelete
+      deleteWiki: wikiToDelete,
+      deleteChildren: deleteChildren
     }
 
     wikiToDelete is the wiki that will be deleted
+    deleteChildren if set to 'yes' than the entire wiki folder, including any
+    child wikis, is deleted, Otherwise only the tiddlywiki.info file and the
+    tiddlers folder is removed.
   */
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
     $tw.Bob.Shared.sendAck(data)
+    const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
     // Make sure that the wiki exists and is listed
-    if($tw.ServerSide.existsListed(data.deleteWiki)) {
-      const wikiPath = $tw.ServerSide.getWikiPath(data.fromWikiName);
-      // Delete the tiddlywiki.info file
-      fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
-        if(e) {
-          console.log(e);
-        } else {
-          // Delete the tiddlers folder (if any)
-          fs.rmdir(path.join(wikiPath, 'tiddlers'), function(e) {
-            if(e) {
-              console.log(e)
-            }
-            // Refresh the wiki listing
-            data.update = 'true';
-            $tw.nodeMessageHandlers.findAvailableWikis(data);
-          })
-        }
-      })
-    }
-  }
-
-  /*
-    This creates a duplicate of an existing wiki, complete with any
-    wiki-specific media files
-
-    {
-      wiki: callingWiki,
-      fromWiki: fromWikiName,
-      newWiki: newWikiName
-    }
-  */
-  $tw.nodeMessageHandlers.duplicateWiki = function(data) {
-    $tw.Bob.Shared.sendAck(data)
-    // Make sure that the wiki to duplicate exists and that the target wiki name isn't in use
-    if ($tw.ServerSide.existsListed(data.fromWikiName) and !$tw.ServerSide.wikiExists(data.newWikiName)) {
-      // Get the paths for the source and destination
-      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-      const source = $tw.ServerSide.getWikiPath(data.fromWikiName);
-      const destination = path.resolve(basePath, $tw.settings.wikisPath, data.newWikiName);
-      // Make the duplicate
-      $tw.ServerSide.specialCopy(source, destination, function() {
-        // Refresh wiki listing
-        // Refresh the wiki listing
-        data.update = 'true';
-        $tw.nodeMessageHandlers.findAvailableWikis(data);
-      });
+    if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
+      const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
+      if(data.deleteChildren === 'yes') {
+        fs.rmdir(wikiPath, function(e) {
+          if(e) {
+            console.log(e);
+          }
+          // Refresh the wiki listing
+          data.update = 'true';
+          $tw.nodeMessageHandlers.findAvailableWikis(data);
+        })
+      } else {
+        // Delete the tiddlywiki.info file
+        fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
+          if(e) {
+            console.log(e);
+          } else {
+            // Delete the tiddlers folder (if any)
+            fs.rmdir(path.join(wikiPath, 'tiddlers'), function(e) {
+              if(e) {
+                console.log(e)
+              }
+              // Refresh the wiki listing
+              data.update = 'true';
+              $tw.nodeMessageHandlers.findAvailableWikis(data);
+              const message = {
+                alert: `Deleted wiki ` + data.deleteWiki
+              };
+              $tw.ServerSide.sendBrowserAlert(message);
+            })
+          }
+        })
+      }
     }
   }
 }

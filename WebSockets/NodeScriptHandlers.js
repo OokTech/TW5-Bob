@@ -102,6 +102,11 @@ if($tw.node) {
             } else {
               childproc = require('child_process').spawn(command, args, options);
               childproc.on('error', function (err) {
+                const message = {
+                  alert: 'Script error: ' + err,
+                  connections: [data.source_connection]
+                };
+                $tw.ServerSide.sendBrowserAlert(message);
                 console.log('Script error: ', err);
               })
             }
@@ -115,6 +120,11 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     data.queue = data.queue || 0;
     clearQueue(data.queue);
+    const message = {
+      alert: 'Stopped all running scripts.',
+      wikis: [data.wiki]
+    };
+    $tw.ServerSide.sendBrowserAlert(message);
   }
 
 }

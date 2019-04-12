@@ -7,6 +7,15 @@ title: $:/plugins/OokTech/Bob/Changelog
     - There are also text boxes that let you set the folder where files are served from and the path prefix for files
   - The makeImagesExternal message was added. It takes all of the embedded media in a wiki and copies it into the folder for the file server and replaces the media tiddlers with tiddlers that have a _canonical_uri field pointing to the media file.
     - An option lets you copy the files into the globally available file folder or into the wiki specific file folder.
+  - Add interface to duplicate an existing wiki
+    - You can optionally duplicate all of the child wikis that are contained in the folder of the wiki you are duplicating.
+  - Add interface to rename/move a wiki
+  - Add interface to delete a wiki, you can optionally delete all of a wikis children as well.
+  - Fixed some potential bugs dealing with paths when creating new wikis.
+  - Reordered some functions to make wiki creation more consistent.
+  - Added browser alerts for server events (like confirmations of creating or deleting wikis, fetching tiddlers, etc.)
+    - There is a control panel tab that lists a history of server messages.
+  - Possibly fix a bug that could add incorrect path prefixes when using filters in $:/config/FileSystemPaths .
 
 !! Version 1.2.2r5 Fried Potatoes
 

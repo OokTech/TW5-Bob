@@ -1,0 +1,61 @@
+title: $:/plugins/OokTech/Bob/DuplicateExisitingWiki
+caption: Create a copy of an existing wiki
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  Using this you can make a duplicate of any existing wiki. It is like creating
+  a wiki from an edition but it the list is wikis you use, not editions.
+
+  Select the wiki you want to duplicate from the drop-down menu, then enter a
+  name for the new wiki and click `Create Duplicate Wiki`.
+
+  If you also want to duplicate all of the wikis child wikis check
+  `Copy Child Wikis`, this creates copies of all of the child wikis from the
+  original wiki and makes them children of the newly created wiki.
+
+  If no wiki is selected than this will create a new copy of the empty edition.
+  If no name is given than this will generate an unused name for it.
+
+  If the name given for the new wiki is already in use than a number will be
+  appended to the end to make the name unique.
+</$reveal>
+
+Select Wiki:
+<$select
+  tiddler='$:/state/DuplicateWiki'
+>
+  <option
+    value=''
+  >
+    Select Wiki
+  </option>
+  <$list
+    filter='[listed[$:/state/ViewableWikis]]'
+  >
+    <option>
+      <<currentTiddler>>
+    </option>
+  </$list>
+</$select>
+<$checkbox
+  tiddler='$:/state/DuplicateWiki'
+  field='include_children'
+  checked='yes'
+  unchecked='no'
+>
+  Copy child wikis
+</$checkbox>
+
+New Wiki Name: <$text tiddler='$:/state/DuplicateWiki' field='wiki_name'/>
+
+<$button>
+  <$action-websocketmessage
+    $type='duplicateWiki'
+    fromWiki={{$:/state/DuplicateWiki}}
+    newWiki={{$:/state/DuplicateWiki!!wiki_name}}
+  />
+  Create Duplicate Wiki
+</$button>

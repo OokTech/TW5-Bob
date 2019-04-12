@@ -1,5 +1,5 @@
-title: $:/plugins/OokTech/Bob/AvailableWikisTab
-caption: Available Wikis
+title: $:/plugnis/OokTech/Bob/CreateWikis
+caption: Create Wikis
 
 <$reveal
   type='nomatch'
@@ -16,6 +16,8 @@ So 💩 is a valid wiki name.
 
 See [[creating new wikis|$:/plugins/OokTech/Bob/Creating New Wikis]] for more
 information about making wikis.
+
+</$reveal>
 
 Create a wiki from
 

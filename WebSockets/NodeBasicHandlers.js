@@ -265,6 +265,11 @@ if($tw.node) {
           }
         })
       } catch (e) {
+        const message = {
+          alert: 'Error getting wiki paths: ' + e,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
         console.log('Error getting wiki paths', e);
       }
       return realFolders;

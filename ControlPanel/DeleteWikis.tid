@@ -1,0 +1,57 @@
+title: $:/plugins/OokTech/Bob/DeleteWikis
+caption: Delete Wikis
+
+\define updateNameActions()
+<$action-websocketmessage
+  $type='deleteWiki'
+  deleteWiki={{$:/state/DeleteWiki!!delete_wiki}}
+  deleteChildren={{$:/state/DeleteWiki!!delete_children}}
+/>
+<$action-setfield
+  $tiddler='$:/state/DeleteWiki'
+  delete_wiki=''
+  delete_children=''
+/>
+\end
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+</$reveal>
+
+Select Wiki:
+<$select
+  tiddler='$:/state/DeleteWiki'
+  field='delete_wiki'
+>
+  <option
+    value=''
+  >
+    Select Wiki
+  </option>
+  <$list
+    filter='[listed[$:/state/ViewableWikis]]'
+  >
+    <option>
+      <<currentTiddler>>
+    </option>
+  </$list>
+</$select>
+
+<$checkbox
+  tiddler='$:/state/DeleteWiki'
+  field='delete_children'
+  checked='yes'
+  unchecked='no'
+>
+  Delete Children
+</$checkbox>
+
+<$button
+  actions=<<updateNameActions>>
+>
+  Update Name
+</$button>
