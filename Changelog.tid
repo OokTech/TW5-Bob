@@ -1,5 +1,13 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.2.3 Boiled Potatoes
+
+  - Setting up the file server is simpler now
+    - In the Bob Settings tab of the control panel there is a file server tab that lets you check a box to enable the server.
+    - There are also text boxes that let you set the folder where files are served from and the path prefix for files
+  - The makeImagesExternal message was added. It takes all of the embedded media in a wiki and copies it into the folder for the file server and replaces the media tiddlers with tiddlers that have a _canonical_uri field pointing to the media file.
+    - An option lets you copy the files into the globally available file folder or into the wiki specific file folder.
+
 !! Version 1.2.2r5 Fried Potatoes
 
   - Wikis can now be hosted on paths to other wikis. You can have both '/students' and '/students/eve'

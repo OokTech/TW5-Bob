@@ -145,14 +145,7 @@ if($tw.node) {
       if(data.wikisPath) {
         basePath = data.wikisPath;
       } else {
-        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-        if($tw.settings.wikiPathBase === 'homedir') {
-          basePath = os.homedir();
-        } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-          basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-        } else {
-          basePath = path.resolve($tw.settings.wikiPathBase);
-        }
+        basePath = $tw.ServerSide.getBasePath()
       }
 
       // even if overwrite is set to true we need to make sure the wiki already
@@ -331,23 +324,6 @@ if($tw.node) {
       const fs = require("fs"),
         path = require("path");
 
-      function specialCopy (source, destination) {
-        fs.mkdirSync(destination, {recursive: true});
-        const currentDir = fs.readdirSync(source)
-        currentDir.forEach(function (item) {
-          if(fs.statSync(path.join(source, item)).isFile()) {
-            const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
-            fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
-          } else {
-            //Recurse!! Because it is a folder.
-            // But make sure it is a directory first.
-            if(fs.statSync(path.join(source, item)).isDirectory()) {
-              specialCopy(path.join(source, item), path.join(destination, item));
-            }
-          }
-        });
-      }
-
       // Paths are relative to the root wiki path
       if(process.pkg) {
         // This is for handling when it is a single executable
@@ -414,7 +390,7 @@ if($tw.node) {
           }
           if(editionPath) {
             try {
-              specialCopy(editionPath, fullPath);
+              $tw.ServerSide.specialCopy(editionPath, fullPath);
               console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
             } catch (e) {
               console.log('error copying edition', e);

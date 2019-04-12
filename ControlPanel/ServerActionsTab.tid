@@ -1,24 +1,21 @@
 title: $:/plugins/OokTech/Bob/ServerActionsTab
 caption: Server Actions
 
-<!--
-This button will restart the wiki server, you will have to reload the wiki
-after the server has restarted to reconnect.
-This may not be a full restart in the same way as stopping the process and
-restarting from the terminal is. I am not sure why not.
-
-There isn't much need for this button, most things that used to require a
-server reset are handled by the multi-user plugin. Installing other plugins
-just requires a page reload, not restarting the server.
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  This button takes any embedded images or other media in the wiki and save
+  them in the files folder and replace the embedded media with tiddlers that
+  use a `_canonical_uri` field to embed the external media.
+</$reveal>
 
 <$button>
-  Restart Wiki
-  <$action-websocketmessage $type=restartServer/>
+  Make Images External
+  <$action-websocketmessage $type='makeImagesExternal' storeIn={{$:/state/ExternaliseImages/storeIn}}/>
 </$button>
-
----
-
--->
+<$checkbox tiddler='$:/state/ExternaliseImages/storeIn' checked='true' unchecked='false'> Store specific to wiki</$checkbox>
 
 WARNING: This button will shutdown the wiki server. None of the wikis will be
 available until it is restarted.

@@ -309,14 +309,7 @@ if($tw.node) {
       const getPluginList = function () {
         let pluginList = []
         if(typeof $tw.settings.pluginsPath === 'string') {
-          let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-          if($tw.settings.wikiPathBase === 'homedir') {
-            basePath = os.homedir();
-          } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-            basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-          } else {
-            basePath = path.resolve($tw.settings.wikiPathBase);
-          }
+          const basePath = $tw.ServerSide.getBasePath();
           const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
           if(fs.existsSync(pluginsPath)) {
             try {
@@ -368,14 +361,7 @@ if($tw.node) {
       const getPlugin = function (request) {
         const urlParts = request.url.split('/')
         if(typeof $tw.settings.pluginsPath === 'string') {
-          let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-          if($tw.settings.wikiPathBase === 'homedir') {
-            basePath = os.homedir();
-          } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-            basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-          } else {
-            basePath = path.resolve($tw.settings.wikiPathBase);
-          }
+          const basePath = $tw.ServerSide.getBasePath();
           const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
           const pluginPath = path.resolve(pluginsPath, urlParts[urlParts.length-2], urlParts[urlParts.length-1])
           if(fs.statSync(pluginPath).isDirectory()) {
@@ -830,14 +816,7 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
-    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if($tw.settings.wikiPathBase === 'homedir') {
-      basePath = os.homedir();
-    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    } else {
-      basePath = path.resolve($tw.settings.wikiPathBase);
-    }
+    const basePath = $tw.ServerSide.getBasePath()
     if(typeof $tw.settings.pluginsPath === 'string') {
       const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);
       if(process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {

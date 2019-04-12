@@ -441,14 +441,7 @@ if($tw.node) {
       const pluginTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.plugin)
       if(pluginTiddler) {
         const pluginName = data.plugin.replace(/^\$:\/plugins\//, '')
-        let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-        if($tw.settings.wikiPathBase === 'homedir') {
-          basePath = os.homedir();
-        } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-          basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-        } else {
-          basePath = path.resolve($tw.settings.wikiPathBase);
-        }
+        const basePath = $tw.ServerSide.getBasePath()
         const pluginFolderPath = path.resolve(basePath, $tw.settings.pluginsPath, pluginName)
         const pluginInfoPath = path.join(pluginFolderPath, 'plugin.info')
         let isNewVersion = true
@@ -579,14 +572,7 @@ if($tw.node) {
               // Check versions
               exists = true;
             }
-            let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-            if($tw.settings.wikiPathBase === 'homedir') {
-              basePath = os.homedir();
-            } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-              basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-            } else {
-              basePath = path.resolve($tw.settings.wikiPathBase);
-            }
+            const basePath = $tw.ServerSide.getBasePath()
             const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath);
             // If we don't have the plugin than create the plugin folder, also
             // creating the author folder if we don't have it already.
@@ -637,30 +623,33 @@ if($tw.node) {
     {
       "type": "makeImagesExternal",
       "wiki": "wikiName",
-      "folder": "someFolder"
+      "storeIn": "folderType"
     }
+
+    storeIn can be 'global' (default) or 'wiki'
+    global puts the files in the global folder
+    wiki puts the files in the wiki specific folder
+
   */
   $tw.nodeMessageHandlers.makeImagesExternal = function(data) {
-    console.log('HERE')
     const path = require('path');
     const fs = require('fs');
     $tw.Bob.Shared.sendAck(data);
     // Get all the tiddlers that have a media type we care about
-    // If the type starts with image/
-    // if the type is application/pdf
-    // starts with audio/
-    // starts with video/
-
     // Get files path
-    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if($tw.settings.wikiPathBase === 'homedir') {
-      basePath = os.homedir();
-    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    const basePath = $tw.ServerSide.getBasePath()
+    let midPath;
+    if(data.storeIn !== 'wiki') {
+      midPath = path.join($tw.settings.wikisPath, data.wiki);
     } else {
-      basePath = path.resolve($tw.settings.wikiPathBase);
+      midPath = $tw.settings.filePathRoot;
     }
-    const filesPath = path.resolve(basePath, $tw.settings.filePathRoot);
+    let filesPath;
+    if(data.storeIn !== 'wiki') {
+      filesPath = path.resolve(basePath, midPath, 'files');
+    } else {
+      filesPath = path.resolve(basePath, midPath);
+    }
     // Make sure that filesPath exists
     $tw.utils.createDirectory(filesPath);
     let tiddlersToMove = [];
@@ -674,13 +663,17 @@ if($tw.node) {
             if($tw.Bob.Files[data.wiki][tidTitle]) {
               const fileName = $tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(-1)[0]
               fs.rename($tw.Bob.Files[data.wiki][tidTitle].filepath, path.join(filesPath, fileName), function(e) {
-                console.log('HERE')
                 if(e) {
                   console.log(e);
                 } else {
                   let newFields = JSON.parse(JSON.stringify(tiddler.fields));
                   newFields.text = ''
-                  newFields._canonical_uri = path.join($tw.settings.filePathRoot, fileName);
+                  if(data.storeIn === 'wiki') {
+                    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || `files`
+                    newFields._canonical_uri = path.join('/', data.wiki, $tw.settings.fileURLPrefix, fileName);
+                  } else {
+                    newFields._canonical_uri = path.join('/', $tw.settings.fileURLPrefix, fileName);
+                  }
                   //delete the original tiddler
                   $tw.Bob.DeleteTiddler($tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(0,-1).join('/'), fileName, data.wiki);
                   // create the tiddler with the same name and give it a
@@ -693,6 +686,104 @@ if($tw.node) {
         }
       }
     })
+  }
+
+  /*
+    This renames/moves a wiki
+
+    {
+      wiki: callingWiki,
+      oldWiki: oldWikiName,
+      newWiki: newWikiName
+    }
+
+    oldWiki is the name of the wiki you want to rename, newWiki is the new name
+    for the wiki.
+
+    If the new name is an existing wiki than this won't do anything.
+  */
+  $tw.nodeMessageHandlers.renameWiki = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path')
+    const fs = require('fs')
+    if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki)) {
+      // Unload the old wiki
+      $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
+      const basePath = $tw.ServerSide.getBasePath();
+      const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
+      const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
+      fs.rename(oldWikiPath, newWikiPath, function(e) {
+        if(e) {
+          console.log(e);
+        } else {
+          // Refresh the wiki listing
+          data.update = 'true';
+          $tw.nodeMessageHandlers.findAvailableWikis(data);
+        }
+      })
+    }
+  }
+
+  /*
+    This deletes a wiki.
+
+    {
+      wiki: callingWiki,
+      deleteWiki: wikiToDelete
+    }
+
+    wikiToDelete is the wiki that will be deleted
+  */
+  $tw.nodeMessageHandlers.deleteWiki = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    // Make sure that the wiki exists and is listed
+    if($tw.ServerSide.existsListed(data.deleteWiki)) {
+      const wikiPath = $tw.ServerSide.getWikiPath(data.fromWikiName);
+      // Delete the tiddlywiki.info file
+      fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
+        if(e) {
+          console.log(e);
+        } else {
+          // Delete the tiddlers folder (if any)
+          fs.rmdir(path.join(wikiPath, 'tiddlers'), function(e) {
+            if(e) {
+              console.log(e)
+            }
+            // Refresh the wiki listing
+            data.update = 'true';
+            $tw.nodeMessageHandlers.findAvailableWikis(data);
+          })
+        }
+      })
+    }
+  }
+
+  /*
+    This creates a duplicate of an existing wiki, complete with any
+    wiki-specific media files
+
+    {
+      wiki: callingWiki,
+      fromWiki: fromWikiName,
+      newWiki: newWikiName
+    }
+  */
+  $tw.nodeMessageHandlers.duplicateWiki = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    // Make sure that the wiki to duplicate exists and that the target wiki name isn't in use
+    if ($tw.ServerSide.existsListed(data.fromWikiName) and !$tw.ServerSide.wikiExists(data.newWikiName)) {
+      // Get the paths for the source and destination
+      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+      const source = $tw.ServerSide.getWikiPath(data.fromWikiName);
+      const destination = path.resolve(basePath, $tw.settings.wikisPath, data.newWikiName);
+      // Make the duplicate
+      $tw.ServerSide.specialCopy(source, destination, function() {
+        // Refresh wiki listing
+        // Refresh the wiki listing
+        data.update = 'true';
+        $tw.nodeMessageHandlers.findAvailableWikis(data);
+      });
+    }
   }
 }
 })();

@@ -19,7 +19,7 @@ giving everyone in the coffee shop access to you tax documents and photos.
 ''Smaller Note of Caution:'' If you have Bob setup to be accessible on the
 local network than any files Bob is serving are also accessible on the local
 network. So be careful to not put sensitive personal information in any wikis
-and make Bob avaiable to the local network away from your home network.
+and make Bob available to the local network away from your home network.
 
 ---
 

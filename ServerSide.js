@@ -46,6 +46,19 @@ const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
+ServerSide.getBasePath = function() {
+  let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
+  if($tw.settings.wikiPathBase === 'homedir') {
+    basePath = os.homedir();
+  } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+  } else {
+    basePath = path.resolve($tw.settings.wikiPathBase);
+  }
+  return basePath;
+}
+
 /*
   Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
   listed this returns undefined.
@@ -85,15 +98,7 @@ ServerSide.getWikiPath = function(wikiName) {
   // If the wikiPath exists convert it to an absolute path
   if(typeof wikiPath !== 'undefined') {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
-    if($tw.settings.wikiPathBase === 'homedir') {
-      basePath = os.homedir();
-    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    } else {
-      basePath = path.resolve($tw.settings.wikiPathBase);
-    }
+    const basePath = $tw.ServerSide.getBasePath()
     wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiPath);
   }
   return wikiPath;
@@ -107,14 +112,7 @@ ServerSide.wikiExists = function (wikiFolder) {
   // Make sure that the wiki actually exists
   if(wikiFolder) {
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
-    let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    if($tw.settings.wikiPathBase === 'homedir') {
-      basePath = os.homedir();
-    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-      basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-    } else {
-      basePath = path.resolve($tw.settings.wikiPathBase);
-    }
+    const basePath = $tw.ServerSide.getBasePath()
     // This is a bit hacky to get around problems with loading the root wiki
     // This tests if the wiki is the root wiki and ignores the other pathing
     // bits
@@ -458,6 +456,32 @@ ServerSide.loadPlugin = function(name,paths, wikiName) {
 		}
 	}
 };
+
+/*
+  This copies a folder from source to destination
+  both source and destination are paths
+  This uses absolute paths, so make sure you get them before passing them to
+  this function.
+*/
+ServerSide.specialCopy = function(source, destination, cb) {
+  fs.mkdirSync(destination, {recursive: true});
+  const currentDir = fs.readdirSync(source)
+  currentDir.forEach(function (item) {
+    if(fs.statSync(path.join(source, item)).isFile()) {
+      const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
+      fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
+    } else {
+      //Recurse!! Because it is a folder.
+      // But make sure it is a directory first.
+      if(fs.statSync(path.join(source, item)).isDirectory()) {
+        ServerSide.specialCopy(path.join(source, item), path.join(destination, item));
+      }
+    }
+  });
+  if(typeof cb === 'function') {
+    cb()
+  }
+}
 
 /*
   Determine which sub-folders are in the current folder
