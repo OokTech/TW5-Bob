@@ -87,7 +87,7 @@ if($tw.node) {
           } else {
             console.log('Built Wiki: ', outputFile);
             const message = {
-              alert: `Saved html file ` + outputFile + ' to the server.',
+              alert: 'Saved html file ' + outputFile + ' to the server.',
               wikis: [data.buildWiki, data.wiki]
             };
             $tw.ServerSide.sendBrowserAlert(message);
@@ -556,11 +556,11 @@ if($tw.node) {
       }
       message = {type: 'saveTiddler', tiddler: importListTiddler, wiki: data.wiki}
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-      const message = {
+      const thisMessage = {
         alert: 'Fetched Tiddlers, see import list',
         wikis: [data.wiki]
       };
-      $tw.ServerSide.sendBrowserAlert(message);
+      $tw.ServerSide.sendBrowserAlert(thisMessage);
     }
   }
 
