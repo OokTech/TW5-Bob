@@ -286,7 +286,9 @@ if($tw.node) {
             prunedSettings[wikiName] = settingsObj[wikiName];
           }
         } else if(typeof settingsObj[wikiName] === 'object') {
-          prunedSettings[wikiName] = pruneWikiList(dontExistList, settingsObj[wikiName])
+          if(Object.keys(settingsObj[wikiName]).length > 0) {
+            prunedSettings[wikiName] = pruneWikiList(dontExistList, settingsObj[wikiName])
+          }
         }
       })
       return prunedSettings
@@ -321,7 +323,7 @@ if($tw.node) {
     })
     data.update = data.update || ''
     if(typeof data.update !== 'string') {
-      data.update = '';
+      data.update = (data.update === true)?'true':''
     }
     if(data.update.toLowerCase() === 'true') {
       wikisToAdd.forEach(function (wikiName) {
@@ -340,9 +342,8 @@ if($tw.node) {
         }
       })
     }
-    data.remove = data.remove || ''
     if(typeof data.remove !== 'string') {
-      data.remove = '';
+      data.remove = (data.remove === false)?'false':'true'
     }
     if(data.remove.toLowerCase() === 'true') {
       // update the wikis listing in the settings with a version that doesn't

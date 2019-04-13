@@ -52,6 +52,14 @@ Create a wiki from
 >
   a node wiki
 </$radio>
+<br>
+<$radio
+  tiddler='$:/temp/NewWiki'
+  field='method'
+  value='duplicate'
+>
+  duplicate an existing wiki
+</$radio>
 
 <$list
   filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'
@@ -82,6 +90,14 @@ Create a wiki from
   {{$:/plugins/OokTech/Bob/CreateWikiFromNode}}
 </$list>
 
+<$list
+  filter='[[$:/temp/NewWiki]method[duplicate]]'
+  variable=null
+>
+  {{$:/plugins/OokTech/Bob/DuplicateExisitingWiki}}
+</$list>
+
+<!--
 ---
 
 Click this button to automatically list all wikis in your wikis folder.
@@ -198,3 +214,4 @@ Checking the box will also remove any links to wikis that don't exist.
 </$reveal>
 
 {{$:/plugins/OokTech/Bob/Wiki Listing}}
+-->

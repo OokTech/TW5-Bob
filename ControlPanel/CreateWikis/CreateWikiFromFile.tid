@@ -19,9 +19,11 @@ Give the wiki a name:
     $tiddler='$:/temp/NewWiki'
     wiki_name=''
   />
+  <!--
   <$action-websocketmessage
     $type='findAvailableWikis'
     update='true'
     saveSettings='true'
   />
+  -->
 </$button>

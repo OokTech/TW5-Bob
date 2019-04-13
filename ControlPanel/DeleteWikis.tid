@@ -33,7 +33,7 @@ Select Wiki:
     Select Wiki
   </option>
   <$list
-    filter='[listed[$:/state/ViewableWikis]]'
+    filter='[list[$:/state/ViewableWikis]]'
   >
     <option>
       <<currentTiddler>>
@@ -53,5 +53,5 @@ Select Wiki:
 <$button
   actions=<<updateNameActions>>
 >
-  Update Name
+  Delete Wiki
 </$button>

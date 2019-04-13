@@ -585,25 +585,29 @@ if($tw.node) {
     is used.
   */
   $tw.nodeMessageHandlers.duplicateWiki = function(data) {
-    $tw.Bob.Shared.sendAck(data)
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
     if ($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
-      const wikiName = getWikiName(data.newWiki);
+      const wikiName = GetWikiName(data.newWiki);
       // Get the paths for the source and destination
       $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
       const source = $tw.ServerSide.getWikiPath(data.fromWiki);
+      const basePath = $tw.ServerSide.getBasePath();
       const destination = path.resolve(basePath, $tw.settings.wikisPath, wikiName);
       data.copyChildren = data.copyChildren || 'no';
       const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
       // Make the duplicate
       $tw.ServerSide.specialCopy(source, destination, copyChildren, function() {
         // Refresh wiki listing
-        data.update = 'true';
+        data.update = true;
+        data.saveSettings = true;
         $tw.nodeMessageHandlers.findAvailableWikis(data);
         const message = {
-          alert: `Created wiki ` + wikiName,
+          alert: 'Created wiki ' + wikiName,
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
