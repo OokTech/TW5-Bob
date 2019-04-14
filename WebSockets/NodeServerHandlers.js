@@ -654,6 +654,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'admin');
     if(authorised) {
+      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files'
       const path = require('path');
       const fs = require('fs');
       // Get all the tiddlers that have a media type we care about
@@ -690,7 +691,6 @@ if($tw.node) {
                     let newFields = JSON.parse(JSON.stringify(tiddler.fields));
                     newFields.text = ''
                     if(data.storeIn === 'wiki') {
-                      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || `files`
                       newFields._canonical_uri = path.join('/', data.wiki, $tw.settings.fileURLPrefix, fileName);
                     } else {
                       newFields._canonical_uri = path.join('/', $tw.settings.fileURLPrefix, fileName);
@@ -876,26 +876,6 @@ if($tw.node) {
                 };
                 $tw.ServerSide.sendBrowserAlert(message);
               });
-              /*
-              fs.readdir(wikiPath, function(err, files) {
-                if(err) {
-                  console.log(err)
-                }
-                if(files.length === 0) {
-                  fs.rmdir(wikiPath, function(err) {
-                    // I guess nothing here
-                  })
-                }
-                // Refresh wiki listing
-                data.update = true;
-                data.saveSettings = true;
-                $tw.nodeMessageHandlers.findAvailableWikis(data);
-                const message = {
-                  alert: 'Deleted wiki ' + data.deleteWiki
-                };
-                $tw.ServerSide.sendBrowserAlert(message);
-              })
-              */
             }).catch(function(e){
               const message = {
                 alert: 'Error trying to delete wiki ' + e
