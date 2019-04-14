@@ -300,10 +300,7 @@ if($tw.node) {
         delete $tw.Bob.Files[prefix][title];
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
         // Create a message saying to remove the tiddler
-
-        // Remove the prefix from the tiddler
-        const tiddlerName = title;
-        const message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
+        const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
         //self.logger.log("Deleted file",fileInfo.filepath);

@@ -417,25 +417,6 @@ if($tw.node) {
         console.log('failed to write settings', e)
       }
 
-      /*
-      // Use relative paths here.
-      // Note this that is dependent on process.cwd()!!
-      function listWiki(wikiName, currentLevel, wikiPath) {
-        const nameParts = wikiName.split(path.sep);
-        if(typeof currentLevel[nameParts[0]] === 'object' && nameParts.length > 1) {
-          listWiki(nameParts.slice(1).join(path.sep), currentLevel[nameParts[0]], wikiPath);
-        } else if(typeof currentLevel[nameParts[0]] === 'undefined' && nameParts.length > 1) {
-          currentLevel[nameParts[0]] = {};
-          listWiki(nameParts.slice(1).join(path.sep), currentLevel[nameParts[0]], wikiPath);
-        } else if(nameParts.length === 1) {
-          // List the wiki in the appropriate place
-          currentLevel[nameParts[0]] = currentLevel[nameParts[0]] || {};
-          currentLevel[nameParts[0]].__path = wikiPath;
-          //currentLevel[nameParts[0]] = {'__path': wikiPath};
-        }
-      }
-      listWiki(relativePath, $tw.settings.wikis, relativePath)
-      */
       // This is here as a hook for an external server. It is defined by the
       // external server and shouldn't be defined here or it will break
       // If you are not using an external server than this does nothing
@@ -457,9 +438,11 @@ if($tw.node) {
       // This reads the settings so we don't need to give it any arguments
       $tw.httpServer.addOtherRoutes();
       */
-      data.update = 'true';
-      data.saveSettings = 'true';
-      $tw.nodeMessageHandlers.findAvailableWikis(data);
+      setTimeout(function() {
+        data.update = 'true';
+        data.saveSettings = 'true';
+        $tw.nodeMessageHandlers.findAvailableWikis(data);
+      }, 1000);
 
       const message = {
         alert: 'Created wiki ' + name,
@@ -603,8 +586,8 @@ if($tw.node) {
       // Make the duplicate
       $tw.ServerSide.specialCopy(source, destination, copyChildren, function() {
         // Refresh wiki listing
-        data.update = true;
-        data.saveSettings = true;
+        data.update = 'true';
+        data.saveSettings = 'true';
         $tw.nodeMessageHandlers.findAvailableWikis(data);
         const message = {
           alert: 'Created wiki ' + wikiName,

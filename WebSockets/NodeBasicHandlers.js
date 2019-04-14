@@ -331,13 +331,14 @@ if($tw.node) {
         let settingsObj = $tw.settings.wikis;
         let i;
         for (i = 0; i < nameParts.length; i++) {
-          if(typeof settingsObj[nameParts[i]] === 'object') {
+          if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
             settingsObj = settingsObj[nameParts[i]];
           } else if(i < nameParts.length - 1) {
-            settingsObj[nameParts[i]] = {};
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
             settingsObj = settingsObj[nameParts[i]]
           } else {
-            settingsObj[nameParts[i]] = nameParts.join('/');
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+            settingsObj[nameParts[i]].__path = nameParts.join('/');
           }
         }
       })

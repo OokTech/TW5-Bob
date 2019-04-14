@@ -745,8 +745,8 @@ if($tw.node) {
           console.log(e);
         } else {
           // Refresh wiki listing
-          data.update = true;
-          data.saveSettings = true;
+          data.update = 'true';
+          data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
           const message = {
             alert: 'Renamed ' + data.oldWiki + ' to ' + data.newWiki
@@ -844,8 +844,8 @@ if($tw.node) {
       if(data.deleteChildren === 'yes') {
         deleteDirectory(wikiPath).then(function() {
           // Refresh wiki listing
-          data.update = true;
-          data.saveSettings = true;
+          data.update = 'true';
+          data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
           const message = {
             alert: 'Deleted wiki ' + data.deleteWiki + ' and its child wikis.'
@@ -854,8 +854,8 @@ if($tw.node) {
         }).catch(function(e) {
           console.log(e);
           // Refresh wiki listing
-          data.update = true;
-          data.saveSettings = true;
+          data.update = 'true';
+          data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
         })
       } else {
@@ -866,6 +866,17 @@ if($tw.node) {
           } else {
             // Delete the tiddlers folder (if any)
             deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
+              $tw.utils.deleteEmptyDirs(wikiPath,function() {
+                // Refresh wiki listing
+                data.update = 'true';
+                data.saveSettings = 'true';
+                $tw.nodeMessageHandlers.findAvailableWikis(data);
+                const message = {
+                  alert: 'Deleted wiki ' + data.deleteWiki
+                };
+                $tw.ServerSide.sendBrowserAlert(message);
+              });
+              /*
               fs.readdir(wikiPath, function(err, files) {
                 if(err) {
                   console.log(err)
@@ -884,6 +895,7 @@ if($tw.node) {
                 };
                 $tw.ServerSide.sendBrowserAlert(message);
               })
+              */
             }).catch(function(e){
               const message = {
                 alert: 'Error trying to delete wiki ' + e
