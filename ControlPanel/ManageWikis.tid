@@ -16,4 +16,13 @@ These are different things you can do for managing wikis.
 
 </$reveal>
 
+<$checkbox
+  tiddler='$:/settings/Bob/removemissingwikis'
+  field='text'
+  checked='true'
+  unchecked='false'
+>
+  Remove missing wikis when updating list
+</$checkbox>
+
 <<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugnis/OokTech/Bob/CreateWikis]][[$:/plugins/OokTech/Bob/RenameWikis]][[$:/plugins/OokTech/Bob/DeleteWikis]]" "$:/plugins/OokTech/Bob/Wiki Listing">>

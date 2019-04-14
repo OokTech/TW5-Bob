@@ -28,9 +28,6 @@ $tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSett
 
 
 if($tw.node) {
-  //var fs = require("fs");
-  //var http = require("http");
-  //var path = require("path");
   //  var TOML = $tw.node ? require('$:/plugins/OokTech/Bob/External/@iarna/toml/toml.js') : undefined;
   // Import shared commands
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');

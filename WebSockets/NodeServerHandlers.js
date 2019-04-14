@@ -617,7 +617,7 @@ if($tw.node) {
                 }
               });
               const message = {
-                alert: `Saved ` + pluginName + 'to server library.'
+                alert: 'Saved ' + pluginName + 'to server library.'
               };
               $tw.ServerSide.sendBrowserAlert(message);
             }
@@ -654,6 +654,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'admin');
     if(authorised) {
+      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files'
       const path = require('path');
       const fs = require('fs');
       // Get all the tiddlers that have a media type we care about
@@ -690,7 +691,6 @@ if($tw.node) {
                     let newFields = JSON.parse(JSON.stringify(tiddler.fields));
                     newFields.text = ''
                     if(data.storeIn === 'wiki') {
-                      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || `files`
                       newFields._canonical_uri = path.join('/', data.wiki, $tw.settings.fileURLPrefix, fileName);
                     } else {
                       newFields._canonical_uri = path.join('/', $tw.settings.fileURLPrefix, fileName);
@@ -708,7 +708,7 @@ if($tw.node) {
         }
       })
       const message = {
-        alert: `Made media external for ` + data.wiki,
+        alert: 'Made media external for ' + data.wiki,
         wikis: [data.wiki]
       };
       $tw.ServerSide.sendBrowserAlert(message);
@@ -744,11 +744,12 @@ if($tw.node) {
         if(e) {
           console.log(e);
         } else {
-          // Refresh the wiki listing
+          // Refresh wiki listing
           data.update = 'true';
+          data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
           const message = {
-            alert: 'Renamed ' + data.oldWiki + 'to' + data.newWiki
+            alert: 'Renamed ' + data.oldWiki + ' to ' + data.newWiki
           };
           $tw.ServerSide.sendBrowserAlert(message);
         }
@@ -770,19 +771,91 @@ if($tw.node) {
     child wikis, is deleted, Otherwise only the tiddlywiki.info file and the
     tiddlers folder is removed.
   */
+
+  // This is a thing to do rm -rf using node since rmdir fails on non-empty directories
+
+  function deleteFile(dir, file) {
+    const fs = require('fs');
+    const path = require('path');
+    return new Promise(function (resolve, reject) {
+      //Check to make sure that dir is in the place we expect
+      if(dir.startsWith($tw.ServerSide.getBasePath())) {
+        var filePath = path.join(dir, file);
+        fs.lstat(filePath, function (err, stats) {
+          if(err) {
+            return reject(err);
+          }
+          if(stats.isDirectory()) {
+            resolve(deleteDirectory(filePath));
+          } else {
+            fs.unlink(filePath, function (err) {
+              if(err) {
+                return reject(err);
+              }
+              resolve();
+            });
+          }
+        });
+      } else {
+        reject('The folder is not in expected pace!');
+      }
+    });
+  };
+
+  function deleteDirectory(dir) {
+    const fs = require('fs');
+    const path = require('path');
+    return new Promise(function (resolve, reject) {
+      // Check to make sure that dir is in the place we expect
+      if(dir.startsWith($tw.ServerSide.getBasePath())) {
+        fs.access(dir, function (err) {
+          if(err) {
+            return reject(err);
+          }
+          fs.readdir(dir, function (err, files) {
+            if(err) {
+              return reject(err);
+            }
+            Promise.all(files.map(function (file) {
+              return deleteFile(dir, file);
+            })).then(function () {
+              fs.rmdir(dir, function (err) {
+                if(err) {
+                  return reject(err);
+                }
+                resolve();
+              });
+            }).catch(reject);
+          });
+        });
+      } else {
+        reject('The folder is not in expected pace!');
+      }
+    });
+  };
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
     $tw.Bob.Shared.sendAck(data)
+    const path = require('path')
+    const fs = require('fs')
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
     // Make sure that the wiki exists and is listed
     if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
       const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
       if(data.deleteChildren === 'yes') {
-        fs.rmdir(wikiPath, function(e) {
-          if(e) {
-            console.log(e);
-          }
-          // Refresh the wiki listing
+        deleteDirectory(wikiPath).then(function() {
+          // Refresh wiki listing
           data.update = 'true';
+          data.saveSettings = 'true';
+          $tw.nodeMessageHandlers.findAvailableWikis(data);
+          const message = {
+            alert: 'Deleted wiki ' + data.deleteWiki + ' and its child wikis.'
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+        }).catch(function(e) {
+          console.log(e);
+          // Refresh wiki listing
+          data.update = 'true';
+          data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
         })
       } else {
@@ -792,15 +865,20 @@ if($tw.node) {
             console.log(e);
           } else {
             // Delete the tiddlers folder (if any)
-            fs.rmdir(path.join(wikiPath, 'tiddlers'), function(e) {
-              if(e) {
-                console.log(e)
-              }
-              // Refresh the wiki listing
-              data.update = 'true';
-              $tw.nodeMessageHandlers.findAvailableWikis(data);
+            deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
+              $tw.utils.deleteEmptyDirs(wikiPath,function() {
+                // Refresh wiki listing
+                data.update = 'true';
+                data.saveSettings = 'true';
+                $tw.nodeMessageHandlers.findAvailableWikis(data);
+                const message = {
+                  alert: 'Deleted wiki ' + data.deleteWiki
+                };
+                $tw.ServerSide.sendBrowserAlert(message);
+              });
+            }).catch(function(e){
               const message = {
-                alert: `Deleted wiki ` + data.deleteWiki
+                alert: 'Error trying to delete wiki ' + e
               };
               $tw.ServerSide.sendBrowserAlert(message);
             })

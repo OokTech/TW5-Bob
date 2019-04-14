@@ -41,7 +41,9 @@ Give the wiki a name:
     $tiddler='$:/temp/NewWiki'
     wiki_name=''
   />
+  <!--
   <$action-websocketmessage
     $type=updateRoutes
   />
+  -->
 </$button>

@@ -33,7 +33,7 @@ Select Wiki:
     Select Wiki
   </option>
   <$list
-    filter='[listed[$:/state/ViewableWikis]]'
+    filter='[list[$:/state/ViewableWikis]]'
   >
     <option>
       <<currentTiddler>>
@@ -48,14 +48,15 @@ Select Wiki:
 >
   Copy child wikis
 </$checkbox>
-
-New Wiki Name: <$text tiddler='$:/state/DuplicateWiki' field='wiki_name'/>
-
+<br>
+New Wiki Name: <$edit-text tiddler='$:/state/DuplicateWiki' field='wiki_name'/>
+<br>
 <$button>
   <$action-websocketmessage
     $type='duplicateWiki'
     fromWiki={{$:/state/DuplicateWiki}}
     newWiki={{$:/state/DuplicateWiki!!wiki_name}}
+    copyChildren={{$:/state/DuplicateWiki!!include_children}}
   />
   Create Duplicate Wiki
 </$button>

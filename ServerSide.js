@@ -584,6 +584,7 @@ ServerSide.sendBrowserAlert = function(input) {
     let connectionsList = false;
     let authenticationsList = false;
     if(input.connections.length > 0) {
+      connectionsList = [];
       $tw.connections.forEach(function(connection) {
         if(input.connections.indexOf(connection.index) !== -1) {
           connectionsList.push(connection.index);
@@ -591,7 +592,8 @@ ServerSide.sendBrowserAlert = function(input) {
       });
     }
     if(input.wikis.length > 0) {
-      $tw.connectiotns.forEach(function(connection) {
+      wikisList = [];
+      $tw.connections.forEach(function(connection) {
         if(input.wikis.indexOf(connection.wiki) !== -1) {
           wikisList.push(connection.index);
         }
@@ -608,13 +610,16 @@ ServerSide.sendBrowserAlert = function(input) {
     if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
       let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
       if(wikisList) {
-        intersection = new Set([...intersection].filter(x => wikisList.has(x)));
+        const wikiSet = new Set(wikisList);
+        intersection = new Set([...intersection].filter(x => wikiSet.has(x)));
       }
       if(connectionsList) {
-        intersection = new Set([...intersection].filter(x => connectionsList.has(x)));
+        const connectionsSet = new Set(connectionsList);
+        intersection = new Set([...intersection].filter(x => connectionsSet.has(x)));
       }
       if(authenticationsList) {
-        intersection = new Set([...intersection].filter(x => authenticationsList.has(x)));
+        const authenticationsSet = new Set(authenticationsList);
+        intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
       }
       intersection.forEach(function(index) {
         $tw.Bob.SendToBrowser($tw.connections[index], message);
