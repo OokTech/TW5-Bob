@@ -15,7 +15,9 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Reordered some functions to make wiki creation more consistent.
   - Added browser alerts for server events (like confirmations of creating or deleting wikis, fetching tiddlers, etc.)
     - There is a control panel tab that lists a history of server messages.
-  - Possibly fix a bug that could add incorrect path prefixes when using filters in $:/config/FileSystemPaths .
+  - Possibly fix a bug that could add incorrect path prefixes when using filters in $:/config/FileSystemPaths.
+  - Reorder the control panel tab for Bob so it is more compact and organised.
+  - Added the `proxyprefix` configuration option. It is needed for when you are behind a proxy that changes the path part of the url. See [[the documentation|$:/plugins/OokTech/Bob/UsingProxies]]
 
 !! Version 1.2.2r5 Fried Potatoes
 

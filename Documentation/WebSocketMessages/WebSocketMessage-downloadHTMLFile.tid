@@ -1,0 +1,16 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-downloadHTMLFile
+tags: [[Websocket Message]][[Human Usable]]
+caption: downloadHTMLFile
+description: Download an html version of a wiki. (Depreciated)
+
+''Note:'' This isn't very useful anymore, the `$action-downloadwiki` widget
+does a similar thing and works better.
+
+This wiki creates and prompts you to download a single file html version of a
+wiki to your device. It has all of the node-specific plugins (Bob, for example)
+stripped out of it because they don't have any function in a single file wiki.
+
+!!Usage
+
+|!Parameter |!Description |
+|!forWiki | The name of the wiki you want to download the html file for. (Default: the current wiki) |

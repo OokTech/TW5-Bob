@@ -797,7 +797,7 @@ if($tw.node) {
           }
         });
       } else {
-        reject('The folder is not in expected pace!');
+        reject('The folder is not in expected place!');
       }
     });
   };
@@ -810,6 +810,9 @@ if($tw.node) {
       if(dir.startsWith($tw.ServerSide.getBasePath())) {
         fs.access(dir, function (err) {
           if(err) {
+            if(err.code === 'ENOENT') {
+              return resolve();
+            }
             return reject(err);
           }
           fs.readdir(dir, function (err, files) {
@@ -852,11 +855,14 @@ if($tw.node) {
           };
           $tw.ServerSide.sendBrowserAlert(message);
         }).catch(function(e) {
-          console.log(e);
           // Refresh wiki listing
           data.update = 'true';
           data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
+          const message = {
+            alert: 'Error trying to delete wiki ' + e
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
         })
       } else {
         // Delete the tiddlywiki.info file
@@ -877,6 +883,10 @@ if($tw.node) {
                 $tw.ServerSide.sendBrowserAlert(message);
               });
             }).catch(function(e){
+              // Refresh wiki listing
+              data.update = 'true';
+              data.saveSettings = 'true';
+              $tw.nodeMessageHandlers.findAvailableWikis(data);
               const message = {
                 alert: 'Error trying to delete wiki ' + e
               };

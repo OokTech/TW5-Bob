@@ -22,10 +22,13 @@ used. If the json isn't formatted correctly than default values will be used.
   "themesPath": "./Themes"
   "suppressBrowser": "false",
   "fileURLPrefix": "files",
+  "enableFileServer": "false",
   "autoUnloadWikis": "false",
   "wikiPathBase": "cwd",
   "wikisPath": "./Wikis",
   "namespacedWikis": "false",
+  "includePluginList": [],
+  "excludePluginList": [],
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -40,7 +43,8 @@ used. If the json isn't formatted correctly than default values will be used.
     "port": 8080,
     "host": "127.0.0.1",
     "autoIncrementPort": "false",
-    "servePlugin": "true"
+    "servePlugin": "true",
+    "proxyprefix": ""
   },
   "heartbeat": {
     "interval": 1000,
@@ -82,10 +86,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 
 ## What each part is
 
-* `filePathRoot` is the root folder where external files are served. If you want to use an external image from your computer in your wiki than you need to set this to a parent folder of where the pictures are. If none is given than local files aren't served.
 * `editionsPath` is the folder that holds any custom editions you want to be able to use when making wikis using the control panel.  If relative it is relative to `wikiPathBase`.
 * `pluginsPath` is the path to the plugins folder if you are using the as a plugin library.  If relative it is relative to `wikiPathBase`.
 * `themesPath` is the path to the folder where you have your themes.  If relative it is relative to `wikiPathBase`.
+* `filePathRoot` is the root folder where external files are served. If you want to use an external image from your computer in your wiki than you need to set this to a parent folder of where the pictures are. If none is given than local files aren't served.
 * `fileURLPrefix` is the prefix used to distinguish file links from wikis. This has the normal restrictions on names as any URL, so avoid special characters. This defaults to `files` and only have an affect if you have also set `filePathRoot`. Note: If you set this to an empty string it will use the default value of `files` unless you set the `acceptance` value described below. This will break things and no tech support will be provided.
 * `autoUnloadWikis` if this is set to `true` than wikis with no active connections will be automatically unloaded from memory. (experimental, may cause problems)
 * `wikiPathBase` relative paths for everything other than serving files are relative to this path. It defaults to the current working directory.

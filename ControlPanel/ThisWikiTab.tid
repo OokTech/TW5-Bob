@@ -1,0 +1,15 @@
+title: $:/plugins/OokTech/Bob/ThisWikiTab
+caption: This Wiki
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+  These are options that are specific to this wiki. They don't affect any other
+  wikis.
+
+</$reveal>
+
+<<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]]" "$:/plugins/OokTech/Bob/SelectPlugins">>

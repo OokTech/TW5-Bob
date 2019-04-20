@@ -19,3 +19,4 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [[$:/core]]
 [[$:/library/sjcl.js]]
 [prefix[$:/WikiSettings]]
+[[$:/ProxyPrefix]]

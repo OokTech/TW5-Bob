@@ -317,31 +317,38 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.browserAlert = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    if(data.alert) {
-      // Update the message history
-      let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
-      let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
-      if(tiddler) {
-        tidObj = JSON.parse(JSON.stringify(tiddler.fields))
-      }
-      const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
-        return Number(item.replace(/^Server Alert /, ''))
-      }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
-      const AlertTitle = 'Server Alert ' + newNumber;
-      tidObj.text = JSON.parse(tidObj.text);
-      tidObj.text[AlertTitle] = data.alert;
-      tidObj.text = JSON.stringify(tidObj.text);
-      $tw.wiki.addTiddler(tidObj);
+    const serverMessagesTid = $tw.wiki.getTiddler('$:/settings/Bob/ServerMessageHistoryLimit');
+    let hideAlerts = false;
+    if(serverMessagesTid) {
+      hideAlerts = serverMessagesTid.fields.hide_messages === 'true'?true:false;
+    }
+    if(!hideAlerts) {
+      if(data.alert) {
+        // Update the message history
+        let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
+        let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
+        if(tiddler) {
+          tidObj = JSON.parse(JSON.stringify(tiddler.fields))
+        }
+        const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
+          return Number(item.replace(/^Server Alert /, ''))
+        }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
+        const AlertTitle = 'Server Alert ' + newNumber;
+        tidObj.text = JSON.parse(tidObj.text);
+        tidObj.text[AlertTitle] = data.alert + ' - ' + $tw.utils.formatDateString(new Date(),"0hh:0mm, 0DD/0MM/YY");
+        tidObj.text = JSON.stringify(tidObj.text);
+        $tw.wiki.addTiddler(tidObj);
 
-      // Make a tiddler that has the tag $:/tags/Alert that has the text of the
-      // alert.
-      const fields = {
-        component: 'Server Message',
-        title: AlertTitle,
-        text: data.alert,
-        tags: '$:/tags/Alert'
+        // Make a tiddler that has the tag $:/tags/Alert that has the text of
+        // the alert.
+        const fields = {
+          component: 'Server Message',
+          title: AlertTitle,
+          text: data.alert+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+          tags: '$:/tags/Alert'
+        }
+        $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
       }
-      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
   }
 
