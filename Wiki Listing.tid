@@ -1,7 +1,7 @@
 title: $:/plugins/OokTech/Bob/Wiki Listing
 caption: Wiki Listing
 
-\define thisMakeURL() ./$(WikiName)$
+\define thisMakeURL() /$(WikiName)$
 
 \define makeWikiListingTab()
 <$action-setfield
@@ -59,7 +59,9 @@ caption: Wiki Listing
       href=<<thisMakeURL>>
       target='_blank'
     >
-      <$text text=<<WikiName>>/>
+      <$text
+        text=<<WikiName>>
+      />
     </a>
   </li>
 </$list>

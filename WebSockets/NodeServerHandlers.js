@@ -289,10 +289,43 @@ if($tw.node) {
     })
   }
 
+  $tw.nodeMessageHandlers.updateSetting = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    if(typeof data.updateString === 'object') {
+      let failed = false;
+      let updatesObject;
+      let error = undefined;
+      try {
+        updatesObject = JSON.parse(data.updateString);
+      } catch (e) {
+        updatesObject = {};
+        failed = true;
+        error = e;
+      }
+      if(Object.keys(updatesObject).length > 0) {
+        $tw.updateSettings($tw.settings, updatesObject);
+      }
+      if(!failed) {
+        $tw.CreateSettingsTiddlers();
+        const message = {
+          alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      } else {
+        $tw.CreateSettingsTiddlers();
+        const message = {
+          alert: 'Failed to update settings with error: ' + error
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      }
+    }
+  }
+
   /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
-    TODO update this to work with child wikis
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);

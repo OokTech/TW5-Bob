@@ -34,7 +34,7 @@ exports.getThemeInfo = function() {
   	        themeNames.forEach(function(themeName) {
   	  				// Check if directories have a valid plugin.info
   	  				if(!themeInfo[themeAuthor + '/' + themeName] && $tw.utils.isDirectory(path.resolve(themePath,themeAuthor,themeName))) {
-  	  					let info;
+  	  					let info = false;
   	  					try {
   	  						info = JSON.parse(fs.readFileSync(path.resolve(themePath,themeAuthor, themeName,"plugin.info"),"utf8"));
   	  					} catch(ex) {
@@ -47,7 +47,11 @@ exports.getThemeInfo = function() {
           }
 				}
 			} catch (e) {
-				console.log('Error getting theme info', e)
+				if(e.code === 'ENOENT') {
+					console.log('No Themes Folder ' + themePaths[themeIndex]);
+				} else {
+					console.log('Error getting theme info', e);
+				}
 			}
 		}
 	}

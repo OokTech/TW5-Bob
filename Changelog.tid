@@ -18,6 +18,11 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Possibly fix a bug that could add incorrect path prefixes when using filters in $:/config/FileSystemPaths.
   - Reorder the control panel tab for Bob so it is more compact and organised.
   - Added the `proxyprefix` configuration option. It is needed for when you are behind a proxy that changes the path part of the url. See [[the documentation|$:/plugins/OokTech/Bob/UsingProxies]]
+  - Added default values for the plugins, editions, languages and themes environment variables. They are './Plugins', './Editions', './Languages' and './Themes' respectivly.
+  - You can see available editions, plugins, themes and languages in plugins called `$:/Bob/AvailablePlguinList`, `$:/Bob/AvailableLanguageList`, '$:/Bob/AvailableThemeList' and `$:/Bob/AvailableEditionList`.
+  - Add an interface to set which editions are listed in the create wikis from editions interface.
+  - Updating settings should work more consistently now
+  - Hopefully fix the wiki listing so it works on wikis that are more than one layer deep in the names.
 
 !! Version 1.2.2r5 Fried Potatoes
 

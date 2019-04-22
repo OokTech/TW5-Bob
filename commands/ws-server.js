@@ -816,7 +816,8 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
-    const basePath = $tw.ServerSide.getBasePath()
+    const basePath = $tw.ServerSide.getBasePath();
+    $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';
     if(typeof $tw.settings.pluginsPath === 'string') {
       const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);
       if(process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
@@ -825,6 +826,7 @@ if($tw.node) {
         process.env["TIDDLYWIKI_PLUGIN_PATH"] = resolvedpluginspath;
       }
     }
+    $tw.settings.themesPath = $tw.settings.themesPath || './Themes';
     if(typeof $tw.settings.themesPath === 'string') {
       const resolvedthemespath = path.resolve(basePath, $tw.settings.themesPath);
       if(process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
@@ -833,12 +835,22 @@ if($tw.node) {
         process.env["TIDDLYWIKI_THEME_PATH"] = resolvedthemespath;
       }
     }
+    $tw.settings.editionsPath = $tw.settings.editionsPath || './Editions';
     if(typeof $tw.settings.editionsPath === 'string') {
       const resolvededitionspath = path.resolve(basePath, $tw.settings.editionsPath)
       if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
         process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
       } else {
         process.env["TIDDLYWIKI_EDITION_PATH"] = resolvededitionspath;
+      }
+    }
+    $tw.settings.languagesPath = $tw.settings.languagesPath || './Languages';
+    if(typeof $tw.settings.languagesPath === 'string') {
+      const resolvedlanguagespath = path.resolve(basePath, $tw.settings.languagesPath)
+      if(process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== undefined && process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== '') {
+        process.env["TIDDLYWIKI_LANGUAGE_PATH"] = process.env["TIDDLYWIKI_LANGUAGE_PATH"] + path.delimiter + resolvedlanguagespath;
+      } else {
+        process.env["TIDDLYWIKI_LANGUAGE_PATH"] = resolvedlanguagespath;
       }
     }
 
