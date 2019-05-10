@@ -23,6 +23,8 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Add an interface to set which editions are listed in the create wikis from editions interface.
   - Updating settings should work more consistently now
   - Hopefully fix the wiki listing so it works on wikis that are more than one layer deep in the names.
+  - Empty settings should be properly removed now so the settinsg.json won't be full of things like "foo":{}
+  - The 'Are you sure you want to leave without saving' message should be suppressed for real this time.
 
 !! Version 1.2.2r5 Fried Potatoes
 

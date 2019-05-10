@@ -1,0 +1,87 @@
+title: $:/plugins/OokTech/Bob/Wiki Listing
+caption: Wiki Listing
+
+\define thisMakeURL() /$(WikiName)$
+
+\define makeWikiListingTab()
+<$action-setfield
+  $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
+  tags='$:/tags/SideBar'
+  text='{{$:/plugins/OokTech/Bob/Wiki Listing}}'
+  caption='Wikis'
+/>
+\end
+
+\define removeWikiListingTab()
+<$action-setfield
+  $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
+  text=''
+/>
+<$action-deletetiddler
+  $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
+/>
+\end
+
+
+\define innerTOW()
+<ul>
+<$list
+  filter='[<currentTiddler>splitbefore[/]]'
+>
+  <$list
+    filter='[<currentTiddler>!suffix[/]]'
+    emptyMessage="""<ul><<innerTOW>><ul>"""
+  >
+    <li>
+      <a
+        href=<<thisMakeURL>>
+        target='_blank'
+      >
+        <$text
+          text=<<WikiName>>
+        />
+      </a>
+    </li>
+  </$list>
+</$list>
+</ul>
+\end
+
+<h2
+  style='margin:0px;padding:0px;'
+>
+  Available Wikis
+</h2>
+<div
+  style='font-size:12px;display:inline-block;'
+>
+  <$checkbox
+    actions=<<makeWikiListingTab>>
+    uncheckactions=<<removeWikiListingTab>>
+    tiddler='$:/settings/Bob/ListInSidebar'
+    field='text'
+    checked='yes'
+    unchecked='no'
+  >
+    List in sidebar
+  </$checkbox>
+  <$button>
+    Update List
+    <$action-websocketmessage
+      $type='findAvailableWikis'
+      remove={{$:/settings/Bob/removemissingwikis!!text}}
+      update='true'
+      saveSettings='true'
+    />
+  </$button>
+</div>
+
+---
+
+<$list
+  filter='[list[$:/state/ViewableWikis]]'
+  variable=WikiName
+  emptyMessage='No child wikis listed.'
+>
+  <<innerTOW>>
+</$list>

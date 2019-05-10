@@ -123,16 +123,6 @@ if($tw.node) {
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if(typeof $tw.settings.editionsPath === 'string') {
-      /*
-      let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if($tw.settings.wikiPathBase === 'homedir') {
-        basePath = os.homedir();
-      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      } else {
-        basePath = path.resolve($tw.settings.wikiPathBase);
-      }
-      */
       const basePath = $tw.ServerSide.getBasePath();
       // We need to make sure this doesn't overwrite existing thing
       const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
@@ -158,7 +148,7 @@ if($tw.node) {
       wiki: data.wiki
     };
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-    
+
     // Create the list of themes on the server
     const themeList = $tw.utils.getThemeInfo();
     $tw.themesInfo = {};
@@ -247,9 +237,12 @@ if($tw.node) {
     let currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if(typeof inputObject[property] === 'object') {
-        // Call recursive function to walk through properties
-        doThisLevel(inputObject[property], currentName + '/' + property, data);
-        currentLevel[property] = currentName + '/' + property;
+        // Call recursive function to walk through properties, but only if
+        // there are properties
+        if(Object.keys(inputObject[property])) {
+          doThisLevel(inputObject[property], currentName + '/' + property, data);
+          currentLevel[property] = currentName + '/' + property;
+        }
       } else {
         // Add it to this one.
         currentLevel[property] = inputObject[property];
