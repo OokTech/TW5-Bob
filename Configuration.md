@@ -21,6 +21,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "wikiPathBase": "cwd",
   "wikisPath": "./Wikis",
   "namespacedWikis": "false",
+  "disableBrowserAlerts": "false",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -116,6 +117,9 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `namespacedWikis` this only has an effect if you are using an external
   server with a login. If so this prefixes the wiki path with the currently
   logged in persons name when creating a wiki.
+- `disableBrowserAlerts` if this is set to `true` than no alerts are sent to
+  the browser wikis. This can also be set on a per-wiki basis in the control
+  panel.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined

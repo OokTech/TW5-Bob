@@ -25,6 +25,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Hopefully fix the wiki listing so it works on wikis that are more than one layer deep in the names.
   - Empty settings should be properly removed now so the settinsg.json won't be full of things like "foo":{}
   - The 'Are you sure you want to leave without saving' message should be suppressed for real this time.
+  - Deleting a wiki that has been previously loaded shouldn't cause trouble anymore.
 
 !! Version 1.2.2r5 Fried Potatoes
 

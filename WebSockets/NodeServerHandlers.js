@@ -394,6 +394,7 @@ if($tw.node) {
     // make sure that there is a wiki name given.
     if(data.wikiName) {
       console.log('Unload wiki ', data.wikiName)
+      $tw.stopFileWatchers(data.wikiName);
       // Make sure that the wiki is loaded
       if($tw.Bob.Wikis[data.wikiName]) {
         if($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
@@ -869,6 +870,16 @@ if($tw.node) {
       }
     });
   };
+  $tw.stopFileWatchers = function(wikiName) {
+    // Close any file watchers that are active for the wiki
+    if ($tw.Bob.Wikis[wikiName]) {
+      if ($tw.Bob.Wikis[wikiName].watchers) {
+        Object.values($tw.Bob.Wikis[wikiName].watchers).forEach(function(thisWatcher) {
+          thisWatcher.close();
+        })
+      }
+    }
+  }
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
     $tw.Bob.Shared.sendAck(data)
     const path = require('path')
@@ -876,6 +887,7 @@ if($tw.node) {
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
     // Make sure that the wiki exists and is listed
     if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
+      $tw.stopFileWatchers(data.deleteWiki)
       const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
       if(data.deleteChildren === 'yes') {
         deleteDirectory(wikiPath).then(function() {

@@ -588,63 +588,67 @@ const buildTree = function(location, parent) {
   authentications - an array of authentication levels to receive the alert
   access - an array of wikis and access levels (like can view the wiki in
   question, or edit it)
+
+  We can turn off browser messages
 */
 ServerSide.sendBrowserAlert = function(input) {
-  const message = {
-    type:'browserAlert',
-    alert: input.alert
-  }
-  input.wikis = input.wikis || [];
-  input.connections = input.connections || [];
-  input.authentications = input.authentications || [];
-  input.alert = input.alert || '';
-  if(input.alert.length > 0) {
-    let wikisList = false;
-    let connectionsList = false;
-    let authenticationsList = false;
-    if(input.connections.length > 0) {
-      connectionsList = [];
-      $tw.connections.forEach(function(connection) {
-        if(input.connections.indexOf(connection.index) !== -1) {
-          connectionsList.push(connection.index);
+  if ($tw.settings.disableBrowserAlerts !== 'true') {
+    const message = {
+      type:'browserAlert',
+      alert: input.alert
+    }
+    input.wikis = input.wikis || [];
+    input.connections = input.connections || [];
+    input.authentications = input.authentications || [];
+    input.alert = input.alert || '';
+    if(input.alert.length > 0) {
+      let wikisList = false;
+      let connectionsList = false;
+      let authenticationsList = false;
+      if(input.connections.length > 0) {
+        connectionsList = [];
+        $tw.connections.forEach(function(connection) {
+          if(input.connections.indexOf(connection.index) !== -1) {
+            connectionsList.push(connection.index);
+          }
+        });
+      }
+      if(input.wikis.length > 0) {
+        wikisList = [];
+        $tw.connections.forEach(function(connection) {
+          if(input.wikis.indexOf(connection.wiki) !== -1) {
+            wikisList.push(connection.index);
+          }
+        })
+      }
+      if(input.authentications.length > 0) {
+        // Nothing here yet
+      }
+      // Get the intersection of all of the things listed above to get the
+      // connections to send this to.
+      wikisListThing = wikisList || []
+      connectionsListThing = connectionsList || []
+      authenticationsListThing = authenticationsList || []
+      if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
+        let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
+        if(wikisList) {
+          const wikiSet = new Set(wikisList);
+          intersection = new Set([...intersection].filter(x => wikiSet.has(x)));
         }
-      });
-    }
-    if(input.wikis.length > 0) {
-      wikisList = [];
-      $tw.connections.forEach(function(connection) {
-        if(input.wikis.indexOf(connection.wiki) !== -1) {
-          wikisList.push(connection.index);
+        if(connectionsList) {
+          const connectionsSet = new Set(connectionsList);
+          intersection = new Set([...intersection].filter(x => connectionsSet.has(x)));
         }
-      })
-    }
-    if(input.authentications.length > 0) {
-      // Nothing here yet
-    }
-    // Get the intersection of all of the things listed above to get the
-    // connections to send this to.
-    wikisListThing = wikisList || []
-    connectionsListThing = connectionsList || []
-    authenticationsListThing = authenticationsList || []
-    if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
-      let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
-      if(wikisList) {
-        const wikiSet = new Set(wikisList);
-        intersection = new Set([...intersection].filter(x => wikiSet.has(x)));
+        if(authenticationsList) {
+          const authenticationsSet = new Set(authenticationsList);
+          intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
+        }
+        intersection.forEach(function(index) {
+          $tw.Bob.SendToBrowser($tw.connections[index], message);
+        });
+      } else {
+        $tw.Bob.SendToBrowsers(message);
       }
-      if(connectionsList) {
-        const connectionsSet = new Set(connectionsList);
-        intersection = new Set([...intersection].filter(x => connectionsSet.has(x)));
-      }
-      if(authenticationsList) {
-        const authenticationsSet = new Set(authenticationsList);
-        intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
-      }
-      intersection.forEach(function(index) {
-        $tw.Bob.SendToBrowser($tw.connections[index], message);
-      });
-    } else {
-      $tw.Bob.SendToBrowsers(message);
     }
   }
 }

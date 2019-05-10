@@ -78,8 +78,9 @@ if($tw.node) {
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
+    $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
-      fs.watch(folder, function (eventType, filename) {
+      $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
         let isFile = false;
         let isFolder = false;
         // The full path to the current item
@@ -229,6 +230,7 @@ if($tw.node) {
         delete $tw.Bob.Files[prefix][tiddlerName];
         // Remove the tiddler on the server
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(tiddlerName);
+        console.log('Deleted File ', itemPath);
         // Create a message saying to remove the tiddler from the browser
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser

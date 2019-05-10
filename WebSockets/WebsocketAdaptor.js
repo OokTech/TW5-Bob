@@ -300,6 +300,9 @@ if($tw.node) {
         if(err) {
           return callback(err);
         }
+        if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
+          console.log('deleted file ', $tw.Bob.Files[prefix][title][filepath]);
+        }
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);

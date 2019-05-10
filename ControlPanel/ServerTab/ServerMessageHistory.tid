@@ -9,7 +9,7 @@ caption: Server Messages
   checked='true'
   unchecked='false'
 >
-  Hide server alerts
+  Hide server alerts in this wiki
 </$checkbox>
 
 <$button>
