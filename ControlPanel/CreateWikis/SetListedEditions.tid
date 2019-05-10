@@ -1,0 +1,84 @@
+title: $:/plugins/OokTech/Bob/CreateWikiFromEdition/SetListedEditions
+
+\define thisPrefix() [[
+
+\define thisSuffix() ]]
+
+Editions listed here will appear in the drop-down menu for creating new
+wikis from editions. If no editions are listed here than all available editions
+will be listed for creating new wikis.
+
+Add Edition To List:
+<$select
+  tiddler='$:/state/Bob/AddEditionToList'
+>
+  <option value=''>
+    Select Edition
+  </option>
+  <$list
+    filter='[[$:/Bob/AvailableEditionList]indexes[]search{$:/state/Bob/AddEditionToList!!search}] -[enlist{$:/ListedEditions!!text}]'
+  >
+    <$set
+      name=Annoying
+      filter='[<currentTiddler>]'
+      emptyValue=<<currentTiddler>>
+    >
+      <option
+        value=<<Annoying>>
+      >
+        <<currentTiddler>>
+      </option>
+    </$set>
+  </$list>
+</$select>
+<$button>
+  Add
+  <$action-listops
+    $tiddler='$:/ListedEditions'
+    $field='text'
+    $subfilter='+[append{$:/state/Bob/AddEditionToList}]'
+  />
+</$button>
+Narrow List:
+<$edit-text
+  tiddler='$:/state/Bob/AddEditionToList'
+  field='search'
+/>
+
+Currently Listed (uncheck to remove from list):
+
+<$list
+  filter='[enlist{$:/ListedEditions!!text}]'
+>
+  <$button
+    class='tc-btn-invisible'
+  >
+    <$list
+      filter='[enlist{$:/ListedEditions!!text}title<currentTiddler>addprefix<thisPrefix>addsuffix<thisSuffix>]'
+      emptyMessage="""
+        <input
+          type='checkbox'
+        />
+        <$action-listops
+          $tiddler='$:/ListedEditions'
+          $field='text'
+          $subfilter='+[append<currentTiddler>]'
+        />"""
+    >
+      <input
+        type='checkbox'
+        checked
+      />
+      <$action-listops
+        $tiddler='$:/ListedEditions'
+        $field='text'
+        $subfilter='+[remove<currentTiddler>]'
+      />
+    </$list>
+    <$view
+      tiddler=<<currentTiddler>>
+      field=title
+    />
+  </$button>
+  <br/>
+</$list>

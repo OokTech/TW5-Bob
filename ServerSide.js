@@ -60,6 +60,15 @@ ServerSide.getBasePath = function() {
 }
 
 /*
+  Given a wiki name this generates the path for the wiki.
+*/
+ServerSide.generateWikiPath = function(wikiName) {
+  const basePath = $tw.ServerSide.getBasePath();
+  $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+  return path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+}
+
+/*
   Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
   listed this returns undefined.
   This can be used to determine if a wiki is listed or not.
@@ -216,6 +225,12 @@ ServerSide.loadWiki = function (wikiName) {
       text: wikiName
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+    if($tw.settings['ws-server'].proxyprefix) {
+      const wikiPathFields = {
+        title: '$:/ProxyPrefix',
+        text: $tw.settings['ws-server'].pathprefix
+      };
+    }
   }
   return wikiFolder;
 }
@@ -480,6 +495,10 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
   }
   if(typeof copyChildren === 'function') {
     cb = copyChildren;
+    copyChildren = false;
+  } else if(typeof copyChildren === 'string') {
+    copyChildren = (copyChildren==='true')?true:false;
+  } else if(copyChildren !== true) {
     copyChildren = false;
   }
   try {

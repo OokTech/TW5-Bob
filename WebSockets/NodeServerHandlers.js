@@ -289,10 +289,43 @@ if($tw.node) {
     })
   }
 
+  $tw.nodeMessageHandlers.updateSetting = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    if(typeof data.updateString === 'object') {
+      let failed = false;
+      let updatesObject;
+      let error = undefined;
+      try {
+        updatesObject = JSON.parse(data.updateString);
+      } catch (e) {
+        updatesObject = {};
+        failed = true;
+        error = e;
+      }
+      if(Object.keys(updatesObject).length > 0) {
+        $tw.updateSettings($tw.settings, updatesObject);
+      }
+      if(!failed) {
+        $tw.CreateSettingsTiddlers();
+        const message = {
+          alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      } else {
+        $tw.CreateSettingsTiddlers();
+        const message = {
+          alert: 'Failed to update settings with error: ' + error
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      }
+    }
+  }
+
   /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
-    TODO update this to work with child wikis
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);
@@ -797,7 +830,7 @@ if($tw.node) {
           }
         });
       } else {
-        reject('The folder is not in expected pace!');
+        reject('The folder is not in expected place!');
       }
     });
   };
@@ -810,6 +843,9 @@ if($tw.node) {
       if(dir.startsWith($tw.ServerSide.getBasePath())) {
         fs.access(dir, function (err) {
           if(err) {
+            if(err.code === 'ENOENT') {
+              return resolve();
+            }
             return reject(err);
           }
           fs.readdir(dir, function (err, files) {
@@ -852,11 +888,14 @@ if($tw.node) {
           };
           $tw.ServerSide.sendBrowserAlert(message);
         }).catch(function(e) {
-          console.log(e);
           // Refresh wiki listing
           data.update = 'true';
           data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
+          const message = {
+            alert: 'Error trying to delete wiki ' + e
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
         })
       } else {
         // Delete the tiddlywiki.info file
@@ -877,6 +916,10 @@ if($tw.node) {
                 $tw.ServerSide.sendBrowserAlert(message);
               });
             }).catch(function(e){
+              // Refresh wiki listing
+              data.update = 'true';
+              data.saveSettings = 'true';
+              $tw.nodeMessageHandlers.findAvailableWikis(data);
               const message = {
                 alert: 'Error trying to delete wiki ' + e
               };

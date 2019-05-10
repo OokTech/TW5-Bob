@@ -1,0 +1,7 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-makeImagesExternal
+tags: [[Websocket Message]] [[Human Usable]]
+caption: makeImagesExternal
+description: Make all images in the wiki external tiddlers using _canonical_uri
+
+This moves all images and other media from a wiki into an external folder and
+creates _canonical_uri tiddlers for each one.

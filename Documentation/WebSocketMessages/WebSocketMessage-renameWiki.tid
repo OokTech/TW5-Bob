@@ -1,0 +1,6 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-renameWiki
+tags: [[Websocket Message]] [[Human Usable]]
+caption: renameWiki
+description: Renames a wiki
+
+This renames an existing wiki. This is equivalent to moving a wiki.

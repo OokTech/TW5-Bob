@@ -22,7 +22,36 @@ caption: Wiki Listing
 />
 \end
 
-<h2 style='margin:0px;padding:0px;'>Available Wikis</h2>
+
+\define innerTOW()
+<ul>
+<$list
+  filter='[<currentTiddler>splitbefore[/]]'
+>
+  <$list
+    filter='[<currentTiddler>!suffix[/]]'
+    emptyMessage="""<ul><<innerTOW>><ul>"""
+  >
+    <li>
+      <a
+        href=<<thisMakeURL>>
+        target='_blank'
+      >
+        <$text
+          text=<<WikiName>>
+        />
+      </a>
+    </li>
+  </$list>
+</$list>
+</ul>
+\end
+
+<h2
+  style='margin:0px;padding:0px;'
+>
+  Available Wikis
+</h2>
 <div
   style='font-size:12px;display:inline-block;'
 >
@@ -54,14 +83,5 @@ caption: Wiki Listing
   variable=WikiName
   emptyMessage='No child wikis listed.'
 >
-  <li>
-    <a
-      href=<<thisMakeURL>>
-      target='_blank'
-    >
-      <$text
-        text=<<WikiName>>
-      />
-    </a>
-  </li>
+  <<innerTOW>>
 </$list>

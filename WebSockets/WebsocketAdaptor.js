@@ -62,7 +62,11 @@ if($tw.node) {
     }
     // See if we've already got information about this file
     const title = tiddler.fields.title;
-    let fileInfo = $tw.Bob.Files[prefix][title];
+    let fileInfo = false;
+    $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
+    if($tw.Bob.Files[prefix]) {
+      fileInfo = $tw.Bob.Files[prefix][title];
+    }
     if(fileInfo) {
       // If so, just invoke the callback
       callback(null,fileInfo);
@@ -88,7 +92,7 @@ if($tw.node) {
       if(prefix === 'RootWiki') {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
-      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
+      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
       const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory

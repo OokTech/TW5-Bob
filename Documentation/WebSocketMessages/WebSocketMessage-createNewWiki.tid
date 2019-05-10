@@ -5,6 +5,11 @@ description: A message used to make new wikis
 
 This message is used to create a new wiki using an edition.
 
+''BobEXE note:'' `BobEXE` uses a slightly different structure than the plugin
+version does by default. For `BobEXE` the IndexWiki folder is made in the same
+folder as the executable, and by default all other wikis are placed in a `Wikis`
+subfolder.
+
 ''Location note:'' By default new wikis are created in the same folder as the
 root wiki. So if you have a folder `Wikis` and your root wiki in a subfolder
 `RootWiki` than new wikis created using this will also be in the `Wikis`
@@ -23,10 +28,10 @@ Wikis
 !!Usage
 
 |!Name |!Description |
-|!path |The path to the wiki relative to the main folder |
 |!edition |The edition to use to make the new wiki. If it is left out 'empty' is used. |
-|!wikiName |The name to give the new wiki. This is used to make the URL path to the new wiki. |
+|!wikiName |The name to give the new wiki. This is used to make the URL path to the new wiki and to set its location in the wikis folder. |
 |!basePath |OPTIONAL Use this if you want the wiki created somewhere other than the default location (see location note above) |
+|!wikisFolder |OPTIONAL Use this if you want the wikis folder to have a different name for this wiki. This is relative to `basePath` above.|
 
 ```
 <$action-websocketmessage $type='createNewWiki' path='wikiFolderPath' edition='editionName' wikiName='newWikiName' basePath='basePath'/>

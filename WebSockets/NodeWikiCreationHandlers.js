@@ -426,18 +426,6 @@ if($tw.node) {
         }
       }
 
-      /*
-      // Update the settings
-      setTimeout(function() {
-        data.saveSettings = true;
-        $tw.nodeMessageHandlers.findAvailableWikis(data);
-      }, 1000);
-      // Then clear all the routes to the non-root wiki
-      $tw.httpServer.clearRoutes();
-      // The re-add all the routes from the settings
-      // This reads the settings so we don't need to give it any arguments
-      $tw.httpServer.addOtherRoutes();
-      */
       setTimeout(function() {
         data.update = 'true';
         data.saveSettings = 'true';

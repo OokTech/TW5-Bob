@@ -1,0 +1,24 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-renameWiki
+tags: [[Websocket Message]] [[Human Usable]]
+caption: deleteWiki
+description: Deletes a wiki
+
+This message is used to delete an existing wiki.
+
+''Note:'' This is permanent and can't be undone. I can not help you if you
+accidentally delete a wiki and wish to restore it. Creating and maintaining
+backups is your responsibility. While I try to make it easy I cannot do it for
+you.
+
+''Note 2:'' The `deleteChildren` parameter assumes that the children are all
+inside the parent wikis folder the way that they are using the default settings.
+
+!!Usage
+
+|!Name |!Description |
+|!deleteWiki |This is the name of the wiki you wish to delete. This must be the full name as listed in the `$:/WikiName` tiddler in the wiki you want to delete. |
+|!deleteChildren |If this is set to `yes` than all child wikis that may exist inside the folder of the `deleteWiki` are deleted also. In addition everything else in that folder is also deleted. (Default: `no`)|
+
+```
+<$action-websocketmessage $type='deleteWiki' deleteWiki='SomeWikiName' deleteChildren='no'/>
+```

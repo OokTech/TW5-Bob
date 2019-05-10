@@ -44,6 +44,14 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.connections = null;
       }
       $tw.Syncer.isDirty = false;
+      const proxyPrefixTiddler = $tw.wiki.getTiddler('$:/ProxyPrefix');
+      let ProxyPrefix = ''
+      if(proxyPrefixTiddler) {
+        ProxyPrefix = proxyPrefixTiddler.fields.text;
+        if(!ProxyPrefix.startsWith('/')) {
+          ProxyPrefix = '/' + ProxyPrefix;
+        }
+      }
       const IPAddress = window.location.hostname;
       const WSSPort = window.location.port;
       const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
@@ -51,7 +59,7 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.connections = $tw.connections || [];
       $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
       $tw.connections[connectionIndex].index = connectionIndex;
-      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + ProxyPrefix);
       $tw.connections[connectionIndex].socket.onopen = openSocket;
       $tw.connections[connectionIndex].socket.onmessage = parseMessage;
       $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";

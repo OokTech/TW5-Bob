@@ -34,7 +34,7 @@ exports.getPluginInfo = function() {
   	        pluginNames.forEach(function(pluginName) {
   	  				// Check if directories have a valid plugin.info
   	  				if(!pluginInfo[pluginAuthor + '/' + pluginName] && $tw.utils.isDirectory(path.resolve(pluginPath,pluginAuthor,pluginName))) {
-  	  					let info;
+  	  					let info = false;
   	  					try {
   	  						info = JSON.parse(fs.readFileSync(path.resolve(pluginPath,pluginAuthor, pluginName,"plugin.info"),"utf8"));
   	  					} catch(ex) {
@@ -47,7 +47,11 @@ exports.getPluginInfo = function() {
           }
 				}
 			} catch (e) {
-				console.log('Error getting plugin info', e)
+				if(e.code === 'ENOENT') {
+					console.log('No Plugins Folder ' + pluginPaths[pluginIndex]);
+				} else {
+					console.log('Error getting plugin info', e)
+				}
 			}
 		}
 	}
