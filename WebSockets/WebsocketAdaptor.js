@@ -54,7 +54,7 @@ if($tw.node) {
     if(!callback) {
       callback = function (err, fileInfo) {
         if(err) {
-          console.log(err);
+          $tw.Bob.logger.error(err, {level:2});
         } else {
           return fileInfo;
         }
@@ -115,7 +115,7 @@ if($tw.node) {
         }
         // Set the final fileInfo
         fileInfo.filepath = filepath;
-  console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
+        $tw.Bob.logger.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m", {level:2});
         $tw.Bob.Files[prefix][title] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
         if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
@@ -221,11 +221,11 @@ if($tw.node) {
                   return callback(err);
                 }
                 // Save with metadata
-                console.log('saved file with metadata', filepath);
+                $tw.Bob.logger.log('saved file with metadata', filepath, {level:2});
                 return callback(null);
               });
             } else {
-              console.log('saved file with metadata', filepath)
+              $tw.Bob.logger.log('saved file with metadata', filepath, {level:2})
               return callback(null);
             }
           });
@@ -238,7 +238,7 @@ if($tw.node) {
             if(err) {
               return callback(err);
             }
-            console.log('saved file', filepath)
+            $tw.Bob.logger.log('saved file', filepath, {level:2})
             return callback(null);
           });
         }
@@ -294,14 +294,13 @@ if($tw.node) {
     const fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
-      //console.log('Delete tiddler file ', fileInfo.filepath);
       // Delete the file
       fs.unlink(fileInfo.filepath,function(err) {
         if(err) {
           return callback(err);
         }
         if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
-          console.log('deleted file ', $tw.Bob.Files[prefix][title][filepath]);
+          $tw.Bob.logger.log('deleted file ', $tw.Bob.Files[prefix][title][filepath], {level:2});
         }
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];
@@ -310,7 +309,7 @@ if($tw.node) {
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
-        //self.logger.log("Deleted file",fileInfo.filepath);
+        self.logger.log("Deleted file",fileInfo.filepath);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {

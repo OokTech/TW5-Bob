@@ -33,7 +33,7 @@ if($tw.node) {
     It displays the contents of the received data in the console.
   */
   $tw.nodeMessageHandlers.test = function(data) {
-    console.log(data);
+    $tw.Bob.logger.log(data, {level:0});
   }
 }
 })()

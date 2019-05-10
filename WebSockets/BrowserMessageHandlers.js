@@ -101,7 +101,7 @@ it will overwrite this file.
         // Add the tiddler
         $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
-      console.log("No tiddler list given");
+      console.log("No tiddler list given", {level:2});
     }
   }
 
@@ -181,7 +181,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.import = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('import', data.tiddler.fields.title)
+    console.log('import', data.tiddler.fields.title, {level:2})
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
     const newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
@@ -261,7 +261,7 @@ it will overwrite this file.
     the server anymore.
   */
   function handleDisconnected() {
-    console.log('Disconnected from server');
+    $tw.Bob.logger.error('Disconnected from server', {level:0});
     const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
     const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
@@ -289,7 +289,6 @@ it will overwrite this file.
       let a = document.createElement('a');
       a.download = 'index.html';
       const thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
-      //console.log(thisStr)
       a.setAttribute('href', thisStr);
       document.body.appendChild(a);
       a.click();

@@ -48,9 +48,9 @@ exports.getPluginInfo = function() {
 				}
 			} catch (e) {
 				if(e.code === 'ENOENT') {
-					console.log('No Plugins Folder ' + pluginPaths[pluginIndex]);
+					$tw.Bob.logger.log('No Plugins Folder ' + pluginPaths[pluginIndex], {level:2});
 				} else {
-					console.log('Error getting plugin info', e)
+					$tw.Bob.logger.error('Error getting plugin info', e, {level:2})
 				}
 			}
 		}

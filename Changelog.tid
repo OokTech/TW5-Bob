@@ -26,6 +26,11 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Empty settings should be properly removed now so the settinsg.json won't be full of things like "foo":{}
   - The 'Are you sure you want to leave without saving' message should be suppressed for real this time.
   - Deleting a wiki that has been previously loaded shouldn't cause trouble anymore.
+  - Added many logging things
+    - different logging levels to pick how much output is given
+    - log to the console or a file, or both (logging to the browser coming soon)
+    - independent logging levels for each logging type
+    - Errors and other logging messages can put into separate files (stdout and stderr can be handled separately)
 
 !! Version 1.2.2r5 Fried Potatoes
 

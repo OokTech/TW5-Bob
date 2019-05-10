@@ -253,14 +253,14 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     try {
       wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
     } catch (e) {
-      console.log('Error reading wiki info', e);
+      $tw.Bob.logger.error('Error reading wiki info', e, {level:1});
     }
   } else {
     return null;
   }
   // Load any parent wikis
   if(wikiInfo.includeWikis) {
-    console.log('Bob error: includeWikis is not supported yet!');
+    $tw.Bob.logger.error('Bob error: includeWikis is not supported yet!', {level:1});
     /*
     parentPaths = parentPaths.slice(0);
     parentPaths.push(wikiPath);
@@ -293,7 +293,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     try {
       out = $tw.loadTiddlersFromPath(resolvedWikiPath);
     } catch(e) {
-      console.log(e);
+      $tw.Bob.logger.error(e, {level:1});
     }
     return out;
   }
@@ -342,7 +342,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('error loading plugin folder', e);
+      $tw.Bob.logger.error('error loading plugin folder', e, {level:2});
     }
   }
   // Load any themes within the wiki folder
@@ -357,7 +357,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('error loading theme folder', e);
+      $tw.Bob.logger.error('error loading theme folder', e, {level:2});
     }
   }
   // Load any languages within the wiki folder
@@ -372,7 +372,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('Error loading language folder', e);
+      $tw.Bob.logger.error('Error loading language folder', e, {level:2});
     }
   }
   return wikiInfo;
@@ -535,7 +535,7 @@ const getDirectories = function(source) {
       return fs.lstatSync(source).isDirectory();
     });
   } catch (e) {
-    console.log('Error getting directories', e);
+    $tw.Bob.logger.error('Error getting directories', e, {level:2});
     return [];
   }
 }

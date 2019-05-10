@@ -25,10 +25,10 @@ if($tw.node) {
   $tw.nodeMessageHandlers.restartServer = function(data) {
     $tw.Bob.Shared.sendAck(data);
     if($tw.node) {
-      console.log('Restarting Server!');
+      $tw.Bob.logger.log('Restarting Server!', {level:0});
       // Close web socket server.
       $tw.wss.close(function () {
-        console.log('Closed WSS');
+        $tw.Bob.logger.log('Closed WSS', {level:2});
       });
       // This bit of magic restarts whatever node process is running. In this
       // case the tiddlywiki server.
@@ -44,7 +44,7 @@ if($tw.node) {
     This lets us shutdown the server from within the wiki.
   */
   $tw.nodeMessageHandlers.shutdownServer = function(data) {
-    console.log('Shutting down server.');
+    $tw.Bob.logger.log('Shutting down server.', {level:0});
     // TODO figure out if there are any cleanup tasks we should do here.
     // Sennd message to parent saying server is shutting down
     $tw.Bob.Shared.sendAck(data);
@@ -161,7 +161,7 @@ if($tw.node) {
         connections: [data.source_connection]
       };
       $tw.ServerSide.sendBrowserAlert(message);
-      console.log("Can't parse server changes!!");
+      $tw.Bob.logger.error("Can't parse server changes!!", {level:1});
     }
     // Only look at changes more recent than when the browser disconnected
     const recentServer = $tw.Bob.ServerHistory[data.wiki].filter(function(entry) {
@@ -367,9 +367,9 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        console.log(err);
+        $tw.Bob.logger.error(err, {level:1});
       } else {
-        console.log('Wrote settings file')
+        $tw.Bob.logger.log('Wrote settings file', {level:1})
       }
     });
 
@@ -393,7 +393,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that there is a wiki name given.
     if(data.wikiName) {
-      console.log('Unload wiki ', data.wikiName)
+      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1})
       $tw.stopFileWatchers(data.wikiName);
       // Make sure that the wiki is loaded
       if($tw.Bob.Wikis[data.wikiName]) {
@@ -453,7 +453,7 @@ if($tw.node) {
       try {
         wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
       } catch(e) {
-        console.log(e)
+        $tw.Bob.logger.error(e, {level:1})
       }
       if(data.description || data.description === "") {
         wikiInfo.description = data.description;
@@ -470,7 +470,7 @@ if($tw.node) {
       try {
         fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
       } catch (e) {
-        console.log(e)
+        $tw.Bob.logger.error(e, {level:1})
       }
     }
   }
@@ -506,7 +506,7 @@ if($tw.node) {
             oldInfo = JSON.parse(fs.readFileSync(pluginInfoPath, 'utf8'))
           } catch (e) {
             //Something
-            console.log(e)
+            $tw.Bob.logger.error(e, {level:1})
           }
           if(oldInfo) {
             // Check the version here
@@ -524,7 +524,7 @@ if($tw.node) {
           // We don't have any version of the plugin yet
           let error = $tw.utils.createDirectory(pluginFolderPath);
           if(error) {
-            console.log(error)
+            $tw.Bob.logger.error(error, {level:1})
           }
         }
         if(isNewVersion) {
@@ -536,9 +536,9 @@ if($tw.node) {
             // If we aren't passed a path
             fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
               if(err) {
-                console.log(err);
+                $tw.Bob.logger.error(err, {level:1});
               } else {
-                console.log('saved file', filepath)
+                $tw.Bob.logger.log('saved file', filepath, {level:2})
               }
             });
           })
@@ -551,13 +551,13 @@ if($tw.node) {
           })
           fs.writeFile(pluginInfoPath,JSON.stringify(pluginInfo, null, 2),{encoding: "utf8"},function (err) {
             if(err) {
-              console.log(err);
+              $tw.Bob.logger.error(err, {level:1});
             } else {
-              console.log('saved file', pluginInfoPath)
+              $tw.Bob.logger.log('saved file', pluginInfoPath, {level:2})
             }
           });
         } else {
-          console.log("Didn't save plugin", pluginName, "with version", newVersion.version,"it is already saved with version", oldVersion.version)
+          $tw.Bob.logger.log("Didn't save plugin", pluginName, "with version", newVersion.version,"it is already saved with version", oldVersion.version, {level:1})
         }
       }
     }
@@ -586,7 +586,7 @@ if($tw.node) {
       const http = require("$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js")[protocol];
       var req = http.get(data.url, function (res) {
         if(res.statusCode !== 200) {
-          console.log(res.statusCode);
+          $tw.Bob.logger.error('failed to fetch git plugin with code', res.statusCode, {level:1});
           // handle error
           return;
         }
@@ -646,7 +646,7 @@ if($tw.node) {
                   file.nodeStream()
                   .pipe(fs.createWriteStream(path.join(pluginsPath,pluginName,relativePath)))
                   .on('finish', function() {
-                    console.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath));
+                    $tw.Bob.logger.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath), {level:2});
                   })
                 }
               });
@@ -656,14 +656,14 @@ if($tw.node) {
               $tw.ServerSide.sendBrowserAlert(message);
             }
           }).catch(function(err) {
-            console.log(err);
+            $tw.Bob.logger.error('some error saving git plugin',err, {level:1});
           });
         });
       });
 
       req.on("error", function(err){
         // handle error
-        console.log('Rocks fall, everyone dies: ',err);
+        $tw.Bob.logger.error('Rocks fall, everyone dies: ',err, {level:0});
       });
     }
   }
@@ -720,7 +720,7 @@ if($tw.node) {
                 const fileName = $tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(-1)[0]
                 fs.rename($tw.Bob.Files[data.wiki][tidTitle].filepath, path.join(filesPath, fileName), function(e) {
                   if(e) {
-                    console.log(e);
+                    $tw.Bob.logger.error('failed to move image file',e, {level:1});
                   } else {
                     let newFields = JSON.parse(JSON.stringify(tiddler.fields));
                     newFields.text = ''
@@ -776,7 +776,7 @@ if($tw.node) {
       const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
       fs.rename(oldWikiPath, newWikiPath, function(e) {
         if(e) {
-          console.log(e);
+          $tw.Bob.logger.log('failed to rename wiki',e,{level:1});
         } else {
           // Refresh wiki listing
           data.update = 'true';
@@ -913,7 +913,7 @@ if($tw.node) {
         // Delete the tiddlywiki.info file
         fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
           if(e) {
-            console.log(e);
+            $tw.Bob.logger.error('failed to delete tiddlywiki.info',e, {level:1});
           } else {
             // Delete the tiddlers folder (if any)
             deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {

@@ -197,20 +197,20 @@ if($tw.node) {
           self.listen(Number(port)+1, host);
         }
       } else {
-        console.log(e);
+        $tw.Bob.logger.error(e, {level:0});
       }
     });
     httpServer.listen(port,host, function (e) {
       if(!e) {
         $tw.httpServerPort = port;
-        console.log("Serving on " + host + ":" + $tw.httpServerPort);
-        console.log("(press ctrl-C to exit)");
+        $tw.Bob.logger.log("Serving on " + host + ":" + $tw.httpServerPort, {level:0});
+        $tw.Bob.logger.log("(press ctrl-C to exit)", {level:0});
         $tw.settings['ws-server'].port = $tw.httpServerPort;
       } else {
         if($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
-          console.log('Port ', port, ' in use, trying ', port+1);
+          $tw.Bob.logger.log('Port ', port, ' in use, trying ', port+1, {level:1});
         } else {
-          console.log(e);
+          $tw.Bob.logger.error(e, {level:0});
         }
       }
     });
@@ -331,7 +331,7 @@ if($tw.node) {
                           return title.toLowerCase().endsWith('/readme')
                         })[0]]
                       } catch (e) {
-                        console.log('Error parsing plugin', e)
+                        $tw.Bob.logger.error('Error parsing plugin', e, {level:1})
                       }
                       if(readme) {
                         readmeText = readme.text
@@ -352,7 +352,7 @@ if($tw.node) {
                 }
               })
             } catch (e) {
-              console.log('Problem loading plugin', e)
+              $tw.Bob.logger.error('Problem loading plugin', e, {level:1})
             }
           }
         }
@@ -667,7 +667,7 @@ if($tw.node) {
                 }
                 fs.readFile(pathname, function(err, data) {
                   if(err) {
-                    console.log(err)
+                    $tw.Bob.logger.error(err, {level:1})
                     response.statusCode = 500;
                     response.end();
                   } else {
@@ -781,7 +781,7 @@ if($tw.node) {
               }
             }
           });
-          console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
+          $tw.Bob.logger.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')), {level:1})
         } else {
           // recurse!
           // This needs to be a new variable or else the rest of the wikis at
@@ -855,7 +855,7 @@ if($tw.node) {
     }
 
     const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
-    console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
+    $tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level:0})
 
     /*
       This function checks to see if the current action is allowed with the access

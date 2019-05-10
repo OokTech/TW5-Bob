@@ -49,7 +49,7 @@ if($tw.node) {
         return fs.lstatSync(source).isDirectory();
       });
     } catch (e) {
-      console.log('Error getting directories', e);
+      $tw.Bob.logger.error('Error getting directories', e, {level:1});
       return [];
     }
   }
@@ -155,7 +155,7 @@ if($tw.node) {
                 tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
               }
               if(typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
-                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                $tw.Bob.logger.log('Rename Tiddler ', tiddlerName, ' to ', newTitle, {level:2});
                 // Remove the old tiddler
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
@@ -185,7 +185,7 @@ if($tw.node) {
         }
       });
     } catch (e) {
-      console.log('Failed to watch folder!', e);
+      $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});
     }
   }
 
@@ -230,7 +230,6 @@ if($tw.node) {
         delete $tw.Bob.Files[prefix][tiddlerName];
         // Remove the tiddler on the server
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(tiddlerName);
-        console.log('Deleted File ', itemPath);
         // Create a message saying to remove the tiddler from the browser
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
         // Send the message to each connected browser

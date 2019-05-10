@@ -270,7 +270,7 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        console.log('Error getting wiki paths', e);
+        $tw.Bob.logger.log('Error getting wiki paths', e, {level:1});
       }
       return realFolders;
     }

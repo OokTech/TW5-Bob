@@ -48,9 +48,9 @@ exports.getThemeInfo = function() {
 				}
 			} catch (e) {
 				if(e.code === 'ENOENT') {
-					console.log('No Themes Folder ' + themePaths[themeIndex]);
+					$tw.Bob.logger.log('No Themes Folder ' + themePaths[themeIndex], {level:2});
 				} else {
-					console.log('Error getting theme info', e);
+					$tw.Bob.logger.error('Error getting theme info', e, {level:2});
 				}
 			}
 		}
