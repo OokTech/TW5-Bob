@@ -211,6 +211,7 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.log('Created wiki ', wikiName, {level: 2})
       }
     } else {
       $tw.Bob.logger.log('No tiddlers given!', {level:1});
@@ -437,6 +438,7 @@ if($tw.node) {
         connections: [data.source_connection]
       };
       $tw.ServerSide.sendBrowserAlert(message);
+      $tw.Bob.logger.log('Created wiki ', name, {level: 2})
     }
   }
 
@@ -459,6 +461,7 @@ if($tw.node) {
           // Send file to browser in a websocket message
           const message = {'type': 'downloadFile', 'file': file};
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+          $tw.Bob.logger.log('Downloading wiki ', name, {level: 2})
         } catch (e) {
           $tw.Bob.logger.error('Error:', e, {level:1})
         }
@@ -532,6 +535,7 @@ if($tw.node) {
         wikis: [data.wiki]
       };
       $tw.ServerSide.sendBrowserAlert(thisMessage);
+      $tw.Bob.logger.log('Fetched tiddlers', {level: 2})
     }
   }
 
@@ -582,6 +586,7 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', wikiName, {level: 2})
       });
     }
   }

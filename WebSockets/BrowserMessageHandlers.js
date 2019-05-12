@@ -261,7 +261,7 @@ it will overwrite this file.
     the server anymore.
   */
   function handleDisconnected() {
-    $tw.Bob.logger.error('Disconnected from server', {level:0});
+    console.log('Disconnected from server', {level:0});
     const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
     const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));

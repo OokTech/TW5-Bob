@@ -33,6 +33,7 @@ exports.platforms = ["node"];
 exports.synchronous = true;
 
 if($tw.node) {
+  $tw.ServerSide = $tw.ServerSide || require('$:/plugins/OokTech/Bob/ServerSide.js');
   // Make sure that $tw.settings is available.
   const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
   // require the fs module if we are running node
@@ -54,19 +55,21 @@ if($tw.node) {
     const outputBaseFileName = $tw.settings.logger.outputBaseFileName || 'Log';
     const { Console } = require('console');
     const timeStamp = new Date().toISOString();
-    const outputFile = fs.resolve(basePath,outputFolder,outputBaseFileName + ' - ' + timeStamp + '.log')
+    //$tw.utils.createDirectory(path.resolve(basePath,outputFolder));
+    fs.mkdirSync(path.resolve(basePath,outputFolder), {recursive: true});
+    const outputFile = path.resolve(basePath,outputFolder,outputBaseFileName + ' - ' + timeStamp + '.log')
     const stdout = fs.createWriteStream(outputFile);
     let stderr = undefined;
     if ($tw.settings.logger.useSeparateErrorFile === 'yes') {
       const outputErrorFileName = $tw.settings.logger.outputErrorFileName || 'Error';
-      const outputErrFile = fs.resolve(basePath,outputFolder,outputErrorFileName + ' - ' + timeStamp + '.log')
+      const outputErrFile = path.resolve(basePath,outputFolder,outputErrorFileName + ' - ' + timeStamp + '.log')
       const outputErrorStream = '';
       stderr = fs.createWriteStream(outputErrFile);
     }
 
     const ignoreErrors = $tw.settings.logger.ignoreErrors === 'no'?false:true;
 
-    options = {
+    const options = {
       stdout: stdout,
       stderr: stderr,
       ignoreErrors: ignoreErrors

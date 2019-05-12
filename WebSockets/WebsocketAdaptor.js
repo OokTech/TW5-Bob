@@ -300,7 +300,7 @@ if($tw.node) {
           return callback(err);
         }
         if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
-          $tw.Bob.logger.log('deleted file ', $tw.Bob.Files[prefix][title][filepath], {level:2});
+          $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
         }
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];
@@ -309,7 +309,7 @@ if($tw.node) {
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
-        self.logger.log("Deleted file",fileInfo.filepath);
+        //self.logger.log("Deleted file",fileInfo.filepath);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {
