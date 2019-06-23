@@ -14,14 +14,20 @@ A sync adaptor module for synchronising using Websockets
 
 exports.platforms = ["node"];
 
-// Get a reference to the file system
-const fs = $tw.node ? require("fs") : null,
-  path = $tw.node ? require("path") : null;
-
 if($tw.node) {
+
+  // Get a reference to the file system
+  const fs = require("fs"),
+    path = require("path");
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
+  /*
+    TODO Create a message that lets us set excluded tiddlers from inside the wikis
+    A per-wiki exclude list would be best but that is going to have annoying
+    logic so it will come later.
+  */
+  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
 
   function WebsocketAdaptor(options) {
     this.wiki = options.wiki;
@@ -105,7 +111,7 @@ if($tw.node) {
         if(filepath.substr(-extension.length).toLocaleLowerCase() !== extension.toLocaleLowerCase()) {
           filepath = filepath + extension;
         }
-        const filename = path.basename(filepath)
+        let filename = path.basename(filepath)
         let count = 1;
         // Add a discriminator if we're clashing with an existing filename while
         // handling case-insensitive filesystems (NTFS, FAT/FAT32, etc.)

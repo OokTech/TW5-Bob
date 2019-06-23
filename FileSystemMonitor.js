@@ -28,49 +28,7 @@ if($tw.node) {
 
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
-  $tw.connections = $tw.connections || [];
   $tw.Bob.Files = $tw.Bob.Files || {};
-
-  /*
-    TODO Create a message that lets us set excluded tiddlers from inside the wikis
-    A per-wiki exclude list would be best but that is going to have annoying
-    logic so it will come later.
-  */
-  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
-
-  /*
-    Determine which sub-folders are in the current folder
-  */
-  const getDirectories = function(source) {
-    try {
-      return fs.readdirSync(source).map(function(name) {
-        return path.join(source,name);
-      }).filter(function (source) {
-        return fs.lstatSync(source).isDirectory();
-      });
-    } catch (e) {
-      $tw.Bob.logger.error('Error getting directories', e, {level:1});
-      return [];
-    }
-  }
-
-  /*
-    This recursively builds a tree of all of the subfolders in the tiddlers
-    folder.
-    This can be used to selectively watch folders of tiddlers.
-  */
-  const buildTree = function(location, parent) {
-    const folders = getDirectories(path.join(parent,location));
-    const parentTree = {'path': path.join(parent,location), folders: {}};
-    if(folders.length > 0) {
-      folders.forEach(function(folder) {
-        const apex = folder.split(path.sep).pop();
-        parentTree.folders[apex] = {};
-        parentTree.folders[apex] = buildTree(apex, path.join(parent,location));
-      })
-    }
-    return parentTree;
-  }
 
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
@@ -95,8 +53,6 @@ if($tw.node) {
         }
         // The file extension, if no file extension than an empty string
         const fileExtension = path.extname(filename);
-        // The file name without the extension
-        //var baseName = path.basename(filename, fileExtension);
 
         const fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
           // A lot of this is to handle some weird edge cases I ran into
