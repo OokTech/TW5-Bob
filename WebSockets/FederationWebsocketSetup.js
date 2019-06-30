@@ -17,23 +17,25 @@ exports.platforms = ["node"];
 if($tw.node) {
 
   $tw.Bob = $tw.Bob || {};
+  $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
 
-  $tw.Bob.handleFederationMessage = function (event) {
+  handleFederationMessage = function (event) {
     try {
       let eventData = JSON.parse(event);
       // Make sure we have a handler for the message type
-      if(typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+      if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
         const authorised = authenticateMessage(eventData)
         if(authorised) {
           eventData.decoded = authorised
-          $tw.nodeMessageHandlers[eventData.type](eventData);
+          $tw.federationMessageHandlers[eventData.type](eventData);
         }
       } else {
-        $tw.Bob.logger.error('No handler for message of type ', eventData.type, {level:3});
+        $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
       }
     } catch (e) {
-      $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
+      $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
     }
   }
 
@@ -42,7 +44,7 @@ if($tw.node) {
     const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
-    $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+    $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
     $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
     /*
       Setup the websocket server if we aren't using an external one
@@ -55,7 +57,7 @@ if($tw.node) {
         // I don't know how to set up actually closing a connection, so this doesn't
         // do anything useful yet
         $tw.federationWss.on('close', function(connection) {
-          $tw.Bob.logger.log('closed connection ', connection, {level:2});
+          $tw.Bob.logger.log('closed remote connection ', connection, {level:2});
         });
       }
       $tw.PruneTimeout = setInterval(function(){
@@ -65,11 +67,11 @@ if($tw.node) {
 
     function handleConnection (client, request) {
       $tw.Bob.logger.log("new remote connection", {level:2});
-      $tw.remoteConnections.push({'socket':client, 'server': undefined, 'url': undefined});
-      client.on('message', $tw.Bob.handleFederationMessage);
+      $tw.Bob.remoteConnections.push({'socket':client, 'server': undefined, 'url': undefined});
+      client.on('message', handleFederationMessage);
       // Respond to the initial connection with a request for the tiddlers the
       // browser currently has to initialise everything.
-      $tw.remoteConnections[Object.keys($tw.remoteConnections).length-1].index = Object.keys($tw.remoteConnections).length-1;
+      $tw.Bob.remoteConnections[Object.keys($tw.Bob.remoteConnections).length-1].index = Object.keys($tw.Bob.remoteConnections).length-1;
     }
 
     finishSetup();
