@@ -32,13 +32,6 @@ if($tw.node) {
   $tw.Bob.Files = $tw.Bob.Files || {};
 
   /*
-    TODO Create a message that lets us set excluded tiddlers from inside the wikis
-    A per-wiki exclude list would be best but that is going to have annoying
-    logic so it will come later.
-  */
-  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
-
-  /*
     Determine which sub-folders are in the current folder
   */
   const getDirectories = function(source) {

@@ -91,7 +91,7 @@ socket server, but it can be extended for use with other web socket servers.
         token: token
       };
       const messageData = $tw.Bob.Shared.createMessageData(data);
-      $tw.Bob.Shared.sendMessage(messageData, 0)
+      $tw.Bob.Shared.sendMessage(messageData, 0);
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -153,14 +153,14 @@ socket server, but it can be extended for use with other web socket servers.
         $tw.wikiName = '';
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
-        const token = localStorage.getItem('ws-token')
+        const token = localStorage.getItem('ws-token');
         const message = {type: 'editingTiddler', tiddler: {fields: {title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
         sendToServer(message);
         // do the normal editing actions for the event
         return true;
       });
       $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
-        const token = localStorage.getItem('ws-token')
+        const token = localStorage.getItem('ws-token');
         const draftTitle = event.param || event.tiddlerTitle;
         const draftTiddler = $tw.wiki.getTiddler(draftTitle);
         const originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
@@ -173,7 +173,7 @@ socket server, but it can be extended for use with other web socket servers.
         // For some reason this wasn't being handled by the generic 'change'
         // event. So the hook is here.
         console.log('renaming tiddler');
-        console.log(event)
+        console.log(event);
       });
       /*
         Listen out for changes to tiddlers
@@ -207,7 +207,7 @@ socket server, but it can be extended for use with other web socket servers.
                 sendToServer(message);
               }
             } else if(changes[tiddlerTitle].deleted) {
-              const token = localStorage.getItem('ws-token')
+              const token = localStorage.getItem('ws-token');
               const message = {type: 'deleteTiddler', tiddler:{fields:{title:tiddlerTitle}} , wiki: $tw.wikiName, token: token};
               sendToServer(message);
             }

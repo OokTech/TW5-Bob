@@ -14,14 +14,21 @@ A sync adaptor module for synchronising using Websockets
 
 exports.platforms = ["node"];
 
-// Get a reference to the file system
-const fs = $tw.node ? require("fs") : null,
-  path = $tw.node ? require("path") : null;
-
 if($tw.node) {
+
+  // Get a reference to the file system
+  const fs = require("fs"),
+    path = require("path");
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
+
+  /*
+    TODO Create a message that lets us set excluded tiddlers from inside the wikis
+    A per-wiki exclude list would be best but that is going to have annoying
+    logic so it will come later.
+  */
+  $tw.Bob.ExcludeFilter = $tw.Bob.ExcludeFilter || """[[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/WikiSettings]]""";
 
   function WebsocketAdaptor(options) {
     this.wiki = options.wiki;
@@ -60,71 +67,36 @@ if($tw.node) {
         }
       }
     }
+    // Generate the base filepath and ensure the directories exist
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
+    // A cludge to make things work
+    if(prefix === 'RootWiki') {
+      $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
+    }
+    const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
+    const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
+    $tw.utils.createFileDirectories(baseFilepath);
+
     // See if we've already got information about this file
     const title = tiddler.fields.title;
-    let fileInfo = false;
     $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
-    if($tw.Bob.Files[prefix]) {
-      fileInfo = $tw.Bob.Files[prefix][title];
-    }
-    if(fileInfo) {
-      // If so, just invoke the callback
-      callback(null,fileInfo);
-    } else {
+    let fileInfo = $tw.Bob.Files[prefix][title];
+    if(!fileInfo) {
       // Otherwise, we'll need to generate it
-      fileInfo = {};
-      const tiddlerType = tiddler.fields.type || "text/vnd.tiddlywiki";
-      // Get the content type info
-      const contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
-      // Get the file type by looking up the extension
-      let extension = contentTypeInfo.extension || ".tid";
-      fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
-      // Use a .meta file unless we're saving a .tid file.
-      // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
-      fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
-      if(!fileInfo.hasMetaFile) {
-        extension = ".tid";
-      }
-      // Generate the base filepath and ensure the directories exist
-      $tw.Bob.Wikis = $tw.Bob.Wikis || {};
-      $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
-      // A cludge to make things work
-      if(prefix === 'RootWiki') {
-        $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
-      }
-      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
-      const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
-      $tw.utils.createFileDirectories(baseFilepath);
-      // Start by getting a list of the existing files in the directory
-      fs.readdir(path.dirname(baseFilepath),function(err,files) {
-        if(err) {
-          return callback(err);
-        }
-        // Start with the base filename plus the extension
-        let filepath = baseFilepath;
-        if(filepath.substr(-extension.length).toLocaleLowerCase() !== extension.toLocaleLowerCase()) {
-          filepath = filepath + extension;
-        }
-        const filename = path.basename(filepath)
-        let count = 1;
-        // Add a discriminator if we're clashing with an existing filename while
-        // handling case-insensitive filesystems (NTFS, FAT/FAT32, etc.)
-        while(files.some(function(value) {return value.toLocaleLowerCase() === filename.toLocaleLowerCase();})) {
-          filepath = baseFilepath + " " + (count++) + extension;
-          filename = path.basename(filepath);
-        }
-        // Set the final fileInfo
-        fileInfo.filepath = filepath;
-  console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
-        $tw.Bob.Files[prefix][title] = fileInfo;
-        $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-        if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
-          $tw.Bob.Wikis[prefix].tiddlers.push(title);
-        }
-        // Pass it to the callback
-        callback(null,fileInfo);
+      fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
+        directory: $tw.Bob.Wikis[prefix].wikiTiddlersPath,
+        pathFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths"),
+        wiki: $tw.Bob.Wikis[prefix].wiki
       });
+
+      $tw.Bob.Files[prefix][title] = fileInfo;
+      $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
+      if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) === -1) {
+        $tw.Bob.Wikis[prefix].tiddlers.push(title);
+      }
     }
+    callback(null,fileInfo);
   };
 
   /*
@@ -185,7 +157,7 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    if(tiddler && $tw.Bob.ExcludeList.indexOf(tiddler.fields.title) === -1 && !tiddler.fields.title.startsWith('$:/state/') && !tiddler.fields.title.startsWith('$:/temp/') && !tiddler.fields.title.startsWith('$:/WikiSettings')) {
+    if (tiddler && $tw.Bob.wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
       this.getTiddlerFileInfo(tiddler, prefix,
        function(err,fileInfo) {
         if(err) {
