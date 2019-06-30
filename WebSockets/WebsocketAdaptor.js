@@ -22,6 +22,12 @@ if($tw.node) {
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
+  /*
+    TODO Create a message that lets us set excluded tiddlers from inside the wikis
+    A per-wiki exclude list would be best but that is going to have annoying
+    logic so it will come later.
+  */
+  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
@@ -61,7 +67,7 @@ if($tw.node) {
     if(!callback) {
       callback = function (err, fileInfo) {
         if(err) {
-          console.log(err);
+          $tw.Bob.logger.error(err, {level:2});
         } else {
           return fileInfo;
         }
@@ -75,8 +81,7 @@ if($tw.node) {
       $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
     }
     const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
-    const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
-    $tw.utils.createFileDirectories(baseFilepath);
+    $tw.utils.createFileDirectories(tiddlersPath);
 
     // See if we've already got information about this file
     const title = tiddler.fields.title;
@@ -85,7 +90,7 @@ if($tw.node) {
     if(!fileInfo) {
       // Otherwise, we'll need to generate it
       fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
-        directory: $tw.Bob.Wikis[prefix].wikiTiddlersPath,
+        directory: tiddlersPath,
         pathFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths"),
         wiki: $tw.Bob.Wikis[prefix].wiki
       });
@@ -193,11 +198,11 @@ if($tw.node) {
                   return callback(err);
                 }
                 // Save with metadata
-                console.log('saved file with metadata', filepath);
+                $tw.Bob.logger.log('saved file with metadata', filepath, {level:2});
                 return callback(null);
               });
             } else {
-              console.log('saved file with metadata', filepath)
+              $tw.Bob.logger.log('saved file with metadata', filepath, {level:2})
               return callback(null);
             }
           });
@@ -210,7 +215,7 @@ if($tw.node) {
             if(err) {
               return callback(err);
             }
-            console.log('saved file', filepath)
+            $tw.Bob.logger.log('saved file', filepath, {level:2})
             return callback(null);
           });
         }
@@ -266,11 +271,13 @@ if($tw.node) {
     const fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
-      //console.log('Delete tiddler file ', fileInfo.filepath);
       // Delete the file
       fs.unlink(fileInfo.filepath,function(err) {
         if(err) {
           return callback(err);
+        }
+        if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
+          $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
         }
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];

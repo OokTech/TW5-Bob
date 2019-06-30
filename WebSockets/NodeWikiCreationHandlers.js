@@ -49,7 +49,7 @@ if($tw.node) {
       wikiPath = $tw.Bob.Wikis[data.wiki].wikiPath;
       fullName = data.wiki;
     }
-    console.log('Build HTML Wiki:', fullName);
+    $tw.Bob.logger.log('Build HTML Wiki:', fullName, {level:1});
     if(data.excludeList) {
       // Get the excludeList from the provided filter, if it exists
       excludeList = $tw.Bob.Wikis[fullName].wiki.filterTiddlers(data.excludeList);
@@ -83,9 +83,9 @@ if($tw.node) {
       const text = tempWiki.renderTiddler('text/plain',"$:/core/save/all", {variables:{wikiTiddlers:$tw.utils.stringifyList(tempWiki.allTitles())}});
       fs.writeFile(outputFile,text,"utf8",function(err) {
         if(err) {
-            console.log(err);
+            $tw.Bob.logger.error(err, {level:1});
           } else {
-            console.log('Built Wiki: ', outputFile);
+            $tw.Bob.logger.log('Built Wiki: ', outputFile, {level:1});
             const message = {
               alert: 'Saved html file ' + outputFile + ' to the server.',
               wikis: [data.buildWiki, data.wiki]
@@ -94,7 +94,7 @@ if($tw.node) {
           }
       });
     } else {
-      console.log("Can't find wiki ", fullName, ", is it listed in the Bob settings tab?");
+      $tw.Bob.logger.error("Can't find wiki ", fullName, ", is it listed in the Bob settings tab?", {level:1});
     }
   }
 
@@ -177,9 +177,9 @@ if($tw.node) {
         // Make sure tiddlers folder exists
         try {
           fs.mkdirSync(wikiTiddlersPath);
-          console.log('Created Tiddlers Folder ', wikiTiddlersPath);
+          $tw.Bob.logger.log('Created Tiddlers Folder ', wikiTiddlersPath, {level:2});
         } catch (e) {
-          console.log('Tiddlers Folder Exists:', wikiTiddlersPath);
+          $tw.Bob.logger.log('Tiddlers Folder Exists:', wikiTiddlersPath, {level:2});
         }
         // Load the empty wiki
         $tw.ServerSide.loadWiki(wikiName)
@@ -203,17 +203,18 @@ if($tw.node) {
         count++;
       })
       if(!count) {
-        console.log("No tiddlers found in the input file");
+        $tw.Bob.logger.log("No tiddlers found in the input file", {level:1});
       } else {
-        console.log("Wiki created");
+        $tw.Bob.logger.log("Wiki created",{level:1});
         const message = {
           alert: 'Created wiki ' + wikiName,
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.log('Created wiki ', wikiName, {level: 2})
       }
     } else {
-      console.log('No tiddlers given!');
+      $tw.Bob.logger.log('No tiddlers given!', {level:1});
     }
   }
 
@@ -263,7 +264,7 @@ if($tw.node) {
           }
         });
       } catch (e) {
-        console.log("Couldn't parse externalTiddlers input:", e);
+        $tw.Bob.logger.log("Couldn't parse externalTiddlers input:", e, {level:1});
       }
     }
     return wiki;
@@ -372,34 +373,34 @@ if($tw.node) {
           if(editionPath) {
             try {
               $tw.ServerSide.specialCopy(editionPath, fullPath);
-              console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+              $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
             } catch (e) {
-              console.log('error copying edition', e);
+              $tw.Bob.logger.error('error copying edition', e, {level:1});
             }
           } else {
-            console.log("Edition not found");
+            $tw.Bob.logger.error("Edition not found", {level:1});
           }
         } else if($tw.utils.isDirectory(editionPath)) {
           // Copy the edition content
           const err = $tw.utils.copyDirectory(editionPath,fullPath);
           if(!err) {
-            console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+            $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
           } else {
-            console.log(err);
+            $tw.Bob.logger.error(err, {level:1});
           }
         }
       } else {
         // Check the edition exists
         const editionPath = $tw.findLibraryItem(editionName,searchPaths);
         if(!$tw.utils.isDirectory(editionPath)) {
-          console.log("Edition '" + editionName + "' not found");
+          $tw.Bob.logger.error("Edition '" + editionName + "' not found", {level:1});
         }
         // Copy the edition content
         const err = $tw.utils.copyDirectory(editionPath,fullPath);
         if(!err) {
-          console.log("Copied edition '" + editionName + "' to " + fullPath + "\n");
+          $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
         } else {
-          console.log(err);
+          $tw.Bob.logger.error(err, {level:1});
         }
       }
       // Tweak the tiddlywiki.info to remove any included wikis
@@ -408,13 +409,13 @@ if($tw.node) {
       try {
         packageJson = JSON.parse(fs.readFileSync(packagePath));
       } catch (e) {
-        console.log('failed to load tiddlywiki.info file', e);
+        $tw.Bob.logger.error('failed to load tiddlywiki.info file', e, {level:1});
       }
       delete packageJson.includeWikis;
       try {
         fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
       } catch (e) {
-        console.log('failed to write settings', e)
+        $tw.Bob.logger.error('failed to write settings', e, {level:1})
       }
 
       // This is here as a hook for an external server. It is defined by the
@@ -437,6 +438,7 @@ if($tw.node) {
         connections: [data.source_connection]
       };
       $tw.ServerSide.sendBrowserAlert(message);
+      $tw.Bob.logger.log('Created wiki ', name, {level: 2})
     }
   }
 
@@ -459,8 +461,9 @@ if($tw.node) {
           // Send file to browser in a websocket message
           const message = {'type': 'downloadFile', 'file': file};
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+          $tw.Bob.logger.log('Downloading wiki ', name, {level: 2})
         } catch (e) {
-          console.log('Error:', e)
+          $tw.Bob.logger.error('Error:', e, {level:1})
         }
       }
     }
@@ -491,7 +494,7 @@ if($tw.node) {
         try {
           externalTiddlers = JSON.parse(data.externalTiddlers);
         } catch (e) {
-          console.log("Can't parse externalTiddlers");
+          $tw.Bob.logger.error("Can't parse externalTiddlers", {level:1});
         }
       }
       externalTiddlers[data.fromWiki] = data.filter
@@ -532,6 +535,7 @@ if($tw.node) {
         wikis: [data.wiki]
       };
       $tw.ServerSide.sendBrowserAlert(thisMessage);
+      $tw.Bob.logger.log('Fetched tiddlers', {level: 2})
     }
   }
 
@@ -582,6 +586,7 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', wikiName, {level: 2})
       });
     }
   }

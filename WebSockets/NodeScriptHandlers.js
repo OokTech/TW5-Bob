@@ -49,7 +49,7 @@ if($tw.node) {
       scriptActive[queue] = true;
       childproc.on('error', function (err) {
         clearQueue(queue);
-        console.log('Script error: ', err);
+        $tw.Bob.logger.log('Script error: ', err, {level:1});
       })
       childproc.on('exit', function () {
         // Remove the finished task from the queue
@@ -107,7 +107,7 @@ if($tw.node) {
                   connections: [data.source_connection]
                 };
                 $tw.ServerSide.sendBrowserAlert(message);
-                console.log('Script error: ', err);
+                $tw.Bob.logger.log('Script error: ', err, {level:1});
               })
             }
           }

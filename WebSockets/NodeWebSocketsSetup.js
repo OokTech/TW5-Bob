@@ -62,7 +62,7 @@ if($tw.node) {
         // I don't know how to set up actually closing a connection, so this doesn't
         // do anything useful yet
         $tw.wss.on('close', function(connection) {
-          console.log('closed connection ', connection);
+          $tw.Bob.logger.log('closed connection ', connection, {level:2});
         });
       }
       $tw.PruneTimeout = setInterval(function(){
@@ -90,7 +90,7 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
-    console.log("new connection");
+    $tw.Bob.logger.log("new connection", {level:2});
     $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);
     // Respond to the initial connection with a request for the tiddlers the
@@ -148,13 +148,13 @@ if($tw.node) {
             $tw.nodeMessageHandlers[eventData.type](eventData);
           }
         } else {
-          console.log('No handler for message of type ', eventData.type);
+          $tw.Bob.logger.error('No handler for message of type ', eventData.type, {level:3});
         }
       } else {
-        console.log('Target wiki and connected wiki don\'t match');
+        $tw.Bob.logger.log('Target wiki and connected wiki don\'t match', {level:3});
       }
     } catch (e) {
-      console.log("WebSocket error: ", e);
+      $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
     }
   }
 

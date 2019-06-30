@@ -28,42 +28,7 @@ if($tw.node) {
 
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
-  $tw.connections = $tw.connections || [];
   $tw.Bob.Files = $tw.Bob.Files || {};
-
-  /*
-    Determine which sub-folders are in the current folder
-  */
-  const getDirectories = function(source) {
-    try {
-      return fs.readdirSync(source).map(function(name) {
-        return path.join(source,name);
-      }).filter(function (source) {
-        return fs.lstatSync(source).isDirectory();
-      });
-    } catch (e) {
-      console.log('Error getting directories', e);
-      return [];
-    }
-  }
-
-  /*
-    This recursively builds a tree of all of the subfolders in the tiddlers
-    folder.
-    This can be used to selectively watch folders of tiddlers.
-  */
-  const buildTree = function(location, parent) {
-    const folders = getDirectories(path.join(parent,location));
-    const parentTree = {'path': path.join(parent,location), folders: {}};
-    if(folders.length > 0) {
-      folders.forEach(function(folder) {
-        const apex = folder.split(path.sep).pop();
-        parentTree.folders[apex] = {};
-        parentTree.folders[apex] = buildTree(apex, path.join(parent,location));
-      })
-    }
-    return parentTree;
-  }
 
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
@@ -71,8 +36,9 @@ if($tw.node) {
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
+    $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
-      fs.watch(folder, function (eventType, filename) {
+      $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
         let isFile = false;
         let isFolder = false;
         // The full path to the current item
@@ -87,8 +53,6 @@ if($tw.node) {
         }
         // The file extension, if no file extension than an empty string
         const fileExtension = path.extname(filename);
-        // The file name without the extension
-        //var baseName = path.basename(filename, fileExtension);
 
         const fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
           // A lot of this is to handle some weird edge cases I ran into
@@ -147,7 +111,7 @@ if($tw.node) {
                 tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
               }
               if(typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
-                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                $tw.Bob.logger.log('Rename Tiddler ', tiddlerName, ' to ', newTitle, {level:2});
                 // Remove the old tiddler
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
@@ -177,7 +141,7 @@ if($tw.node) {
         }
       });
     } catch (e) {
-      console.log('Failed to watch folder!', e);
+      $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});
     }
   }
 

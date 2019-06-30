@@ -17,7 +17,7 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if($tw.node) {
-  $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
 
   /*
     Sync servers takes a filter and syncs all of the tiddlers returned by the
@@ -72,7 +72,7 @@ if($tw.node) {
       - (LATER) oldestWins: least recently modified tiddlers are kept in case of
       conflicts.
   */
-  $tw.nodeMessageHandlers.syncServer = function(data) {
+  $tw.federationMessageHandlers.syncServer = function(data) {
     $tw.Bob.Shared.sendAck(data)
     // We need at least the remote url or we can't act.
     if(data.remoteUrl) {
@@ -214,7 +214,7 @@ if($tw.node) {
       filter: requestFilter
     }
   */
-  $tw.nodeMessageHandlers.requestTiddlers = function(data) {
+  $tw.federationMessageHandlers.requestTiddlers = function(data) {
     $tw.sendAck(data);
     if(data.remoteUrl && data.filter) {
       // Do the request
