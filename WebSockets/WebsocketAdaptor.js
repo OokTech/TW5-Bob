@@ -34,7 +34,7 @@ if($tw.node) {
     A per-wiki exclude list would be best but that is going to have annoying
     logic so it will come later.
   */
-  $tw.Bob.ExcludeFilter = $tw.Bob.ExcludeFilter || """[[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/WikiSettings]]""";
+  $tw.Bob.ExcludeFilter = $tw.Bob.ExcludeFilter || "[[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/WikiSettings]]";
 
   function WebsocketAdaptor(options) {
     this.wiki = options.wiki;
@@ -162,8 +162,11 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    if (tiddler && $tw.Bob.wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
-      this.getTiddlerFileInfo(tiddler, prefix,
+    if (!$tw.Bob.Wikis[prefix]) {
+      $tw.ServerSide.loadWiki(prefix)
+    }
+    if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
+      this.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
        function(err,fileInfo) {
         if(err) {
           return callback(err);
