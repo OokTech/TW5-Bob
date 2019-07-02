@@ -182,7 +182,10 @@ if($tw.node) {
         if(exists && isFolder) {
           $tw.Bob.WatchFolder(itemPath, prefix)
         }
-      });
+      }).on('error', error => {
+        // Ignore EPERM errors in windows, which happen if you delete watched folders...
+        if (error.code === 'EPERM' && require('os').platform() === 'win32') return 
+    });
     } catch (e) {
       console.log('Failed to watch folder!', e);
     }
