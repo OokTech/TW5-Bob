@@ -39,6 +39,7 @@ if($tw.node) {
     $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
       $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
+        console.log('File System Monitor',eventType, filename)
         let isFile = false;
         let isFolder = false;
         // The full path to the current item

@@ -187,6 +187,7 @@ if($tw.node) {
           // aren't the same.
           let tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
           tempTid.fields.title = messageData.title;
+          tempTid.hash = messageData.hash;
           const serverTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tempTid.fields.title);
           if($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
             conflicts.push(messageData.title);

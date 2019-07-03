@@ -68,21 +68,26 @@ it will overwrite this file.
     $tw.Bob.Shared.sendAck(data);
     // Ignore the message if it isn't for this wiki
     if(data.wiki === $tw.wikiName) {
-      // The title must exist and must be a string, everything else is optional
-      if(data.tiddler.fields) {
-        if(typeof data.tiddler.fields.title === 'string') {
-          // if the tiddler exists already only update it if the update is
-          // different than the existing one.
-          const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
-          if(changed) {
-            console.log('Create Tiddler', data.tiddler.fields.title);
-            $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
+      if(data.tiddler) {
+        // The title must exist and must be a string, everything else is optional
+        if(data.tiddler.fields) {
+          if(typeof data.tiddler.fields.title === 'string') {
+            // if the tiddler exists already only update it if the update is
+            // different than the existing one.
+            const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
+            if(changed) {
+              console.log('Create Tiddler', data.tiddler.fields.title);
+              $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
+            }
+          } else {
+            console.log('Invalid tiddler title');
           }
         } else {
-          console.log('Invalid tiddler title');
+          console.log("No tiddler fields given");
         }
       } else {
-        console.log("No tiddler fields given");
+        console.log(data)
+        console.log('No tiddler')
       }
     }
   }
