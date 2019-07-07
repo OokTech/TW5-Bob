@@ -551,7 +551,7 @@ This has some functions that are needed by Bob in different places.
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
-              newTid[field] = tiddler.fields[field]
+              newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice().sort()
             }
           } else if(field === 'modified' || field === 'created') {
             if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {

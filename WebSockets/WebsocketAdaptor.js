@@ -22,12 +22,6 @@ if($tw.node) {
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
-  /*
-    TODO Create a message that lets us set excluded tiddlers from inside the wikis
-    A per-wiki exclude list would be best but that is going to have annoying
-    logic so it will come later.
-  */
-  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
 
   /*
     TODO Create a message that lets us set excluded tiddlers from inside the wikis
@@ -171,56 +165,11 @@ if($tw.node) {
         if(err) {
           return callback(err);
         }
-        const filepath = fileInfo.filepath,
-          error = $tw.utils.createDirectory(path.dirname(filepath));
-        if(error) {
-          return callback(error);
-        }
-        // Save the tiddler in memory.
-        internalSave(tiddler, prefix);
-        // Handle saving to the file system
-        if(fileInfo.hasMetaFile) {
-          const title = tiddler.fields.title
-          // Save the tiddler as a separate body and meta file
-          const typeInfo = $tw.config.contentTypeInfo[tiddler.fields.type || "text/plain"] || {encoding: "utf8"};
-          const content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tiddler-metadata", {variables: {currentTiddler: title}});
-          fs.writeFile(fileInfo.filepath + ".meta",content,{encoding: "utf8"},function (err) {
-            if(err) {
-              return callback(err);
-            }
-            // TODO figure out why this gets stuck in an infinite saving loop
-            // from connected browsers when renaming if this part isn't done
-            // always
-            // It is because the internalSave keeps waiting for a response about
-            // the non-.meta file and it dosen't exist. I don't have a fix for
-            // it yet.
-            if(tiddler.fields.text && tiddler.fields.text !== '' || true) {
-              // TODO figure out why renaming inside the wiki isn't working here
-              fs.writeFile(filepath,tiddler.fields.text,{encoding: typeInfo.encoding},function(err) {
-                if(err) {
-                  return callback(err);
-                }
-                // Save with metadata
-                $tw.Bob.logger.log('saved file with metadata', filepath, {level:2});
-                return callback(null);
-              });
-            } else {
-              $tw.Bob.logger.log('saved file with metadata', filepath, {level:2})
-              return callback(null);
-            }
-          });
-        } else {
-          const title = tiddler.fields.title;
-          // Save the tiddler as a self contained templated file
-          const content = $tw.Bob.Wikis[prefix].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
-          // If we aren't passed a path
-          fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
-            if(err) {
-              return callback(err);
-            }
-            $tw.Bob.logger.log('saved file', filepath, {level:2})
-            return callback(null);
-          });
+        // Make sure that the tiddler has actually changed before saving it
+        if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
+          $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo);
+          // Save the tiddler in memory.
+          internalSave(tiddler, prefix);
         }
       });
     }
@@ -289,7 +238,6 @@ if($tw.node) {
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
-        //self.logger.log("Deleted file",fileInfo.filepath);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {

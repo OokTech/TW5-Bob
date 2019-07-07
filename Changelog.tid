@@ -7,9 +7,10 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Change all of the checks to see if a tiddler has changed to use the hash of the tiddler instead of matching fields. It should be less suceptable to bugs. It may be slightly faster but this probably isn't a place where that makes a difference.
     - (unfinished) The hashes are cached where appropriate to make things a bit faster. Once again this may be unneeded but it was simple to implement.
   - The normalizeTiddler and TiddlerHasChanged functions are used more consistently
+    - fix some incorrect handing of tags and list fields in normalizeTiddler
   - Change code to use new core utility functions
     - Used `$tw.utils.generateTiddlerFileInfo` where appropriate
-    - 
+    - Used `$tw.utils.saveTiddlerToFileSync`,
 
 !! Version 1.2.3 Boiled Potatoes
 

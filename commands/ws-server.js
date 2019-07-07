@@ -21,7 +21,7 @@ exports.platforms = ["node"];
 
 if($tw.node) {
 
-  function getCookie(cookie, cname) {
+  $tw.Bob.getCookie = function(cookie, cname) {
     cookie = cookie || ""
     const name = cname + "=";
     const ca = cookie.split(';');
@@ -93,8 +93,6 @@ if($tw.node) {
       let pathname = decodeURIComponent(state.urlInfo.pathname);
       let match;
       if(pathprefix) {
-        //if(pathname.substr(0,pathprefix.length) === pathprefix) {
-          //pathname = pathname.substr(pathprefix.length);
         // This should help with some unicode names
         if(pathname.startsWith(pathprefix)) {
           pathname = pathname.replace(pathprefix,'');
@@ -226,6 +224,7 @@ if($tw.node) {
         })
       }
     });
+    return httpServer;
   };
 
   function findName(url) {
@@ -267,7 +266,7 @@ if($tw.node) {
       method: "GET",
       path: /^\/$/,
       handler: function(request,response,state) {
-        const token = getCookie(request.headers.cookie, 'token');
+        const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
         const authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
         if(authorised) {
           let text;
@@ -290,7 +289,7 @@ if($tw.node) {
       method: "GET",
       path: /^\/favicon.ico$/,
       handler: function(request,response,state) {
-        const token = getCookie(request.headers.cookie, 'token');
+        const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
         const authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
         if(authorised) {
           // Load the wiki
@@ -384,7 +383,7 @@ if($tw.node) {
         method: "POST",
         path: pluginListRoute,
         handler: function (request, response, state) {
-          const token = getCookie(request.headers.cookie, 'token');
+          const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
           const authorised = $tw.Bob.AccessCheck("RootWiki", token, 'list');
           if(authorised) {
             const pluginList = getPluginList()
@@ -403,7 +402,7 @@ if($tw.node) {
         method: "POST",
         path: fetchPluginRoute,
         handler: function (request, response, state) {
-          const token = getCookie(request.headers.cookie, 'token');
+          const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
           const authorised = $tw.Bob.AccessCheck("RootWiki", token, 'fetchPlugin');
           if(authorised) {
             const plugin = getPlugin(request)
@@ -442,7 +441,7 @@ if($tw.node) {
               let bodyData = JSON.parse(body)
               // Make sure that the token sent here matches the https header
               // and that the token has push access to the toWiki
-              const token = getCookie(request.headers.cookie, 'token');
+              const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
               const authorised = $tw.Bob.AccessCheck(bodyData.toWiki, token, 'push');
               if(authorised) {
                 if($tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
@@ -500,7 +499,7 @@ if($tw.node) {
               const bodyData = JSON.parse(body)
               if(bodyData.filter && bodyData.fromWiki) {
                 // Make sure that the person has access to the wiki
-                const token = getCookie(request.headers.cookie, 'token');
+                const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
                 const authorised = $tw.Bob.AccessCheck(bodyData.fromWiki, token, 'view');
                 if(authorised) {
                   // Make sure that the wiki is listed
@@ -570,7 +569,7 @@ if($tw.node) {
               const bodyData = JSON.parse(body)
               if(bodyData.filter && bodyData.fromWiki) {
                 // Make sure that the person has access to the wiki
-                const token = getCookie(request.headers.cookie, 'token');
+                const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
                 const authorised = $tw.Bob.AccessCheck(bodyData.fromWiki, token, 'view');
                 if(authorised) {
                   // Make sure that the wiki is listed
@@ -656,7 +655,7 @@ if($tw.node) {
             ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
           }
           const filePath = decodeURIComponent(urlPieces.slice(urlPieces.indexOf(filePrefix)+1).join('/'));
-          const token = getCookie(request.headers.cookie, 'token');
+          const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
           const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
           if(authorised && ok) {
             const basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
@@ -749,7 +748,7 @@ if($tw.node) {
             method: "GET",
             path: new RegExp('^\/' + fullName + '\/?$'),
             handler: function(request, response, state) {
-              const token = getCookie(request.headers.cookie, 'token');
+              const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
               const authorised = $tw.Bob.AccessCheck(fullName, token, 'view');
               let text;
               if(authorised) {
@@ -879,7 +878,7 @@ if($tw.node) {
       return true;
     }
 
-    $tw.httpServer.listen(port,host);
+    const nodeServer = $tw.httpServer.listen(port,host);
 
     // Get the ip address to display to make it easier for other computers to
     // connect.
@@ -891,6 +890,7 @@ if($tw.node) {
       host: host
     };
 
+    $tw.hooks.invokeHook("th-server-command-post-start",$tw.httpServer,nodeServer,"tiddlywiki");
     return null;
   };
 

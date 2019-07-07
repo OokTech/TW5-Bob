@@ -39,7 +39,6 @@ if($tw.node) {
     $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
       $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
-        console.log('File System Monitor',eventType, filename)
         let isFile = false;
         let isFolder = false;
         // The full path to the current item
@@ -121,11 +120,7 @@ if($tw.node) {
                 // of the rest.
                 fs.unlinkSync(itemPath);
               }
-              // Thing
               // Create the new tiddler
-              $tw.Bob.MakeTiddlerInfo(folder, newTitle + fileExtension, tiddlerObject, prefix);
-              // Put the tiddler object in the correct form
-              // This gets saved to the file sysetm so non-prefixed title
               const newTiddler = {fields: tiddlerObject.tiddlers[0]};
               // Save the new file
               $tw.syncadaptor.saveTiddler(newTiddler, prefix);
@@ -144,33 +139,6 @@ if($tw.node) {
     } catch (e) {
       $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});
     }
-  }
-
-  $tw.Bob.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
-    const title = tiddlerObject.tiddlers[0].title;
-
-    // Create the file info also
-    let fileInfo = {};
-    const tiddlerType = tiddlerObject.tiddlers[0].type || "text/vnd.tiddlywiki";
-    // Get the content type info
-    const contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
-    // Get the file type by looking up the extension
-    let extension = contentTypeInfo.extension || ".tid";
-    fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
-    // Use a .meta file unless we're saving a .tid file.
-    // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
-    fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
-    if(!fileInfo.hasMetaFile) {
-      extension = ".tid";
-    }
-
-    // Set the final fileInfo
-    fileInfo.filepath = path.join(folder, filename);
-    $tw.Bob.Files[prefix][title] = fileInfo;
-
-    // Add the newly cretaed tiddler.
-    $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddlerObject.tiddlers[0]));
-    $tw.Bob.Wikis[prefix].tiddlers.push(title);
   }
 
   // TODO make this handle deleting .meta files

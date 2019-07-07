@@ -63,9 +63,9 @@ caption: Wiki Listing
         text=<<WikiName>>
       />
     </a>
+    ^^<span style='font-size:8pt;'>
     (<$button
       class='tc-btn-invisible'
-      style='height:10px;'
     >
       Unload
       <$action-websocketmessage
@@ -73,5 +73,6 @@ caption: Wiki Listing
         wikiName=<<WikiName>>
       />
     </$button>)
+    </span>^^
   </li>
 </$list>
