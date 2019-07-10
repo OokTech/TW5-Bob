@@ -1,9 +1,11 @@
-title: $:/plugins/OokTech/Bob/Wiki Listing
-caption: Wiki Listing
+title: $:/plugins/OokTech/Bob/Wiki Listing Folding
+tags: $:/tags/Macro
 
-\define thisMakeURL() /$(WikiName)$
+\define thisFoldingWikiListingMakeState() $:/state/FoldingWikiList/$(currentTiddler)$/$(WikiPrefix)$$(WikiName)$
 
-\define makeWikiListingTab()
+\define thisFoldingWikiListingMakeURL() /$(WikiPrefix)$$(WikiName)$
+
+\define thisFoldingWikiListingMakeWikiListingTab()
 <$action-setfield
   $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
   tags='$:/tags/SideBar'
@@ -12,7 +14,7 @@ caption: Wiki Listing
 />
 \end
 
-\define removeWikiListingTab()
+\define thisFoldingWikiListingRemoveWikiListingTab()
 <$action-setfield
   $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
   text=''
@@ -22,42 +24,148 @@ caption: Wiki Listing
 />
 \end
 
-
-\define innerTOW()
-<ul>
-<$list
-  filter='[<currentTiddler>splitbefore[/]]'
->
+\define thisFoldingWikiListingInnerList()
   <$list
-    filter='[<currentTiddler>!suffix[/]]'
-    emptyMessage="""<ul><<innerTOW>><ul>"""
+    filter='[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>] +[sort[]]'
+    variable=WikiName
   >
-    <li>
-      <a
-        href=<<thisMakeURL>>
-        target='_blank'
+    <$list
+      filter="[<WikiName>suffix[/]]"
+      variable=unused
+    >
+      <$list
+        filter="[<WikiName>]"
+        variable=InnerWikiName
       >
-        <$text
-          text=<<WikiName>>
-        />
-      </a>
-    </li>
+        <li>
+          <!-- Button for collapsing this part -->
+          <$button
+            class='tc-btn-invisible'
+          >
+            <$reveal
+              state=<<thisFoldingWikiListingMakeState>>
+              text='hide'
+              type='nomatch'
+            >
+              {{$:/core/images/chevron-down}}
+              <$action-setfield
+                $tiddler=<<thisFoldingWikiListingMakeState>>
+                text=hide
+              />
+            </$reveal>
+            <$reveal
+              state=<<thisFoldingWikiListingMakeState>>
+              text='hide'
+              type='match'
+            >
+              {{$:/core/images/chevron-right}}
+              <$action-setfield
+                $tiddler=<<thisFoldingWikiListingMakeState>>
+                text=show
+              />
+            </$reveal>
+          </$button>
+          <!-- The text for the current entry -->
+          <$set
+            name=TEMP
+            filter='[<InnerWikiName>removesuffix[/]]'
+          >
+            <$list
+              filter="[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<TEMP>suffix<TEMP>limit[1]]"
+              emptyMessage="""
+              <!-- Parts of paths to wikis that aren't wiki names -->
+              <$text
+                text=<<InnerWikiName>>
+              />
+              """
+              variable=unused
+            >
+              <!-- Wikis that exist and are part of paths to other wikis -->
+              <a
+                href=<<thisFoldingWikiListingMakeURL>>
+                target='_blank'
+              >
+                <$text
+                  text=<<WikiName>>
+                />
+              </a>
+              ^^<span style='font-size:8pt;'>
+              (<$button
+                class='tc-btn-invisible'
+              >
+                Unload
+                <$action-websocketmessage
+                  $type='unloadWiki'
+                  wikiName=<<WikiName>>
+                />
+              </$button>)
+              </span>^^
+            </$list>
+          </$set>
+          <!-- Recurse for the next level -->
+          <$reveal
+            state=<<thisFoldingWikiListingMakeState>>
+            text='hide'
+            type='nomatch'
+          >
+            <$set
+              name=WikiName
+              value=""
+            >
+              <$set
+                name=WikiPrefix
+                filter='[<WikiPrefix>addsuffix<InnerWikiName>]'
+              >
+                <ul>
+                  <<thisFoldingWikiListingInnerList>>
+                </ul>
+              </$set>
+            </$set>
+          </$reveal>
+        </li>
+      </$list>
+    </$list>
+    <$list
+      filter='[<WikiName>!suffix[/]] -[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>suffix[/]removesuffix[/]]'
+      variable=WikiName
+    >
+      <$list
+        filter='[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>suffix[/]removesuffix[/]]'
+        variable=unused
+      />
+      <li>
+        <a
+          href=<<thisFoldingWikiListingMakeURL>>
+          target='_blank'
+        >
+          <$text
+            text=<<WikiName>>
+          />
+        </a>
+        ^^<span style='font-size:8pt;'>
+        (<$button
+          class='tc-btn-invisible'
+        >
+          Unload
+          <$action-websocketmessage
+            $type='unloadWiki'
+            wikiName=<<WikiName>>
+          />
+        </$button>)
+        </span>^^
+      </li>
+    </$list>
   </$list>
-</$list>
-</ul>
 \end
 
-<h2
-  style='margin:0px;padding:0px;'
->
-  Available Wikis
-</h2>
+\define makeFoldingWikiListing()
+<h2 style='margin:0px;padding:0px;'>Available Wikis</h2>
 <div
   style='font-size:12px;display:inline-block;'
 >
   <$checkbox
-    actions=<<makeWikiListingTab>>
-    uncheckactions=<<removeWikiListingTab>>
+    actions=<<thisFoldingWikiListingMakeWikiListingTab>>
+    uncheckactions=<<thisFoldingWikiListingRemoveWikiListingTab>>
     tiddler='$:/settings/Bob/ListInSidebar'
     field='text'
     checked='yes'
@@ -78,10 +186,22 @@ caption: Wiki Listing
 
 ---
 
-<$list
-  filter='[list[$:/state/ViewableWikis]]'
-  variable=WikiName
-  emptyMessage='No child wikis listed.'
+<ul
+  class='folding-list'
 >
-  <<innerTOW>>
-</$list>
+  <$list
+    filter='[list[$:/state/ViewableWikis]splitbefore[/]removesuffix[/]][list[$:/state/ViewableWikis]splitbefore[/]!suffix[/]] +[sort[]]'
+    variable=WikiName
+    emptyMessage='No child wikis listed.'
+  >
+    <$set
+      name=WikiPrefix
+      value=''
+    >
+      <<thisFoldingWikiListingInnerList>>
+    </$set>
+  </$list>
+</ul>
+\end
+
+<<makeFoldingWikiListing>>
