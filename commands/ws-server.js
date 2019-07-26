@@ -219,8 +219,6 @@ if($tw.node) {
         });
       } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation) {
         $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
-          console.log('REMOTE CONNECTION')
-          console.log(request)
           $tw.federationWss.emit('connection', ws, request);
         })
       }

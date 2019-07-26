@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/WebsocketAdaptor.js
+title: $:/plugins/OokTech/Bob/FederationWebsocketAdaptor.js
 type: application/javascript
 module-type: syncadaptor
 
@@ -20,7 +20,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
 
-  handleFederationMessage = function (event) {
+  const handleFederationMessage = function (event) {
     try {
       let eventData = JSON.parse(event);
       // Make sure we have a handler for the message type
@@ -50,6 +50,7 @@ if($tw.node) {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
+      $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
       if(!$tw.settings['fed-wss'].useExternalWSS) {
         $tw.federationWss = new WebSocketServer({noServer: true});
         // Set the onconnection function
@@ -60,23 +61,15 @@ if($tw.node) {
           $tw.Bob.logger.log('closed remote connection ', connection, {level:2});
         });
       }
-      $tw.PruneTimeout = setInterval(function(){
-        $tw.Bob.PruneConnections();
-      }, 10000);
     }
 
     function handleConnection (client, request) {
-      $tw.Bob.logger.log("new remote connection", {level:2});
-      $tw.Bob.remoteConnections.push({'socket':client, 'server': undefined, 'url': undefined});
-      client.on('message', handleFederationMessage);
-      // Respond to the initial connection with a request for the tiddlers the
-      // browser currently has to initialise everything.
-      $tw.Bob.remoteConnections[Object.keys($tw.Bob.remoteConnections).length-1].index = Object.keys($tw.Bob.remoteConnections).length-1;
+
     }
 
     finishSetup();
   }
-
+  setup()
 }
 
 })();
