@@ -64,7 +64,7 @@ if($tw.node) {
     }
 
     function handleConnection (client, request) {
-
+      client.on('message', function(message) {console.log(message)})
     }
 
     finishSetup();

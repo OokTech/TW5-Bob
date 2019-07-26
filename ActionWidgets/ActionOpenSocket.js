@@ -64,8 +64,9 @@ ActionOpenSocket.prototype.invokeAction = function(triggeringWidget,event) {
   return true; // Action was invoked
 };
 
-function openSocket(sock) {
-  console.log(sock)
+function openSocket(event) {
+  console.log(event.target)
+  event.target.send('HI!')
 }
 
 function parseMessage() {
