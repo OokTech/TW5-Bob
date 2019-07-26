@@ -11,6 +11,8 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Change code to use new core utility functions
     - Used `$tw.utils.generateTiddlerFileInfo` where appropriate
     - Used `$tw.utils.saveTiddlerToFileSync`,
+  - Added collapsing wiki listing
+  - Fixed a bug that sometimes prevented the file server from working correctly in the root wiki.
 
 !! Version 1.2.3 Boiled Potatoes
 

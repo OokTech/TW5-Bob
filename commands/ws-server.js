@@ -247,6 +247,9 @@ if($tw.node) {
         }
       }
     }
+    if (name === '') {
+      name = 'RootWiki'
+    }
     return name
   }
 
@@ -649,7 +652,7 @@ if($tw.node) {
           // foo/bar if there was a wiki tehre and not on foo/bar/baz and then
           // it would break when someone made a wiki on foo/bar/baz
           let ok = false;
-          if(wikiName !== '') {
+          if(wikiName !== '' && wikiName !== 'RootWiki') {
             ok = (request.url.replace(/^\//, '').split('/')[wikiName.split('/').length] === filePrefix);
           } else {
             ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);

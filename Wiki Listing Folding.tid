@@ -1,6 +1,3 @@
-title: $:/plugins/OokTech/Bob/Wiki Listing Folding
-tags: $:/tags/Macro
-
 \define thisFoldingWikiListingMakeState() $:/state/FoldingWikiList/$(currentTiddler)$/$(WikiPrefix)$$(WikiName)$
 
 \define thisFoldingWikiListingMakeURL() /$(WikiPrefix)$$(WikiName)$
@@ -26,11 +23,11 @@ tags: $:/tags/Macro
 
 \define thisFoldingWikiListingInnerList()
   <$list
-    filter='[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>] +[sort[]]'
+    filter='[subfilter<InputList>removeprefix<WikiPrefix>splitbefore<Sep>prefix<WikiName>] +[sort[]]'
     variable=WikiName
   >
     <$list
-      filter="[<WikiName>suffix[/]]"
+      filter="[<WikiName>suffix<Sep>]"
       variable=unused
     >
       <$list
@@ -68,38 +65,18 @@ tags: $:/tags/Macro
           <!-- The text for the current entry -->
           <$set
             name=TEMP
-            filter='[<InnerWikiName>removesuffix[/]]'
+            filter='[<InnerWikiName>removesuffix<Sep>]'
           >
             <$list
-              filter="[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<TEMP>suffix<TEMP>limit[1]]"
+              filter="[subfilter<InputList>removeprefix<WikiPrefix>splitbefore<Sep>prefix<TEMP>suffix<TEMP>limit[1]]"
               emptyMessage="""
               <!-- Parts of paths to wikis that aren't wiki names -->
-              <$text
-                text=<<InnerWikiName>>
-              />
+              <<__notexist__>>
               """
               variable=unused
             >
               <!-- Wikis that exist and are part of paths to other wikis -->
-              <a
-                href=<<thisFoldingWikiListingMakeURL>>
-                target='_blank'
-              >
-                <$text
-                  text=<<WikiName>>
-                />
-              </a>
-              ^^<span style='font-size:8pt;'>
-              (<$button
-                class='tc-btn-invisible'
-              >
-                Unload
-                <$action-websocketmessage
-                  $type='unloadWiki'
-                  wikiName=<<WikiName>>
-                />
-              </$button>)
-              </span>^^
+              <<__exist__>>
             </$list>
           </$set>
           <!-- Recurse for the next level -->
@@ -126,39 +103,45 @@ tags: $:/tags/Macro
       </$list>
     </$list>
     <$list
-      filter='[<WikiName>!suffix[/]] -[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>suffix[/]removesuffix[/]]'
+      filter='[<WikiName>!suffix<Sep>] -[subfilter<InputList>removeprefix<WikiPrefix>splitbefore<Sep>prefix<WikiName>suffix<Sep>removesuffix<Sep>]'
       variable=WikiName
     >
-      <$list
-        filter='[list[$:/state/ViewableWikis]removeprefix<WikiPrefix>splitbefore[/]prefix<WikiName>suffix[/]removesuffix[/]]'
-        variable=unused
-      />
       <li>
-        <a
-          href=<<thisFoldingWikiListingMakeURL>>
-          target='_blank'
-        >
-          <$text
-            text=<<WikiName>>
-          />
-        </a>
-        ^^<span style='font-size:8pt;'>
-        (<$button
-          class='tc-btn-invisible'
-        >
-          Unload
-          <$action-websocketmessage
-            $type='unloadWiki'
-            wikiName=<<WikiName>>
-          />
-        </$button>)
-        </span>^^
+      <<__exist__>>
       </li>
     </$list>
   </$list>
 \end
 
-\define makeFoldingWikiListing()
+\define existsTemplate()
+<a
+  href=<<thisFoldingWikiListingMakeURL>>
+  target='_blank'
+>
+  <$text
+    text=<<WikiName>>
+  />
+</a>
+^^<span style='font-size:8pt;'>
+(<$button
+  class='tc-btn-invisible'
+>
+  Unload
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName=<<WikiName>>
+  />
+</$button>)
+</span>^^
+\end
+
+\define doesntExistTemplate()
+<$text
+  text=<<InnerWikiName>>
+/>
+\end
+
+\define foldingTree(source:'[list[$:/state/ViewableWikis]]' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
 <h2 style='margin:0px;padding:0px;'>Available Wikis</h2>
 <div
   style='font-size:12px;display:inline-block;'
@@ -186,22 +169,41 @@ tags: $:/tags/Macro
 
 ---
 
-<ul
-  class='folding-list'
+<$vars
+  InputList=<<__source__>>
+  Sep=<<__sep__>>
 >
-  <$list
-    filter='[list[$:/state/ViewableWikis]splitbefore[/]removesuffix[/]][list[$:/state/ViewableWikis]splitbefore[/]!suffix[/]] +[sort[]]'
-    variable=WikiName
-    emptyMessage='No child wikis listed.'
+  <ul
+    class='folding-list'
   >
-    <$set
-      name=WikiPrefix
-      value=''
+    <$list
+      filter='[subfilter<InputList>splitbefore<Sep>removesuffix<Sep>][subfilter<InputList>splitbefore<Sep>!suffix<Sep>] +[sort[]]'
+      variable=WikiName
+      emptyMessage='No child wikis listed.'
     >
-      <<thisFoldingWikiListingInnerList>>
-    </$set>
-  </$list>
-</ul>
+      <$set
+        name=WikiPrefix
+        value=''
+      >
+        <<thisFoldingWikiListingInnerList>>
+      </$set>
+    </$list>
+  </ul>
+</$vars>
 \end
 
-<<makeFoldingWikiListing>>
+! Folding Tree List
+
+This was originally made to list the different wikis that I manage with Bob.
+And I forgot that the core `tree` macro existed, although I needed some
+features that the core macro doesn't have, like templating each entry.
+
+!! Parameters
+
+|!Name |!Description |!Default |
+|!source |The input titles to use while making the tree. To get the same output as from the core macro use `[is[system]]` |`[list[$:/state/ViewableWikis]]` |
+|!sep |The separator used to distinguish different levels of the tree. |`/` |
+|!exist |A template to use when an item in the tree exists. |`<<existsTemplate>>` |
+|!notexist |A template to use when an item in the tree doesn't exist (it is part of the path to another item) |`<<doesntExistTemplate>>` |
+
+<<foldingTree>>
