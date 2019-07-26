@@ -56,6 +56,7 @@ ActionOpenSocket.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionOpenSocket.prototype.invokeAction = function(triggeringWidget,event) {
+  $tw.RemoteConnection  = $tw.RemoteConnection || {};
   $tw.RemoteConnection.socket = new WebSocket(this.remoteURL);
   $tw.RemoteConnection.socket.onopen = openSocket;
   $tw.RemoteConnection.socket.onmessage = parseMessage;
