@@ -24,6 +24,27 @@ if($tw.node) {
     console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
+      function openRemoteSocket(event) {
+        console.log('REMOTE SOCKET OPENED', event)
+      }
+      function handleFederationMessage(event) {
+        try {
+          let eventData = JSON.parse(event);
+          // Make sure we have a handler for the message type
+          if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
+            // Check authorisation
+            const authorised = authenticateMessage(eventData)
+            if(authorised) {
+              eventData.decoded = authorised
+              $tw.federationMessageHandlers[eventData.type](eventData);
+            }
+          } else {
+            $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
+          }
+        } catch (e) {
+          $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
+        }
+      }
       // Check to make sure that we don't already have a connection to the
       // remote server
       if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1) {
@@ -44,27 +65,6 @@ if($tw.node) {
 
             Add the on message handlers
           */
-          function openRemoteSocket(event) {
-            console.log('REMOTE SOCKET OPENED', event)
-          }
-          const handleFederationMessage = function (event) {
-            try {
-              let eventData = JSON.parse(event);
-              // Make sure we have a handler for the message type
-              if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
-                // Check authorisation
-                const authorised = authenticateMessage(eventData)
-                if(authorised) {
-                  eventData.decoded = authorised
-                  $tw.federationMessageHandlers[eventData.type](eventData);
-                }
-              } else {
-                $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
-              }
-            } catch (e) {
-              $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
-            }
-          }
         } catch (e) {
           console.log('error opening federated connection ', e)
         }
