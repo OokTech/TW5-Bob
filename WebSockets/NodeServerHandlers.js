@@ -18,25 +18,42 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  /*
-    This lets us restart the tiddlywiki server without having to use the command
-    line.
-  */
-  $tw.nodeMessageHandlers.restartServer = function(data) {
+
+  $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    if($tw.node) {
-      $tw.Bob.logger.log('Restarting Server!', {level:0});
-      // Close web socket server.
-      $tw.wss.close(function () {
-        $tw.Bob.logger.log('Closed WSS', {level:2});
-      });
-      // This bit of magic restarts whatever node process is running. In this
-      // case the tiddlywiki server.
-      require('child_process').spawn(process.argv.shift(), process.argv, {
-        cwd: process.cwd(),
-        detached: false,
-        stdio: "inherit"
-      });
+    if(data.url) {
+      // Check to make sure that we don't already have a connection to the
+      // remote server
+      if(typeof $tw.federatedConnections[data.url] !== 'undefined') {
+        const WebSocket = require('ws')
+        try {
+          $tw.federatedConnections[data.url] = {}
+          $tw.federatedConnections[data.url].socket = new WebSocket(data.url)
+          /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
+          $tw.federatedConnections[data.url].on('open', openRemoteSocket)
+          $tw.federatedConnections[data.url].on('message', handleFederationMessage)
+          /* TODO
+            add a readable name and something for a key here so that a server
+            can change it's url and maintain the same name across different
+            sessions
+
+            Add an on open function that alerts the browsers that the
+            connection has been made
+
+            Add the on message handlers
+          */
+          function openRemoteSocket(event) {
+            console.log('REMOTE SOCKET OPENED', event)
+          }
+          function handleFederationMessage(event) {
+            console.log('RECEIVED FEDERATION MESSAGE', event)
+          }
+        } catch (e) {
+          console.log('error opening federated connection ', e)
+        }
+      } else {
+        console.log('A connection already exists to ', data.url)
+      }
     }
   }
 

@@ -13,6 +13,7 @@ title: $:/plugins/OokTech/Bob/Changelog
     - Used `$tw.utils.saveTiddlerToFileSync`,
   - Added collapsing wiki listing
   - Fixed a bug that sometimes prevented the file server from working correctly in the root wiki.
+  - Added the working framework for inter-server federation and messages.
 
 !! Version 1.2.3 Boiled Potatoes
 

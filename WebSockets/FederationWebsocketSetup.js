@@ -19,6 +19,7 @@ if($tw.node) {
   $tw.Bob = $tw.Bob || {};
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
+  $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
 
   const handleFederationMessage = function (event) {
     try {
@@ -42,10 +43,6 @@ if($tw.node) {
   const setup = function () {
     // require the websockets module if we are running node
     const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
-    // initialise the empty $tw.nodeMessageHandlers object. This holds the
-    // functions that are used for each message type
-    $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
-    $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
     /*
       Setup the websocket server if we aren't using an external one
     */
@@ -55,8 +52,8 @@ if($tw.node) {
         $tw.federationWss = new WebSocketServer({noServer: true});
         // Set the onconnection function
         $tw.federationWss.on('connection', handleConnection);
-        // I don't know how to set up actually closing a connection, so this doesn't
-        // do anything useful yet
+        // I don't know how to set up actually closing a connection, so this
+        // doesn't do anything useful yet
         $tw.federationWss.on('close', function(connection) {
           $tw.Bob.logger.log('closed remote connection ', connection, {level:2});
         });
@@ -64,7 +61,7 @@ if($tw.node) {
     }
 
     function handleConnection (client, request) {
-      client.on('message', function(message) {console.log(message)})
+      client.on('message', handleFederationMessage)
     }
 
     finishSetup();

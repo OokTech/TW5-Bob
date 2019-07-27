@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-openRemoteConnection
+tags: [[Websocket Message]]
+caption: openRemoteConnection
+description: A message that tells the server to open a connection to a remote server.
+
+This message tells the server to try and open a connection to a remote server.
+
+This is the first step to having federated communication between wikis.

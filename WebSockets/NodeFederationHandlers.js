@@ -215,6 +215,7 @@ if($tw.node) {
     }
   */
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
+    /*
     $tw.sendAck(data);
     if(data.remoteUrl && data.filter) {
       // Do the request
@@ -250,6 +251,7 @@ if($tw.node) {
         startRemoteRequest($tw.Bob.RemoteServers[data.remoteUrl], data)
       }
     }
+    */
   }
 
 }
