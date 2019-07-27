@@ -24,10 +24,12 @@ if($tw.node) {
     console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
-      function openRemoteSocket(event) {
-        console.log('REMOTE SOCKET OPENED', event)
+      function openRemoteSocket() {
+        console.log('REMOTE SOCKET OPENED', data.url)
+        $tw.federatedConnections[data.url].socket.send('HI BACK')
       }
       function handleFederationMessage(event) {
+        console.log('RECEIVED MESSAGE', event)
         try {
           let eventData = JSON.parse(event);
           // Make sure we have a handler for the message type
