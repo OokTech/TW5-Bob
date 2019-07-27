@@ -26,7 +26,7 @@ if($tw.node) {
     if(data.url) {
       // Check to make sure that we don't already have a connection to the
       // remote server
-      if(typeof $tw.federatedConnections[data.url] !== 'undefined') {
+      if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1) {
         const WebSocket = require('ws')
         try {
           $tw.federatedConnections[data.url] = {}
