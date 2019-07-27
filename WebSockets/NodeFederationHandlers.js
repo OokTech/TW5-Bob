@@ -215,9 +215,9 @@ if($tw.node) {
     }
   */
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
-    /*
-    $tw.sendAck(data);
-    if(data.remoteUrl && data.filter) {
+    //$tw.sendAck(data);
+    console.log(data)
+    if(data.remoteUrl && data.filter && false) {
       // Do the request
       // Try to connect to the remote server
       $tw.Bob.RemoteServers[data.remoteUrl] = $tw.Bob.RemoteServers[data.remoteUrl] || {}
@@ -251,7 +251,6 @@ if($tw.node) {
         startRemoteRequest($tw.Bob.RemoteServers[data.remoteUrl], data)
       }
     }
-    */
   }
 
 }

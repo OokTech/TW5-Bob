@@ -26,12 +26,13 @@ if($tw.node) {
     if(data.url) {
       function openRemoteSocket() {
         console.log('REMOTE SOCKET OPENED', data.url)
-        $tw.federatedConnections[data.url].socket.send('HI BACK')
+        $tw.federatedConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
       }
       function handleFederationMessage(event) {
         console.log('RECEIVED MESSAGE', event)
         try {
           let eventData = JSON.parse(event);
+          console.log(eventData)
           // Make sure we have a handler for the message type
           if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
             // Check authorisation
@@ -45,6 +46,7 @@ if($tw.node) {
           }
         } catch (e) {
           $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
+          console.log(event)
         }
       }
       // Check to make sure that we don't already have a connection to the
