@@ -20,6 +20,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
+    console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
       // Check to make sure that we don't already have a connection to the
@@ -45,8 +46,23 @@ if($tw.node) {
           function openRemoteSocket(event) {
             console.log('REMOTE SOCKET OPENED', event)
           }
-          function handleFederationMessage(event) {
-            console.log('RECEIVED FEDERATION MESSAGE', event)
+          const handleFederationMessage = function (event) {
+            try {
+              let eventData = JSON.parse(event);
+              // Make sure we have a handler for the message type
+              if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
+                // Check authorisation
+                const authorised = authenticateMessage(eventData)
+                if(authorised) {
+                  eventData.decoded = authorised
+                  $tw.federationMessageHandlers[eventData.type](eventData);
+                }
+              } else {
+                $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
+              }
+            } catch (e) {
+              $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
+            }
           }
         } catch (e) {
           console.log('error opening federated connection ', e)
