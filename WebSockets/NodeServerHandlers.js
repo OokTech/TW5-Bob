@@ -18,6 +18,7 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  $tw.federatedConnections = $tw.federatedConnections || {};
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
     console.log('openRemoteConnection', data)
