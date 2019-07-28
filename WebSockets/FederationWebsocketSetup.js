@@ -27,6 +27,8 @@ if($tw.node) {
   }
 
   $tw.Bob.handleFederationMessage = function (event) {
+    console.log(event)
+    console.log(this)
     try {
       let eventData = JSON.parse(event);
       eventData._source_info = this._socket._peername;
