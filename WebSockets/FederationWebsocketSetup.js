@@ -34,7 +34,7 @@ if($tw.node) {
     console.log('this',this.url)
     try {
       let eventData = JSON.parse(event);
-      if (this.url) {
+      if (typeof this.url !== 'undefined') {
         const thisURL = URL.parse(this.url);
         eventData._source_info = {
           address: thisURL.hostname,
@@ -44,8 +44,8 @@ if($tw.node) {
         eventData._source_info = this._socket._peername;
       }
       console.log(eventData)
-      if (typeof $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] === 'undefined') {
-        $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] = {socket: this}
+      if (typeof $tw.remoteConnections[`${eventData._source_info.address}:${eventData._source_info.port}`] === 'undefined') {
+        $tw.remoteConnections[`${eventData._source_info.address}:${eventData._source_info.port}`] = {socket: this}
       }
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
