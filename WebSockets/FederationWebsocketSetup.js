@@ -43,6 +43,7 @@ if($tw.node) {
       } else {
         eventData._source_info = this._socket._peername;
       }
+      console.log(eventData)
       if (typeof $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] === 'undefined') {
         $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] = {socket: this}
       }
