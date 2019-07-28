@@ -22,6 +22,8 @@ if($tw.node) {
   $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
   $tw.remoteConnections = $tw.remoteConnections || {};
 
+  const URL = require('url');
+
   function authenticateMessage() {
     return true
   }
