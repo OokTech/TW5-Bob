@@ -54,8 +54,9 @@ if($tw.node) {
       }
       // Check to make sure that we don't already have a connection to the
       // remote server
-      if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1) {
-        const WebSocket = require('ws')
+      // If the socket is closed than reconnect
+      const WebSocket = require('ws')
+      if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1 || $tw.federatedConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
           $tw.federatedConnections[data.url] = {}
           $tw.federatedConnections[data.url].socket = new WebSocket(data.url)
