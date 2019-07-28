@@ -27,10 +27,11 @@ if($tw.node) {
   }
 
   const handleFederationMessage = function (event) {
-    console.log(event)
-    console.log(this)
+    //console.log(event)
+    //console.log(this._peername.address)
     try {
       let eventData = JSON.parse(event);
+      eventData._source_address = this._peername.address;
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
