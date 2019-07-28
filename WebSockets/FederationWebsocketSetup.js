@@ -33,7 +33,7 @@ if($tw.node) {
     console.log(this._socket._peername)
     try {
       let eventData = JSON.parse(event);
-      eventData._source_address = this._socket_peername.address;
+      eventData._source_address = this._socket._peername.address;
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
