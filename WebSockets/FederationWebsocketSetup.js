@@ -27,6 +27,7 @@ if($tw.node) {
   }
 
   const handleFederationMessage = function (event) {
+    console.log(event)
     try {
       let eventData = JSON.parse(event);
       // Make sure we have a handler for the message type
@@ -66,9 +67,8 @@ if($tw.node) {
     }
 
     function handleConnection (client, request) {
-      console.log(client)
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      //$tw.remoteConnections[data.url] = {socket: client}
+      $tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
       client.on('message', handleFederationMessage)
     }
 
