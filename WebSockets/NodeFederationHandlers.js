@@ -219,7 +219,7 @@ if($tw.node) {
     console.log(data)
     console.log('remote connecitons', $tw.remoteConnections)
     setTimeout(function() {
-      $tw.remoteConnections[data._source_info.address].socket.send(JSON.stringify({type: 'requestTiddlers', payload: 'did it work?'}))
+      $tw.remoteConnections[`${data._source_info.address}:${data._source_info.port}`].socket.send(JSON.stringify({type: 'requestTiddlers', payload: 'did it work?'}))
     }, 500)
     if(data.remoteUrl && data.filter && false) {
       // Do the request
