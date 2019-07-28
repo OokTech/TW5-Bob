@@ -85,7 +85,8 @@ if($tw.node) {
 
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      //$tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
+      console.log(request.connection)
+      $tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
       client.on('message', $tw.Bob.handleFederationMessage)
     }
 
