@@ -28,16 +28,16 @@ if($tw.node) {
 
   $tw.Bob.handleFederationMessage = function (event) {
     console.log(event)
-    console.log(this)
+    console.log('this',this)
     try {
       let eventData = JSON.parse(event);
       eventData._source_info = this._socket._peername;
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
-        const authorised = authenticateMessage(eventData)
+        const authorised = authenticateMessage(eventData);
         if(authorised) {
-          eventData.decoded = authorised
+          eventData.decoded = authorised;
           $tw.federationMessageHandlers[eventData.type](eventData);
         }
       } else {
