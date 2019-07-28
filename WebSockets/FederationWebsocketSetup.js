@@ -29,10 +29,18 @@ if($tw.node) {
   $tw.Bob.handleFederationMessage = function (event) {
     let self = this;
     console.log(Object.keys($tw.federatedConnections))
-    console.log('this',this)
+    console.log('this',this.url)
     try {
       let eventData = JSON.parse(event);
-      eventData._source_info = this._socket._peername;
+      if (this.url) {
+        const thisURL = new URL(this.url);
+        eventData._source_info = {
+          address: thisURL.hostname,
+          port: thisURL.port
+        };
+      } else {
+        eventData._source_info = this._socket._peername;
+      }
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
