@@ -28,6 +28,7 @@ if($tw.node) {
 
   const handleFederationMessage = function (event) {
     console.log(event)
+    console.log(this)
     try {
       let eventData = JSON.parse(event);
       // Make sure we have a handler for the message type
