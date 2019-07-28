@@ -31,27 +31,6 @@ if($tw.node) {
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.federatedConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
       }
-      function handleFederationMessage(event) {
-        console.log('RECEIVED MESSAGE', event)
-        try {
-          let eventData = JSON.parse(event);
-          console.log(eventData)
-          // Make sure we have a handler for the message type
-          if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
-            // Check authorisation
-            const authorised = authenticateMessage(eventData)
-            if(authorised) {
-              eventData.decoded = authorised
-              $tw.federationMessageHandlers[eventData.type](eventData);
-            }
-          } else {
-            $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
-          }
-        } catch (e) {
-          $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
-          console.log(event)
-        }
-      }
       // Check to make sure that we don't already have a connection to the
       // remote server
       // If the socket is closed than reconnect
@@ -62,7 +41,7 @@ if($tw.node) {
           $tw.federatedConnections[data.url].socket = new WebSocket(data.url)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
           $tw.federatedConnections[data.url].socket.on('open', openRemoteSocket)
-          $tw.federatedConnections[data.url].socket.on('message', handleFederationMessage)
+          $tw.federatedConnections[data.url].socket.on('message', $tw.Bob.handleFederationMessage)
           /* TODO
             add a readable name and something for a key here so that a server
             can change it's url and maintain the same name across different
