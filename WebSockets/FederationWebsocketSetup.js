@@ -35,7 +35,7 @@ if($tw.node) {
     try {
       let eventData = JSON.parse(event);
       if (this.url) {
-        const thisURL = new URL(this.url);
+        const thisURL = URL.parse(this.url);
         eventData._source_info = {
           address: thisURL.hostname,
           port: thisURL.port
