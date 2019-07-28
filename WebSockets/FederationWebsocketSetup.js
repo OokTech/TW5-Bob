@@ -20,6 +20,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
   $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
+  $tw.remoteConnections = $tw.remoteConnections || {};
 
   function authenticateMessage() {
     return true
@@ -65,6 +66,9 @@ if($tw.node) {
     }
 
     function handleConnection (client, request) {
+      console.log(client)
+      $tw.Bob.logger.log("New Remote Connection", {level: 2})
+      //$tw.remoteConnections[data.url] = {socket: client}
       client.on('message', handleFederationMessage)
     }
 

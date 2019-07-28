@@ -47,10 +47,7 @@ if($tw.node) {
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
-    //const ServerPort = Number($tw.settings['ws-server'].port) || 8080;
-    //const host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-    //var server;
     /*
       Setup the websocket server if we aren't using an external one
     */
