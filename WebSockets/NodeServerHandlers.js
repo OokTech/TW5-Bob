@@ -24,6 +24,9 @@ if($tw.node) {
     console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
+      function authenticateMessage() {
+        return true
+      }
       function openRemoteSocket() {
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.federatedConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
