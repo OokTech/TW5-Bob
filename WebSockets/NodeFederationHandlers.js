@@ -217,6 +217,7 @@ if($tw.node) {
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
     console.log(data)
+    $tw.remoteConnections[data._source_info.address].socket.send({type: 'requestTiddlers', payload: 'did it work?'})
     if(data.remoteUrl && data.filter && false) {
       // Do the request
       // Try to connect to the remote server

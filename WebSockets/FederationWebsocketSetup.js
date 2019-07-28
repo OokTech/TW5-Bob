@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/FederationWebsocketAdaptor.js
+title: $:/plugins/OokTech/Bob/FederationWebsocketSetup.js
 type: application/javascript
 module-type: syncadaptor
 
@@ -27,13 +27,9 @@ if($tw.node) {
   }
 
   const handleFederationMessage = function (event) {
-    //console.log(event)
-    console.log(this)
-    console.log(this._socket)
-    console.log(this._socket._peername)
     try {
       let eventData = JSON.parse(event);
-      eventData._source_address = this._socket._peername.address;
+      eventData._source_info = this._socket._peername;
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
