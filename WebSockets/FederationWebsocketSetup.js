@@ -30,7 +30,7 @@ if($tw.node) {
 
   $tw.Bob.handleFederationMessage = function (event) {
     let self = this;
-    console.log(Object.keys($tw.federatedConnections))
+    console.log('socket', this._socket)
     console.log('this',this.url)
     try {
       let eventData = JSON.parse(event);
