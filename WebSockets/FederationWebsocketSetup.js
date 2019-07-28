@@ -21,6 +21,10 @@ if($tw.node) {
   $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
   $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
 
+  function authenticateMessage() {
+    return true
+  }
+
   const handleFederationMessage = function (event) {
     try {
       let eventData = JSON.parse(event);
