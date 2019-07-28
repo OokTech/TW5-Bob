@@ -217,6 +217,7 @@ if($tw.node) {
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
     console.log(data)
+    console.log('remote connecitons', $tw.remoteConnections)
     setTimeout(function() {
       $tw.remoteConnections[data._source_info.address].socket.send(JSON.stringify({type: 'requestTiddlers', payload: 'did it work?'}))
     }, 500)

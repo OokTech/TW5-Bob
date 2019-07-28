@@ -43,6 +43,9 @@ if($tw.node) {
       } else {
         eventData._source_info = this._socket._peername;
       }
+      if (typeof $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] === 'undefined') {
+        $tw.remoteConnections[`${eventData._source_info.address}:${eventData._sou_source_info.port}`] = {socket: this}
+      }
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
         // Check authorisation
@@ -81,7 +84,7 @@ if($tw.node) {
 
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      $tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
+      //$tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
       client.on('message', $tw.Bob.handleFederationMessage)
     }
 
