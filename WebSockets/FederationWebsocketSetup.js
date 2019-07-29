@@ -30,22 +30,21 @@ if($tw.node) {
 
   $tw.Bob.handleFederationMessage = function (event) {
     let self = this;
-    console.log('socket', this._socket)
-    console.log('this',this.url)
     try {
       let eventData = JSON.parse(event);
       if (typeof this.url !== 'undefined') {
         const thisURL = URL.parse(this.url);
         eventData._source_info = {
           address: thisURL.hostname,
-          port: thisURL.port
+          port: thisURL.port,
+          url: thisURL.hostname + ':' +thisURL.port
         };
       } else {
         eventData._source_info = this._socket._peername;
+        eventData._source_info.url = thisURL.hostname + ':' +thisURL.port
       }
-      console.log(eventData)
-      if (typeof $tw.remoteConnections[`${eventData._source_info.address}:${eventData._source_info.port}`] === 'undefined') {
-        $tw.remoteConnections[`${eventData._source_info.address}:${eventData._source_info.port}`] = {socket: this}
+      if (typeof $tw.remoteConnections[eventData._source_info.url] === 'undefined') {
+        $tw.remoteConnections[eventData._source_info.url] = {socket: this}
       }
       // Make sure we have a handler for the message type
       if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {

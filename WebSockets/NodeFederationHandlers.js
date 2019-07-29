@@ -216,43 +216,45 @@ if($tw.node) {
   */
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
+    /*
     console.log(data)
     console.log('remote connecitons', $tw.remoteConnections)
     setTimeout(function() {
       $tw.remoteConnections[`${data._source_info.address}:${data._source_info.port}`].socket.send(JSON.stringify({type: 'requestTiddlers', payload: 'did it work?'}))
     }, 500)
-    if(data.remoteUrl && data.filter && false) {
+    */
+    if(data._source_info && data.filter) {
       // Do the request
       // Try to connect to the remote server
-      $tw.Bob.RemoteServers[data.remoteUrl] = $tw.Bob.RemoteServers[data.remoteUrl] || {}
+      $tw.Bob.RemoteServers[data._source_info.url] = $tw.Bob.RemoteServers[data._source_info.url] || {}
 
       data.filter = data.filter || '[!is[system]]'
       data.conflictType = data.conflictType || 'newestWins'
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
-      $tw.Bob.RemoteServers[data.remoteUrl].socket = $tw.Bob.RemoteServers[data.remoteUrl].socket || {}
-      $tw.Bob.RemoteServers[data.remoteUrl].pendingAction = 'requestTiddlers'
-      $tw.Bob.RemoteServers[data.remoteUrl].conflictType = data.conflictType
-      $tw.Bob.RemoteServers[data.remoteUrl].remoteWikis = data.remoteWikis
-      if($tw.Bob.RemoteServers[data.remoteUrl].socket.readyState !== 1) {
+      $tw.Bob.RemoteServers[data._source_info.url].socket = $tw.Bob.RemoteServers[data._source_info.url].socket || {}
+      $tw.Bob.RemoteServers[data._source_info.url].pendingAction = 'requestTiddlers'
+      $tw.Bob.RemoteServers[data._source_info.url].conflictType = data.conflictType
+      $tw.Bob.RemoteServers[data._source_info.url].remoteWikis = data.remoteWikis
+      if($tw.Bob.RemoteServers[data._source_info.url].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
-        const remoteUrl = new URL(data.remoteUrl);
+        const remoteUrl = new URL(data._source_info.url);
         const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.Bob.RemoteServers[data.remoteUrl].socket = socket;
+        $tw.Bob.RemoteServers[data._source_info.url].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.Bob.RemoteServers[data.remoteUrl]);
+          startRemoteSync($tw.Bob.RemoteServers[data._source_info.url]);
         })
-        $tw.Bob.RemoteServers[data.remoteUrl].socket.on('message', function (message) {
+        $tw.Bob.RemoteServers[data._source_info.url].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.Bob.RemoteServers[data.remoteUrl], messageData);
+          handleRemoteReply($tw.Bob.RemoteServers[data._source_info.url], messageData);
         })
       } else {
-        startRemoteRequest($tw.Bob.RemoteServers[data.remoteUrl], data)
+        startRemoteRequest($tw.Bob.RemoteServers[data._source_info.url], data)
       }
     }
   }
