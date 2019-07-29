@@ -77,7 +77,7 @@ if($tw.node) {
     // We need at least the remote url or we can't act.
     if(data.remoteUrl) {
       // Try to connect to the remote server
-      $tw.Bob.RemoteServers[data.remoteUrl] = $tw.Bob.RemoteServers[data.remoteUrl] || {}
+      $tw.Bob.remoteConnections[data.remoteUrl] = $tw.Bob.remoteConnections[data.remoteUrl] || {}
 
       data.syncFilter = data.syncFilter || '[!is[system]]'
       data.syncType = data.syncType || 'bidirectional'
@@ -85,14 +85,14 @@ if($tw.node) {
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
-      $tw.Bob.RemoteServers[data.remoteUrl].socket = $tw.Bob.RemoteServers[data.remoteUrl].socket || {}
-      $tw.Bob.RemoteServers[data.remoteUrl].pendingAction = 'sync'
-      $tw.Bob.RemoteServers[data.remoteUrl].syncFilter = data.syncFilter
-      $tw.Bob.RemoteServers[data.remoteUrl].syncType = data.syncType
-      $tw.Bob.RemoteServers[data.remoteUrl].conflictType = data.conflictType
-      $tw.Bob.RemoteServers[data.remoteUrl].remoteWikis = data.remoteWikis
+      $tw.Bob.remoteConnections[data.remoteUrl].socket = $tw.Bob.remoteConnections[data.remoteUrl].socket || {}
+      $tw.Bob.remoteConnections[data.remoteUrl].pendingAction = 'sync'
+      $tw.Bob.remoteConnections[data.remoteUrl].syncFilter = data.syncFilter
+      $tw.Bob.remoteConnections[data.remoteUrl].syncType = data.syncType
+      $tw.Bob.remoteConnections[data.remoteUrl].conflictType = data.conflictType
+      $tw.Bob.remoteConnections[data.remoteUrl].remoteWikis = data.remoteWikis
 
-      if($tw.Bob.RemoteServers[data.remoteUrl].socket.readyState !== 1) {
+      if($tw.Bob.remoteConnections[data.remoteUrl].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data.remoteUrl);
@@ -100,16 +100,16 @@ if($tw.node) {
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.Bob.RemoteServers[data.remoteUrl].socket = socket;
+        $tw.Bob.remoteConnections[data.remoteUrl].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.Bob.RemoteServers[data.remoteUrl]);
+          startRemoteSync($tw.Bob.remoteConnections[data.remoteUrl]);
         })
-        $tw.Bob.RemoteServers[data.remoteUrl].socket.on('message', function (message) {
+        $tw.Bob.remoteConnections[data.remoteUrl].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.Bob.RemoteServers[data.remoteUrl], messageData);
+          handleRemoteReply($tw.Bob.remoteConnections[data.remoteUrl], messageData);
         })
       } else {
-        startRemoteSync($tw.Bob.RemoteServers[data.remoteUrl], data)
+        startRemoteSync($tw.Bob.remoteConnections[data.remoteUrl], data)
       }
     }
   }
@@ -134,7 +134,7 @@ if($tw.node) {
     remoteServerObject.send(JSON.stringify(message))
   }
   function handleRemoteReply(remoteServerObject, data) {
-    if($tw.Bob.RemoteServers[data.remoteUrl].pendingAction == 'none') {
+    if($tw.Bob.remoteConnections[data.remoteUrl].pendingAction == 'none') {
       return
     }
     // This receives the tiddlers that the remote server has and teh local
@@ -216,28 +216,21 @@ if($tw.node) {
   */
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
-    /*
-    console.log(data)
-    console.log('remote connecitons', $tw.remoteConnections)
-    setTimeout(function() {
-      $tw.remoteConnections[`${data._source_info.address}:${data._source_info.port}`].socket.send(JSON.stringify({type: 'requestTiddlers', payload: 'did it work?'}))
-    }, 500)
-    */
     if(data._source_info && data.filter) {
       // Do the request
       // Try to connect to the remote server
-      $tw.Bob.RemoteServers[data._source_info.url] = $tw.Bob.RemoteServers[data._source_info.url] || {}
+      $tw.Bob.remoteConnections[data._source_info.url] = $tw.Bob.remoteConnections[data._source_info.url] || {}
 
       data.filter = data.filter || '[!is[system]]'
       data.conflictType = data.conflictType || 'newestWins'
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
-      $tw.Bob.RemoteServers[data._source_info.url].socket = $tw.Bob.RemoteServers[data._source_info.url].socket || {}
-      $tw.Bob.RemoteServers[data._source_info.url].pendingAction = 'requestTiddlers'
-      $tw.Bob.RemoteServers[data._source_info.url].conflictType = data.conflictType
-      $tw.Bob.RemoteServers[data._source_info.url].remoteWikis = data.remoteWikis
-      if($tw.Bob.RemoteServers[data._source_info.url].socket.readyState !== 1) {
+      $tw.Bob.remoteConnections[data._source_info.url].socket = $tw.Bob.remoteConnections[data._source_info.url].socket || {}
+      $tw.Bob.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers'
+      $tw.Bob.remoteConnections[data._source_info.url].conflictType = data.conflictType
+      $tw.Bob.remoteConnections[data._source_info.url].remoteWikis = data.remoteWikis
+      if($tw.Bob.remoteConnections[data._source_info.url].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data._source_info.url);
@@ -245,16 +238,16 @@ if($tw.node) {
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.Bob.RemoteServers[data._source_info.url].socket = socket;
+        $tw.Bob.remoteConnections[data._source_info.url].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.Bob.RemoteServers[data._source_info.url]);
+          startRemoteSync($tw.Bob.remoteConnections[data._source_info.url]);
         })
-        $tw.Bob.RemoteServers[data._source_info.url].socket.on('message', function (message) {
+        $tw.Bob.remoteConnections[data._source_info.url].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.Bob.RemoteServers[data._source_info.url], messageData);
+          handleRemoteReply($tw.Bob.remoteConnections[data._source_info.url], messageData);
         })
       } else {
-        startRemoteRequest($tw.Bob.RemoteServers[data._source_info.url], data)
+        startRemoteRequest($tw.Bob.remoteConnections[data._source_info.url], data)
       }
     }
   }

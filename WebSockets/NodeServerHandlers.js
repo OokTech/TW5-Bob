@@ -34,11 +34,12 @@ if($tw.node) {
       // Check to make sure that we don't already have a connection to the
       // remote server
       // If the socket is closed than reconnect
+      const remoteSocketAddress = data.url.startsWith('ws://')?data.url:'ws://'+data.url+'/api/federation/socket'
       const WebSocket = require('ws')
       if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1 || $tw.federatedConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
           $tw.federatedConnections[data.url] = {}
-          $tw.federatedConnections[data.url].socket = new WebSocket(data.url)
+          $tw.federatedConnections[data.url].socket = new WebSocket(remoteSocketAddress)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
           $tw.federatedConnections[data.url].socket.on('open', openRemoteSocket)
           $tw.federatedConnections[data.url].socket.on('message', $tw.Bob.handleFederationMessage)
