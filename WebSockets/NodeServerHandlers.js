@@ -42,7 +42,7 @@ if($tw.node) {
           $tw.federatedConnections[data.url].socket = new WebSocket(remoteSocketAddress)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
           $tw.federatedConnections[data.url].socket.on('open', openRemoteSocket)
-          $tw.federatedConnections[data.url].socket.on('message', $tw.Bob.handleFederationMessage)
+          $tw.federatedConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
           /* TODO
             add a readable name and something for a key here so that a server
             can change it's url and maintain the same name across different

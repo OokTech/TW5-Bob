@@ -17,8 +17,8 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if($tw.node) {
-  $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
-
+  $tw.Bob.Federation = $tw.Bob.Federation || {}
+  $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
   /*
     Sync servers takes a filter and syncs all of the tiddlers returned by the
     filter with a remote server.
@@ -72,12 +72,12 @@ if($tw.node) {
       - (LATER) oldestWins: least recently modified tiddlers are kept in case of
       conflicts.
   */
-  $tw.federationMessageHandlers.syncServer = function(data) {
+  $tw.Bob.Federation.messageHandlers.syncServer = function(data) {
     $tw.Bob.Shared.sendAck(data)
     // We need at least the remote url or we can't act.
     if(data.remoteUrl) {
       // Try to connect to the remote server
-      $tw.remoteConnections[data.remoteUrl] = $tw.remoteConnections[data.remoteUrl] || {}
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl] = $tw.Bob.Federation.remoteConnections[data.remoteUrl] || {}
 
       data.syncFilter = data.syncFilter || '[!is[system]]'
       data.syncType = data.syncType || 'bidirectional'
@@ -85,14 +85,14 @@ if($tw.node) {
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
-      $tw.remoteConnections[data.remoteUrl].socket = $tw.remoteConnections[data.remoteUrl].socket || {}
-      $tw.remoteConnections[data.remoteUrl].pendingAction = 'sync'
-      $tw.remoteConnections[data.remoteUrl].syncFilter = data.syncFilter
-      $tw.remoteConnections[data.remoteUrl].syncType = data.syncType
-      $tw.remoteConnections[data.remoteUrl].conflictType = data.conflictType
-      $tw.remoteConnections[data.remoteUrl].remoteWikis = data.remoteWikis
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket = $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket || {}
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].pendingAction = 'sync'
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].syncFilter = data.syncFilter
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].syncType = data.syncType
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].conflictType = data.conflictType
+      $tw.Bob.Federation.remoteConnections[data.remoteUrl].remoteWikis = data.remoteWikis
 
-      if($tw.remoteConnections[data.remoteUrl].socket.readyState !== 1) {
+      if($tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data.remoteUrl);
@@ -100,16 +100,16 @@ if($tw.node) {
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.remoteConnections[data.remoteUrl].socket = socket;
+        $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.remoteConnections[data.remoteUrl]);
+          startRemoteSync($tw.Bob.Federation.remoteConnections[data.remoteUrl]);
         })
-        $tw.remoteConnections[data.remoteUrl].socket.on('message', function (message) {
+        $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.remoteConnections[data.remoteUrl], messageData);
+          handleRemoteReply($tw.Bob.Federation.remoteConnections[data.remoteUrl], messageData);
         })
       } else {
-        startRemoteSync($tw.remoteConnections[data.remoteUrl], data)
+        startRemoteSync($tw.Bob.Federation.remoteConnections[data.remoteUrl], data)
       }
     }
   }
@@ -134,7 +134,7 @@ if($tw.node) {
     remoteServerObject.send(JSON.stringify(message))
   }
   function handleRemoteReply(remoteServerObject, data) {
-    if($tw.remoteConnections[data.remoteUrl].pendingAction == 'none') {
+    if($tw.Bob.Federation.remoteConnections[data.remoteUrl].pendingAction == 'none') {
       return
     }
     // This receives the tiddlers that the remote server has and teh local
@@ -214,27 +214,26 @@ if($tw.node) {
       filter: requestFilter
     }
   */
-  $tw.federationMessageHandlers.requestTiddlers = function(data) {
+  $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
-    $tw.remoteConnections[data._source_info.url].socket.send(JSON.stringify({type:'nothing',payload:'bloop'}))
     if(data._source_info && data.filter) {
       /*
       // Do the request
       // Try to connect to the remote server
-      $tw.remoteConnections[data._source_info.url] = $tw.remoteConnections[data._source_info.url] || {};
+      $tw.Bob.Federation.remoteConnections[data._source_info.url] = $tw.Bob.Federation.remoteConnections[data._source_info.url] || {};
 
       data.filter = data.filter || '[!is[system]]';
       data.conflictType = data.conflictType || 'newestWins';
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki';
 
-      $tw.remoteConnections[data._source_info.url].socket = $tw.remoteConnections[data._source_info.url].socket || {};
-      $tw.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers';
-      $tw.remoteConnections[data._source_info.url].conflictType = data.conflictType;
-      $tw.remoteConnections[data._source_info.url].remoteWikis = data.remoteWikis;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = $tw.Bob.Federation.remoteConnections[data._source_info.url].socket || {};
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers';
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].conflictType = data.conflictType;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].remoteWikis = data.remoteWikis;
       */
       /*
-      if($tw.remoteConnections[data._source_info.url].socket.readyState !== 1) {
+      if($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data._source_info.url);
@@ -242,16 +241,16 @@ if($tw.node) {
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.remoteConnections[data._source_info.url].socket = socket;
+        $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.remoteConnections[data._source_info.url]);
+          startRemoteSync($tw.Bob.Federation.remoteConnections[data._source_info.url]);
         })
-        $tw.remoteConnections[data._source_info.url].socket.on('message', function (message) {
+        $tw.Bob.Federation.remoteConnections[data._source_info.url].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.remoteConnections[data._source_info.url], messageData);
+          handleRemoteReply($tw.Bob.Federation.remoteConnections[data._source_info.url], messageData);
         })
       } else {
-        startRemoteRequest($tw.remoteConnections[data._source_info.url], data);
+        startRemoteRequest($tw.Bob.Federation.remoteConnections[data._source_info.url], data);
       }
       */
     }

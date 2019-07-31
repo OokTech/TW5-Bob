@@ -45,7 +45,6 @@ if($tw.node) {
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
 
     /*
@@ -66,7 +65,6 @@ if($tw.node) {
         $tw.Bob.PruneConnections();
       }, 10000);
     }
-
     finishSetup();
   }
 
