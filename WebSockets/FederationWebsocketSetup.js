@@ -41,7 +41,7 @@ if($tw.node) {
         };
       } else {
         eventData._source_info = this._socket._peername;
-        eventData._source_info.url = this._socket._peername.hostname + ':' +this._socket._peername.port;
+        eventData._source_info.url = this._socket._peername.address + ':' +this._socket._peername.port;
       }
       console.log(eventData)
       if (typeof $tw.remoteConnections[eventData._source_info.url] === 'undefined') {
