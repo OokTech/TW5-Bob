@@ -29,6 +29,7 @@ if($tw.node) {
   }
 
   $tw.Bob.handleFederationMessage = function (event) {
+    console.log(event)
     let self = this;
     try {
       let eventData = JSON.parse(event);
@@ -84,7 +85,6 @@ if($tw.node) {
 
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      console.log(request.connection)
       $tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
       client.on('message', $tw.Bob.handleFederationMessage)
     }
