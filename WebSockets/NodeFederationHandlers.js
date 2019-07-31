@@ -217,19 +217,23 @@ if($tw.node) {
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
     if(data._source_info && data.filter) {
+      $tw.Bob.remoteConnections[data._source_info.url].socket.send({type:'nothing',payload:'bloop'})
+      /*
       // Do the request
       // Try to connect to the remote server
-      $tw.Bob.remoteConnections[data._source_info.url] = $tw.Bob.remoteConnections[data._source_info.url] || {}
+      $tw.Bob.remoteConnections[data._source_info.url] = $tw.Bob.remoteConnections[data._source_info.url] || {};
 
-      data.filter = data.filter || '[!is[system]]'
-      data.conflictType = data.conflictType || 'newestWins'
+      data.filter = data.filter || '[!is[system]]';
+      data.conflictType = data.conflictType || 'newestWins';
       // Default to only syncing the current wiki
-      data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
+      data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki';
 
-      $tw.Bob.remoteConnections[data._source_info.url].socket = $tw.Bob.remoteConnections[data._source_info.url].socket || {}
-      $tw.Bob.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers'
-      $tw.Bob.remoteConnections[data._source_info.url].conflictType = data.conflictType
-      $tw.Bob.remoteConnections[data._source_info.url].remoteWikis = data.remoteWikis
+      $tw.Bob.remoteConnections[data._source_info.url].socket = $tw.Bob.remoteConnections[data._source_info.url].socket || {};
+      $tw.Bob.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers';
+      $tw.Bob.remoteConnections[data._source_info.url].conflictType = data.conflictType;
+      $tw.Bob.remoteConnections[data._source_info.url].remoteWikis = data.remoteWikis;
+      */
+      /*
       if($tw.Bob.remoteConnections[data._source_info.url].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
@@ -247,8 +251,9 @@ if($tw.node) {
           handleRemoteReply($tw.Bob.remoteConnections[data._source_info.url], messageData);
         })
       } else {
-        startRemoteRequest($tw.Bob.remoteConnections[data._source_info.url], data)
+        startRemoteRequest($tw.Bob.remoteConnections[data._source_info.url], data);
       }
+      */
     }
   }
 

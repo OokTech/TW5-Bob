@@ -37,11 +37,11 @@ if($tw.node) {
         eventData._source_info = {
           address: thisURL.hostname,
           port: thisURL.port,
-          url: thisURL.hostname + ':' +thisURL.port
+          url: thisURL.hostname + ':' + thisURL.port
         };
       } else {
         eventData._source_info = this._socket._peername;
-        eventData._source_info.url = this._socket._peername.hostname + ':' +this._socket._peername.port
+        eventData._source_info.url = this._socket._peername.hostname + ':' +this._socket._peername.port;
       }
       if (typeof $tw.remoteConnections[eventData._source_info.url] === 'undefined') {
         $tw.remoteConnections[eventData._source_info.url] = {socket: this}
