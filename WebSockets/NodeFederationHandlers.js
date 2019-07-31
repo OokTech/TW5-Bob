@@ -216,7 +216,7 @@ if($tw.node) {
   */
   $tw.federationMessageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
-    $tw.remoteConnections[data._source_info.url].socket.send({type:'nothing',payload:'bloop'})
+    $tw.remoteConnections[data._source_info.url].socket.send(JSON.stringify({type:'nothing',payload:'bloop'}))
     if(data._source_info && data.filter) {
       /*
       // Do the request
