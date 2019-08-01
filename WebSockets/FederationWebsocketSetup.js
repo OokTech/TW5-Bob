@@ -26,7 +26,7 @@ if($tw.node) {
 
     const URL = require('url');
 
-    $tw.Bob.Federation.authenticateMessage() {
+    $tw.Bob.Federation.authenticateMessage = function (message) {
       return true
     }
 
