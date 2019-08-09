@@ -19,10 +19,10 @@ if($tw.node) {
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-    $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
     $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {}
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+    $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
 
     const URL = require('url');
 
