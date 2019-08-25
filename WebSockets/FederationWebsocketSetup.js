@@ -83,6 +83,9 @@ if($tw.node) {
       }
     }
 
+    /*
+      This runs when there is a new connection and sets up the message handler
+    */
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
       $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client}
@@ -90,6 +93,21 @@ if($tw.node) {
       $tw.Bob.Federation.updateConnections()
     }
 
+    /*
+      Update the list of connections and send the updated list to the browsers
+      TODO figure out what sort of limits we need to make on who can see what
+      connections
+      TODO figure out how we are going to put reasonable names on these things
+      because this is designed to work when the ip or url of a connection
+      changes
+    */
+    $tw.Bob.Federation.updateConnections = function () {
+      const message = {
+        type: 'updateConnections',
+        connections: Object.keys($tw.Bob.Federation.remoteConnections)
+      }
+      $tw.Bob.sendToBrowsers(message)
+    }
     finishSetup();
   }
   // Only act if we are running on node. Otherwise WebSocketServer will be

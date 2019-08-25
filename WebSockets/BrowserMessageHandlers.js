@@ -357,6 +357,22 @@ it will overwrite this file.
   }
 
   /*
+    This is used to update the current list of connections the server has to
+    other servers
+    These are used to pick which server to send messages to.
+  */
+  $tw.browserMessageHandlers.updateConnections = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    if (data.connections) {
+      const fields = {
+        title: '$:/Bob/ActiveConnections',
+        list: $tw.utils.stringifyList(data.connections)
+      };
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+    }
+  }
+
+  /*
     For some messages we need an ack from the server to make sure that they
     were received correctly. This removes the messages from the queue after
     an ack is recevied.
