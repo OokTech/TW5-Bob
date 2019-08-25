@@ -213,14 +213,17 @@ if($tw.node) {
       }
     });
     httpServer.on('upgrade', function(request, socket, head) {
-      if (request.url === '/') {
-        $tw.wss.handleUpgrade(request, socket, head, function(ws) {
-          $tw.wss.emit('connection', ws, request);
-        });
-      } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation) {
-        $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
-          $tw.federationWss.emit('connection', ws, request);
-        })
+      console.log('upgrade type:', request.headers.upgrade)
+      if (request.headers.upgrade === 'websocket') {
+        if (request.url === '/') {
+          $tw.wss.handleUpgrade(request, socket, head, function(ws) {
+            $tw.wss.emit('connection', ws, request);
+          });
+        } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation) {
+          $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
+            $tw.federationWss.emit('connection', ws, request);
+          })
+        }
       }
     });
     return httpServer;
