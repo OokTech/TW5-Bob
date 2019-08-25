@@ -1,9 +1,9 @@
 /*\
 title: $:/plugins/OokTech/Bob/FederationWebsocketSetup.js
 type: application/javascript
-module-type: syncadaptor
+module-type: startup
 
-A sync adaptor module for synchronising using Websockets
+A module that adds the framework for inter-server communication
 
 \*/
 (function(){
@@ -16,54 +16,54 @@ exports.platforms = ["node"];
 
 if($tw.node) {
 
-  $tw.Bob = $tw.Bob || {};
-  $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  $tw.federationMessageHandlers = $tw.federationMessageHandlers || {};
-  $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
-  $tw.remoteConnections = $tw.remoteConnections || {};
-
-  const URL = require('url');
-
-  function authenticateMessage() {
-    return true
-  }
-
-  $tw.Bob.handleFederationMessage = function (event) {
-    let self = this;
-    try {
-      let eventData = JSON.parse(event);
-      if (typeof this.url !== 'undefined') {
-        const thisURL = URL.parse(this.url);
-        eventData._source_info = {
-          address: thisURL.hostname,
-          port: thisURL.port,
-          url: thisURL.hostname + ':' + thisURL.port
-        };
-      } else {
-        eventData._source_info = this._socket._peername;
-        eventData._source_info.url = this._socket._peername.address + ':' +this._socket._peername.port;
-      }
-      console.log(eventData)
-      if (typeof $tw.remoteConnections[eventData._source_info.url] === 'undefined') {
-        $tw.remoteConnections[eventData._source_info.url] = {socket: this}
-      }
-      // Make sure we have a handler for the message type
-      if(typeof $tw.federationMessageHandlers[eventData.type] === 'function') {
-        // Check authorisation
-        const authorised = authenticateMessage(eventData);
-        if(authorised) {
-          eventData.decoded = authorised;
-          $tw.federationMessageHandlers[eventData.type](eventData);
-        }
-      } else {
-        $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
-      }
-    } catch (e) {
-      $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
-    }
-  }
-
   const setup = function () {
+    $tw.Bob = $tw.Bob || {};
+    $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+    $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
+    $tw.Bob.Federation = $tw.Bob.Federation || {}
+    $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+    $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
+
+    const URL = require('url');
+
+    $tw.Bob.Federation.authenticateMessage = function (message) {
+      return true
+    }
+
+    $tw.Bob.Federation.handleMessage = function (event) {
+      let self = this;
+      try {
+        let eventData = JSON.parse(event);
+        if (typeof this.url !== 'undefined') {
+          const thisURL = URL.parse(this.url);
+          eventData._source_info = {
+            address: thisURL.hostname,
+            port: thisURL.port,
+            url: thisURL.hostname + ':' + thisURL.port
+          };
+        } else {
+          eventData._source_info = this._socket._peername;
+          eventData._source_info.url = this._socket._peername.address + ':' +this._socket._peername.port;
+        }
+        if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
+          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
+        }
+        // Make sure we have a handler for the message type
+        if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
+          // Check authorisation
+          const authorised = $tw.Bob.Federation.authenticateMessage(eventData);
+          if(authorised) {
+            eventData.decoded = authorised;
+            $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
+          }
+        } else {
+          $tw.Bob.logger.error('No handler for federation message of type ', eventData.type, {level:3});
+        }
+      } catch (e) {
+        $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
+      }
+    }
+
     // require the websockets module if we are running node
     const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
     /*
@@ -85,13 +85,21 @@ if($tw.node) {
 
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      $tw.remoteConnections[request.connection.remoteAddress] = {socket: client}
-      client.on('message', $tw.Bob.handleFederationMessage)
+      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client}
+      client.on('message', $tw.Bob.Federation.handleMessage)
+      $tw.Bob.Federation.updateConnections()
     }
 
     finishSetup();
   }
-  setup()
+  // Only act if we are running on node. Otherwise WebSocketServer will be
+  // undefined.
+  // Also we don't do this if we have an external server running things
+  // we have to use the command line arguments because the externalserver
+  // command hasn't run yet so we can't check $tw.ExternalServer
+  if($tw.boot.argv.indexOf('--externalserver') === -1) {
+    setup();
+  }
 }
 
 })();

@@ -7,7 +7,7 @@ caption: Wiki Listing
 <$action-setfield
   $tiddler='$:/plugins/OokTech/Bob/SideBarTab'
   tags='$:/tags/SideBar'
-  text='{{$:/plugins/OokTech/Bob/Wiki Listing}}'
+  text="""{{$:/plugins/OokTech/Bob/Wiki Listing}}"""
   caption='Wikis'
 />
 \end
@@ -37,6 +37,15 @@ caption: Wiki Listing
   >
     List in sidebar
   </$checkbox>
+
+  <$checkbox
+    tiddler='$:/settings/Bob/ListInSidebar'
+    field='folding'
+    checked='true'
+    unchecked='false'
+  >
+    Use folding list
+  </$checkbox>
   <$button>
     Update List
     <$action-websocketmessage
@@ -51,31 +60,37 @@ caption: Wiki Listing
 ---
 
 <$list
-  filter='[list[$:/state/ViewableWikis]]'
-  variable=WikiName
-  emptyMessage='No child wikis listed.'
+  filter='[[$:/settings/Bob/ListInSidebar]has[folding]get[folding]!prefix[true]limit[1]]'
+  prefix='true'
+  emptyMessage="""<<foldingTree>>"""
 >
-  <li>
-    <a
-      href=<<thisWikiListingMakeURL>>
-      target='_blank'
-    >
-      <$text
-        text=<<WikiName>>
-      />
-    </a>
-    ^^<span style='font-size:8pt;'>
-    (<$button
-      class='tc-btn-invisible'
-    >
-      Unload
-      <$action-websocketmessage
-        $type='unloadWiki'
-        wikiName=<<WikiName>>
-      />
-    </$button>)
-    </span>^^
-  </li>
+  <$list
+    filter='[list[$:/state/ViewableWikis]]'
+    variable=WikiName
+    emptyMessage='No child wikis listed.'
+  >
+    <li>
+      <a
+        href=<<thisWikiListingMakeURL>>
+        target='_blank'
+      >
+        <$text
+          text=<<WikiName>>
+        />
+      </a>
+      ^^<span style='font-size:8pt;'>
+      (<$button
+        class='tc-btn-invisible'
+      >
+        Unload
+        <$action-websocketmessage
+          $type='unloadWiki'
+          wikiName=<<WikiName>>
+        />
+      </$button>)
+      </span>^^
+    </li>
+  </$list>
 </$list>
 \end
 

@@ -1,3 +1,7 @@
+title: $:/plugins/OokTech/Bob/Folding Wiki Listing
+caption: Folding Wiki Listing
+tags: $:/tags/Macro
+
 \define thisFoldingWikiListingMakeState() $:/state/FoldingWikiList/$(currentTiddler)$/$(WikiPrefix)$$(WikiName)$
 
 \define thisFoldingWikiListingMakeURL() /$(WikiPrefix)$$(WikiName)$
@@ -142,33 +146,6 @@
 \end
 
 \define foldingTree(source:'[list[$:/state/ViewableWikis]]' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
-<h2 style='margin:0px;padding:0px;'>Available Wikis</h2>
-<div
-  style='font-size:12px;display:inline-block;'
->
-  <$checkbox
-    actions=<<thisFoldingWikiListingMakeWikiListingTab>>
-    uncheckactions=<<thisFoldingWikiListingRemoveWikiListingTab>>
-    tiddler='$:/settings/Bob/ListInSidebar'
-    field='text'
-    checked='yes'
-    unchecked='no'
-  >
-    List in sidebar
-  </$checkbox>
-  <$button>
-    Update List
-    <$action-websocketmessage
-      $type='findAvailableWikis'
-      remove={{$:/settings/Bob/removemissingwikis!!text}}
-      update='true'
-      saveSettings='true'
-    />
-  </$button>
-</div>
-
----
-
 <$vars
   InputList=<<__source__>>
   Sep=<<__sep__>>
