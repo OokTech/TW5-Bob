@@ -538,6 +538,22 @@ This has some functions that are needed by Bob in different places.
     return outQueue;
   }
 
+  /*
+    This normalizes a tiddler so that it can be compared to another tiddler to
+    determine if they are the same.
+
+    Any two tiddlers that have the same fields and content (including title)
+    will return exactly the same thing using this function.
+
+    Fields are included in alphabetical order, as defined by the javascript
+    array sort method.
+
+    The tag field gets sorted and the list field is interpreted as a string
+    array. If either field exists but it is an empty string it is replaced with
+    an empty array.
+
+    Date fields (modified and created) are stringified.
+  */
   Shared.normalizeTiddler = function(tiddler) {
     let newTid = {};
     if(tiddler) {
@@ -551,7 +567,8 @@ This has some functions that are needed by Bob in different places.
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
-              newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice().sort()
+              newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice()
+              newTid[field] = (field === 'tags')?newTid[field].sort():newTid[field]
             }
           } else if(field === 'modified' || field === 'created') {
             if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {

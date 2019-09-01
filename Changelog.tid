@@ -14,6 +14,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Added collapsing wiki listing
   - Fixed a bug that sometimes prevented the file server from working correctly in the root wiki.
   - Added the working framework for inter-server federation and messages.
+  - Fixed a bug where the list field would be sorted when it shouldn't be.
 
 !! Version 1.2.3 Boiled Potatoes
 
