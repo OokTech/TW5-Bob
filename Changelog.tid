@@ -16,6 +16,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Added the working framework for inter-server federation and messages.
   - Added a check to see if Bob was running in an iframe and if so don't treat upgrade requests as websockets
     - This is needed to make twederation work with Bob servers.
+  - Fixed a bug where the list field would be sorted when it shouldn't be.
 
 !! Version 1.2.3 Boiled Potatoes
 
