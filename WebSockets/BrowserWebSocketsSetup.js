@@ -317,7 +317,10 @@ socket server, but it can be extended for use with other web socket servers.
       })
       */
     }
-    // Send the message to node using the websocket
-    $tw.Bob.setup();
+    // Only set up the websockets if we aren't in an iframe.
+    if (window.location === window.parent.location) {
+      // Send the message to node using the websocket
+      $tw.Bob.setup();
+    }
   }
 })();
