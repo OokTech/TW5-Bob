@@ -965,5 +965,91 @@ if($tw.node) {
       }
     }
   }
+
+  /*
+    This handler takes a folder as input and scans the folder for media
+    and creates _canonical_uri tiddlers for each file found.,
+    an optional extension list can be passed to restrict the media types scanned for.
+    Folder paths are either absolute or relative to $tw.Bob.getBasePath()
+    TODO - figure out what permission this one should go with
+    TODO - make an update flag that will also remove the tiddlers that point to
+    files that no longer exist.
+    TODO - maybe add some check to limit where the folders can be
+    TODO - add a flag to add folders to the static file server component
+  */
+  $tw.nodeMessageHandlers.mediaScan = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    //const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
+    const authorised = true;
+    if (authorised) {
+      const mimeMap = $tw.settings.mimeMap || {
+        '.aac': 'audio/aac',
+        '.avi': 'video/x-msvideo',
+        '.csv': 'text/csv',
+        '.doc': 'application/msword',
+        '.epub': 'application/epub+zip',
+        '.gif': 'image/gif',
+        '.html': 'text/html',
+        '.htm': 'text/html',
+        '.ico': 'image/x-icon',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.mp3': 'audio/mpeg',
+        '.mpeg': 'video/mpeg',
+        '.oga': 'audio/ogg',
+        '.ogv': 'video/ogg',
+        '.ogx': 'application/ogg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.weba': 'audio/weba',
+        '.webm': 'video/webm',
+        '.wav': 'audio/wav'
+      }
+      data.mediaTypes = data.mediaTypes || Object.keys(mimeMap);
+      if (data.folder && data.wiki) {
+        // Make sure the folder exists
+        if($tw.utils.isDirectory(path.resolve($tw.ServerSide.getBasePath(),data.folder))) {
+          fs.readdir(data.folder, function(err, files) {
+            if (err) {
+              $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
+              return;
+            }
+            // For each file check the extension against the mimemap, if it matches make the corresponding _canonical_uri tiddler.
+            files.forEach(function(file) {
+              if (fs.statSync(path.join(data.folder, file)).isFile()) {
+                const pathInfo = path.parse(file);
+                if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
+                  // It is a file and the extension is listed, so create a tiddler for it.
+                  const fields = {
+                    title: pathInfo.base,
+                    type: mimeMap[pathInfo.ext],
+                    _canonical_uri: '/' + path.relative($tw.ServerSide.getBasePath(),path.join(data.folder, file))
+                  };
+                  const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
+                  const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
+                  // We have to have an empty file to make the .meta file work.
+                  // For some reason.
+                  // But we don't want to overwrite the file if it exists.
+                  if (data.overwrite || !fs.exstsSync(tiddlerPath)) {
+                    fs.writeFile(tiddlerPath,'',function() {
+                    })
+                  }
+                  // Check if the file exists and only overwrite it if the
+                  // overwrite flag is set.
+                  // Update this to check for files by the _canonical_uri field
+                  if (data.overwrite || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
+                    // Add tiddler to the wiki listed in data.wiki
+                    $tw.syncadaptor.saveTiddler(thisTiddler, data.wiki);
+                  }
+                }
+              }
+            });
+          })
+        }
+      }
+    }
+  }
 }
 })();

@@ -250,7 +250,7 @@ if($tw.node) {
       }
     }
     if (name === '') {
-      name = 'RootWiki'
+      //name = 'RootWiki'
     }
     return name
   }
@@ -663,13 +663,14 @@ if($tw.node) {
           const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
           const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
           if(authorised && ok) {
-            const basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+            const basePath = $tw.ServerSide.getBasePath();
             let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
             if(wikiName !== '') {
-              pathRoot = path.resolve($tw.Bob.Wikis[wikiName].wikiPath, 'files')
+              pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files')
             }
             const pathname = path.resolve(pathRoot, filePath)
             // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
+            console.log(wikiName)
             if(pathname.startsWith(pathRoot)) {
               fs.exists(pathname, function(exists) {
                 if(!exists || fs.statSync(pathname).isDirectory()) {
