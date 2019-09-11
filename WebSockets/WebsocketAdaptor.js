@@ -82,10 +82,15 @@ if($tw.node) {
     $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
     let fileInfo = $tw.Bob.Files[prefix][title];
     if(!fileInfo) {
+      const systemPathsText = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths")
+      let systemPathsList = []
+      if (systemPathsText) {
+        systemPathsList = systemPathsText.split("\n")
+      }
       // Otherwise, we'll need to generate it
       fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
         directory: tiddlersPath,
-        pathFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths").split("\n"),
+        pathFilters: systemPathsList,
         wiki: $tw.Bob.Wikis[prefix].wiki
       });
 
