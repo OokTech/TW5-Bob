@@ -62,7 +62,23 @@ used. If the json isn't formatted correctly than default values will be used.
     "enableFetch": "no",
     "enablePush": "no",
     "pluginLibrary": "no"
-  }
+  },
+  "logger": {
+    "useFileLogging":"no",
+    "outputFolder": "./logs",
+    "outputBaseFileName": "Log",
+    "useSeparateErrorFile": "no",
+    "outputErrorFileName": "Error",
+    "ignoreErrors": "yes",
+    "useBrowserLogging": "no",
+    "browserLogLevel": "2",
+    "useConsoleLogging": "yes",
+    "consoleLogLevel": "2",
+    "useFileLogging": "no",
+    "fileLogLevel": "2"
+  },
+  "includePluginList": [],
+  "excludePluginList": []
 }
 ```
 

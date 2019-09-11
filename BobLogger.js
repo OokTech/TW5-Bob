@@ -79,9 +79,29 @@ if($tw.node) {
   }
   if ($tw.settings.logger.useBrowserLogging === 'yes') {
     // TODO this!!
+    const browserLogTiddlerName = '$:/status/Bob/Logs'
+    const browserErrorTiddlerName = '$:/status/Bob/Errors'
     $tw.Bob.logger.browser = {
-      log: function(){},
-      error: function(){}
+      log: function(/* args */){
+        // Take the message and put it into the logging tiddler
+        // The key is the timestamp, the value is the message
+        // Get the current json tiddler
+        
+        // Add the new message to it
+
+        // Save the updated tiddler
+
+      },
+      error: function(/* args */){
+        // Take the message and put it into the error tiddler
+        // The key is the timestamp, the value is the message
+        // Get the current json tiddler
+
+        // Add the new message to it
+
+        // Save the updated tiddler
+
+      }
     }
   }
   if ($tw.settings.logger.useConsoleLogging !== 'no') {

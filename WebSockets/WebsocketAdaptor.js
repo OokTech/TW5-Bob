@@ -228,9 +228,7 @@ if($tw.node) {
         if(err) {
           return callback(err);
         }
-        if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
-          $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
-        }
+        $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
