@@ -106,7 +106,7 @@ if($tw.node) {
         type: 'updateConnections',
         connections: Object.keys($tw.Bob.Federation.remoteConnections)
       }
-      $tw.Bob.sendToBrowsers(message)
+      //$tw.Bob.sendToBrowsers(message)
     }
     finishSetup();
   }

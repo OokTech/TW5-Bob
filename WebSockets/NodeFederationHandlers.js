@@ -17,7 +17,7 @@ This handles messages sent to the node process.
 exports.platforms = ["node"];
 
 if($tw.node) {
-  $tw.Bob.Federation = $tw.Bob.Federation || {}
+  $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
   /*
     Sync servers takes a filter and syncs all of the tiddlers returned by the

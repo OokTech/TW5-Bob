@@ -35,7 +35,7 @@ if($tw.node) {
       // remote server
       // If the socket is closed than reconnect
       const remoteSocketAddress = data.url.startsWith('ws://')?data.url:'ws://'+data.url+'/api/federation/socket'
-      const WebSocket = require('ws')
+      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
       if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1 || $tw.federatedConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
           $tw.federatedConnections[data.url] = {}

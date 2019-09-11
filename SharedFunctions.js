@@ -563,12 +563,14 @@ This has some functions that are needed by Bob in different places.
         fields.forEach(function(field) {
           if(field === 'list' || field === 'tags') {
             if(Array.isArray(tiddler.fields[field])) {
-              newTid[field] = tiddler.fields[field].slice().sort()
+              newTid[field] = tiddler.fields[field].slice()
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
               newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice()
-              newTid[field] = (field === 'tags')?newTid[field].sort():newTid[field]
+              if (field === 'tags') {
+                newTid[field] = newTid[field].sort()
+              }
             }
           } else if(field === 'modified' || field === 'created') {
             if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {

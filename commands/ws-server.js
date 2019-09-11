@@ -221,6 +221,7 @@ if($tw.node) {
           });
         } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation) {
           $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
+            console.log('WSS federation upgrade')
             $tw.federationWss.emit('connection', ws, request);
           })
         }
@@ -670,7 +671,6 @@ if($tw.node) {
             }
             const pathname = path.resolve(pathRoot, filePath)
             // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
-            console.log(wikiName)
             if(pathname.startsWith(pathRoot)) {
               fs.exists(pathname, function(exists) {
                 if(!exists || fs.statSync(pathname).isDirectory()) {

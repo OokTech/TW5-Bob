@@ -18,6 +18,8 @@ title: $:/plugins/OokTech/Bob/Changelog
     - This is needed to make twederation work with Bob servers.
   - Fixed a bug where the list field would be sorted when it shouldn't be.
   - Added command to scan a folder for media and create _canonical_uri tiddlers for each thing found.
+  - updated to tiddlywiki v5.1.21
+  - fixed a bug with how filter in $:/config/FileSystemPaths are handled
 
 !! Version 1.2.3 Boiled Potatoes
 

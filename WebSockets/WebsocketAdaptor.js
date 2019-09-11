@@ -85,7 +85,7 @@ if($tw.node) {
       // Otherwise, we'll need to generate it
       fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
         directory: tiddlersPath,
-        pathFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths"),
+        pathFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths").split("\n"),
         wiki: $tw.Bob.Wikis[prefix].wiki
       });
 
