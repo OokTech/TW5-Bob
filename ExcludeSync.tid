@@ -13,6 +13,7 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [[$:/Bob/AvailableEditionList]]
 [[$:/Bob/AvailableThemeList]]
 [[$:/Bob/AvailablePluginList]]
+[[$:/Bob/AvailableLanguageList]]
 [[$:/state/ViewableWikis]]
 [[$:/status/UserName]]
 [[$:/boot/boot.css]]
