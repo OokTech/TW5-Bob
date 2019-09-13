@@ -69,10 +69,20 @@ Files Folder:
 After enabling or disabling the file server you must shutdown the server and
 then restart it before using the file server.
 
+First click this button:
+<$button>
+  Update Settings
+  <$action-savesettings/>
+</$button>
+
+Then click this button:
 <$button>
   Shutdown Wiki
   <$action-websocketmessage $type=shutdownServer/>
 </$button>
+
+Then refresh the page, this is not what the 'reconnect' button is for, refresh
+the entire page.
 
 <$reveal
   type='nomatch'

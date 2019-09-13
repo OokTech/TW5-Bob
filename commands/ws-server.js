@@ -667,7 +667,7 @@ if($tw.node) {
             const basePath = $tw.ServerSide.getBasePath();
             let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
             if(wikiName !== '') {
-              pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files')
+              pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
             }
             const pathname = path.resolve(pathRoot, filePath)
             // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.

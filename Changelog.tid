@@ -17,7 +17,7 @@ title: $:/plugins/OokTech/Bob/Changelog
   - Added a check to see if Bob was running in an iframe and if so don't treat upgrade requests as websockets
     - This is needed to make twederation work with Bob servers.
   - Fixed a bug where the list field would be sorted when it shouldn't be.
-  - Added command to scan a folder for media and create _canonical_uri tiddlers for each thing found.
+  - Added command to scan a folder for media and create _canonical_uri tiddlers for each thing found. (mediaScan)
   - updated to tiddlywiki v5.1.21
   - fixed a bug with how filter in $:/config/FileSystemPaths are handled
 

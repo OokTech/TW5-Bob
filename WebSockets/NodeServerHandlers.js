@@ -970,19 +970,37 @@ if($tw.node) {
     This handler takes a folder as input and scans the folder for media
     and creates _canonical_uri tiddlers for each file found.,
     an optional extension list can be passed to restrict the media types scanned for.
+
+    ignoreExisting takes precidence over overwrite
+
+    data = {
+      folder: './',
+      ignoreExisting: 'true',
+      overwrite: 'false',
+      prune: 'false',
+      mediaTypes: [things listed in the mimemap]
+    }
     Folder paths are either absolute or relative to $tw.Bob.getBasePath()
+
+    folder - the folder to scan
+    ignoreExisting -
+    overwrite - if this is true than tiddlers are made even if they overwrite existing tiddlers
+    prune - remove tiddlers that have _canonical_uri fields pointing to files that don't exist in the folder
+    mediaTypes - an array of file extensions to look for. If the media type is not in the mimemap than the tiddler type may be set incorrectly.
+
+    TODO - add a recursive option (with some sane limits, no recursively finding everything in /)
     TODO - figure out what permission this one should go with
-    TODO - make an update flag that will also remove the tiddlers that point to
-    files that no longer exist.
     TODO - maybe add some check to limit where the folders can be
     TODO - add a flag to add folders to the static file server component
   */
   $tw.nodeMessageHandlers.mediaScan = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log(data)
     const path = require('path');
     const fs = require('fs');
-    //const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
-    const authorised = true;
+    const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if (authorised) {
       const mimeMap = $tw.settings.mimeMap || {
         '.aac': 'audio/aac',
@@ -1006,46 +1024,96 @@ if($tw.node) {
         '.weba': 'audio/weba',
         '.webm': 'video/webm',
         '.wav': 'audio/wav'
+      };
+      if (typeof data.mediaTypes === 'string') {
+        if (data.mediaTypes.length > 0) {
+          datat.mediaTypes = data.mediaTypes.split(' ');
+        }
+      } else {
+        data.mediaTypes = undefined;
       }
       data.mediaTypes = data.mediaTypes || Object.keys(mimeMap);
       if (data.folder && data.wiki) {
         // Make sure the folder exists
-        if($tw.utils.isDirectory(path.resolve($tw.ServerSide.getBasePath(),data.folder))) {
-          fs.readdir(data.folder, function(err, files) {
+        let mediaURIList = [];
+        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
+        if($tw.utils.isDirectory(mediaDir)) {
+          fs.readdir(mediaDir, function(err, files) {
             if (err) {
               $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
               return;
             }
+            const uriPrefix = '/' + path.relative($tw.ServerSide.getBasePath(), mediaDir);
+            if (data.keepBroken !== true) {
+              // get a list of all tiddlers with _canonical_uri fields that
+              // point to this folder.
+              mediaURIList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[has[_canonical_uri]get[_canonical_uri]prefix[${uriPrefix}]]`);
+              // We don't want to list uris for subfolders until we do a recursive find thing
+              mediaURIList = mediaURIList.filter(function(uri) {
+                return uri.slice(uriPrefix.length+1).indexOf('/') === -1;
+              })
+            }
             // For each file check the extension against the mimemap, if it matches make the corresponding _canonical_uri tiddler.
             files.forEach(function(file) {
-              if (fs.statSync(path.join(data.folder, file)).isFile()) {
+              if (fs.statSync(path.join(mediaDir, file)).isFile()) {
                 const pathInfo = path.parse(file);
                 if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
+                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + path.relative(path.resolve($tw.ServerSide.getBasePath(),$tw.settings.filePathRoot),path.join(mediaDir, file));
+                  if (data.prune === 'yes') {
+                    // Remove any _canonical_uri tiddlers that have paths to
+                    // this folder but no files exist for them.
+                    // remove the current file from the mediaURIList so that at
+                    // the end we have a list of URIs that don't have files
+                    // that exist.
+                    if (mediaURIList.indexOf(thisURI) > -1) {
+                      mediaURIList.splice(mediaURIList.indexOf(thisURI),1);
+                    }
+                  }
                   // It is a file and the extension is listed, so create a tiddler for it.
                   const fields = {
                     title: pathInfo.base,
                     type: mimeMap[pathInfo.ext],
-                    _canonical_uri: '/' + path.relative($tw.ServerSide.getBasePath(),path.join(data.folder, file))
+                    _canonical_uri: thisURI
                   };
+                  if (data.ignoreExisting !== 'yes') {
+                    // check if the tiddler with this _canonical_uri already
+                    // exists.
+                    // If we aren't set to overwrite than don't do anything for
+                    // this file if it exists
+                    if ($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${fields._canonical_uri}]]`).length > 0) {
+                      return;
+                    }
+                  }
                   const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
                   const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
                   // We have to have an empty file to make the .meta file work.
                   // For some reason.
                   // But we don't want to overwrite the file if it exists.
-                  if (data.overwrite || !fs.exstsSync(tiddlerPath)) {
+                  if (data.overwrite === 'yes' || !fs.existsSync(tiddlerPath)) {
                     fs.writeFile(tiddlerPath,'',function() {
                     })
                   }
                   // Check if the file exists and only overwrite it if the
                   // overwrite flag is set.
                   // Update this to check for files by the _canonical_uri field
-                  if (data.overwrite || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
+                  if (data.overwrite === 'yes' || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
                     // Add tiddler to the wiki listed in data.wiki
                     $tw.syncadaptor.saveTiddler(thisTiddler, data.wiki);
                   }
                 }
               }
             });
+            if (data.prune === 'yes') {
+              // mediaURIList now has the uris from tiddlers that don't point
+              // to real files.
+              // Get the tiddlers with the uris listed and remove them.
+              mediaURIList.forEach(function(uri) {
+                const tiddlerList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${uri}]]`);
+                tiddlerList.forEach(function(tidTitle) {
+                  $tw.syncadaptor.deleteTiddler(tidTitle, {wiki: data.wiki});
+                })
+              })
+            }
           })
         }
       }
