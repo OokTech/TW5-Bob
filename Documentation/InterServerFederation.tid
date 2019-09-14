@@ -1,4 +1,18 @@
 title: title: $:/plugins/OokTech/Bob/InterServerFederation
 caption: Inter-server Federation
 
-Coming soon.
+!! Connecting to servers
+
+You connect to a server by giving its url.
+
+As part of the connection process you send the name of your server to the
+remote server (along with your public key and a signed token, if that is set up)
+
+If the remote server wishes to respond than it replies with its name and a
+listing of its public wikis and any wikis that you have permission to see or
+edit.
+
+Server information is saved so that the next time you can try to connect to the
+same server using the same url. This works when the server doesn't move, or
+when you are on the same local network as the server and you are using a unix
+based system like Linux or OSX and are using .local urls.

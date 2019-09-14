@@ -3,6 +3,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.2.5 Tofurkey
 
   - maybe actually set the SaverFilter tiddler correctly
+  - start documentation on inter-server federation and syncing
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 

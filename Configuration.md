@@ -11,6 +11,7 @@ used. If the json isn't formatted correctly than default values will be used.
 
 ```
 {
+  "serverName": "Noh Neigh-m",
   "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
   "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
   "pluginsPath": "/home/inmysocks/TiddlyWiki/Plugins",
