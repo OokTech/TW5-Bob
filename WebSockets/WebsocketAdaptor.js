@@ -105,7 +105,7 @@ if($tw.node) {
         if(filepath.substr(-extension.length).toLocaleLowerCase() !== extension.toLocaleLowerCase()) {
           filepath = filepath + extension;
         }
-        const filename = path.basename(filepath)
+        let filename = path.basename(filepath)
         let count = 1;
         // Add a discriminator if we're clashing with an existing filename while
         // handling case-insensitive filesystems (NTFS, FAT/FAT32, etc.)
