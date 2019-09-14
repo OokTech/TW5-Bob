@@ -1,5 +1,9 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.2.5 Tofurkey
+
+  - maybe actually set the SaverFilter tiddler correctly
+
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 
   - Cleaned up some code in `FileSystemMonitor.js` and `WebsocketAdaptor.js` to better partition what each does, no functional changes.
