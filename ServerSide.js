@@ -60,6 +60,15 @@ ServerSide.getBasePath = function() {
 }
 
 /*
+  Given a wiki name this generates the path for the wiki.
+*/
+ServerSide.generateWikiPath = function(wikiName) {
+  const basePath = $tw.ServerSide.getBasePath();
+  $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+  return path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+}
+
+/*
   Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
   listed this returns undefined.
   This can be used to determine if a wiki is listed or not.
@@ -216,6 +225,12 @@ ServerSide.loadWiki = function (wikiName) {
       text: wikiName
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+    if($tw.settings['ws-server'].proxyprefix) {
+      const wikiPathFields = {
+        title: '$:/ProxyPrefix',
+        text: $tw.settings['ws-server'].pathprefix
+      };
+    }
   }
   return wikiFolder;
 }
@@ -238,14 +253,14 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     try {
       wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
     } catch (e) {
-      console.log('Error reading wiki info', e);
+      $tw.Bob.logger.error('Error reading wiki info', e, {level:1});
     }
   } else {
     return null;
   }
   // Load any parent wikis
   if(wikiInfo.includeWikis) {
-    console.log('Bob error: includeWikis is not supported yet!');
+    $tw.Bob.logger.error('Bob error: includeWikis is not supported yet!', {level:1});
     /*
     parentPaths = parentPaths.slice(0);
     parentPaths.push(wikiPath);
@@ -278,7 +293,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
     try {
       out = $tw.loadTiddlersFromPath(resolvedWikiPath);
     } catch(e) {
-      console.log(e);
+      $tw.Bob.logger.error(e, {level:1});
     }
     return out;
   }
@@ -327,7 +342,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('error loading plugin folder', e);
+      $tw.Bob.logger.error('error loading plugin folder', e, {level:2});
     }
   }
   // Load any themes within the wiki folder
@@ -342,7 +357,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('error loading theme folder', e);
+      $tw.Bob.logger.error('error loading theme folder', e, {level:2});
     }
   }
   // Load any languages within the wiki folder
@@ -357,7 +372,7 @@ ServerSide.loadWikiTiddlers = function(wikiPath,options) {
         }
       }
     } catch (e) {
-      console.log('Error loading language folder', e);
+      $tw.Bob.logger.error('Error loading language folder', e, {level:2});
     }
   }
   return wikiInfo;
@@ -481,6 +496,10 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
   if(typeof copyChildren === 'function') {
     cb = copyChildren;
     copyChildren = false;
+  } else if(typeof copyChildren === 'string') {
+    copyChildren = (copyChildren==='true')?true:false;
+  } else if(copyChildren !== true) {
+    copyChildren = false;
   }
   try {
     fs.mkdirSync(destination, {recursive: true});
@@ -516,7 +535,7 @@ const getDirectories = function(source) {
       return fs.lstatSync(source).isDirectory();
     });
   } catch (e) {
-    console.log('Error getting directories', e);
+    $tw.Bob.logger.error('Error getting directories', e, {level:2});
     return [];
   }
 }
@@ -569,63 +588,67 @@ const buildTree = function(location, parent) {
   authentications - an array of authentication levels to receive the alert
   access - an array of wikis and access levels (like can view the wiki in
   question, or edit it)
+
+  We can turn off browser messages
 */
 ServerSide.sendBrowserAlert = function(input) {
-  const message = {
-    type:'browserAlert',
-    alert: input.alert
-  }
-  input.wikis = input.wikis || [];
-  input.connections = input.connections || [];
-  input.authentications = input.authentications || [];
-  input.alert = input.alert || '';
-  if(input.alert.length > 0) {
-    let wikisList = false;
-    let connectionsList = false;
-    let authenticationsList = false;
-    if(input.connections.length > 0) {
-      connectionsList = [];
-      $tw.connections.forEach(function(connection) {
-        if(input.connections.indexOf(connection.index) !== -1) {
-          connectionsList.push(connection.index);
+  if ($tw.settings.disableBrowserAlerts !== 'true') {
+    const message = {
+      type:'browserAlert',
+      alert: input.alert
+    }
+    input.wikis = input.wikis || [];
+    input.connections = input.connections || [];
+    input.authentications = input.authentications || [];
+    input.alert = input.alert || '';
+    if(input.alert.length > 0) {
+      let wikisList = false;
+      let connectionsList = false;
+      let authenticationsList = false;
+      if(input.connections.length > 0) {
+        connectionsList = [];
+        $tw.connections.forEach(function(connection) {
+          if(input.connections.indexOf(connection.index) !== -1) {
+            connectionsList.push(connection.index);
+          }
+        });
+      }
+      if(input.wikis.length > 0) {
+        wikisList = [];
+        $tw.connections.forEach(function(connection) {
+          if(input.wikis.indexOf(connection.wiki) !== -1) {
+            wikisList.push(connection.index);
+          }
+        })
+      }
+      if(input.authentications.length > 0) {
+        // Nothing here yet
+      }
+      // Get the intersection of all of the things listed above to get the
+      // connections to send this to.
+      wikisListThing = wikisList || []
+      connectionsListThing = connectionsList || []
+      authenticationsListThing = authenticationsList || []
+      if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
+        let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
+        if(wikisList) {
+          const wikiSet = new Set(wikisList);
+          intersection = new Set([...intersection].filter(x => wikiSet.has(x)));
         }
-      });
-    }
-    if(input.wikis.length > 0) {
-      wikisList = [];
-      $tw.connections.forEach(function(connection) {
-        if(input.wikis.indexOf(connection.wiki) !== -1) {
-          wikisList.push(connection.index);
+        if(connectionsList) {
+          const connectionsSet = new Set(connectionsList);
+          intersection = new Set([...intersection].filter(x => connectionsSet.has(x)));
         }
-      })
-    }
-    if(input.authentications.length > 0) {
-      // Nothing here yet
-    }
-    // Get the intersection of all of the things listed above to get the
-    // connections to send this to.
-    wikisListThing = wikisList || []
-    connectionsListThing = connectionsList || []
-    authenticationsListThing = authenticationsList || []
-    if(wikisListThing.length > 0 || connectionsListThing.length > 0 || authenticationsListThing.length > 0) {
-      let intersection = new Set([...connectionsListThing, ...wikisListThing, ...authenticationsListThing]);
-      if(wikisList) {
-        const wikiSet = new Set(wikisList);
-        intersection = new Set([...intersection].filter(x => wikiSet.has(x)));
+        if(authenticationsList) {
+          const authenticationsSet = new Set(authenticationsList);
+          intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
+        }
+        intersection.forEach(function(index) {
+          $tw.Bob.SendToBrowser($tw.connections[index], message);
+        });
+      } else {
+        $tw.Bob.SendToBrowsers(message);
       }
-      if(connectionsList) {
-        const connectionsSet = new Set(connectionsList);
-        intersection = new Set([...intersection].filter(x => connectionsSet.has(x)));
-      }
-      if(authenticationsList) {
-        const authenticationsSet = new Set(authenticationsList);
-        intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
-      }
-      intersection.forEach(function(index) {
-        $tw.Bob.SendToBrowser($tw.connections[index], message);
-      });
-    } else {
-      $tw.Bob.SendToBrowsers(message);
     }
   }
 }

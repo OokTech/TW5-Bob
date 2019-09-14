@@ -1,0 +1,86 @@
+title: $:/plugins/OokTech/Bob/ServerMessageHistory
+caption: Server Messages
+
+!!Server Messages
+
+<$checkbox
+  tiddler='$:/settings/Bob/ServerMessageHistoryLimit'
+  field='hide_messages'
+  checked='true'
+  unchecked='false'
+>
+  Hide server alerts in this wiki
+</$checkbox>
+
+<$button>
+  <$list
+    filter='[[$:/Bob/AlertHistory]indexes[]]'
+  >
+    <$action-setfield
+      $tiddler='$:/Bob/AlertHistory'
+      $index=<<currentTiddler>>
+    />
+  </$list>
+  Clear Message History
+</$button>
+
+<$checkbox
+  tiddler='$:/settings/Bob/ServerMessageHistoryLimit'
+  field='limit'
+  checked='true'
+  uncheced='false'
+>
+  Limit to the most recent
+</$checkbox>
+<$edit-text
+  tiddler='$:/settings/Bob/ServerMessageHistoryLimit'
+  field='limit_number'
+  size=4
+/>
+messages.
+
+This is the history of server messages:
+
+<$reveal
+  type='match'
+  text='true'
+  state='$:/settings/Bob/ServerMessageHistoryLimit!!limit'
+>
+
+  <ol>
+    <$list
+      filter='[[$:/Bob/AlertHistory]indexes[]reverse[]limit{$:/settings/Bob/ServerMessageHistoryLimit!!limit_number}]'
+      emptyMessage='No Server Messages Yet.'
+    >
+      <li>
+        <$view
+          tiddler='$:/Bob/AlertHistory'
+          index=<<currentTiddler>>
+        />
+      </li>
+    </$list>
+  </ol>
+
+</$reveal>
+
+<$reveal
+  type='nomatch'
+  text='true'
+  state='$:/settings/Bob/ServerMessageHistoryLimit!!limit'
+>
+
+  <ol>
+    <$list
+      filter='[[$:/Bob/AlertHistory]indexes[]reverse[]]'
+      emptyMessage='No Server Messages Yet.'
+    >
+      <li>
+        <$view
+          tiddler='$:/Bob/AlertHistory'
+          index=<<currentTiddler>>
+        />
+      </li>
+    </$list>
+  </ol>
+
+</$reveal>

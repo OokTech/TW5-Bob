@@ -270,7 +270,7 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        console.log('Error getting wiki paths', e);
+        $tw.Bob.logger.log('Error getting wiki paths', e, {level:1});
       }
       return realFolders;
     }
@@ -298,6 +298,8 @@ if($tw.node) {
     const basePath = $tw.ServerSide.getBasePath()
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     let wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
+    // Make sure that the wikiFolderPath exists
+    const error = $tw.utils.createDirectory(path.resolve(basePath, $tw.settings.wikisPath));
     // Check each folder in the wikis folder to see if it has a tiddlywiki.info
     // file.
     // If there is no tiddlywiki.info file it checks sub-folders.

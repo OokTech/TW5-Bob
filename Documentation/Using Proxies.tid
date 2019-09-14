@@ -1,0 +1,36 @@
+title: $:/plugins/OokTech/Bob/UsingProxies
+caption: Using Proxies
+tags: [[Bob Documentation]]
+
+!! Setting up a proxy
+
+If you use a proxy that rewrites the path component of the wiki URL than you
+need to set the removed prefix in the settings so that the browser can connect
+to the websockets component of the server on the correct port.
+
+The setting is in the `ws-server` section of the manual settings. An example
+`ws-server` is:
+
+```
+'ws-server': {
+  "host":  "127.0.0.1",
+  "port":  "8090",
+  "proxyprefix": "wiki"
+}
+```
+
+you can add the leading `/` or not, so you could use `/wiki` or `wiki`.
+
+!! Setting up Caddy
+
+An example caddy file that removes the `wiki` part of the url, which means that
+the `proxyprefix` needs to be set.
+
+```
+phone.local:8080 {
+  tls /data/data/com.termux/files/home/etc/phone.crt /data/data/com.termux/files/home/etc/phone.key
+    proxy /wiki 127.0.0.1:8090 {
+    without /wiki
+  }
+}
+```

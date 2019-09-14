@@ -101,7 +101,7 @@ it will overwrite this file.
         // Add the tiddler
         $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
-      console.log("No tiddler list given");
+      console.log("No tiddler list given", {level:2});
     }
   }
 
@@ -181,7 +181,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.import = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('import', data.tiddler.fields.title)
+    console.log('import', data.tiddler.fields.title, {level:2})
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
     const newTitle = '$:/state/Bob/Import/' + data.tiddler.fields.title;
@@ -261,7 +261,7 @@ it will overwrite this file.
     the server anymore.
   */
   function handleDisconnected() {
-    console.log('Disconnected from server');
+    console.log('Disconnected from server', {level:0});
     const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
     const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
@@ -289,7 +289,6 @@ it will overwrite this file.
       let a = document.createElement('a');
       a.download = 'index.html';
       const thisStr = 'data:text/html;base64,'+window.btoa(unescape(encodeURIComponent(text)));
-      //console.log(thisStr)
       a.setAttribute('href', thisStr);
       document.body.appendChild(a);
       a.click();
@@ -317,31 +316,38 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.browserAlert = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    if(data.alert) {
-      // Update the message history
-      let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
-      let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
-      if(tiddler) {
-        tidObj = JSON.parse(JSON.stringify(tiddler.fields))
-      }
-      const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
-        return Number(item.replace(/^Server Alert /, ''))
-      }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
-      const AlertTitle = 'Server Alert ' + newNumber;
-      tidObj.text = JSON.parse(tidObj.text);
-      tidObj.text[AlertTitle] = data.alert;
-      tidObj.text = JSON.stringify(tidObj.text);
-      $tw.wiki.addTiddler(tidObj);
+    const serverMessagesTid = $tw.wiki.getTiddler('$:/settings/Bob/ServerMessageHistoryLimit');
+    let hideAlerts = false;
+    if(serverMessagesTid) {
+      hideAlerts = serverMessagesTid.fields.hide_messages === 'true'?true:false;
+    }
+    if(!hideAlerts) {
+      if(data.alert) {
+        // Update the message history
+        let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
+        let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
+        if(tiddler) {
+          tidObj = JSON.parse(JSON.stringify(tiddler.fields))
+        }
+        const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
+          return Number(item.replace(/^Server Alert /, ''))
+        }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
+        const AlertTitle = 'Server Alert ' + newNumber;
+        tidObj.text = JSON.parse(tidObj.text);
+        tidObj.text[AlertTitle] = data.alert + ' - ' + $tw.utils.formatDateString(new Date(),"0hh:0mm, 0DD/0MM/YY");
+        tidObj.text = JSON.stringify(tidObj.text);
+        $tw.wiki.addTiddler(tidObj);
 
-      // Make a tiddler that has the tag $:/tags/Alert that has the text of the
-      // alert.
-      const fields = {
-        component: 'Server Message',
-        title: AlertTitle,
-        text: data.alert,
-        tags: '$:/tags/Alert'
+        // Make a tiddler that has the tag $:/tags/Alert that has the text of
+        // the alert.
+        const fields = {
+          component: 'Server Message',
+          title: AlertTitle,
+          text: data.alert+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+          tags: '$:/tags/Alert'
+        }
+        $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
       }
-      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
   }
 

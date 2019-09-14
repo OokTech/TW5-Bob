@@ -49,7 +49,7 @@ if($tw.node) {
         return fs.lstatSync(source).isDirectory();
       });
     } catch (e) {
-      console.log('Error getting directories', e);
+      $tw.Bob.logger.error('Error getting directories', e, {level:1});
       return [];
     }
   }
@@ -78,8 +78,9 @@ if($tw.node) {
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
     prefix = prefix || '';
+    $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
-      fs.watch(folder, function (eventType, filename) {
+      $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
         let isFile = false;
         let isFolder = false;
         // The full path to the current item
@@ -154,7 +155,7 @@ if($tw.node) {
                 tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
               }
               if(typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
-                console.log('Rename Tiddler ', tiddlerName, ' to ', newTitle);
+                $tw.Bob.logger.log('Rename Tiddler ', tiddlerName, ' to ', newTitle, {level:2});
                 // Remove the old tiddler
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
@@ -184,7 +185,7 @@ if($tw.node) {
         }
       });
     } catch (e) {
-      console.log('Failed to watch folder!', e);
+      $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});
     }
   }
 

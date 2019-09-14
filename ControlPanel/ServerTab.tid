@@ -1,5 +1,15 @@
-title: $:/plugins/OokTech/Bob/ServerActionsTab
-caption: Server Actions
+title: $:/plugins/OokTech/Bob/ServerTab
+caption: Server
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+  These are actions that affect the server and may affect all wikis served.
+
+</$reveal>
 
 <$reveal
   type='nomatch'
@@ -8,7 +18,8 @@ caption: Server Actions
 >
   This button takes any embedded images or other media in the wiki and save
   them in the files folder and replace the embedded media with tiddlers that
-  use a `_canonical_uri` field to embed the external media.
+  use a `_canonical_uri` field to embed the external media. This is only for
+  the current wiki, other wikis are unaffected.
 </$reveal>
 
 <$button>
@@ -24,3 +35,5 @@ available until it is restarted.
   Shutdown Wiki
   <$action-websocketmessage $type=shutdownServer/>
 </$button>
+
+<<tabs "[[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/FetchPlugins.tid]][[$:/plugins/OokTech/Bob/FileServerSetup.tid]][[$:/plugins/OokTech/Bob/ServerMessageHistory]]" "$:/plugins/OokTech/Bob/ManualSettingsTab">>

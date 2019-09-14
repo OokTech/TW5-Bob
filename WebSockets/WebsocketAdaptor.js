@@ -54,7 +54,7 @@ if($tw.node) {
     if(!callback) {
       callback = function (err, fileInfo) {
         if(err) {
-          console.log(err);
+          $tw.Bob.logger.error(err, {level:2});
         } else {
           return fileInfo;
         }
@@ -62,7 +62,11 @@ if($tw.node) {
     }
     // See if we've already got information about this file
     const title = tiddler.fields.title;
-    let fileInfo = $tw.Bob.Files[prefix][title];
+    let fileInfo = false;
+    $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
+    if($tw.Bob.Files[prefix]) {
+      fileInfo = $tw.Bob.Files[prefix][title];
+    }
     if(fileInfo) {
       // If so, just invoke the callback
       callback(null,fileInfo);
@@ -88,7 +92,7 @@ if($tw.node) {
       if(prefix === 'RootWiki') {
         $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || $tw.boot.wikiTiddlersPath;
       }
-      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
+      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
       const baseFilepath = path.resolve(tiddlersPath, this.generateTiddlerBaseFilepath(title, prefix));
       $tw.utils.createFileDirectories(baseFilepath);
       // Start by getting a list of the existing files in the directory
@@ -111,7 +115,7 @@ if($tw.node) {
         }
         // Set the final fileInfo
         fileInfo.filepath = filepath;
-  console.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m");
+        $tw.Bob.logger.log("\x1b[1;35m" + "For " + title + ", type is " + fileInfo.type + " hasMetaFile is " + fileInfo.hasMetaFile + " filepath is " + fileInfo.filepath + "\x1b[0m", {level:2});
         $tw.Bob.Files[prefix][title] = fileInfo;
         $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
         if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) !== -1) {
@@ -217,11 +221,11 @@ if($tw.node) {
                   return callback(err);
                 }
                 // Save with metadata
-                console.log('saved file with metadata', filepath);
+                $tw.Bob.logger.log('saved file with metadata', filepath, {level:2});
                 return callback(null);
               });
             } else {
-              console.log('saved file with metadata', filepath)
+              $tw.Bob.logger.log('saved file with metadata', filepath, {level:2})
               return callback(null);
             }
           });
@@ -234,7 +238,7 @@ if($tw.node) {
             if(err) {
               return callback(err);
             }
-            console.log('saved file', filepath)
+            $tw.Bob.logger.log('saved file', filepath, {level:2})
             return callback(null);
           });
         }
@@ -290,11 +294,13 @@ if($tw.node) {
     const fileInfo = $tw.Bob.Files[prefix][title];
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
-      //console.log('Delete tiddler file ', fileInfo.filepath);
       // Delete the file
       fs.unlink(fileInfo.filepath,function(err) {
         if(err) {
           return callback(err);
+        }
+        if (['verbose', 'normal'].indexOf($tw.settings.logLevel) || !$tw.settings.logLevel) {
+          $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
         }
         // Delete the tiddler from the internal tiddlywiki side of things
         delete $tw.Bob.Files[prefix][title];

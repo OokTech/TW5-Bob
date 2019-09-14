@@ -4,7 +4,7 @@ caption: Create Wiki From Edition
 <$set
   name=ListedEditions
   filter='[[$:/ListedEditions]has[text]]'
-  emptyValue="[[$:/EditionsList]indexes[]]"
+  emptyValue="[[$:/Bob/AvailableEditionList]indexes[]]"
   value="[enlist{$:/ListedEditions}]"
   select=0
 >
@@ -21,7 +21,7 @@ caption: Create Wiki From Edition
       </option>
     </$list>
   </$select>
-</$set>
+</$set> ([[Change Listed Editions|$:/plugins/OokTech/Bob/CreateWikiFromEdition/SetListedEditions]])
 <br>
 Give the wiki a name:
 <$edit-text
@@ -41,9 +41,4 @@ Give the wiki a name:
     $tiddler='$:/temp/NewWiki'
     wiki_name=''
   />
-  <!--
-  <$action-websocketmessage
-    $type=updateRoutes
-  />
-  -->
 </$button>

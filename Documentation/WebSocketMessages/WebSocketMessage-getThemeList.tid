@@ -1,0 +1,32 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-getThemeList
+tags: [[Websocket Message]] [[Human Usable]]
+caption: getThemeList
+description: Get a list of all available themes from the server
+
+This updates the list of all themes that are available on the server. It is
+here to be used with the tools for changing which plugins from the local
+library.
+
+The list of plugins is saved in the list field of the tiddler
+`$:/Bob/AvailableThemeList` and they are in the form `Author/ThemeName`, like
+`tiddlywiki/snowwhite`.
+
+!!Inputs
+
+None
+
+!!Usage
+
+`<$action-websocketmessage $type='getThemeList'/>`
+
+
+A button that will update the list of available themes
+
+```
+<$button>
+  Update Plugin List
+  <$action-websocketmessage
+    $type='getThemeList'
+  />
+</$button>
+```
