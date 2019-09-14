@@ -143,12 +143,11 @@ ServerSide.wikiExists = function (wikiFolder) {
 ServerSide.existsListed = function (wikiName) {
   let exists = false;
   // First make sure that the wiki is listed
-  //listed = ServerSide.wikiListed(wikiName);
-  const path = ServerSide.getWikiPath(wikiName);
+  const wikiPath = ServerSide.getWikiPath(wikiName);
   // Make sure that the wiki actually exists
-  exists = ServerSide.wikiExists(path);
+  exists = ServerSide.wikiExists(wikiPath);
   if(exists) {
-    return path;
+    return wikiPath;
   } else {
     return exists;
   }

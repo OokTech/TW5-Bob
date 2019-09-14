@@ -2,11 +2,18 @@ title: $:/plugins/OokTech/Bob/FileServerSetup.tid
 caption: File Server
 
 \define checkActions()
-<$list filter='[[$:/WikiSettings/split]getindex[filePathRoot]]' emptyMessage="""<$action-setfield $tiddler='$:/WikiSettings/split' $index='filePathRoot' $value='./files'/>""">
+<$list
+  filter='[[$:/WikiSettings/split]getindex[filePathRoot]]'
+  emptyMessage="""<$action-setfield $tiddler='$:/WikiSettings/split' $index='filePathRoot' $value='./files'/>"""
+>
 </$list>
 \end
 
-<$reveal type='nomatch' state='$:/settings/Bob/Verbose' text='false'>
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
 
 These are options for how to turn on and configure the file server included in
 Bob.
@@ -40,11 +47,48 @@ username on the computer you are using.
 
 </$reveal>
 
-<$checkbox actions=<<checkActions>> tiddler='$:/WikiSettings/split' index='enableFileServer' checked='true' unchecked='false'> Enable File Server</$checkbox>
+<$checkbox
+  actions=<<checkActions>>
+  tiddler='$:/WikiSettings/split'
+  index='enableFileServer'
+  checked='true'
+  unchecked='false'
+>
+  Enable File Server
+</$checkbox>
 
-Files Folder: <$edit-text tiddler='$:/WikiSettings/split' index='filePathRoot' tag='input' class='tc-edit-texteditor' default='./files'/>
+Files Folder:
+<$edit-text
+  tiddler='$:/WikiSettings/split'
+  index='filePathRoot'
+  tag='input'
+  class='tc-edit-texteditor'
+  default='./files'
+/>
 
-<$reveal type='nomatch' state='$:/settings/Bob/Verbose' text='false'>
+After enabling or disabling the file server you must shutdown the server and
+then restart it before using the file server.
+
+First click this button:
+<$button>
+  Update Settings
+  <$action-savesettings/>
+</$button>
+
+Then click this button:
+<$button>
+  Shutdown Wiki
+  <$action-websocketmessage $type=shutdownServer/>
+</$button>
+
+Then refresh the page, this is not what the 'reconnect' button is for, refresh
+the entire page.
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
 
 The file URL prefix is used to build the paths to the files on your computer.
 Bob is not the same as using a single file wiki, it is a server. When you put
@@ -55,4 +99,11 @@ See [[serving files|$:/plugins/OokTech/Bob/Serving Files]] for more.
 
 </$reveal>
 
-File URL Prefix: <$edit-text tiddler='$:/WikiSettings/split' index='fileURLPrefix' tag='input' class='tc-edit-texteditor' default='files'/>
+File URL Prefix:
+<$edit-text
+  tiddler='$:/WikiSettings/split'
+  index='fileURLPrefix'
+  tag='input'
+  class='tc-edit-texteditor'
+  default='files'
+/>

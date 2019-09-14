@@ -28,49 +28,7 @@ if($tw.node) {
 
   // Initialise objects
   $tw.Bob = $tw.Bob || {};
-  $tw.connections = $tw.connections || [];
   $tw.Bob.Files = $tw.Bob.Files || {};
-
-  /*
-    TODO Create a message that lets us set excluded tiddlers from inside the wikis
-    A per-wiki exclude list would be best but that is going to have annoying
-    logic so it will come later.
-  */
-  $tw.Bob.ExcludeList = $tw.Bob.ExcludeList || ['$:/StoryList', '$:/HistoryList', '$:/status/UserName', '$:/Import'];
-
-  /*
-    Determine which sub-folders are in the current folder
-  */
-  const getDirectories = function(source) {
-    try {
-      return fs.readdirSync(source).map(function(name) {
-        return path.join(source,name);
-      }).filter(function (source) {
-        return fs.lstatSync(source).isDirectory();
-      });
-    } catch (e) {
-      $tw.Bob.logger.error('Error getting directories', e, {level:1});
-      return [];
-    }
-  }
-
-  /*
-    This recursively builds a tree of all of the subfolders in the tiddlers
-    folder.
-    This can be used to selectively watch folders of tiddlers.
-  */
-  const buildTree = function(location, parent) {
-    const folders = getDirectories(path.join(parent,location));
-    const parentTree = {'path': path.join(parent,location), folders: {}};
-    if(folders.length > 0) {
-      folders.forEach(function(folder) {
-        const apex = folder.split(path.sep).pop();
-        parentTree.folders[apex] = {};
-        parentTree.folders[apex] = buildTree(apex, path.join(parent,location));
-      })
-    }
-    return parentTree;
-  }
 
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
@@ -95,8 +53,6 @@ if($tw.node) {
         }
         // The file extension, if no file extension than an empty string
         const fileExtension = path.extname(filename);
-        // The file name without the extension
-        //var baseName = path.basename(filename, fileExtension);
 
         const fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
           // A lot of this is to handle some weird edge cases I ran into
@@ -164,11 +120,7 @@ if($tw.node) {
                 // of the rest.
                 fs.unlinkSync(itemPath);
               }
-              // Thing
               // Create the new tiddler
-              $tw.Bob.MakeTiddlerInfo(folder, newTitle + fileExtension, tiddlerObject, prefix);
-              // Put the tiddler object in the correct form
-              // This gets saved to the file sysetm so non-prefixed title
               const newTiddler = {fields: tiddlerObject.tiddlers[0]};
               // Save the new file
               $tw.syncadaptor.saveTiddler(newTiddler, prefix);
@@ -187,33 +139,6 @@ if($tw.node) {
     } catch (e) {
       $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});
     }
-  }
-
-  $tw.Bob.MakeTiddlerInfo = function (folder, filename, tiddlerObject, prefix) {
-    const title = tiddlerObject.tiddlers[0].title;
-
-    // Create the file info also
-    let fileInfo = {};
-    const tiddlerType = tiddlerObject.tiddlers[0].type || "text/vnd.tiddlywiki";
-    // Get the content type info
-    const contentTypeInfo = $tw.config.contentTypeInfo[tiddlerType] || {};
-    // Get the file type by looking up the extension
-    let extension = contentTypeInfo.extension || ".tid";
-    fileInfo.type = ($tw.config.fileExtensionInfo[extension] || {type: "application/x-tiddler"}).type;
-    // Use a .meta file unless we're saving a .tid file.
-    // (We would need more complex logic if we supported other template rendered tiddlers besides .tid)
-    fileInfo.hasMetaFile = (fileInfo.type !== "application/x-tiddler") && (fileInfo.type !== "application/json");
-    if(!fileInfo.hasMetaFile) {
-      extension = ".tid";
-    }
-
-    // Set the final fileInfo
-    fileInfo.filepath = path.join(folder, filename);
-    $tw.Bob.Files[prefix][title] = fileInfo;
-
-    // Add the newly cretaed tiddler.
-    $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddlerObject.tiddlers[0]));
-    $tw.Bob.Wikis[prefix].tiddlers.push(title);
   }
 
   // TODO make this handle deleting .meta files

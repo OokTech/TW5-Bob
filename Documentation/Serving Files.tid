@@ -23,6 +23,9 @@ To access files on your harddrive you have to enable the file server component
 of Bob. To do this open the $:/ControlPanel, then the tab `Bob Settings` and
 under that the tab `File Server` and check the `Enable File Server` checkbox.
 
+After the box is checked you have to restart the wiki server before it will
+work.
+
 !!! Setting up the file server
 
 After enabling the file server it is easiest to just use the default settings.

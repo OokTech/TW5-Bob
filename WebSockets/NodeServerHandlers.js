@@ -18,25 +18,55 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  /*
-    This lets us restart the tiddlywiki server without having to use the command
-    line.
-  */
-  $tw.nodeMessageHandlers.restartServer = function(data) {
+  $tw.Bob.Federation = $tw.Bob.Federation || {};
+  $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+
+  $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
+    console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
-    if($tw.node) {
-      $tw.Bob.logger.log('Restarting Server!', {level:0});
-      // Close web socket server.
-      $tw.wss.close(function () {
-        $tw.Bob.logger.log('Closed WSS', {level:2});
-      });
-      // This bit of magic restarts whatever node process is running. In this
-      // case the tiddlywiki server.
-      require('child_process').spawn(process.argv.shift(), process.argv, {
-        cwd: process.cwd(),
-        detached: false,
-        stdio: "inherit"
-      });
+    if(data.url) {
+      function authenticateMessage() {
+        return true
+      }
+      function openRemoteSocket() {
+        const serverName = $tw.settings.serverName || 'Noh Neigh-m';
+        const serverFederationInfo = {
+          name: serverName,
+          publicKey: 'c minor'
+        }
+        console.log('REMOTE SOCKET OPENED', data.url)
+        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
+        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
+        $tw.Bob.Federation.updateConnections()
+      }
+      // Check to make sure that we don't already have a connection to the
+      // remote server
+      // If the socket is closed than reconnect
+      const remoteSocketAddress = data.url.startsWith('ws://')?data.url:'ws://'+data.url+'/api/federation/socket'
+      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
+      if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
+        try {
+          $tw.Bob.Federation.remoteConnections[data.url] = {}
+          $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
+          /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('open', openRemoteSocket)
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
+          /* TODO
+            add a readable name and something for a key here so that a server
+            can change it's url and maintain the same name across different
+            sessions
+
+            Add an on open function that alerts the browsers that the
+            connection has been made
+
+            Add the on message handlers
+          */
+        } catch (e) {
+          console.log('error opening federated connection ', e)
+        }
+      } else {
+        console.log('A connection already exists to ', data.url)
+      }
     }
   }
 
@@ -187,6 +217,7 @@ if($tw.node) {
           // aren't the same.
           let tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
           tempTid.fields.title = messageData.title;
+          tempTid.hash = messageData.hash;
           const serverTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tempTid.fields.title);
           if($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
             conflicts.push(messageData.title);
@@ -939,6 +970,159 @@ if($tw.node) {
             })
           }
         })
+      }
+    }
+  }
+
+  /*
+    This handler takes a folder as input and scans the folder for media
+    and creates _canonical_uri tiddlers for each file found.,
+    an optional extension list can be passed to restrict the media types scanned for.
+
+    ignoreExisting takes precidence over overwrite
+
+    data = {
+      folder: './',
+      ignoreExisting: 'true',
+      overwrite: 'false',
+      prune: 'false',
+      mediaTypes: [things listed in the mimemap]
+    }
+    Folder paths are either absolute or relative to $tw.Bob.getBasePath()
+
+    folder - the folder to scan
+    ignoreExisting -
+    overwrite - if this is true than tiddlers are made even if they overwrite existing tiddlers
+    prune - remove tiddlers that have _canonical_uri fields pointing to files that don't exist in the folder
+    mediaTypes - an array of file extensions to look for. If the media type is not in the mimemap than the tiddler type may be set incorrectly.
+
+    TODO - add a recursive option (with some sane limits, no recursively finding everything in /)
+    TODO - figure out what permission this one should go with
+    TODO - maybe add some check to limit where the folders can be
+    TODO - add a flag to add folders to the static file server component
+  */
+  $tw.nodeMessageHandlers.mediaScan = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+    if (authorised) {
+      const mimeMap = $tw.settings.mimeMap || {
+        '.aac': 'audio/aac',
+        '.avi': 'video/x-msvideo',
+        '.csv': 'text/csv',
+        '.doc': 'application/msword',
+        '.epub': 'application/epub+zip',
+        '.gif': 'image/gif',
+        '.html': 'text/html',
+        '.htm': 'text/html',
+        '.ico': 'image/x-icon',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.mp3': 'audio/mpeg',
+        '.mpeg': 'video/mpeg',
+        '.oga': 'audio/ogg',
+        '.ogv': 'video/ogg',
+        '.ogx': 'application/ogg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.weba': 'audio/weba',
+        '.webm': 'video/webm',
+        '.wav': 'audio/wav'
+      };
+      if (typeof data.mediaTypes === 'string') {
+        if (data.mediaTypes.length > 0) {
+          datat.mediaTypes = data.mediaTypes.split(' ');
+        }
+      } else {
+        data.mediaTypes = undefined;
+      }
+      data.mediaTypes = data.mediaTypes || Object.keys(mimeMap);
+      if (data.folder && data.wiki) {
+        // Make sure the folder exists
+        let mediaURIList = [];
+        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
+        if($tw.utils.isDirectory(mediaDir)) {
+          fs.readdir(mediaDir, function(err, files) {
+            if (err) {
+              $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
+              return;
+            }
+            const uriPrefix = '/' + path.relative($tw.ServerSide.getBasePath(), mediaDir);
+            if (data.keepBroken !== true) {
+              // get a list of all tiddlers with _canonical_uri fields that
+              // point to this folder.
+              mediaURIList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[has[_canonical_uri]get[_canonical_uri]prefix[${uriPrefix}]]`);
+              // We don't want to list uris for subfolders until we do a recursive find thing
+              mediaURIList = mediaURIList.filter(function(uri) {
+                return uri.slice(uriPrefix.length+1).indexOf('/') === -1;
+              })
+            }
+            // For each file check the extension against the mimemap, if it matches make the corresponding _canonical_uri tiddler.
+            files.forEach(function(file) {
+              if (fs.statSync(path.join(mediaDir, file)).isFile()) {
+                const pathInfo = path.parse(file);
+                if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
+                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + path.relative(path.resolve($tw.ServerSide.getBasePath(),$tw.settings.filePathRoot),path.join(mediaDir, file));
+                  if (data.prune === 'yes') {
+                    // Remove any _canonical_uri tiddlers that have paths to
+                    // this folder but no files exist for them.
+                    // remove the current file from the mediaURIList so that at
+                    // the end we have a list of URIs that don't have files
+                    // that exist.
+                    if (mediaURIList.indexOf(thisURI) > -1) {
+                      mediaURIList.splice(mediaURIList.indexOf(thisURI),1);
+                    }
+                  }
+                  // It is a file and the extension is listed, so create a tiddler for it.
+                  const fields = {
+                    title: pathInfo.base,
+                    type: mimeMap[pathInfo.ext],
+                    _canonical_uri: thisURI
+                  };
+                  if (data.ignoreExisting !== 'yes') {
+                    // check if the tiddler with this _canonical_uri already
+                    // exists.
+                    // If we aren't set to overwrite than don't do anything for
+                    // this file if it exists
+                    if ($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${fields._canonical_uri}]]`).length > 0) {
+                      return;
+                    }
+                  }
+                  const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
+                  const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
+                  // We have to have an empty file to make the .meta file work.
+                  // For some reason.
+                  // But we don't want to overwrite the file if it exists.
+                  if (data.overwrite === 'yes' || !fs.existsSync(tiddlerPath)) {
+                    fs.writeFile(tiddlerPath,'',function() {
+                    })
+                  }
+                  // Check if the file exists and only overwrite it if the
+                  // overwrite flag is set.
+                  // Update this to check for files by the _canonical_uri field
+                  if (data.overwrite === 'yes' || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
+                    // Add tiddler to the wiki listed in data.wiki
+                    $tw.syncadaptor.saveTiddler(thisTiddler, data.wiki);
+                  }
+                }
+              }
+            });
+            if (data.prune === 'yes') {
+              // mediaURIList now has the uris from tiddlers that don't point
+              // to real files.
+              // Get the tiddlers with the uris listed and remove them.
+              mediaURIList.forEach(function(uri) {
+                const tiddlerList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${uri}]]`);
+                tiddlerList.forEach(function(tidTitle) {
+                  $tw.syncadaptor.deleteTiddler(tidTitle, {wiki: data.wiki});
+                })
+              })
+            }
+          })
+        }
       }
     }
   }

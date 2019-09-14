@@ -42,80 +42,9 @@ This has some functions that are needed by Bob in different places.
     if(!tiddler.fields && otherTiddler.fields) {
       return true;
     }
-    let changed = false;
-    // Some cleverness that gives a list of all fields in both tiddlers without
-    // duplicates.
-    const allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
-      return Object.keys(tiddler.fields).indexOf(item) < 0;
-    }));
-    // check to see if the field values are the same, ignore modified for now
-    allFields.forEach(function(field) {
-      if(field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if(otherTiddler.fields[field] !== tiddler.fields[field]) {
-          // There is a difference!
-          changed = true;
-        }
-      } else if(field === 'list' || field === 'tags') {
-        if((tiddler.fields[field] || tiddler.fields[field] === '' || tiddler.fields[field] === []) && (otherTiddler.fields[field] || otherTiddler.fields[field] === '' || otherTiddler.fields[field] === [])) {
-          // We need a special check to check against empty arrays and empty
-          // strings, which in this context match.
-          let empty1 = false;
-          let empty2 = false;
-          let field1 = tiddler.fields[field]
-          if(!Array.isArray(field1)) {
-            field1 = $tw.utils.parseStringArray(field1);
-          }
-          let field2 = otherTiddler.fields[field]
-          if(!Array.isArray(field2)) {
-            field2 = $tw.utils.parseStringArray(field2);
-          }
-          if(field1) {
-            if(field1.length === 0) {
-              empty1 = true;
-            }
-          }
-          if(field2) {
-            if(field2.length === 0) {
-              empty2 = true;
-            }
-          }
-          if(!empty1 && !empty2) {
-            if(field1.length !== field2.length) {
-              changed = true;
-            } else {
-              const arrayList = field2;
-              arrayList.forEach(function(item) {
-                if(field1.indexOf(item) === -1) {
-                  changed = true;
-                }
-              })
-            }
-          } else if(empty1 !== empty2) {
-            changed = true;
-          }
-        } else {
-          changed = true;
-        }
-      } else if(field === 'modified' || field === 'created') {
-        // Make sure the fields are parsed as strings then check if they match.
-        let date1;
-        let date2;
-        if(typeof tiddler.fields[field] === 'string') {
-          date1 = tiddler.fields[field];
-        } else if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
-          date1 = $tw.utils.stringifyDate(tiddler.fields[field]);
-        }
-        if(typeof otherTiddler.fields[field] === 'string') {
-          date2 = otherTiddler.fields[field];
-        } else if(typeof otherTiddler.fields[field] === 'object' && otherTiddler.fields[field] !== null){
-          date2 = $tw.utils.stringifyDate(otherTiddler.fields[field]);
-        }
-        if(date1 !== date2) {
-          changed = true;
-        }
-      }
-    })
-    return changed;
+    const hash1 = tiddler.hash || $tw.Bob.Shared.getTiddlerHash(tiddler);
+    const hash2 = otherTiddler.hash || $tw.Bob.Shared.getTiddlerHash(otherTiddler);
+    return hash1 !== hash2;
   };
 
   /*
@@ -152,6 +81,7 @@ This has some functions that are needed by Bob in different places.
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
       title = message.tiddler.fields.title;
+      message.tiddler.hash = $tw.Bob.Shared.getTiddlerHash(message.tiddler);
     }
     let messageData = {
       message: message,
@@ -343,26 +273,7 @@ This has some functions that are needed by Bob in different places.
     let send = false;
     // Make sure that the tags field is an array so it fits what is expected
     if(messageData.type === 'saveTiddler') {
-      if(messageData.message.tiddler.fields.tags) {
-        if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-          messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
-          if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-            messageData.message.tiddler.fields.tags = [];
-          }
-        }
-      }
-      if(messageData.message.tiddler.fields.tags === '')  {
-        messageData.message.tiddler.fields.tags = [];
-      }
-      if(messageData.message.tiddler.fields.list) {
-        // Make sure that the list field is an array so it fits what is expected
-        if(!Array.isArray(messageData.message.tiddler.fields.list)) {
-          messageData.message.tiddler.fields.list = $tw.utils.parseStringArray(messageData.message.tiddler.fields.list);
-          if(!Array.isArray(messageData.message.tiddler.fields.list)) {
-            messageData.message.tiddler.fields.list = [];
-          }
-        }
-      }
+      messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
     }
     // Only send things if the message is meant for the wiki or if the browser
     // is sending a message to the server. No wiki listed in the message means
@@ -474,14 +385,8 @@ This has some functions that are needed by Bob in different places.
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
-      // Empty tags fields will be converted to empty strings.
-      if(messageData.type === 'saveTiddler') {
-        if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-          messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
-          if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-            messageData.message.tiddler.fields.tags = [];
-          }
-        }
+      if (messageData.message.tiddler) {
+        messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler);
       }
 
       // Remove any messages made redundant by this message
@@ -633,6 +538,22 @@ This has some functions that are needed by Bob in different places.
     return outQueue;
   }
 
+  /*
+    This normalizes a tiddler so that it can be compared to another tiddler to
+    determine if they are the same.
+
+    Any two tiddlers that have the same fields and content (including title)
+    will return exactly the same thing using this function.
+
+    Fields are included in alphabetical order, as defined by the javascript
+    array sort method.
+
+    The tag field gets sorted and the list field is interpreted as a string
+    array. If either field exists but it is an empty string it is replaced with
+    an empty array.
+
+    Date fields (modified and created) are stringified.
+  */
   Shared.normalizeTiddler = function(tiddler) {
     let newTid = {};
     if(tiddler) {
@@ -642,11 +563,14 @@ This has some functions that are needed by Bob in different places.
         fields.forEach(function(field) {
           if(field === 'list' || field === 'tags') {
             if(Array.isArray(tiddler.fields[field])) {
-              newTid[field] = tiddler.fields[field].slice().sort()
+              newTid[field] = tiddler.fields[field].slice()
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
-              newTid[field] = tiddler.fields[field]
+              newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice()
+              if (field === 'tags') {
+                newTid[field] = newTid[field].sort()
+              }
             }
           } else if(field === 'modified' || field === 'created') {
             if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
@@ -660,7 +584,7 @@ This has some functions that are needed by Bob in different places.
         })
       }
     }
-    return newTid
+    return {fields: newTid}
   }
 
   /*

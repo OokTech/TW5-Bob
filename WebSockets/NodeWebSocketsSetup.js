@@ -45,12 +45,8 @@ if($tw.node) {
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
-    //const ServerPort = Number($tw.settings['ws-server'].port) || 8080;
-    //const host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-    //var server;
     /*
       Setup the websocket server if we aren't using an external one
     */
@@ -69,7 +65,6 @@ if($tw.node) {
         $tw.Bob.PruneConnections();
       }, 10000);
     }
-
     finishSetup();
   }
 

@@ -1,0 +1,25 @@
+title: $:/plugins/OokTech/Bob/FederationTab
+caption: Federation
+
+Coming soon
+
+<!--
+Federation stuff!!
+
+We need to add ways to sync with other wikis, a way to configure what gets
+synced, stuff like that.
+
+!!Active Connections
+
+<$list
+  filter='[list[$:/Bob/ActiveConnections]]'
+>
+
+</$list>
+
+!!Known Connections
+
+url, name, synced wikis, other actions
+
+something for security, pubilc keys probably
+-->

@@ -1,0 +1,14 @@
+title: $:/plugins/OokTech/Bob/Styles
+tags: $:/tags/Stylesheet
+
+.folding-list {
+  list-style: none;
+}
+
+.folding-list ul {
+  list-style: none;
+}
+
+.folding-list li {
+  list-style: none;
+}
