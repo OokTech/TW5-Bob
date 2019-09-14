@@ -102,11 +102,12 @@ if($tw.node) {
       changes
     */
     $tw.Bob.Federation.updateConnections = function () {
+      console.log('update connections')
       const message = {
         type: 'updateConnections',
         connections: Object.keys($tw.Bob.Federation.remoteConnections)
       }
-      //$tw.Bob.sendToBrowsers(message)
+      $tw.Bob.SendToBrowsers(message)
     }
     finishSetup();
   }

@@ -86,7 +86,6 @@ it will overwrite this file.
           console.log("No tiddler fields given");
         }
       } else {
-        console.log(data)
         console.log('No tiddler')
       }
     }

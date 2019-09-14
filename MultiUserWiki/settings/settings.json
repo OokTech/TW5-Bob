@@ -1,4 +1,5 @@
 {
+  "serverName": "Noh Neigh-m",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },

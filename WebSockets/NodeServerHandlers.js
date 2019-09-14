@@ -18,7 +18,8 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  $tw.federatedConnections = $tw.federatedConnections || {};
+  $tw.Bob.Federation = $tw.Bob.Federation || {};
+  $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
     console.log('openRemoteConnection', data)
@@ -28,21 +29,28 @@ if($tw.node) {
         return true
       }
       function openRemoteSocket() {
+        const serverName = $tw.settings.serverName || 'Noh Neigh-m';
+        const serverFederationInfo = {
+          name: serverName,
+          publicKey: 'c minor'
+        }
         console.log('REMOTE SOCKET OPENED', data.url)
-        $tw.federatedConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
+        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
+        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
+        $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the
       // remote server
       // If the socket is closed than reconnect
       const remoteSocketAddress = data.url.startsWith('ws://')?data.url:'ws://'+data.url+'/api/federation/socket'
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
-      if(Object.keys($tw.federatedConnections).indexOf(data.url) === -1 || $tw.federatedConnections[data.url].socket.readyState === WebSocket.OPEN) {
+      if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
-          $tw.federatedConnections[data.url] = {}
-          $tw.federatedConnections[data.url].socket = new WebSocket(remoteSocketAddress)
+          $tw.Bob.Federation.remoteConnections[data.url] = {}
+          $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
-          $tw.federatedConnections[data.url].socket.on('open', openRemoteSocket)
-          $tw.federatedConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('open', openRemoteSocket)
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
           /* TODO
             add a readable name and something for a key here so that a server
             can change it's url and maintain the same name across different
@@ -995,7 +1003,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.mediaScan = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log(data)
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
