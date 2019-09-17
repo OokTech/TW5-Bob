@@ -1,9 +1,10 @@
 title: $:/plugins/OokTech/Bob/FederationTab
 caption: Federation
 
-Coming soon
+These are things for inter-server federation
 
-<!--
+<<tabs "[all[tiddlers+shadows]tag[FederationTab]]">>
+
 Federation stuff!!
 
 We need to add ways to sync with other wikis, a way to configure what gets
@@ -22,4 +23,3 @@ synced, stuff like that.
 url, name, synced wikis, other actions
 
 something for security, pubilc keys probably
--->

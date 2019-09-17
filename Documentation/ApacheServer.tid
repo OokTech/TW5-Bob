@@ -1,0 +1,45 @@
+title: $:/plugins/OokTech/Bob/ApacheServer
+tags: [[Bob Documentation]]
+caption: ActionWebSocketMessage
+description: Setting up Bob on an apache server with SSL
+
+!! Bob behind an Apache SSL-terminating proxy
+
+Apache does need to distinguish which traffic to proxy as WebSocket.
+Many examples on the web assume that the URI path can be used to recognize
+WebSocket traffic.
+e.g. All WS traffic begins with "/ws".
+But Bob uses the same URI for the WS connection as the Tiddlywiki page itself.
+e.g. https://my.domain.com/.
+
+You can use the WS header to recognize the traffic.
+The 'WebSockets' section in the httpd.conf below says,
+"If you get a request with the HTTP headers "Upgrade: websocket" and
+"Connection: Upgrade" rewrite it to a WebSocket request for the IP/port where
+Bob is running.
+
+```
+<VirtualHost *:443>
+  ServerName my.domain.com
+  ProxyRequests Off
+  ProxyPreserveHost on
+  ###### Adding WebSockets ######
+  RewriteEngine On
+  RewriteCond %{HTTP:Connection} Upgrade [NC]
+  RewriteCond %{HTTP:Upgrade} websocket [NC]
+  RewriteRule /(.*) ws://127.0.0.1:8088/$1 [P,L]
+  ###### Finished WebSockets #######
+  ProxyPass "/"  "http://127.0.0.1:8088/"
+  ProxyPassReverse "/"  "http://127.0.0.1:8088/"
+  Include cert-stuff.conf
+  AllowEncodedSlashes On
+  SSLEngine On
+  SSLProxyEngine On
+  <Location "/">
+    AuthType Basic
+    AuthName "Restricted test Content"
+    AuthUserFile /path/to/passwords
+    Require valid-user
+  </Location>
+</VirtualHost>
+```

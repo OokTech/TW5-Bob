@@ -1,0 +1,11 @@
+title: $:/plugins/OokTech/Bob/FederationTab/KnownServers
+caption: Known Servers
+tags: FederationTab
+
+These are the remote servers you currently have information about.
+
+<$list
+  filter='[prefix[$:/Bob/KnownServers/]]'
+>
+
+</$list>

@@ -16,3 +16,36 @@ Server information is saved so that the next time you can try to connect to the
 same server using the same url. This works when the server doesn't move, or
 when you are on the same local network as the server and you are using a unix
 based system like Linux or OSX and are using .local urls.
+
+After you have connected to a server than you can send messages between the
+servers in the same way as between the browser and server.
+
+You can:
+
+* Sync wikis
+* Fetch wikis
+* Set up a real time chat messenger
+* Fetch/push tiddlers between different servers
+* Arbitrary messages between servers
+* Set up repeated/continuous syncing between servers
+* Other things?
+
+!! Server Info
+
+For each known server the wiki saves info.
+
+* Server Name
+* Most recent server URL
+* A flag to set if the server is mobile or not (if it always uses the same url)
+* What wikis are accessible on the server
+* What wikis to sync with the remote server, and the type of syncing
+** This would be wiki name, sync filter, direction, conflict resolution type
+* If the server supports chat
+
+!! Interface
+
+* A listing of all of the known servers in the control panel federation tab
+* Somewhere a chat interface for remote servers
+* A one-time wiki syncing thing
+* A fetch/duplicate remote wiki thing
+* Set up repeated syncing and the interval or conditions for checking

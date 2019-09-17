@@ -29,7 +29,7 @@ if($tw.node) {
         return true
       }
       function openRemoteSocket() {
-        const serverName = $tw.settings.serverName || 'Noh Neigh-m';
+        const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
           name: serverName,
           publicKey: 'c minor'

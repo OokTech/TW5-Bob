@@ -1,0 +1,12 @@
+title: $:/plugins/OokTech/Bob/FederationTab/ActiveConnections
+caption: Active Connections
+tags: FederationTab
+
+These are the currently active connections between your server and remote
+servers.
+
+<$list
+  filter='[prefix[$:/Bob/ActiveConnections/]]'
+>
+
+</$list>

@@ -11,18 +11,19 @@ used. If the json isn't formatted correctly than default values will be used.
 
 ```
 {
-  "serverName": "Noh Neigh-m",
-  "filePathRoot": "/home/inmysocks/TiddlyWiki/Wikis",
-  "editionsPath": "/home/inmysocks/TiddlyWiki/Editions",
-  "pluginsPath": "/home/inmysocks/TiddlyWiki/Plugins",
+  "editionsPath": "./Editions",
+  "filePathRoot": "./Wikis",
+  "pluginsPath": "./Plugins",
   "themesPath": "./Themes"
-  "suppressBrowser": "false",
-  "fileURLPrefix": "files",
-  "autoUnloadWikis": "false",
-  "wikiPathBase": "cwd",
   "wikisPath": "./Wikis",
-  "namespacedWikis": "false",
+  "wikiPathBase": "cwd",
+  "includePluginList": [],
+  "excludePluginList": [],
+  "autoUnloadWikis": "false",
   "disableBrowserAlerts": "false",
+  "fileURLPrefix": "files",
+  "namespacedWikis": "false",
+  "suppressBrowser": "false",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -78,8 +79,11 @@ used. If the json isn't formatted correctly than default values will be used.
     "useFileLogging": "no",
     "fileLogLevel": "2"
   },
-  "includePluginList": [],
-  "excludePluginList": []
+  "federation": {
+    "serverName": "Noh Neigh-m",
+    "mobile": "no",
+    "enableChat": "no"
+  }
 }
 ```
 
@@ -95,17 +99,33 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 
 ## What each part is
 
+- `editionsPath` is the folder that holds any custom editions you want to be
+  able to use when making wikis using the control panel.  If relative it is
+  relative to `wikiPathBase`.
 - `filePathRoot` is the root folder where external files are served. If you
   want to use an external image from your computer in your wiki than you need
   to set this to a parent folder of where the pictures are. If none is given
   than local files aren't served.
-- `editionsPath` is the folder that holds any custom editions you want to be
-  able to use when making wikis using the control panel.  If relative it is
-  relative to `wikiPathBase`.
 - `pluginsPath` is the path to the plugins folder if you are using the as a
   plugin library.  If relative it is relative to `wikiPathBase`.
 - `themesPath` is the path to the folder where you have your themes.  If
   relative it is relative to `wikiPathBase`.
+- `wikisPath` the name of the default wikis folder to use. If relative it is
+  relative to `wikiPathBase`.
+- `wikiPathBase` relative paths for everything other than serving files are
+  relative to this path. It defaults to the current working directory.
+- `includePluginList` is an array of plugin names that will be included in
+  every wiki served. You do not have to include Bob in this list.
+- `excludePluginList` is an array of plugin names that will not be included in
+  any wiki served, even if it is listed in the tiddlywiki.info file. This does
+  not prevent someone from installing the plugin via drag-and-drop or from a
+  plugin library, it just affects plugins listed in `tiddlywiki.info` files.
+- `autoUnloadWikis` if this is set to `true` than wikis with no active
+  connections will be automatically unloaded from memory. (experimental, may
+  cause problems)
+- `disableBrowserAlerts` if this is set to `true` than no alerts are sent to
+  the browser wikis. This can also be set on a per-wiki basis in the control
+  panel.
 - `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
   has the normal restrictions on names as any URL, so avoid special characters.
   This defaults to `files` and only have an affect if you have also set
@@ -113,30 +133,12 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   Note: If you set this to an empty string it will use the default value of
   `files` unless you set the `acceptance` value described below. This will break
   things and no tech support will be provided.
-- `autoUnloadWikis` if this is set to `true` than wikis with no active
-  connections will be automatically unloaded from memory. (experimental, may
-  cause problems)
-- `wikiPathBase` relative paths for everything other than serving files are
-  relative to this path. It defaults to the current working directory.
-- `wikisPath` the name of the default wikis folder to use. If relative it is
-  relative to `wikiPathBase`.
-- `includePluginList` is an array of plugin names that will be included in
-  every wiki served. You do not have to include Bob in this list.
-- `excludePluginList` is an array of plugin names that will not be included in
-  any wiki served, even if it is listed in the tiddlywiki.info file. This does
-  not prevent someone from installing the plugin via drag-and-drop or from a
-  plugin library, it just affects plugins listed in `tiddlywiki.info` files.
-- `mimeMap` lists the file extensions and their associated mime-types that the
-  server is allowed to serve. This only has an effect if `filePathRoot` is set.
-- `suppressBrowser` is only used if you are using the single executable
-  version. If it is set to `true` than the browser isn't opened automatically
-  when the server is started.
 - `namespacedWikis` this only has an effect if you are using an external
   server with a login. If so this prefixes the wiki path with the currently
   logged in persons name when creating a wiki.
-- `disableBrowserAlerts` if this is set to `true` than no alerts are sent to
-  the browser wikis. This can also be set on a per-wiki basis in the control
-  panel.
+- `suppressBrowser` is only used if you are using the single executable
+  version. If it is set to `true` than the browser isn't opened automatically
+  when the server is started.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined
@@ -146,32 +148,29 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   `/home/inmysocks/TiddlyWiki/Wikis/TestWiki` would be served on
   `localhost:8080/OokTech/TestWiki`. You may have as many levels and wikis as
   you want.
-- `ws-server` settings for the `wsserver` command. It takes the same arguments
-  as the normal `server` command with the exception of `autoIncrementPort` and
-  `servePlugin`, if `autoIncrementPort` is not set to false than the server
-  will try using the given port (`8080` by default) and if it is in use it will
-  try the next port up and continue until it finds an open port to use. It will
-  do the same for the websockets port. If this is set to false than if the
-  given port is in use an error is given and the process fails. The default
-  websocket port is one higher than the http port used. If `servePlugin` is not
-  false than any child wiki served will include the Bob plugin. So you
-  can serve wikis that don't normally have the plugin and edit them as though
-  they did.
+- `ws-server` settings for the `wsserver` command.
+  - `port`
+  - `host`
+  - `rootTiddler` changing this will probably break everything
+  - `renderType` changing this will probably break everything
+  - `serveType` changing this will probably break everything
+  - `pathPrefix` a prefix for the path that wikis are served on.
+  - `autoIncrementPort` if not set to `false` than the server
+    will try using the given port (`8080` by default) and if it is in use it
+    will try the next port up and continue until it finds an open port to use.
+    If this is set to false than if the given port is in use an error is thrown
+    and the process fails.
+  - `servePlugin` is not `false` than any child wiki served will include the
+    Bob plugin. So you can serve wikis that don't normally have the plugin and
+    edit them as though they did.
 - `heartbeat` settings for the heartbeat that makes sure the browser and server
   are still connected. You can almost certainly ignore these settings.
   - `interval` the heartbeat message is sent every `interval` milliseconds
   (1000 milliseconds = 1 second).
   - `timeout` is the length of time to wait for a heartbeat signal before
   assuming that the connection is no longer working.
-- `acceptance` this is a setting for accepting that you will get no help if you
-  do something that requires it to be set. These are things that are either
-  insecure or have a very good chance of breaking your wiki. You will get no
-  tech support if you do any of them. If you want to do it anyway than you need
-  to give this the value `I Will Not Get Tech Support For This`.
-- `allowUnsafeMimeTypes` setting this to `true` lets you serve anything
-  ignoring the mimeMap. This is a bad idea but it was consistently requested so
-  you have to fill out the `acceptance` key and you will receive no support for
-  any problems that arise.
+- `mimeMap` lists the file extensions and their associated mime-types that the
+  server is allowed to serve. This only has an effect if `filePathRoot` is set.
 - `API` things in this group are used for the api used for inter-server
   communication using the TWederBob plugin. This is only active if you use the
   `--wsserver` command, if you use an external server than these don't do
@@ -182,6 +181,39 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
     tiddlers from the server using the TWederBob plugin.
   - `pluginLibrary` if this is set to `yes` than the server will act as a
     plugin library. (you also have to set the `pluginsPath`, see above)
+- `logger` settings for the logger Bob uses
+  - `useFileLogging` set to `yes` to enable writing logs to files
+  - `fileLogLevel` set this to an integer from `0` to `4` to indicate how
+    much logging you want in the log files. `0` is none, `4` is everything.
+  - `outputFolder` set to the folder name to use for the log files
+  - `outputBaseFileName` logs will use this as the base name
+  - `useSeparateErrorFile` set to `yes` if you want to have separte files for
+    logs and error messages (stdout vs stderr)
+  - `outputErrorFileName` set this to the base file name to use for error log files
+  - `ignoreErrors` set this to `yes` to ignore logger errors (recommended!)
+  - `useBrowserLogging` set this to `yes` to have log messages sent to the
+    browser
+  - `browserLogLevel` set this to an integer from `0` to `4` to indicate how
+    much logging you want in the browser. `0` is none, `4` is everything.
+  - `useConsoleLogging` set this to `yes` to log output to the console
+  - `consoleLogLevel` set this to an integer from `0` to `4` to indicate how
+    much logging you want in the console. `0` is none, `4` is everything.
+- `federation` settings for inter-server federation and connections
+  - `serverName` is the human readable name that the server uses to identify
+    itself. It does not need to be unique, but having it be unique is less
+    confusing.
+  - `mobile` set this to `yes` if the server isn't going to have the same url
+    or ip address all the time.
+  - `enableChat` set this to `yes` to enable the federated chat server.
+- `acceptance` this is a setting for accepting that you will get no help if you
+  do something that requires it to be set. These are things that are either
+  insecure or have a very good chance of breaking your wiki. You will get no
+  tech support if you do any of them. If you want to do it anyway than you need
+  to give this the value `I Will Not Get Tech Support For This`.
+- `allowUnsafeMimeTypes` setting this to `true` lets you serve anything
+  ignoring the mimeMap. This is a bad idea but it was consistently requested so
+  you have to fill out the `acceptance` key and you will receive no support for
+  any problems that arise.
 
 ''Note:'' Only changes to the `scripts` and `wikis` will be available without
 restarting the server. You still need to save the settings using the
