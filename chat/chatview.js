@@ -58,7 +58,21 @@ ChatView.prototype.render = function(parent,nextSibling) {
     const format = self.format || '0hh:0mm:0ss';
     const dateDisplay = $tw.utils.formatDateString($tw.utils.parseDate(messageTimestamp),format);
     const newElement = document.createElement('div');
-    newElement.innerHTML = `<span class='chatDateDisplay'>${dateDisplay}</span> <span class='chatNameDisplay'>${chatHistoryObject[messageTimestamp].from || 'Nameless Interloper'}:</span> <span class='chatMessageDisplay'>${chatHistoryObject[messageTimestamp].message}</span>`;
+    newElement.innerHTML = `<span
+        class='chatDateDisplay'
+      >
+        ${dateDisplay}
+      </span>
+      <span
+        class='chatNameDisplay'
+      >
+        ${chatHistoryObject[messageTimestamp].from || 'Nameless Interloper'}:
+      </span>
+      <span
+        class='chatMessageDisplay'
+      >
+        ${chatHistoryObject[messageTimestamp].message}
+      </span>`;
     if (messageIndex % 2 === 0) {
       newElement.classList.add('defaultChatHistoryViewEvenMessages');
     } else {

@@ -4,12 +4,12 @@ type: application/json
 {
   "ws-server": {
     "port": "8080",
-		"rootTiddler": "$:/plugins/OokTech/Bob/save/single",
-		"renderType": "text/plain",
-		"serveType": "text/html",
-		"username": "",
-		"password": "",
-		"host": "127.0.0.1",
-		"pathprefix": ""
+    "rootTiddler": "$:/plugins/OokTech/Bob/save/single",
+    "renderType": "text/plain",
+    "serveType": "text/html",
+    "username": "",
+    "password": "",
+    "host": "127.0.0.1",
+    "pathprefix": ""
   }
 }

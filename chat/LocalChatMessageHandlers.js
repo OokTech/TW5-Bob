@@ -43,7 +43,11 @@ if($tw.node) {
         server: data.server
       }
       // save the updated tiddler
-      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({text:JSON.stringify(history, null, 2),title: `$:/chat/${conversationTiddler}`, type: 'application/json'}), data.wiki);
+      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
+        text:JSON.stringify(history, null, 2),
+        title: `$:/chat/${conversationTiddler}`,
+        type: 'application/json'
+      }), data.wiki);
     }
   }
 }

@@ -43,7 +43,11 @@ if($tw.node) {
       // Add new message
       history[data.time] = data.message
       // save the updated tiddler
-      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({text:JSON.stringify(history, null, 2),title: `$:/chat/${conversationTiddler}`, type: 'application/json'}), data.wiki);
+      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
+        text:JSON.stringify(history, null, 2),
+        title: `$:/chat/${conversationTiddler}`,
+        type: 'application/json'
+      }), data.wiki);
     }
   }
 
@@ -69,7 +73,11 @@ if($tw.node) {
         history[message.time] = message.message;
       })
       // save the updated tiddler
-      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({text:JSON.stringify(history, null, 2),title: `$:/chat/${conversationTiddler}`, type: 'application/json'}), data.wiki);
+      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
+        text:JSON.stringify(history, null, 2),
+        title: `$:/chat/${conversationTiddler}`,
+        type: 'application/json'
+      }), data.wiki);
     }
   }
 }
