@@ -24,15 +24,21 @@ if($tw.node) {
     Receive a federated chat message
   */
   $tw.Bob.Federation.messageHandlers.chatMessage = function(data) {
-    //$tw.Bob.Shared.sendAck(data);
-    const conversationTiddler = data.conversation || 'DefaultChat'
-    if (data.conversation && data.message) {
+    const conversationTiddler = data.conversation || 'DefaultChat';
+    if (conversationTiddler && data.message) {
       // Get the history tiddler
-      const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`)
-      let history = {}
+      const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`);
+      let history = {};
       if (historyTiddler) {
         // Make sure that the fields aren't read only
         history = JSON.parse(JSON.stringify(historyTiddler.fields));
+      }
+      const theTime = $tw.utils.stringifyDate(new Date());
+      history = JSON.parse(history);
+      history[theTime] = {
+        message:data.message,
+        from: data.from,
+        server: data.server
       }
       // Add new message
       history[data.time] = data.message
@@ -45,6 +51,8 @@ if($tw.node) {
     Receive a chat history from a federated server
 
     This is for when you join an existing conversation.
+
+    It combines the local messages with the received messages.
   */
   $tw.Bob.Federation.messageHandlers.chatHistory = function(data) {
     //$tw.Bob.Shared.sendAck(data);

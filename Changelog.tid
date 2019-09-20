@@ -4,6 +4,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 
   - maybe actually set the SaverFilter tiddler correctly
   - start documentation on inter-server federation and syncing
+  - Add local chat stuff and start the federated version
+  - Hopefully fix the problems with saving .tid files that have unsorted tags
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 

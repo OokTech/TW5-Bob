@@ -4,6 +4,13 @@ tags: FederationTab
 
 This is the basic chat interface that uses the federated connections.
 
+Current Name:
+<$edit-text
+  tiddler='$:/temp/Bob/Federation/ChatMessage'
+  field='from'
+  default=''
+/>
+
 <$chatview
   tiddler='$:/chat/DefaultChat'
 />
@@ -25,6 +32,7 @@ This is the basic chat interface that uses the federated connections.
     <$action-websocketmessage
       $type='chatMessage'
       message={{$:/temp/Bob/Federation/ChatMessage}}
+      from={{$:/temp/Bob/Federation/ChatMessage!!from}}
     />
     <$action-setfield
       $tiddler='$:/temp/Bob/Federation/ChatMessage'

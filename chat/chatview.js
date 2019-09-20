@@ -5,6 +5,11 @@ module-type: widget
 
 A widget that creates a view of a chat hisotry.
 
+TODO get something to indicate if different messages have been seen or not.
+
+Probably go through each div and see if it has been completely inside the
+visible part of the text.
+
 \*/
 
 (function(){
@@ -50,9 +55,10 @@ ChatView.prototype.render = function(parent,nextSibling) {
   const self = this;
   // For each line in the history append a div with that message in it.
   Object.keys(chatHistoryObject).slice().sort().forEach(function(messageTimestamp, messageIndex) {
-    const dateDisplay = $tw.utils.parseDate(messageTimestamp).getDay() + '/' + ($tw.utils.parseDate(messageTimestamp).getMonth() + 1) + '/' + ($tw.utils.parseDate(messageTimestamp).getFullYear()%100) + '-' + $tw.utils.parseDate(messageTimestamp).getHours() + ':' + $tw.utils.pad($tw.utils.parseDate(messageTimestamp).getMinutes(),2) + ':' + $tw.utils.pad($tw.utils.parseDate(messageTimestamp).getSeconds(),2);
+    const format = self.format || '0hh:0mm:0ss';
+    const dateDisplay = $tw.utils.formatDateString($tw.utils.parseDate(messageTimestamp),format);
     const newElement = document.createElement('div');
-    newElement.innerHTML = `${dateDisplay}: ${chatHistoryObject[messageTimestamp]}`;
+    newElement.innerHTML = `<span class='chatDateDisplay'>${dateDisplay}</span> <span class='chatNameDisplay'>${chatHistoryObject[messageTimestamp].from || 'Nameless Interloper'}:</span> <span class='chatMessageDisplay'>${chatHistoryObject[messageTimestamp].message}</span>`;
     if (messageIndex % 2 === 0) {
       newElement.classList.add('defaultChatHistoryViewEvenMessages');
     } else {
@@ -67,7 +73,7 @@ ChatView.prototype.render = function(parent,nextSibling) {
   // This determines if the div is scrolled to the bottom, if so than
   // the text scrolls up, if not than the div position is maintained so
   // it doesn't move what you are looking at out of frame.
-  const isScrolledToBottom = this.scrollPosition + containerDiv.clientHeight >= containerDiv.scrollHeight - 25;
+  const isScrolledToBottom = this.scrollPosition + containerDiv.clientHeight >= containerDiv.scrollHeight - 50;
   if (this.scrollPosition === 0) {
     this.scrollPosition = containerDiv.scrollHeight;
   }
@@ -89,6 +95,7 @@ ChatView.prototype.execute = function() {
   this.historyLimit = this.getAttribute('limit', 100);
   this.class = this.getAttribute('class', 'defaultChatHistoryView');
   this.scrollPosition = this.scrollPosition || 0;
+  this.format = this.getAttribute('format', '0hh:0mm:0ss');
 };
 
 /*

@@ -24,3 +24,25 @@ tags: $:/tags/Stylesheet
 .defaultChatSendButton {
 
 }
+
+.chatDateDisplay {
+  font-size: 10px;
+  line-height: 10px;
+}
+
+.chatNameDisplay {
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: bold;
+  position:relative;
+}
+
+.chatNameDisplay:after {
+    content: "<br/> ";
+    display: block;
+    position: relative;
+}
+
+.chatMessageDisplay {
+
+}

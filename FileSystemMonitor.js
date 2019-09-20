@@ -54,7 +54,7 @@ if($tw.node) {
         // The file extension, if no file extension than an empty string
         const fileExtension = path.extname(filename);
 
-        const fullTiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
+        const tiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
           // A lot of this is to handle some weird edge cases I ran into
           // while making it.
           // TODO figure out why this happens.
@@ -83,7 +83,6 @@ if($tw.node) {
             let newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
             let existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
             // Load the tiddler from the wiki, check if they are different (non-existent is changed)
-            //var tiddlerFileTitle = filename.slice(0, -1*fileExtension.length);
             if($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
               // Rename the file
               // If $:/config/FileSystemPaths is used than the folder and
@@ -104,24 +103,32 @@ if($tw.node) {
               }
               // translate tiddler title into filepath
               const theFilepath = path.join(folder, newTitle + fileExtension);
-              let tiddlerName = fullTiddlerName
-              if(typeof fullTiddlerName === 'string') {
-                // create the new tiddler and delete the old one.
-                // Make the new file path
-                tiddlerName = fullTiddlerName.replace(new RegExp('^\{' + prefix + '\}'),'');
-              }
               if(typeof tiddlerName === 'string' && tiddlerName !== tiddlerObject.tiddlers[0].title) {
                 $tw.Bob.logger.log('Rename Tiddler ', tiddlerName, ' to ', newTitle, {level:2});
                 // Remove the old tiddler
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
-              if(itemPath !== theFilepath) {
+              function arrayEqual(a1, a2) {
+                if (a1 === a2) {
+                  return true
+                }
+                if (a1.length !== a2.length) {
+                  return false
+                }
+                for (let k = 0; k < a1.length; k++) {
+                  if (a1[k] !== a2[k]) {
+                    return false
+                  }
+                }
+                return true
+              }
+              if(itemPath !== theFilepath || !(arrayEqual($tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]}).fields.tags, $tw.utils.parseStringArray(tiddlerObject.tiddlers[0].tags)))) {
                 // Delete the old file, the normal delete action takes care
                 // of the rest.
                 fs.unlinkSync(itemPath);
               }
               // Create the new tiddler
-              const newTiddler = {fields: tiddlerObject.tiddlers[0]};
+              const newTiddler = $tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]});
               // Save the new file
               $tw.syncadaptor.saveTiddler(newTiddler, prefix);
             }

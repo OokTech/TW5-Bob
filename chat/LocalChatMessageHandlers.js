@@ -37,7 +37,11 @@ if($tw.node) {
       const theTime = $tw.utils.stringifyDate(new Date());
       history = JSON.parse(history)
       // Add new message
-      history[theTime] = data.message
+      history[theTime] = {
+        message:data.message,
+        from: data.from,
+        server: data.server
+      }
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({text:JSON.stringify(history, null, 2),title: `$:/chat/${conversationTiddler}`, type: 'application/json'}), data.wiki);
     }
