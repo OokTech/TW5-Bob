@@ -1,0 +1,59 @@
+title: $:/plugins/OokTech/Bob/Federation/RemoteServerTemplate
+
+//LOGIN INTERFACE HERE//
+
+!! Available Wikis
+
+<table>
+  <tr>
+    <th>
+      Edit
+    </th>
+    <th>
+      Wiki Name
+    </th>
+    <th>
+      Pubilc
+    </th>
+    <th>
+      Sync Filter
+    </th>
+    <th>
+      Sync Type
+    </th>
+    <th>
+      Conflict Handling
+    </th>
+    <th>
+      Auto Sync
+    </th>
+    <th>
+      Sync Now
+    </th>
+  </tr>
+  <$list
+    filter='[[Wiki 1]][[Wiki 2]][[Wiki 3]]'
+  >
+    {{||$:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate}}
+  </$list>
+</table>
+
+!! Available Chats
+
+<table>
+  <tr>
+    <th>
+      Chat Name
+    </th>
+    <th>
+      Public?
+    </th>
+    <th>
+    </th>
+  </tr>
+  <$list
+    filter='[[Chat 1]][[Chat 2]]'
+  >
+    {{||$:/plugins/OokTech/Bob/Federation/AvailableChatsListingTemplate}}
+  </$list>
+</table>

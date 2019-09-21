@@ -1,6 +1,40 @@
 title: $:/plugins/OokTech/Bob/FederationTab
 caption: Federation
 
+Select Server:
+<$select
+  tiddler='$:/state/Federation/SelectedRemoteServer'
+  default='No server selected'
+>
+  <option
+    value=''
+  >
+    No server selected
+  </option>
+  <$list
+    filter='[prefix[$:/Federation/RemoteServer/]]'
+  >
+    <option
+      value=<<currentTiddler>>
+    >
+      <$list
+        filter='[<currentTiddler>removePrefix[$:/Federation/RemoteServer/]]'
+      >
+      </$list>
+    </option>
+  </$list>
+</$select>
+
+<$list
+  filter='[{$:/state/Federation/SelectedRemoteServer}]'
+  emptyMessage='No Server Selected'
+>
+
+{{||$:/plugins/OokTech/Bob/Federation/RemoteServerTemplate}}
+</$list>
+
+---
+
 These are things for inter-server federation
 
 <<tabs "[all[tiddlers+shadows]tag[FederationTab]]">>
@@ -23,3 +57,7 @@ synced, stuff like that.
 url, name, synced wikis, other actions
 
 something for security, pubilc keys probably
+
+
+Send remote message - sends a websocket message to a remote server
+

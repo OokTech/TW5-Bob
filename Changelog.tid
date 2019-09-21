@@ -6,6 +6,9 @@ title: $:/plugins/OokTech/Bob/Changelog
   - start documentation on inter-server federation and syncing
   - Add local chat stuff and start the federated version
   - Hopefully fix the problems with saving .tid files that have unsorted tags
+  - split out routes into separate files
+    - this may allow doing things like enabling the file server without restarting the server.
+  - Started a hopefully better interface for federated things.
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 

@@ -30,7 +30,8 @@ uniqueName: {
       syncFilter: <<someFilter>>,
       syncType: pull,push,remoteWins,localWins,newestWins,
       autoSync: yes/no,
-      public: yes/no
+      public: yes/no,
+      conflictType: newestWins,oldestWins,localWins,remoteWins,manual
     },
     wikiName2: {
       <<same stuff>>

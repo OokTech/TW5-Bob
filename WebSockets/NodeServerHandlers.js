@@ -71,6 +71,30 @@ if($tw.node) {
   }
 
   /*
+    This sends a websocket message to a remote server.
+
+    data = {
+      $server: the server url (or human readable name? It has to be unique),
+      $message: the message type
+      otherThings: data to pass on to the other server as parameters of the message being sent.
+    }
+  */
+  $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    if (data.$server && data.$message) {
+      const newData = {
+        type: data.$message
+      }
+      Object.keys(data).forEach(function(key) {
+        if (['type', '$server', '$message'].indexOf(key) === -1) {
+          newData[key] = data[key]
+        }
+      })
+      $tw.Bob.Federation.remoteConnections[data.$server].socket.send(JSON.stringify(newData));
+    }
+  }
+
+  /*
     This lets us shutdown the server from within the wiki.
   */
   $tw.nodeMessageHandlers.shutdownServer = function(data) {

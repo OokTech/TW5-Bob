@@ -109,6 +109,9 @@ if($tw.node) {
                 $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
               }
               function arrayEqual(a1, a2) {
+                if (!Array.isArray(a1) || !Array.isArray(a2)) {
+                  return false
+                }
                 if (a1 === a2) {
                   return true
                 }
