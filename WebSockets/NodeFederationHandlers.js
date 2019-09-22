@@ -77,6 +77,7 @@ if($tw.node) {
     $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.send(data)
   }
   $tw.Bob.Federation.messageHandlers.requestServerUpdate = function(data) {
+    console.log(data)
     const authorised = checkAuthorization(data);
     if (authorised) {
       // Reply with the server info listed above

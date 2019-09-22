@@ -715,6 +715,7 @@ This has some functions that are needed by Bob in different places.
     in the future it may be used for other things.
   */
   Shared.sendToRemoteServer = function(message, serverInfo) {
+    console.log(message, serverInfo)
     let ok = true
     if(typeof message === 'string') {
       try{
