@@ -19,6 +19,7 @@ exports.platforms = ["node"];
 if($tw.node) {
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
+  $tw.settings.Federation = $tw.settings.Federation || {};
 
   /*
     This is asking a remote server for an update about its current status
@@ -84,10 +85,11 @@ if($tw.node) {
       const reply = {
         type: 'serverInfo',
         info: {
-          name: 'server name',
-          canLogin: 'no',
+          name: $tw.settings.Federation.serverName || 'Sever Name',
+          canLogin: $tw.settings.Federation.canLogin || 'no',
           availableWikis: getAvailableWikis(data),
-          availableChats: getAvailableChats(data)
+          availableChats: getAvailableChats(data),
+          port: $tw.settings['ws-server'].port
         }
       };
       $tw.Bob.Shared.sendToRemoteServer(reply, data);
@@ -101,6 +103,7 @@ if($tw.node) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].port = data.info.port;
     }
     $tw.Bob.Federation.updateConnections();
   }
@@ -189,6 +192,7 @@ if($tw.node) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data.remoteUrl);
+        const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
         const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);

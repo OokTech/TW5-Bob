@@ -87,10 +87,18 @@ if($tw.node) {
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection (client, request) {
-      $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client}
-      client.on('message', $tw.Bob.Federation.handleMessage)
-      $tw.Bob.Federation.updateConnections()
+      $tw.Bob.logger.log("New Remote Connection", {level: 2});
+      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {incoming: client};
+      client.on('message', $tw.Bob.Federation.handleMessage);
+      $tw.Bob.Federation.updateConnections();
+
+      console.log(request.headers.host)
+
+      const URL = require('url');
+      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
+      const remoteUrl = new URL(request.headers.host);
+      const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
+      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
     }
 
     /*
