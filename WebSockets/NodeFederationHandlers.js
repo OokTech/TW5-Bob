@@ -19,6 +19,78 @@ exports.platforms = ["node"];
 if($tw.node) {
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
+
+  /*
+    This is asking a remote server for an update about its current status
+    including:
+
+    - Server name
+    - Available wikis
+    - Available chats
+    - (TODO) its public key
+      - For this one the requesting server would send a random number and the
+        reply would be a signed token where the payload is the random number
+        and the public key.
+
+    TODO - make the authorization checking something reasonable
+  */
+  function checkAuthorization() {
+    return true;
+  }
+  function getAvailableWikis(data) {
+    data = data || {};
+    function getList(obj, prefix) {
+      let output = []
+      Object.keys(obj).forEach(function(item) {
+        if(typeof obj[item] === 'string') {
+          if($tw.ServerSide.existsListed(prefix+item)) {
+            if(item == '__path') {
+              if(prefix.endsWith('/')) {
+                output.push(prefix.slice(0,-1));
+              } else {
+                output.push(prefix);
+              }
+            } else {
+              output.push(prefix+item);
+            }
+          }
+        } else if(typeof obj[item] === 'object') {
+          output = output.concat(getList(obj[item], prefix + item + '/'));
+        }
+      })
+      return output;
+    }
+    // Get the wiki list of wiki names from the settings object
+    const wikiList = getList($tw.settings.wikis, '')
+    const viewableWikis = []
+    wikiList.forEach(function(wikiName) {
+      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+        viewableWikis.push(wikiName);
+      }
+    })
+    return wikiList;
+  }
+  function getAvailableChats() {
+    return {};
+  }
+  function sendReply(reply, data) {
+    $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.send(data)
+  }
+  $tw.Bob.Federation.messageHandlers.requestServerUpdate = function(data) {
+    const authorised = checkAuthorization(data);
+    if (authorised) {
+      // Reply with the server info listed above
+      const reply = {
+        name: 'server name',
+        canLogin: 'no',
+        availableWikis: getAvailableWikis(data),
+        availableChats: getAvailableChats(data)
+      };
+      $tw.Bob.Shared.sendToRemoteServer(reply, data);
+      //sendReply(reply, data);
+    }
+  }
+
   /*
     Sync servers takes a filter and syncs all of the tiddlers returned by the
     filter with a remote server.

@@ -1,0 +1,17 @@
+title: $:/plugins/OokTech/Bob/Federation/AddRemoteServerTemplate
+
+Remote URL:
+
+<$edit-text
+  tiddler='$:/state/Federation/AddServer'
+  field='remote_url'
+  cass='tc-edit-texteditor'
+/>
+
+<$button>
+  Try Connecting
+  <$action-websocketmessage
+    $type='openRemoteConnection'
+    url={{$:/state/Federation/AddServer!!remote_url}}
+  />
+</$button>

@@ -52,10 +52,9 @@ ChatView.prototype.render = function(parent,nextSibling) {
 
     }
   }
-  const self = this;
+  const format = this.format || '0hh:0mm:0ss';
   // For each line in the history append a div with that message in it.
   Object.keys(chatHistoryObject).slice().sort().forEach(function(messageTimestamp, messageIndex) {
-    const format = self.format || '0hh:0mm:0ss';
     const dateDisplay = $tw.utils.formatDateString($tw.utils.parseDate(messageTimestamp),format);
     const newElement = document.createElement('div');
     newElement.innerHTML = `<span

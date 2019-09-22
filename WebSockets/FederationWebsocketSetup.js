@@ -31,7 +31,6 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      let self = this;
       try {
         let eventData = JSON.parse(event);
         if (typeof this.url !== 'undefined') {
@@ -43,7 +42,7 @@ if($tw.node) {
           };
         } else {
           eventData._source_info = this._socket._peername;
-          eventData._source_info.url = this._socket._peername.address + ':' +this._socket._peername.port;
+          eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
           $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}

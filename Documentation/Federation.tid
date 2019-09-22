@@ -28,10 +28,11 @@ uniqueName: {
     wikiName1: {
       sync: yes/no,
       syncFilter: <<someFilter>>,
-      syncType: pull,push,remoteWins,localWins,newestWins,
+      syncType: pull/push/bidirectional,
       autoSync: yes/no,
       public: yes/no,
-      conflictType: newestWins,oldestWins,localWins,remoteWins,manual
+      conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
+      allowsLogin: yes/no
     },
     wikiName2: {
       <<same stuff>>

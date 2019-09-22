@@ -4,33 +4,36 @@ caption: Federation
 Select Server:
 <$select
   tiddler='$:/state/Federation/SelectedRemoteServer'
-  default='No server selected'
+  default='Add Server'
 >
   <option
-    value=''
+    value='Add Server'
   >
-    No server selected
+    Add Server
   </option>
   <$list
-    filter='[prefix[$:/Federation/RemoteServer/]]'
+    filter='[tag[Remote Server]]'
   >
     <option
       value=<<currentTiddler>>
     >
-      <$list
-        filter='[<currentTiddler>removePrefix[$:/Federation/RemoteServer/]]'
+      <$view
+        field='name'
       >
-      </$list>
+        <$view
+          field='title'
+        />
+      </$view>
     </option>
   </$list>
 </$select>
 
 <$list
-  filter='[{$:/state/Federation/SelectedRemoteServer}]'
-  emptyMessage='No Server Selected'
+  filter='[{$:/state/Federation/SelectedRemoteServer}has[title]]-[[Add Server]]'
+  emptyMessage={{$:/plugins/OokTech/Bob/Federation/AddRemoteServerTemplate}}
 >
 
-{{||$:/plugins/OokTech/Bob/Federation/RemoteServerTemplate}}
+  {{||$:/plugins/OokTech/Bob/Federation/RemoteServerTemplate}}
 </$list>
 
 ---

@@ -534,7 +534,6 @@ This has some functions that are needed by Bob in different places.
         return true;
       }
     })
-
     return outQueue;
   }
 
@@ -594,6 +593,10 @@ This has some functions that are needed by Bob in different places.
     robust against collisions, it just needs to make collisions rare for a very
     easy value of rare, like 0.1% would be more than enough to make this very
     useful, and this should be much better than that.
+
+    Remember that this just cares about collisions between one tiddler and its
+    previous state after an edit, not between all tiddlers in the wiki or
+    anything like that.
   */
   // This is a stable json stringify function from https://github.com/epoberezkin/fast-json-stable-stringify
   function stableStringify (data, opts) {
@@ -668,24 +671,8 @@ This has some functions that are needed by Bob in different places.
   }
 
   /*
-    This sends a message to a remote server. This is used for syncing for now,
-    in the future it may be used for other things.
+    This acknowledges that a message has been received.
   */
-  Shared.sendToRemoteServer = function(message) {
-    let ok = true
-    if(typeof message === 'string') {
-      try{
-        message = JSON.parse(message)
-      } catch (e) {
-        ok = false
-      }
-      if(ok) {
-        message.source_server = 'ThisServerURL'
-        message.access_token = 'ThisAccessToken'
-      }
-    }
-  }
-
   Shared.sendAck = function (data) {
     if($tw.browser) {
       const token = localStorage.getItem('ws-token')
@@ -695,6 +682,48 @@ This has some functions that are needed by Bob in different places.
         if(data.source_connection !== undefined && data.source_connection !== -1) {
           $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
         }
+      }
+    }
+  }
+
+  /*
+    This creates the needed message data for remote servers
+
+    TODO get access token part
+  */
+  Shared.createRemoteMessageData = function(message) {
+    // The messages ids are shared with sending things to browsers, but this
+    // has no effect on anything other than making the numbers increase a bit
+    // faster.
+    const id = $tw.Bob.Shared.makeId();
+    const token = false;
+    message.id = id;
+    let messageData = {
+      message: message,
+      id: id,
+      time: Date.now(),
+      type: message.type,
+      ack: {},
+      token: token
+    };
+    return messageData;
+  }
+
+  /*
+    This sends a message to a remote server. This is used for syncing for now,
+    in the future it may be used for other things.
+  */
+  Shared.sendToRemoteServer = function(message, serverInfo) {
+    let ok = true
+    if(typeof message === 'string') {
+      try{
+        message = JSON.parse(message)
+      } catch (e) {
+        ok = false
+      }
+      if(ok) {
+        const messageData = Shared.createRemoteMessageData(message);
+        $tw.Bob.Federation.remoteConnections[serverInfo.url].socket.send(messageData);
       }
     }
   }

@@ -31,12 +31,16 @@ if($tw.node) {
       function openRemoteSocket() {
         const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
-          name: serverName,
-          publicKey: 'c minor'
+          serverName: serverName,
+          publicKey: 'c minor',
+          canLogin: 'no',
+          availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(),
+          availableChats: {},
+          staticUrl: 'no'
         }
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
-        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
+        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestServerUpdate'}))
         $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the
