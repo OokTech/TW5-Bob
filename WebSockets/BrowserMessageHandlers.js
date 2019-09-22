@@ -368,6 +368,8 @@ it will overwrite this file.
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+      console.log(data.connections)
+      /*
       Object.keys(data.connections).forEach(function(connectionUrl) {
         console.log(data.connections)
         const connectionFields = {
@@ -381,6 +383,7 @@ it will overwrite this file.
         }
         $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })
+      */
     }
   }
 
