@@ -674,6 +674,7 @@ This has some functions that are needed by Bob in different places.
     This acknowledges that a message has been received.
   */
   Shared.sendAck = function (data) {
+    data = data || {};
     if($tw.browser) {
       const token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));

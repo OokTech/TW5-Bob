@@ -187,6 +187,7 @@ if($tw.node) {
     This sends back a list of all wikis that are viewable using the current access token.
   */
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
+    data = data || {};
     $tw.Bob.Shared.sendAck(data);
     function getList(obj, prefix) {
       let output = []

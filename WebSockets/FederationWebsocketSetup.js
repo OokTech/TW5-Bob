@@ -31,6 +31,7 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
+      console.log(event)
       try {
         let eventData = JSON.parse(event);
         if (typeof this.url !== 'undefined') {
