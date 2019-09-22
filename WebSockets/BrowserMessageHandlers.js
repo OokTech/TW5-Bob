@@ -376,8 +376,8 @@ it will overwrite this file.
           url: connectionUrl,
           staticUrl: '',
           publicKey: '',
-          availableWikis: data.connections.availableWikis.join(' '),
-          availableChats: data.connections.availableChats.join(' ')
+          availableWikis: data.connections,//.availableWikis.join(' '),
+          availableChats: data.connections//.availableChats.join(' ')
         }
         $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })
