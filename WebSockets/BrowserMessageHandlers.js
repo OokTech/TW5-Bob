@@ -369,14 +369,15 @@ it will overwrite this file.
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       Object.keys(data.connections).forEach(function(connectionUrl) {
+        console.log(data.connections)
         const connectionFields = {
           title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
-          tags: 'Remote Server',
+          tags: '[[Remote Server]]',
           url: connectionUrl,
           staticUrl: '',
           publicKey: '',
-          availableWikis: data.connections.availableWikis,
-          availableChats: data.connections.availableChats
+          availableWikis: data.connections.availableWikis.join(' '),
+          availableChats: data.connections.availableChats.join(' ')
         }
         $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })

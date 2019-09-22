@@ -36,7 +36,7 @@ if($tw.node) {
           publicKey: 'c minor',
           canLogin: 'no',
           availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(),
-          availableChats: {},
+          availableChats: [],
           staticUrl: 'no'
         }
         console.log('REMOTE SOCKET OPENED', data.url)

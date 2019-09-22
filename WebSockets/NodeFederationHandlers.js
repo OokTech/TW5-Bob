@@ -96,7 +96,6 @@ if($tw.node) {
   }
 
   function addServerInfo(data) {
-    console.log('Server Info', data)
     data = data || {}
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
