@@ -365,7 +365,7 @@ it will overwrite this file.
     if (data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',
-        list: $tw.utils.stringifyList(data.connections)
+        list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }

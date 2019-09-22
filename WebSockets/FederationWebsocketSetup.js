@@ -103,11 +103,20 @@ if($tw.node) {
     */
     $tw.Bob.Federation.updateConnections = function () {
       console.log('update connections')
+      const connections = {}
+      Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(connectionKey) {
+        connections[connectionKey] = {
+          name:$tw.Bob.Federation.remoteConnections.name,
+          canLogin:$tw.Bob.Federation.remoteConnections.canLogin,
+          availableWikis:$tw.Bob.Federation.remoteConnections.availableWikis,
+          availableChats:$tw.Bob.Federation.remoteConnections.availableChats
+        };
+      })
       const message = {
         type: 'updateConnections',
-        connections: Object.keys($tw.Bob.Federation.remoteConnections)
-      }
-      $tw.Bob.SendToBrowsers(message)
+        connections: connections
+      };
+      $tw.Bob.SendToBrowsers(message);
     }
     finishSetup();
   }

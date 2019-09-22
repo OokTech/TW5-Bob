@@ -81,13 +81,33 @@ if($tw.node) {
     if (authorised) {
       // Reply with the server info listed above
       const reply = {
-        name: 'server name',
-        canLogin: 'no',
-        availableWikis: getAvailableWikis(data),
-        availableChats: getAvailableChats(data)
+        type: 'serverInfo',
+        info: {
+          name: 'server name',
+          canLogin: 'no',
+          availableWikis: getAvailableWikis(data),
+          availableChats: getAvailableChats(data)
+        }
       };
       $tw.Bob.Shared.sendToRemoteServer(reply, data);
-      //sendReply(reply, data);
+    }
+  }
+
+  function addServerInfo(data) {
+    data = data || {}
+    if (data.info && data._source_info) {
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats;
+    }
+    $tw.Bob.Federation.updateConnections();
+  }
+
+  $tw.Bob.Federation.serverInfo = function(data) {
+    const authorised = checkAuthorization(data);
+    if (authorised) {
+      addServerInfo(data)
     }
   }
 
