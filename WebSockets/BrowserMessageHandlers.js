@@ -370,7 +370,7 @@ it will overwrite this file.
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       Object.keys(data.connections).forEach(function(connectionUrl) {
         const connectionFields = {
-          title: '$:/Federation/RemoteServer/' + data.connections[connectionName].name,
+          title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
           tags: 'Remote Server',
           url: connectionUrl,
           staticUrl: '',
