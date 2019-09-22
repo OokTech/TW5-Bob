@@ -116,10 +116,10 @@ if($tw.node) {
       const connections = {}
       Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(connectionKey) {
         connections[connectionKey] = {
-          name:$tw.Bob.Federation.remoteConnections[connectionKen].name,
-          canLogin:$tw.Bob.Federation.remoteConnections[connectionKen].canLogin,
-          availableWikis:$tw.Bob.Federation.remoteConnections[connectionKen].availableWikis,
-          availableChats:$tw.Bob.Federation.remoteConnections[connectionKen].availableChats
+          name:$tw.Bob.Federation.remoteConnections[connectionKey].name,
+          canLogin:$tw.Bob.Federation.remoteConnections[connectionKey].canLogin,
+          availableWikis:$tw.Bob.Federation.remoteConnections[connectionKey].availableWikis,
+          availableChats:$tw.Bob.Federation.remoteConnections[connectionKey].availableChats
         };
       })
       const message = {
