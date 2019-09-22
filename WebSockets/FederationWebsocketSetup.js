@@ -94,11 +94,13 @@ if($tw.node) {
 
       console.log(request.headers.host)
 
-      const URL = require('url');
+      //const URL = require('url');
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
-      const remoteUrl = new URL(request.headers.host);
-      const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
-      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
+      //const remoteUrl = new URL(request.headers.host);
+      //const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
+      const websocketProtocol = 'ws://';
+      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
+      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + request.headers.host + '/api/federation/socket');
     }
 
     /*

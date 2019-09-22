@@ -92,6 +92,7 @@ if($tw.node) {
           port: $tw.settings['ws-server'].port
         }
       };
+      console.log(reply)
       $tw.Bob.Shared.sendToRemoteServer(reply, data);
     }
   }
