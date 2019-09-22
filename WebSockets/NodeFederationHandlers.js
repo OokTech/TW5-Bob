@@ -68,7 +68,7 @@ if($tw.node) {
         viewableWikis.push(wikiName);
       }
     })
-    return wikiList;
+    return wikiList || {};
   }
   function getAvailableChats() {
     return {};
