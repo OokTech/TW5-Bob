@@ -378,6 +378,7 @@ it will overwrite this file.
           availableWikis: data.connections.availableWikis,
           availableChats: data.connections.availableChats
         }
+        $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })
     }
   }
