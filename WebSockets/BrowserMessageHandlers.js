@@ -368,6 +368,17 @@ it will overwrite this file.
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+      Object.keys(data.connections).forEach(function(connectionUrl) {
+        const connectionFields = {
+          title: '$:/Federation/RemoteServer/' + data.connections[connectionName].name,
+          tags: 'Remote Server',
+          url: connectionUrl,
+          staticUrl: '',
+          publicKey: '',
+          availableWikis: data.connections.availableWikis,
+          availableChats: data.connections.availableChats
+        }
+      })
     }
   }
 

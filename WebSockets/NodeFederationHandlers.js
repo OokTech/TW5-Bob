@@ -78,7 +78,6 @@ if($tw.node) {
     $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.send(data)
   }
   $tw.Bob.Federation.messageHandlers.requestServerUpdate = function(data) {
-    console.log(data)
     const authorised = checkAuthorization(data);
     if (authorised) {
       // Reply with the server info listed above
@@ -92,12 +91,12 @@ if($tw.node) {
           port: $tw.settings['ws-server'].port
         }
       };
-      console.log(reply)
       $tw.Bob.Shared.sendToRemoteServer(reply, data);
     }
   }
 
   function addServerInfo(data) {
+    console.log('Server Info', data)
     data = data || {}
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
