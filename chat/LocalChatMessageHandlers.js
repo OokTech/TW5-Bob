@@ -49,7 +49,7 @@ if($tw.node) {
         type: 'application/json'
       }), data.wiki);
       // Sent it to any connected servers
-      $tw.Bob.Federation.sendToRemoteServers(JSON.stringify(data));
+      $tw.Bob.Shared.sendToRemoteServers(JSON.stringify(data));
     }
   }
 }
