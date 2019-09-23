@@ -24,9 +24,12 @@ if($tw.node) {
     Receive a federated chat message
   */
   $tw.Bob.Federation.messageHandlers.chatMessage = function(data) {
+    console.log('1')
+    console.log(data)
     data.wiki = data.wiki || 'RootWiki';
     const conversationTiddler = data.conversation || 'DefaultChat';
     if (conversationTiddler && data.message) {
+      console.log('2')
       // Get the history tiddler
       const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`);
       let history = {};
@@ -43,12 +46,14 @@ if($tw.node) {
       }
       // Add new message
       history[data.time] = data.message
+      console.log('3')
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
         text:JSON.stringify(history, null, 2),
         title: `$:/chat/${conversationTiddler}`,
         type: 'application/json'
       }), data.wiki);
+      console.log('4')
     }
   }
 

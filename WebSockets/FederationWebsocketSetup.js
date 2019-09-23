@@ -32,9 +32,13 @@ if($tw.node) {
 
     $tw.Bob.Federation.handleMessage = function (event) {
       $tw.Bob.logger.log('Received federated message ', event, {level:4});
-
+      console.log('a')
       try {
         let eventData = JSON.parse(event);
+        if (typeof eventData === 'string') {
+          eventData = JSON.parse(eventData);
+        }
+        console.log('b', eventData)
         if (typeof this.url !== 'undefined') {
           const thisURL = URL.parse(this.url);
           eventData._source_info = {
@@ -46,15 +50,20 @@ if($tw.node) {
           eventData._source_info = this._socket._peername;
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
+        console.log('c')
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
+          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this};
           this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
         }
+        console.log(Object.keys($tw.Bob.Federation.messageHandlers))
+        console.log(typeof $tw.Bob.Federation.messageHandlers[eventData.type])
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
+          console.log('d')
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(eventData);
           if(authorised) {
+            console.log('e')
             eventData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
           }
