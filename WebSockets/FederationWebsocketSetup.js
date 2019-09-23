@@ -31,7 +31,8 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      console.log('received federated message:',event)
+      $tw.Bob.logger.log('Received federated message ', event, {level:4});
+
       try {
         let eventData = JSON.parse(event);
         if (typeof this.url !== 'undefined') {
@@ -46,7 +47,6 @@ if($tw.node) {
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          //$tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
           $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {incoming: this}
           this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
         }
@@ -94,15 +94,7 @@ if($tw.node) {
       client.on('message', $tw.Bob.Federation.handleMessage);
       $tw.Bob.Federation.updateConnections();
 
-      //console.log(request.headers.host)
-
-      //const URL = require('url');
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
-      //const remoteUrl = new URL(request.headers.host);
-      //const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
-      const websocketProtocol = 'ws://';
-      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
-      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + request.headers.host + '/api/federation/socket');
     }
 
     /*
@@ -114,14 +106,15 @@ if($tw.node) {
       changes
     */
     $tw.Bob.Federation.updateConnections = function () {
-      console.log('update connections')
+      $tw.Bob.logger.log('Update federated connections', {level:3});
+      $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.remoteConnections), {level:4});
       const connections = {}
       Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(connectionKey) {
         connections[connectionKey] = {
-          name:$tw.Bob.Federation.remoteConnections[connectionKey].name,
-          canLogin:$tw.Bob.Federation.remoteConnections[connectionKey].canLogin,
-          availableWikis:$tw.Bob.Federation.remoteConnections[connectionKey].availableWikis,
-          availableChats:$tw.Bob.Federation.remoteConnections[connectionKey].availableChats
+          name: $tw.Bob.Federation.remoteConnections[connectionKey].name,
+          canLogin: $tw.Bob.Federation.remoteConnections[connectionKey].canLogin,
+          availableWikis: $tw.Bob.Federation.remoteConnections[connectionKey].availableWikis,
+          availableChats: $tw.Bob.Federation.remoteConnections[connectionKey].availableChats
         };
       })
       const message = {

@@ -726,7 +726,6 @@ This has some functions that are needed by Bob in different places.
     }
     if(ok) {
       const messageData = Shared.createRemoteMessageData(message);
-      //$tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
       $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].incoming.send(JSON.stringify(messageData));
     }
   }

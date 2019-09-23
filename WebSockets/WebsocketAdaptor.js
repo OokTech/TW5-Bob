@@ -175,6 +175,7 @@ if($tw.node) {
           $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo);
           // Save the tiddler in memory.
           internalSave(tiddler, prefix);
+          $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
         }
       });
     }
