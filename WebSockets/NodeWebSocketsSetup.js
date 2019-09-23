@@ -106,6 +106,7 @@ if($tw.node) {
     The handle message function, split out so we can use it other places
   */
   $tw.Bob.handleMessage = function(event) {
+    $tw.Bob.logger.log('Received websocket message ', event, {level:4});
     let self = this;
     // Determine which connection the message came from
     const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
@@ -216,6 +217,7 @@ if($tw.node) {
           const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
           const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
           $tw.Bob.SendToBrowser($tw.connections[index], message);
+          $tw.Bob.logger.log('Update Editing Tiddlers', {level: 4})
         }
       });
     }

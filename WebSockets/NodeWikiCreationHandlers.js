@@ -536,6 +536,7 @@ if($tw.node) {
       };
       $tw.ServerSide.sendBrowserAlert(thisMessage);
       $tw.Bob.logger.log('Fetched tiddlers', {level: 2})
+      $tw.Bob.logger.log('Fetched ',list, {level: 4})
     }
   }
 
