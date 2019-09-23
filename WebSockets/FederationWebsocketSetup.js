@@ -45,7 +45,9 @@ if($tw.node) {
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
+          //$tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
+          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {incoming: this}
+          console.log('Incoming', this)
         }
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {

@@ -729,7 +729,13 @@ This has some functions that are needed by Bob in different places.
       const messageData = Shared.createRemoteMessageData(message);
       console.log('messageData', messageData)
       //HERE
-      $tw.Bob.Federation.remoteConnections[serverInfo.url].socket.send(messageData);
+      console.log(serverInfo)
+      console.log(Object.keys($tw.Bob.Federation.remoteConnections))
+      console.log(1)
+      //$tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
+      console.log($tw.Bob.Federation.remoteConnections[serverInfo._source_info.url])
+      $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].incoming.send(JSON.stringify(messageData));
+      console.log(2)
     }
   }
 

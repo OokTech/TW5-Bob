@@ -51,6 +51,7 @@ if($tw.node) {
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
       if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
+          console.log('Open socket NodeServerHandlers.js line 54')
           $tw.Bob.Federation.remoteConnections[data.url] = {}
           $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
