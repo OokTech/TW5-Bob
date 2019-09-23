@@ -715,7 +715,6 @@ This has some functions that are needed by Bob in different places.
     in the future it may be used for other things.
   */
   Shared.sendToRemoteServer = function(message, serverInfo) {
-    console.log('bloop',message, serverInfo)
     let ok = true
     if(typeof message === 'string') {
       try{
@@ -727,15 +726,8 @@ This has some functions that are needed by Bob in different places.
     }
     if(ok) {
       const messageData = Shared.createRemoteMessageData(message);
-      console.log('messageData', messageData)
-      //HERE
-      console.log(serverInfo)
-      console.log(Object.keys($tw.Bob.Federation.remoteConnections))
-      console.log(1)
       //$tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
-      console.log($tw.Bob.Federation.remoteConnections[serverInfo._source_info.url])
       $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].incoming.send(JSON.stringify(messageData));
-      console.log(2)
     }
   }
 

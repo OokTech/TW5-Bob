@@ -31,7 +31,7 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      console.log(event)
+      console.log('received federated message:',event)
       try {
         let eventData = JSON.parse(event);
         if (typeof this.url !== 'undefined') {
@@ -48,7 +48,6 @@ if($tw.node) {
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
           //$tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
           $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {incoming: this}
-          console.log('Incoming', this)
           this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
         }
         // Make sure we have a handler for the message type
