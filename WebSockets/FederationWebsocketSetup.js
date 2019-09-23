@@ -46,8 +46,7 @@ if($tw.node) {
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          //$tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {incoming: this}
+          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
           this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
         }
         // Make sure we have a handler for the message type
@@ -90,19 +89,9 @@ if($tw.node) {
     */
     function handleConnection (client, request) {
       $tw.Bob.logger.log("New Remote Connection", {level: 2});
-      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {incoming: client};
+      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client};
       client.on('message', $tw.Bob.Federation.handleMessage);
       $tw.Bob.Federation.updateConnections();
-
-      //console.log(request.headers.host)
-
-      //const URL = require('url');
-      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
-      //const remoteUrl = new URL(request.headers.host);
-      //const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
-      const websocketProtocol = 'ws://';
-      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
-      //$tw.Bob.Federation.remoteConnections[request.connection.remoteAddress].socket = new WebSocket(websocketProtocol + request.headers.host + '/api/federation/socket');
     }
 
     /*

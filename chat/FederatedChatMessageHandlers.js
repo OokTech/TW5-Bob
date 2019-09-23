@@ -24,6 +24,7 @@ if($tw.node) {
     Receive a federated chat message
   */
   $tw.Bob.Federation.messageHandlers.chatMessage = function(data) {
+    data.wiki = data.wiki || 'RootWiki';
     const conversationTiddler = data.conversation || 'DefaultChat';
     if (conversationTiddler && data.message) {
       // Get the history tiddler

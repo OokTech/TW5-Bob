@@ -726,9 +726,17 @@ This has some functions that are needed by Bob in different places.
     }
     if(ok) {
       const messageData = Shared.createRemoteMessageData(message);
-      //$tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
-      $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].incoming.send(JSON.stringify(messageData));
+      $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
     }
+  }
+
+  /*
+
+  */
+  Shared.sendToRemoteServers = function(message) {
+    Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(serverKey) {
+      $tw.Bob.Federation.remoteConnections[serverKey].socket.send(JSON.stringify(messageData));
+    })
   }
 
   module.exports = Shared;

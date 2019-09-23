@@ -48,6 +48,8 @@ if($tw.node) {
         title: `$:/chat/${conversationTiddler}`,
         type: 'application/json'
       }), data.wiki);
+      // Sent it to any connected servers
+      $tw.Bob.Federation.sendToRemoteServers(data);
     }
   }
 }
