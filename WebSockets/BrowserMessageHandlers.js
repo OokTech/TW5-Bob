@@ -368,7 +368,7 @@ it will overwrite this file.
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
-      console.log(data.connections)
+      console.log('connections 1',data.connections)
       /*
       Object.keys(data.connections).forEach(function(connectionUrl) {
         console.log(data.connections)

@@ -72,7 +72,7 @@ if($tw.node) {
     return wikiList || {};
   }
   function getAvailableChats() {
-    return {};
+    return [];
   }
   function sendReply(reply, data) {
     $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.send(data)

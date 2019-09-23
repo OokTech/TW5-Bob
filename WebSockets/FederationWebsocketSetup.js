@@ -31,7 +31,6 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      console.log(event)
       try {
         let eventData = JSON.parse(event);
         if (typeof this.url !== 'undefined') {
@@ -92,7 +91,7 @@ if($tw.node) {
       client.on('message', $tw.Bob.Federation.handleMessage);
       $tw.Bob.Federation.updateConnections();
 
-      console.log(request.headers.host)
+      //console.log(request.headers.host)
 
       //const URL = require('url');
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');

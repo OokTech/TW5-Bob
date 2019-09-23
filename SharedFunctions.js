@@ -715,18 +715,21 @@ This has some functions that are needed by Bob in different places.
     in the future it may be used for other things.
   */
   Shared.sendToRemoteServer = function(message, serverInfo) {
-    console.log(message, serverInfo)
+    console.log('bloop',message, serverInfo)
     let ok = true
     if(typeof message === 'string') {
       try{
         message = JSON.parse(message)
       } catch (e) {
+        console.log('err', e)
         ok = false
       }
-      if(ok) {
-        const messageData = Shared.createRemoteMessageData(message);
-        $tw.Bob.Federation.remoteConnections[serverInfo.url].socket.send(messageData);
-      }
+    }
+    if(ok) {
+      const messageData = Shared.createRemoteMessageData(message);
+      console.log('messageData', messageData)
+      //HERE
+      $tw.Bob.Federation.remoteConnections[serverInfo.url].socket.send(messageData);
     }
   }
 
