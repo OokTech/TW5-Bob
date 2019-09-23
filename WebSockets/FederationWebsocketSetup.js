@@ -47,11 +47,7 @@ if($tw.node) {
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-<<<<<<< HEAD
           $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
-=======
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {incoming: this}
->>>>>>> c14c43d469c64bcb442f30738a590119832fa34d
           this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
         }
         // Make sure we have a handler for the message type
@@ -97,11 +93,6 @@ if($tw.node) {
       $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client};
       client.on('message', $tw.Bob.Federation.handleMessage);
       $tw.Bob.Federation.updateConnections();
-<<<<<<< HEAD
-=======
-
-      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
->>>>>>> c14c43d469c64bcb442f30738a590119832fa34d
     }
 
     /*
