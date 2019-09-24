@@ -41,7 +41,11 @@ Select Wiki:
   </$list>
 </$select>
 
-New Name: <$edit-text tiddler='$:/state/RenameWiki' field='new_name'/>
+New Name:
+<$edit-text
+  tiddler='$:/state/RenameWiki'
+  field='new_name'
+/>
 
 <$button
   actions=<<updateNameActions>>

@@ -89,3 +89,13 @@ chat interface for that chat appears and you get an update of the chat history
 for that server.
 
 You probably have to click a button to load the conversation.
+
+The chat message is the same for both local and federated chats, the setup of
+the chat itself lets the server know who to send what messages to.
+
+So chats can be:
+
+* Public - Anyone can see it if they have joined, the chat will be listed in the public chats when a new server connection is made.
+* Private - only explicitly listed logins can see them, regardless of location.
+* Local - Anyone on the same Bob server can see the chat but it isn't federated out to other servers.
+* Invite-Only - the same as private, except the chat is listed in the available chats and people can request access.

@@ -32,6 +32,7 @@ if($tw.node) {
         $tw.settings.federation = $tw.settings.federation || {};
         const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
+          type: 'serverInfo',
           serverName: serverName,
           publicKey: 'c minor',
           canLogin: 'no',
@@ -51,7 +52,6 @@ if($tw.node) {
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
       if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
-          console.log('Open socket NodeServerHandlers.js line 54')
           $tw.Bob.Federation.remoteConnections[data.url] = {}
           $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
@@ -304,9 +304,23 @@ if($tw.node) {
         if(serverEntry.type === 'saveTiddler') {
           const longTitle = serverEntry.title;
           const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'saveTiddler',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         } else if(serverEntry.type === 'deleteTiddler') {
-          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'deleteTiddler',
+            tiddler: {
+              fields:{
+                title:serverEntry.title
+              }
+            },
+            wiki: data.wiki
+          };
         }
         if(message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -413,7 +427,13 @@ if($tw.node) {
     // Add the tiddler
     //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
-    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
+    $tw.Bob.SendToBrowsers({
+      type: 'saveTiddler',
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: data.wiki
+    });
     // Save the updated settings
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
@@ -480,8 +500,14 @@ if($tw.node) {
       title: '$:/Bob/AvailablePluginList',
       list: $tw.utils.stringifyList(Object.keys(pluginNames))
     }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    }
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 
@@ -494,9 +520,15 @@ if($tw.node) {
     const fields = {
       title: '$:/Bob/AvailableThemeList',
       list: $tw.utils.stringifyList(Object.keys(themeNames))
-    }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    };
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    };
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 

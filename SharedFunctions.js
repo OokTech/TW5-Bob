@@ -734,6 +734,9 @@ This has some functions that are needed by Bob in different places.
 
   */
   Shared.sendToRemoteServers = function(message) {
+    // Don't send to the server that the message originated in!
+    // but that shouldn't happen
+    console.log(Object.keys($tw.Bob.Federation.remoteConnections))
     Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(serverKey) {
       $tw.Bob.Federation.remoteConnections[serverKey].socket.send(JSON.stringify(message));
     })

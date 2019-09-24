@@ -356,38 +356,5 @@ if($tw.node) {
     }
   }
 
-
-  /*
-    Receive a federated chat message
-  */
-  $tw.Bob.Federation.messageHandlers.chatMessage = function(data) {
-    data.wiki = data.wiki || 'RootWiki';
-    const conversationTiddler = data.conversation || 'DefaultChat';
-    if (conversationTiddler && data.message) {
-      // Get the history tiddler
-      const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`);
-      let history = {};
-      if (historyTiddler) {
-        // Make sure that the fields aren't read only
-        history = JSON.parse(JSON.stringify(historyTiddler.fields.text));
-      }
-      const theTime = $tw.utils.stringifyDate(new Date());
-      history = JSON.parse(history) || history;
-      history[theTime] = {
-        message:data.message,
-        from: data.from,
-        server: data.server
-      }
-      // Add new message
-      history[data.time] = data.message
-      // save the updated tiddler
-      $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
-        text:JSON.stringify(history, null, 2),
-        title: `$:/chat/${conversationTiddler}`,
-        type: 'application/json'
-      }), data.wiki);
-    }
-  }
-
 }
 })();

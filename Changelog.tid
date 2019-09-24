@@ -4,7 +4,12 @@ title: $:/plugins/OokTech/Bob/Changelog
 
   - maybe actually set the SaverFilter tiddler correctly
   - start documentation on inter-server federation and syncing
-  - Add local chat stuff and start the federated version
+  - Add local chat
+    - different people using the same wiki served by a Bob server can have a
+      real-time chat.
+  - Add federated chat
+    - People on different servers can chat with each other
+    - Limited utility due to server discoverability and NAT shenanigans
   - Hopefully fix the problems with saving .tid files that have unsorted tags
   - split out routes into separate files
     - this may allow doing things like enabling the file server without restarting the server.
