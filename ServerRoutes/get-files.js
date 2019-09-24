@@ -28,8 +28,36 @@ if(typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix
 
 exports.path = pathRegExp;
 
+function findName(url) {
+  const pieces = url.split('/')
+  let name = ''
+  let settingsObj = $tw.settings.wikis[pieces[0]]
+  if(settingsObj) {
+    name = pieces[0]
+  }
+  for (let i = 1; i < pieces.length; i++) {
+    if(settingsObj) {
+      if(typeof settingsObj[pieces[i]] === 'object') {
+        name = name + '/' + pieces[i]
+        settingsObj = settingsObj[pieces[i]]
+      } else if(typeof settingsObj[pieces[i]] === 'string') {
+        name = name + '/' + pieces[i]
+        break
+      } else {
+        break
+      }
+    }
+  }
+  if (name === '') {
+    //name = 'RootWiki'
+  }
+  return name
+}
+
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'true') {
+    const path = require('path')
+    const fs = require('fs')
     const wikiName = findName(request.url.replace(/^\//, ''));
     const filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
     let urlPieces = request.url.split('/');
