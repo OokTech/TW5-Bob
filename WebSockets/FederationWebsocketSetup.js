@@ -109,8 +109,11 @@ if($tw.node) {
         connections[connectionKey] = {
           name: $tw.Bob.Federation.remoteConnections[connectionKey].name,
           canLogin: $tw.Bob.Federation.remoteConnections[connectionKey].canLogin,
-          availableWikis: $tw.Bob.Federation.remoteConnections[connectionKey].availableWikis,
-          availableChats: $tw.Bob.Federation.remoteConnections[connectionKey].availableChats
+          availableWikis: $tw.Bob.Federation.remoteConnections[connectionKey].availableWikis || [],
+          availableChats: $tw.Bob.Federation.remoteConnections[connectionKey].availableChats || [],
+          port: $tw.Bob.Federation.remoteConnections[connectionKey].port,
+          publicKey:  $tw.Bob.Federation.remoteConnections[connectionKey].publicKey,
+          staticUrl:$tw.Bob.Federation.remoteConnections[connectionKey].staticUrl
         };
       })
       const message = {

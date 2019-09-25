@@ -369,21 +369,19 @@ it will overwrite this file.
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       console.log('connections 1',data.connections)
-      /*
       Object.keys(data.connections).forEach(function(connectionUrl) {
         console.log(data.connections)
         const connectionFields = {
           title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
           tags: '[[Remote Server]]',
           url: connectionUrl,
-          staticUrl: '',
-          publicKey: '',
-          availableWikis: data.connections,//.availableWikis.join(' '),
-          availableChats: data.connections//.availableChats.join(' ')
+          staticUrl: data.connections[connectionUrl].staticUrl,
+          availableWikis: data.connections[connectionUrl].availableWikis.join(' '),
+          availableChats: data.connections[connectionUrl].availableChats.join(' '),
+          publicKey: data.connections[connectionUrl].publicKey
         }
         $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })
-      */
     }
   }
 
