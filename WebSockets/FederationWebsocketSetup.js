@@ -48,12 +48,6 @@ if($tw.node) {
           eventData._source_info = this._socket._peername;
           eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
-        /*
-        if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this};
-          this.send(JSON.stringify({type: 'hi', from: $tw.settings['ws-server'].port}))
-        }
-        */
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
           // Check authorisation

@@ -59,10 +59,12 @@ if($tw.node) {
           // while making it.
           // TODO figure out why this happens.
           if(typeof item === 'string') {
+            /*
             if(item === 'undefined') {
               delete $tw.Bob.Files[prefix][item];
               return false;
             }
+            */
             return ($tw.Bob.Files[prefix][item].filepath === itemPath)
           } else {
             return false;

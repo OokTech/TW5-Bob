@@ -100,8 +100,10 @@ if($tw.node) {
   }
 
   function addServerInfo(data) {
+    console.log('add server info')
     data = data || {}
     if (data.info && data._source_info) {
+      console.log('abwa?')
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
@@ -111,9 +113,11 @@ if($tw.node) {
     $tw.Bob.Federation.updateConnections();
   }
 
-  $tw.Bob.Federation.serverInfo = function(data) {
+  $tw.Bob.Federation.messageHandlers.serverInfo = function(data) {
+    console.log(data)
     const authorised = checkAuthorization(data);
     if (authorised) {
+      console.log('authorised')
       addServerInfo(data)
     }
   }
