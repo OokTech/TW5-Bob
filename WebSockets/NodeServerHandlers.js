@@ -33,12 +33,15 @@ if($tw.node) {
         const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
           type: 'serverInfo',
-          serverName: serverName,
-          publicKey: 'c minor',
-          canLogin: 'no',
-          availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(),
-          availableChats: [],
-          staticUrl: 'no'
+          info: {
+            name: serverName,
+            publicKey: 'c minor',
+            canLogin: 'no',
+            availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(),
+            availableChats: [],
+            staticUrl: 'no',
+            port: $tw.settings['ws-server'].port
+          }
         }
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))

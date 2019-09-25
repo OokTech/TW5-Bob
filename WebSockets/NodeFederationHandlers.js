@@ -90,9 +90,11 @@ if($tw.node) {
         info: {
           name: $tw.settings.Federation.serverName || 'Sever Name',
           canLogin: $tw.settings.Federation.canLogin || 'no',
-          availableWikis: getAvailableWikis(data),
+          availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(), //getAvailableWikis(data),
           availableChats: getAvailableChats(data),
-          port: $tw.settings['ws-server'].port
+          port: $tw.settings['ws-server'].port,
+          publicKey: 'c minor',
+          staticUrl: 'no'
         }
       };
       $tw.Bob.Shared.sendToRemoteServer(reply, data);
