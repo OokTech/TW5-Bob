@@ -14,6 +14,8 @@ title: $:/plugins/OokTech/Bob/Changelog
   - split out routes into separate files
     - this may allow doing things like enabling the file server without restarting the server.
   - Started a hopefully better interface for federated things.
+  - Added a server route for uploading files.
+    - The browser hook is still in the ServerImages plugin, I may move it into Bob later.
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 
