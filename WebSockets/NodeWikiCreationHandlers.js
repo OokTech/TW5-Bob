@@ -80,7 +80,11 @@ if($tw.node) {
       // Unpack plugin tiddlers
       tempWiki.readPluginInfo();
       tempWiki.unpackPluginTiddlers();
-      const text = tempWiki.renderTiddler('text/plain',"$:/core/save/all", {variables:{wikiTiddlers:$tw.utils.stringifyList(tempWiki.allTitles())}});
+      const text = tempWiki.renderTiddler('text/plain',"$:/core/save/all", {
+        variables:{
+          wikiTiddlers:$tw.utils.stringifyList(tempWiki.allTitles())
+        }
+      });
       fs.writeFile(outputFile,text,"utf8",function(err) {
         if(err) {
             $tw.Bob.logger.error(err, {level:1});
@@ -512,11 +516,24 @@ if($tw.node) {
         // Create the message with the appropriate conflict resolution
         // method and send it
         if(data.resolution === 'conflict') {
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'saveTiddler',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         } else if(data.resolution === 'force') {
-          message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'saveTiddler',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         } else {
-          message = {type: 'import', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'import',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         }
         $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
       })
@@ -527,8 +544,12 @@ if($tw.node) {
           tags: [],
           list: list
         }
-      }
-      message = {type: 'saveTiddler', tiddler: importListTiddler, wiki: data.wiki}
+      };
+      message = {
+        type: 'saveTiddler',
+        tiddler: importListTiddler,
+        wiki: data.wiki
+      };
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
       const thisMessage = {
         alert: 'Fetched Tiddlers, see import list',

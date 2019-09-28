@@ -101,7 +101,10 @@ it will overwrite this file.
     if(data.list) {
         const listField = $tw.utils.stringifyList(data.list);
         // Make the tiddler fields
-        const tiddlerFields = {title: "$:/state/Bob/EditingTiddlers", list: listField};
+        const tiddlerFields = {
+          title: "$:/state/Bob/EditingTiddlers",
+          list: listField
+        };
         // Add the tiddler
         $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     } else {
@@ -140,7 +143,12 @@ it will overwrite this file.
     const response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     const token = localStorage.getItem('ws-token')
-    $tw.connections[0].socket.send(JSON.stringify({type: 'browserTiddlerList', titles: response, token: token, wiki: $tw.wiki.getTiddlerText('$:/WikiName')}));
+    $tw.connections[0].socket.send(JSON.stringify({
+      type: 'browserTiddlerList',
+      titles: response,
+      token: token,
+      wiki: $tw.wiki.getTiddlerText('$:/WikiName')
+    }));
   }
 
   /*
@@ -193,7 +201,11 @@ it will overwrite this file.
     // we have conflicts so open the conflict list tiddler
     let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
     storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
-    $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
+    $tw.wiki.addTiddler({
+      title: "$:/StoryList",
+      text: "",
+      list: storyList
+    },$tw.wiki.getModificationFields());
   }
 
   /*
@@ -245,7 +257,12 @@ it will overwrite this file.
       clearTimeout($tw.settings.heartbeat.retry);
       setTimeout(function () {
         const token = localStorage.getItem('ws-token')
-        $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+        $tw.connections[0].socket.send(JSON.stringify({
+          type: 'ping',
+          heartbeat: true,
+          token: token,
+          wiki: $tw.wikiName
+        }));
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
     }
@@ -256,7 +273,12 @@ it will overwrite this file.
       handleDisconnected();
     } else {
       const token = localStorage.getItem('ws-token')
-      $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+      $tw.connections[0].socket.send(JSON.stringify({
+        type: 'ping',
+        heartbeat: true,
+        token: token,
+        wiki: $tw.wikiName
+      }));
     }
   }
 
@@ -267,19 +289,33 @@ it will overwrite this file.
   function handleDisconnected() {
     console.log('Disconnected from server', {level:0});
     const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
-    const tiddler = {title: '$:/plugins/OokTech/Bob/Server Warning', text: text, tags: '$:/tags/PageTemplate'};
+    const tiddler = {
+      title: '$:/plugins/OokTech/Bob/Server Warning',
+      text: text,
+      tags: '$:/tags/PageTemplate'
+    };
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
     $tw.settings.heartbeat.retry = setInterval(function () {
       if($tw.connections[0].socket.readyState === 1) {
         const token = localStorage.getItem('ws-token')
-        $tw.connections[0].socket.send(JSON.stringify({type: 'ping', heartbeat: true, token: token, wiki: $tw.wikiName}));
+        $tw.connections[0].socket.send(JSON.stringify({
+          type: 'ping',
+          heartbeat: true,
+          token: token,
+          wiki: $tw.wikiName
+        }));
       }
     }, $tw.settings.heartbeat.interval);
     let queue = [];
     $tw.Bob.MessageQueue.forEach(function(message) {
       queue.push(message)
     })
-    const tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: Date.now()-Number($tw.settings.heartbeat.timeout)};
+    const tiddler2 = {
+      title: '$:/plugins/OokTech/Bob/Unsent',
+      text: JSON.stringify(queue, '', 2),
+      type: 'application/json',
+      start: Date.now()-Number($tw.settings.heartbeat.timeout)
+    };
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
   }
 
@@ -329,7 +365,11 @@ it will overwrite this file.
       if(data.alert) {
         // Update the message history
         let tiddler = $tw.wiki.getTiddler('$:/Bob/AlertHistory');
-        let tidObj = {title:'$:/Bob/AlertHistory', type:'application/json', text: '{}'}
+        let tidObj = {
+          title:'$:/Bob/AlertHistory',
+          type:'application/json',
+          text: '{}'
+        };
         if(tiddler) {
           tidObj = JSON.parse(JSON.stringify(tiddler.fields))
         }

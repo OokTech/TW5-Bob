@@ -168,7 +168,15 @@ if($tw.node) {
         // Remove the tiddler on the server
         $tw.Bob.Wikis[prefix].wiki.deleteTiddler(tiddlerName);
         // Create a message saying to remove the tiddler from the browser
-        const message = {type: 'deleteTiddler', tiddler: {fields:{title: tiddlerName}}, wiki: prefix};
+        const message = {
+          type: 'deleteTiddler',
+          tiddler: {
+            fields:{
+              title: tiddlerName
+            }
+          }, 
+          wiki: prefix
+        };
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
       }

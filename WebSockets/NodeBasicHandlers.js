@@ -74,7 +74,14 @@ if($tw.node) {
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({tiddler:{fields:{title:data.tiddler.fields.title}}, wiki: prefix});
+          $tw.nodeMessageHandlers.cancelEditingTiddler({
+            tiddler:{
+              fields:{
+                title:data.tiddler.fields.title
+              }
+            },
+            wiki: prefix
+          });
           // If we are not expecting a save tiddler event than save the
           // tiddler normally.
           if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
@@ -189,38 +196,14 @@ if($tw.node) {
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
     data = data || {};
     $tw.Bob.Shared.sendAck(data);
-    function getList(obj, prefix) {
-      let output = []
-      Object.keys(obj).forEach(function(item) {
-        if(typeof obj[item] === 'string') {
-          if($tw.ServerSide.existsListed(prefix+item)) {
-            if(item == '__path') {
-              if(prefix.endsWith('/')) {
-                output.push(prefix.slice(0,-1));
-              } else {
-                output.push(prefix);
-              }
-            } else {
-              output.push(prefix+item);
-            }
-          }
-        } else if(typeof obj[item] === 'object') {
-          output = output.concat(getList(obj[item], prefix + item + '/'));
-        }
-      })
-      return output
-    }
-    // Get the wiki list of wiki names from the settings object
-    const wikiList = getList($tw.settings.wikis, '')
-    const viewableWikis = []
-    wikiList.forEach(function(wikiName) {
-      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
-        viewableWikis.push(wikiName)
-      }
-    })
+    const viewableWikis = $tw.Bob.Shared.getViewableWikiList(data);
     // Send viewableWikis back to the browser
-    const message = {type: 'setViewableWikis', list: $tw.utils.stringifyList(viewableWikis), wiki: data.wiki}
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+    const message = {
+      type: 'setViewableWikis',
+      list: $tw.utils.stringifyList(viewableWikis),
+      wiki: data.wiki
+  };
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
   }
 
   /*

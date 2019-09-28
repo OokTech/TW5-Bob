@@ -184,7 +184,13 @@ if($tw.node) {
   // After the tiddler file is saved this takes care of the internal part
   function internalSave (tiddler, prefix) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
-    const message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
+    const message = {
+      type: 'saveTiddler',
+      wiki: prefix,
+      tiddler: {
+        fields: tiddler.fields
+      }
+    };
     $tw.Bob.SendToBrowsers(message);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};

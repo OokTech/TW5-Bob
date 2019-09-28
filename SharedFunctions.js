@@ -680,7 +680,12 @@ This has some functions that are needed by Bob in different places.
     data = data || {};
     if($tw.browser) {
       const token = localStorage.getItem('ws-token')
-      $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
+      $tw.connections[0].socket.send(JSON.stringify({
+        type: 'ack',
+        id: data.id,
+        token: token,
+        wiki: $tw.wikiName
+      }));
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
@@ -688,6 +693,39 @@ This has some functions that are needed by Bob in different places.
         }
       }
     }
+  }
+
+  Shared.getViewableWikiList = function (data) {
+    function getList(obj, prefix) {
+      let output = [];
+      Object.keys(obj).forEach(function(item) {
+        if(typeof obj[item] === 'string') {
+          if($tw.ServerSide.existsListed(prefix+item)) {
+            if(item == '__path') {
+              if(prefix.endsWith('/')) {
+                output.push(prefix.slice(0,-1));
+              } else {
+                output.push(prefix);
+              }
+            } else {
+              output.push(prefix+item);
+            }
+          }
+        } else if(typeof obj[item] === 'object') {
+          output = output.concat(getList(obj[item], prefix + item + '/'));
+        }
+      })
+      return output;
+    }
+    // Get the wiki list of wiki names from the settings object
+    const wikiList = getList($tw.settings.wikis, '');
+    const viewableWikis = [];
+    wikiList.forEach(function(wikiName) {
+      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+        viewableWikis.push(wikiName);
+      }
+    });
+    return viewableWikis;
   }
 
   module.exports = Shared;
