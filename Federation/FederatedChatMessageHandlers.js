@@ -12,9 +12,12 @@ This handles messages sent to the node process.
 /*global $tw: false */
 "use strict";
 
+exports.name = "federation-chat-messages";
 exports.platforms = ["node"];
+exports.after = ["render"];
+exports.synchronous = true;
 
-if($tw.node && $tw.settings.enableFederation) {
+if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};

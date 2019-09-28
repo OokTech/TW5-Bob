@@ -12,9 +12,12 @@ A module that adds the framework for inter-server communication
 /*global $tw: false */
 "use strict";
 
+exports.name = "federation-web-sockets-setup";
 exports.platforms = ["node"];
+exports.after = ["render"];
+exports.synchronous = true;
 
-if($tw.node && $tw.settings.enableFederation) {
+if($tw.node && $tw.settings.enableFederation === 'yes') {
 
   const setup = function () {
     $tw.Bob = $tw.Bob || {};

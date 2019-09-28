@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/Federation/FederationSharedFunctions.js
 type: application/javascript
-module-type: library
+module-type: startup
 
 This has some functions that are needed by Bob in different places.
 
@@ -13,12 +13,12 @@ This has some functions that are needed by Bob in different places.
   "use strict";
 
   // Export name and synchronous status
-  exports.name = "web-sockets-setup";
+  exports.name = "federation-shared-functions";
   exports.platforms = ["node"];
   exports.after = ["render"];
   exports.synchronous = true;
 
-  if($tw.node && $tw.settings.enableFederation) {
+  if($tw.node && $tw.settings.enableFederation === 'yes') {
 
     let idNumber = 0;
     let messageQueue = [];
