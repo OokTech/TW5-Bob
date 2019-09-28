@@ -18,7 +18,6 @@ exports.after = ["render"];
 exports.synchronous = true;
 
 if($tw.node && $tw.settings.enableFederation === 'yes') {
-  console.log('here?')
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
@@ -34,6 +33,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
+      console.log('federation message',event)
       $tw.Bob.logger.log('Received federated message ', event, {level:4});
       try {
         let eventData = JSON.parse(event);
@@ -73,10 +73,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
-      console.log('finish setup')
       $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
       if(!$tw.settings['fed-wss'].useExternalWSS) {
-        console.log('here')
         $tw.federationWss = new WebSocketServer({noServer: true});
         // Set the onconnection function
         $tw.federationWss.on('connection', handleConnection);
@@ -85,7 +83,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         $tw.federationWss.on('close', function(connection) {
           $tw.Bob.logger.log('closed remote connection ', connection, {level:2});
         });
-        console.log($tw.federationWss)
       }
     }
 
@@ -136,7 +133,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   // we have to use the command line arguments because the externalserver
   // command hasn't run yet so we can't check $tw.ExternalServer
   if($tw.boot.argv.indexOf('--externalserver') === -1) {
-    console.log('setup first')
     setup();
   }
 }
