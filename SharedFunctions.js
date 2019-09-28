@@ -696,6 +696,7 @@ This has some functions that are needed by Bob in different places.
   }
 
   Shared.getViewableWikiList = function (data) {
+    data = data || {};
     function getList(obj, prefix) {
       let output = [];
       Object.keys(obj).forEach(function(item) {
