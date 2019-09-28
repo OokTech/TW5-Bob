@@ -45,8 +45,10 @@ if($tw.node) {
         title: `$:/chat/${conversationTiddler}`,
         type: 'application/json'
       }), data.wiki);
-      // Sent it to any connected servers
-      $tw.Bob.Shared.sendToRemoteServers(JSON.stringify(data));
+      if ($tw.settings.enableFederation) {
+        // Sent it to any connected servers
+        $tw.Bob.Federation.sendToRemoteServers(JSON.stringify(data));
+      }
     }
   }
 }
