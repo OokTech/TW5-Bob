@@ -87,7 +87,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         info: {
           name: $tw.settings.Federation.serverName || 'Sever Name',
           canLogin: $tw.settings.Federation.canLogin || 'no',
-          availableWikis: $tw.nodeMessageHandlers.getViewableWikiList(), //getAvailableWikis(data),
+          availableWikis: $tw.Bob.Shared.getViewableWikiList(data),
           availableChats: getAvailableChats(data),
           port: $tw.settings['ws-server'].port,
           publicKey: 'c minor',
@@ -99,7 +99,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   function addServerInfo(data) {
-    data = data || {}
+    data = data || {};
     data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;

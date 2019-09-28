@@ -135,7 +135,12 @@ socket server, but it can be extended for use with other web socket servers.
           if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
             queue.push(messageData);
           }
-          const tiddler2 = {title: '$:/plugins/OokTech/Bob/Unsent', text: JSON.stringify(queue, '', 2), type: 'application/json', start: start};
+          const tiddler2 = {
+            title: '$:/plugins/OokTech/Bob/Unsent',
+            text: JSON.stringify(queue, '', 2),
+            type: 'application/json',
+            start: start
+          };
           $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
         }
       }
@@ -154,7 +159,16 @@ socket server, but it can be extended for use with other web socket servers.
       }
       $tw.hooks.addHook("th-editing-tiddler", function(event) {
         const token = localStorage.getItem('ws-token');
-        const message = {type: 'editingTiddler', tiddler: {fields: {title: event.tiddlerTitle}}, wiki: $tw.wikiName, token: token};
+        const message = {
+          type: 'editingTiddler',
+          tiddler: {
+            fields: {
+              title: event.tiddlerTitle
+            }
+          },
+          wiki: $tw.wikiName,
+          token: token
+        };
         sendToServer(message);
         // do the normal editing actions for the event
         return true;
@@ -164,7 +178,16 @@ socket server, but it can be extended for use with other web socket servers.
         const draftTitle = event.param || event.tiddlerTitle;
         const draftTiddler = $tw.wiki.getTiddler(draftTitle);
         const originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
-        const message = {type: 'cancelEditingTiddler', tiddler:{fields:{title: originalTitle}}, wiki: $tw.wikiName, token: token};
+        const message = {
+          type: 'cancelEditingTiddler',
+          tiddler:{
+            fields:{
+              title: originalTitle
+            }
+          },
+          wiki: $tw.wikiName,
+          token: token
+        };
         sendToServer(message);
         // Do the normal handling
         return event;
@@ -203,12 +226,26 @@ socket server, but it can be extended for use with other web socket servers.
                     }
                   }
                 );
-                const message = {type: 'saveTiddler', tiddler: tempTid, wiki: $tw.wikiName, token: token};
+                const message = {
+                  type: 'saveTiddler',
+                  tiddler: tempTid,
+                  wiki: $tw.wikiName,
+                  token: token
+                };
                 sendToServer(message);
               }
             } else if(changes[tiddlerTitle].deleted) {
               const token = localStorage.getItem('ws-token');
-              const message = {type: 'deleteTiddler', tiddler:{fields:{title:tiddlerTitle}} , wiki: $tw.wikiName, token: token};
+              const message = {
+                type: 'deleteTiddler',
+                tiddler:{
+                  fields:{
+                    title:tiddlerTitle
+                  }
+                },
+                wiki: $tw.wikiName,
+                token: token
+              };
               sendToServer(message);
             }
           } else {
@@ -265,7 +302,14 @@ socket server, but it can be extended for use with other web socket servers.
           // Ask the server for a listing of changes since the browser was
           // disconnected
           const token = localStorage.getItem('ws-token');
-          const message = {type: 'syncChanges', since: tiddler.fields.start, changes: tiddler.fields.text, hashes: tiddlerHashes, wiki: $tw.wikiName, token: token};
+          const message = {
+            type: 'syncChanges',
+            since: tiddler.fields.start,
+            changes: tiddler.fields.text,
+            hashes: tiddlerHashes,
+            wiki: $tw.wikiName,
+            token: token
+          };
           sendToServer(message);
         }
       }
