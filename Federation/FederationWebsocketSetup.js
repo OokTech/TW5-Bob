@@ -12,7 +12,7 @@ A module that adds the framework for inter-server communication
 /*global $tw: false */
 "use strict";
 
-exports.name = "federation-web-sockets-setup";
+exports.name = "federation-websockets-setup";
 exports.platforms = ["node"];
 exports.after = ["render"];
 exports.synchronous = true;

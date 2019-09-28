@@ -211,6 +211,9 @@ if($tw.node) {
     });
     httpServer.on('upgrade', function(request, socket, head) {
       console.log('upgrade type:', request.headers.upgrade)
+      console.log($tw.federationWss)
+      console.log(request.url)
+      console.log($tw.settings.enableFederation)
       if (request.headers.upgrade === 'websocket') {
         if (request.url === '/') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
