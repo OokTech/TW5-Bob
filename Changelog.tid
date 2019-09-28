@@ -18,6 +18,8 @@ title: $:/plugins/OokTech/Bob/Changelog
     - local message queue timeout
     - federated message queue timeout
     - saveTiddlerDelay
+  - Added a server route for uploading files.
+    - The browser hook is still in the ServerImages plugin, I may move it into Bob later.
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 
