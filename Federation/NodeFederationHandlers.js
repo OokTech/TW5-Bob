@@ -94,7 +94,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           staticUrl: 'no'
         }
       };
-      $tw.Bob.Shared.sendToRemoteServer(reply, data._source_info.url);
+      $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
     }
   }
 
