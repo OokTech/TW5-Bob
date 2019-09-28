@@ -100,7 +100,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
   function addServerInfo(data) {
     data = data || {}
-    data.info = data.message.info || data.info
+    data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
