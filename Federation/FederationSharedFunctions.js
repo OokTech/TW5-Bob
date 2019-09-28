@@ -26,7 +26,7 @@ This has some functions that are needed by Bob in different places.
 
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
-    $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || [];
+    $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.settings.advanced = $tw.settings.advanced || {};
 
@@ -107,8 +107,7 @@ This has some functions that are needed by Bob in different places.
         oldMessages.forEach(function (messageData) {
           // If we are in the browser there is only one connection, but
           // everything here is the same.
-          $tw.Bob.Federation.remoteConnections.forEach(function(item) {
-            const index = item.index;
+          Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(index) {
             // Here make sure that the connection is live and hasn't already
             // sent an ack for the current message.
             if($tw.Bob.Federation.remoteConnections[index].socket !== undefined) {
@@ -210,7 +209,7 @@ This has some functions that are needed by Bob in different places.
       if(!$tw.Bob.Federation.remoteConnections[connectionIndex]) {
         return false;
       }
-      if($tw.Bob.Federation.remoteConnections[connectionIndex].socket) {
+      if(!$tw.Bob.Federation.remoteConnections[connectionIndex].socket) {
         return false;
       }
       if($tw.Bob.Federation.remoteConnections[connectionIndex].socket.readyState !== 1) {
@@ -268,7 +267,6 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeRedundantMessages(messageData, messageQueue);
         // Check to see if the token has changed
         messageQueue = removeOldTokenMessages(messageQueue);
-
         // If the message is already in the queue (as determined by the message
         // id), than just add the new target to the ackObject
         const enqueuedIndex = Object.keys(messageQueue).findIndex(function(enqueuedMessageData) {
@@ -444,6 +442,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverKey) {
       const messageData = createRemoteMessageData(message);
       if (messageData && (serverKey || serverKey === 0)) {
+        console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         sendMessage(messageData, serverKey);
@@ -456,6 +455,8 @@ This has some functions that are needed by Bob in different places.
       TODO figure out how to best specify which servers to send the message to
     */
     $tw.Bob.Federation.sendToRemoteServers = function(message) {
+      console.log('sendToRemoteServers')
+      console.log(message)
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
       console.log(Object.keys($tw.Bob.Federation.remoteConnections))
