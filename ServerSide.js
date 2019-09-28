@@ -229,6 +229,7 @@ ServerSide.loadWiki = function (wikiName) {
         title: '$:/ProxyPrefix',
         text: $tw.settings['ws-server'].pathprefix
       };
+      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
     }
   }
   return wikiFolder;

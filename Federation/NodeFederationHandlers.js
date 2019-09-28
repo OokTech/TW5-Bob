@@ -1,12 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/NodeFederationHandlers.js
+title: $:/plugins/OokTech/Bob/Federation/NodeFederationHandlers.js
 type: application/javascript
 module-type: startup
 
-These are message handler functions for the web socket servers. Use this file
-as a template for extending the web socket funcitons.
-
-This handles messages sent to the node process.
+These are basic handlers for federation between different Bob servers.
 \*/
 (function(){
 
@@ -16,10 +13,10 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
-if($tw.node) {
+if($tw.node && $tw.settings.enableFederation === 'yes') {
+  $tw.settings.Federation = $tw.settings.Federation || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
-  $tw.settings.Federation = $tw.settings.Federation || {};
 
   /*
     This is asking a remote server for an update about its current status
@@ -97,7 +94,7 @@ if($tw.node) {
           staticUrl: 'no'
         }
       };
-      $tw.Bob.Shared.sendToRemoteServer(reply, data);
+      $tw.Bob.Shared.sendToRemoteServer(reply, data._source_info.url);
     }
   }
 

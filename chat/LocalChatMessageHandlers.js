@@ -16,9 +16,6 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  $tw.Bob.Federation = $tw.Bob.Federation || {};
-  $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
-  $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
 
   /*
     Receive a chat message from a browser, they are automatically sent to other connected browsers when the tiddlers are synced.

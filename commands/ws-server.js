@@ -216,7 +216,7 @@ if($tw.node) {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
           });
-        } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation) {
+        } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation === 'yes') {
           $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
             console.log('WSS federation upgrade')
             $tw.federationWss.emit('connection', ws, request);

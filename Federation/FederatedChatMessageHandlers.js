@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/FederatedChatMessageHandlers.js
+title: $:/plugins/OokTech/Bob/Federation/FederatedChatMessageHandlers.js
 type: application/javascript
 module-type: startup
 
@@ -14,7 +14,7 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
-if($tw.node) {
+if($tw.node && $tw.settings.enableFederation) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};

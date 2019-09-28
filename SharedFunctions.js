@@ -24,6 +24,7 @@ This has some functions that are needed by Bob in different places.
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
+  $tw.settings.advanced = $tw.settings.advanced || {};
 
   /*
     This function takes two tiddler objects and returns a boolean value
@@ -122,7 +123,7 @@ This has some functions that are needed by Bob in different places.
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
       const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if(Date.now() - messageData.time > 500) {
+        if(Date.now() - messageData.time > $tw.settings.advanced.localMessageQueueTimeout || 500) {
           return true;
         } else {
           return false;
@@ -147,7 +148,7 @@ This has some functions that are needed by Bob in different places.
       if($tw.Bob.MessageQueueTimer) {
         clearTimeout($tw.Bob.MessageQueueTimer);
       }
-      $tw.Bob.MessageQueueTimer = setTimeout(Shared.checkMessageQueue, 500);
+      $tw.Bob.MessageQueueTimer = setTimeout(Shared.checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     } else {
       clearTimeout($tw.Bob.MessageQueueTimer);
       $tw.Bob.MessageQueueTimer = false;
@@ -420,13 +421,13 @@ This has some functions that are needed by Bob in different places.
         // we get a saveTiddler message for a tiddler
         clearTimeout($tw.Bob.Timers[messageData.title]);
         // then reset the timer
-        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
+        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, $tw.settings.advanced.saveTiddlerDelay || 200);
       } else {
         $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
       }
     }
     clearTimeout($tw.Bob.MessageQueueTimer);
-    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
   }
 
   /*
@@ -518,8 +519,10 @@ This has some functions that are needed by Bob in different places.
     // it was waiting for. If it doesn't exist than it is still waiting.
     const outQueue = inQueue.filter(function(messageData) {
       if((token && messageData.message.token && messageData.message.token !== token) || (token && !messageData.message.token) ) {
-        // If we have a token, the message has a token and they are not the same than drop the message.
+        // If we have a token, the message has a token and they are not the
+        // same than drop the message. (possible imposter)
         // If we have a token and the message doesn't have a token than drop it
+        // (someone unathenticated trying to make changes)
         // If we don't have a token and the message does than what?
         return false
       } else if(messageData.ctime) {
@@ -685,61 +688,6 @@ This has some functions that are needed by Bob in different places.
         }
       }
     }
-  }
-
-  /*
-    This creates the needed message data for remote servers
-
-    TODO get access token part
-  */
-  Shared.createRemoteMessageData = function(message) {
-    // The messages ids are shared with sending things to browsers, but this
-    // has no effect on anything other than making the numbers increase a bit
-    // faster.
-    const id = $tw.Bob.Shared.makeId();
-    const token = false;
-    message.id = id;
-    let messageData = {
-      message: message,
-      id: id,
-      time: Date.now(),
-      type: message.type,
-      ack: {},
-      token: token
-    };
-    return messageData;
-  }
-
-  /*
-    This sends a message to a remote server. This is used for syncing for now,
-    in the future it may be used for other things.
-  */
-  Shared.sendToRemoteServer = function(message, serverInfo) {
-    let ok = true
-    if(typeof message === 'string') {
-      try{
-        message = JSON.parse(message)
-      } catch (e) {
-        console.log('err', e)
-        ok = false
-      }
-    }
-    if(ok) {
-      const messageData = Shared.createRemoteMessageData(message);
-      $tw.Bob.Federation.remoteConnections[serverInfo._source_info.url].socket.send(JSON.stringify(messageData));
-    }
-  }
-
-  /*
-
-  */
-  Shared.sendToRemoteServers = function(message) {
-    // Don't send to the server that the message originated in!
-    // but that shouldn't happen
-    console.log(Object.keys($tw.Bob.Federation.remoteConnections))
-    Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(serverKey) {
-      $tw.Bob.Federation.remoteConnections[serverKey].socket.send(JSON.stringify(message));
-    })
   }
 
   module.exports = Shared;

@@ -24,6 +24,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "fileURLPrefix": "files",
   "namespacedWikis": "false",
   "suppressBrowser": "false",
+  "enableFederation": "no",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -83,6 +84,11 @@ used. If the json isn't formatted correctly than default values will be used.
     "serverName": "Noh Neigh-m",
     "mobile": "no",
     "enableChat": "no"
+  },
+  "advanced": {
+    "localMessageQueueTimeout": 500,
+    "federatedMessageQueueTimeout": 1500,
+    "saveTiddlerDelay": 200
   }
 }
 ```
@@ -139,6 +145,8 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `suppressBrowser` is only used if you are using the single executable
   version. If it is set to `true` than the browser isn't opened automatically
   when the server is started.
+- `enableFederation` setting this to `yes` enables federation with remote
+  servers.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined
@@ -205,6 +213,27 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `mobile` set this to `yes` if the server isn't going to have the same url
     or ip address all the time.
   - `enableChat` set this to `yes` to enable the federated chat server.
+- `advanced` these are advanced settings that should almost never have to be
+  changed. Changing these values can cause undesired or unexpected behaviour.
+  - `localMessageQueueTimeout` for local messages, the maximum time the server
+    will wait for an acknowledgement before assuming that a message has been
+    lost and the server tries to resend the message. The value is in ms.
+    Default `500`. Smaller values may cause lots of retries even when a message
+    is sent correctly, larger values make the server take longer to respond to
+    errors.
+  - `federatedMessageQueueTimeout` for federated messages, the maximum time
+    that the server will wait for an acknowledgement before assuming that a
+    message has been lost and tries to resend the message. The value is in ms.
+    Default `1500`. Smaller values may cause lots of retries even when a
+    message is sent correctly, larger values make the server take longer to
+    respond to errors.
+  - `saveTiddlerDelay` the minimum delay between when a save tiddler message is
+    added to the message queue and when it is sent. This prevents save tiddler
+    messages from being sent with each keystroke when editing certain tiddlers
+    causing a race condition and giving unexpected results or an infinite
+    update loop. The value is in ms. Default: `200`. Smaller values may cause
+    more race conditions. Larger values make the server wait longer before
+    saving a tiddler.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no

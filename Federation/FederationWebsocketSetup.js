@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/FederationWebsocketSetup.js
+title: $:/plugins/OokTech/Bob/Federation/FederationWebsocketSetup.js
 type: application/javascript
 module-type: startup
 
@@ -14,7 +14,7 @@ A module that adds the framework for inter-server communication
 
 exports.platforms = ["node"];
 
-if($tw.node) {
+if($tw.node && $tw.settings.enableFederation) {
 
   const setup = function () {
     $tw.Bob = $tw.Bob || {};

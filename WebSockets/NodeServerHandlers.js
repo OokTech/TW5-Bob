@@ -44,8 +44,10 @@ if($tw.node) {
           }
         }
         console.log('REMOTE SOCKET OPENED', data.url)
-        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
-        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}))
+        $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
+        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}, data.url)
+        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
+        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}))
         $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the
