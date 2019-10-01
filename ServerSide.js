@@ -191,10 +191,10 @@ ServerSide.loadWiki = function (wikiName) {
       // Create a wiki object for this wiki
       $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
       // Load the boot tiddlers
-    	$tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
-    		$tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
-    	});
-    	// Load the core tiddlers
+      $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
+        $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
+      });
+      // Load the core tiddlers
       if(!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
         $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
       }
@@ -202,7 +202,7 @@ ServerSide.loadWiki = function (wikiName) {
       const wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
       $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
       // Unpack plugin tiddlers
-  	  $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
+      $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
       $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
 
 
@@ -448,14 +448,14 @@ libraryPath: Path of library folder for these plugins (relative to core path)
 envVar: Environment variable name for these plugins
 */
 function loadPlugins(plugins,libraryPath,envVar, wikiName) {
-	if(plugins) {
-		const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
-		for(let t=0; t<plugins.length; t++) {
+  if(plugins) {
+    const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
+    for(let t=0; t<plugins.length; t++) {
       if(plugins[t] !== 'tiddlywiki/filesystem' && plugins[t] !== 'tiddlywiki/tiddlyweb') {
         loadPlugin(plugins[t],pluginPaths, wikiName);
       }
-		}
-	}
+    }
+  }
 };
 
 /*
@@ -463,13 +463,13 @@ name: Name of the plugin to load
 paths: array of file paths to search for it
 */
 function loadPlugin(name,paths, wikiName) {
-	const pluginPath = $tw.findLibraryItem(name,paths);
-	if(pluginPath) {
-		const pluginFields = $tw.loadPluginFolder(pluginPath);
-		if(pluginFields) {
-			$tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
-		}
-	}
+  const pluginPath = $tw.findLibraryItem(name,paths);
+  if(pluginPath) {
+    const pluginFields = $tw.loadPluginFolder(pluginPath);
+    if(pluginFields) {
+      $tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
+    }
+  }
 };
 
 /*
@@ -651,6 +651,40 @@ ServerSide.sendBrowserAlert = function(input) {
       }
     }
   }
+}
+
+ServerSide.getViewableWikiList = function (data) {
+  data = data || {};
+  function getList(obj, prefix) {
+    let output = [];
+    Object.keys(obj).forEach(function(item) {
+      if(typeof obj[item] === 'string') {
+        if($tw.ServerSide.existsListed(prefix+item)) {
+          if(item == '__path') {
+            if(prefix.endsWith('/')) {
+              output.push(prefix.slice(0,-1));
+            } else {
+              output.push(prefix);
+            }
+          } else {
+            output.push(prefix+item);
+          }
+        }
+      } else if(typeof obj[item] === 'object') {
+        output = output.concat(getList(obj[item], prefix + item + '/'));
+      }
+    })
+    return output;
+  }
+  // Get the wiki list of wiki names from the settings object
+  const wikiList = getList($tw.settings.wikis, '');
+  const viewableWikis = [];
+  wikiList.forEach(function(wikiName) {
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+      viewableWikis.push(wikiName);
+    }
+  });
+  return viewableWikis;
 }
 
 module.exports = ServerSide

@@ -17,7 +17,7 @@ Action widget to add or change one or more values in settings.json
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 const ActionUpdateSetting = function(parseTreeNode,options) {
-	this.initialise(parseTreeNode,options);
+  this.initialise(parseTreeNode,options);
 };
 
 /*
@@ -29,8 +29,8 @@ ActionUpdateSetting.prototype = new Widget();
 Render this widget into the DOM
 */
 ActionUpdateSetting.prototype.render = function(parent,nextSibling) {
-	this.computeAttributes();
-	this.execute();
+  this.computeAttributes();
+  this.execute();
 };
 
 /*
@@ -43,33 +43,32 @@ ActionUpdateSetting.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionUpdateSetting.prototype.refresh = function(changedTiddlers) {
-	const changedAttributes = this.computeAttributes();
-	if(Object.keys(changedAttributes).length) {
-		this.refreshSelf();
-		return true;
-	}
-	return this.refreshChildren(changedTiddlers);
+  const changedAttributes = this.computeAttributes();
+  if(Object.keys(changedAttributes).length) {
+    this.refreshSelf();
+    return true;
+  }
+  return this.refreshChildren(changedTiddlers);
 };
 
 /*
 Invoke the action associated with this widget
 */
 ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
-	const token = localStorage.getItem('ws-token');
-	const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
-	let update = {};
-	$tw.utils.each(this.attributes,function(attribute,name) {
-		update[attribute] = name;
-	});
-	return true; // Action was invoked
-	const message = {
-		"type": "updateSetting",
-		"updateString": update,
-		"token": token,
-		"wiki": wikiName
-	}
-	const messageData = $tw.Bob.Shared.createMessageData(message)
-	$tw.Bob.Shared.sendMessage(messageData, 0)
+  const token = localStorage.getItem('ws-token');
+  const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
+  let update = {};
+  $tw.utils.each(this.attributes,function(attribute,name) {
+    update[attribute] = name;
+  });
+  return true; // Action was invoked
+  const message = {
+    "type": "updateSetting",
+    "updateString": update,
+    "token": token,
+    "wiki": wikiName
+  }
+  $tw.Bob.Shared.sendMessage(message, 0)
   return true; // Action was invoked
 };
 

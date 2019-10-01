@@ -196,7 +196,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
     data = data || {};
     $tw.Bob.Shared.sendAck(data);
-    const viewableWikis = $tw.Bob.Shared.getViewableWikiList(data);
+    const viewableWikis = $tw.ServerSide.getViewableWikiList(data);
     // Send viewableWikis back to the browser
     const message = {
       type: 'setViewableWikis',

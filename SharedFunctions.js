@@ -25,6 +25,7 @@ This has some functions that are needed by Bob in different places.
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
   $tw.settings.advanced = $tw.settings.advanced || {};
+  let messageQueueTimer = false;
 
   /*
     This function takes two tiddler objects and returns a boolean value
@@ -77,7 +78,7 @@ This has some functions that are needed by Bob in different places.
     boolean indicating if the ack has been received yet or not.
   */
   Shared.createMessageData = function (message) {
-    const id = $tw.Bob.Shared.makeId();
+    const id = makeId();
     message.id = id;
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
@@ -113,12 +114,12 @@ This has some functions that are needed by Bob in different places.
     If the queue isn't empty the timeout is reset for this function to run
     again in 500ms
   */
-  Shared.checkMessageQueue = function () {
+  function checkMessageQueue() {
     // If the queue isn't empty
     if($tw.Bob.MessageQueue.length > 0) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
-      $tw.Bob.MessageQueue = Shared.pruneMessageQueue($tw.Bob.MessageQueue);
+      $tw.Bob.MessageQueue = pruneMessageQueue($tw.Bob.MessageQueue);
       // Check if there are any messages that are more than 500ms old and have
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
@@ -145,13 +146,17 @@ This has some functions that are needed by Bob in different places.
           }
         });
       });
-      if($tw.Bob.MessageQueueTimer) {
-        clearTimeout($tw.Bob.MessageQueueTimer);
+      if(messageQueueTimer) {
+        clearTimeout(messageQueueTimer);
       }
-      $tw.Bob.MessageQueueTimer = setTimeout(Shared.checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     } else {
-      clearTimeout($tw.Bob.MessageQueueTimer);
-      $tw.Bob.MessageQueueTimer = false;
+      clearTimeout(messageQueueTimer);
+      messageQueueTimer = false;
+      if ($tw.browser) {
+        //Turn off dirty indicator
+        //$tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
     }
   }
 
@@ -160,7 +165,7 @@ This has some functions that are needed by Bob in different places.
     Messages from the browser have ids that start with b, messages from the
     server have an idea that starts with s.
   */
-  Shared.makeId = function () {
+  function makeId() {
     idNumber = idNumber + 1;
     const newId = ($tw.browser?'b':'s') + idNumber;
     return newId;
@@ -382,7 +387,11 @@ This has some functions that are needed by Bob in different places.
 
     This modifies $tw.Bob.MessageQueue as a side effect
   */
-  Shared.sendMessage = function(messageData, connectionIndex) {
+  Shared.sendMessage = function(message, connectionIndex) {
+    const messageData = createMessageData(message)
+    if ($tw.browser) {
+      $tw.utils.toggleClass(document.body,"tc-dirty",true);
+    }
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
@@ -394,7 +403,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
       if($tw.browser) {
         // Check to see if the token has changed
-        $tw.Bob.MessageQueue = Shared.removeOldTokenMessages($tw.Bob.MessageQueue);
+        $tw.Bob.MessageQueue = removeOldTokenMessages($tw.Bob.MessageQueue);
       }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
@@ -426,15 +435,16 @@ This has some functions that are needed by Bob in different places.
         $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
       }
     }
-    clearTimeout($tw.Bob.MessageQueueTimer);
-    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+    clearTimeout(messageQueueTimer);
+    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+    return messageData;
   }
 
   /*
     If the token in the queued messages changes than remove messages that use
     the old token
   */
-  Shared.removeOldTokenMessages = function (messageQueue) {
+  function removeOldTokenMessages(messageQueue) {
     let outQueue = [];
     if(localStorage) {
       if(typeof localStorage.getItem === 'function') {
@@ -500,7 +510,7 @@ This has some functions that are needed by Bob in different places.
     multiple times and things get stuck in an infinite loop if we don't detect
     that they are duplicates.
   */
-  Shared.pruneMessageQueue = function (inQueue) {
+  function pruneMessageQueue(inQueue) {
     inQueue = inQueue || [];
     let token = false
     if($tw.browser && localStorage) {
@@ -693,40 +703,6 @@ This has some functions that are needed by Bob in different places.
         }
       }
     }
-  }
-
-  Shared.getViewableWikiList = function (data) {
-    data = data || {};
-    function getList(obj, prefix) {
-      let output = [];
-      Object.keys(obj).forEach(function(item) {
-        if(typeof obj[item] === 'string') {
-          if($tw.ServerSide.existsListed(prefix+item)) {
-            if(item == '__path') {
-              if(prefix.endsWith('/')) {
-                output.push(prefix.slice(0,-1));
-              } else {
-                output.push(prefix);
-              }
-            } else {
-              output.push(prefix+item);
-            }
-          }
-        } else if(typeof obj[item] === 'object') {
-          output = output.concat(getList(obj[item], prefix + item + '/'));
-        }
-      })
-      return output;
-    }
-    // Get the wiki list of wiki names from the settings object
-    const wikiList = getList($tw.settings.wikis, '');
-    const viewableWikis = [];
-    wikiList.forEach(function(wikiName) {
-      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
-        viewableWikis.push(wikiName);
-      }
-    });
-    return viewableWikis;
   }
 
   module.exports = Shared;

@@ -31,7 +31,6 @@ socket server, but it can be extended for use with other web socket servers.
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.Bob = $tw.Bob || {};
-    $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
     // Import shared commands
     $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
     $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
@@ -40,10 +39,18 @@ socket server, but it can be extended for use with other web socket servers.
 
     // Do all actions on startup.
     $tw.Bob.setup = function(reconnect) {
+      // Add a message that the wiki isn't connected yet
+      const text = "<div      style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
+      const warningTiddler = {
+        title: '$:/plugins/OokTech/Bob/Server Warning',
+        text: text,
+        tags: '$:/tags/PageTemplate'
+      };
+      $tw.wiki.addTiddler(new $tw.Tiddler(warningTiddler));
       if(reconnect) {
         $tw.connections = null;
       }
-      $tw.Syncer.isDirty = false;
+      //$tw.Syncer.isDirty = false;
       const proxyPrefixTiddler = $tw.wiki.getTiddler('$:/ProxyPrefix');
       let ProxyPrefix = ''
       if(proxyPrefixTiddler) {
@@ -90,8 +97,8 @@ socket server, but it can be extended for use with other web socket servers.
         heartbeat: true,
         token: token
       };
-      const messageData = $tw.Bob.Shared.createMessageData(data);
-      $tw.Bob.Shared.sendMessage(messageData, 0);
+      //const messageData = $tw.Bob.Shared.createMessageData(data);
+      $tw.Bob.Shared.sendMessage(message, 0);
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -108,6 +115,9 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     const sendToServer = function (message) {
+      // Turn on the dirty indicator
+      $tw.utils.toggleClass(document.body,"tc-dirty",true);
+
       const messageData = $tw.Bob.Shared.createMessageData(message);
       // If the connection is open, send the message
       if($tw.connections[connectionIndex].socket.readyState === 1) {
@@ -204,7 +214,7 @@ socket server, but it can be extended for use with other web socket servers.
         like the setfield widget.
         This ignores tiddlers that are in the exclude filter
       */
-    	$tw.wiki.addEventListener("change",function(changes) {
+      $tw.wiki.addEventListener("change",function(changes) {
         for (let tiddlerTitle in changes) {
           // If the changed tiddler is the one that holds the exclude filter
           // than update the exclude filter.
@@ -250,10 +260,10 @@ socket server, but it can be extended for use with other web socket servers.
             }
           } else {
             // Stop the dirty indicator from turning on.
-            $tw.utils.toggleClass(document.body,"tc-dirty",false);
+            //$tw.utils.toggleClass(document.body,"tc-dirty",false);
           }
         }
-    	});
+      });
 
       $tw.Bob.Reconnect = function (sync) {
         if($tw.connections[0].socket.readyState !== 1) {
