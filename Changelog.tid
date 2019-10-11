@@ -20,6 +20,9 @@ title: $:/plugins/OokTech/Bob/Changelog
     - saveTiddlerDelay
   - Added a server route for uploading files.
     - The browser hook is still in the ServerImages plugin, I may move it into Bob later.
+  - Add a warning that the wiki hasn't connected to the server at startup
+    - the warning goes away as soon as the wiki connects to the server
+  - The dirty indicator is changed a bit, and very buggy
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 
