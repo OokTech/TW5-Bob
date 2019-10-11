@@ -120,6 +120,8 @@ if($tw.node) {
   }
 
   $tw.CreateSettingsTiddlers = function (data) {
+    data = data || {}
+    data.wiki = data.wiki || 'RootWiki'
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if(typeof $tw.settings.editionsPath === 'string') {

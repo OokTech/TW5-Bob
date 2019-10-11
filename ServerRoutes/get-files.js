@@ -49,15 +49,16 @@ function findName(url) {
     }
   }
   if (name === '') {
-    //name = 'RootWiki'
+    name = 'RootWiki'
   }
   return name
 }
 
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'true') {
-    const path = require('path')
-    const fs = require('fs')
+    $tw.settings.servingFiles = $tw.settings.servingFiles || {};
+    const path = require('path');
+    const fs = require('fs');
     const wikiName = findName(request.url.replace(/^\//, ''));
     const filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
     let urlPieces = request.url.split('/');
@@ -71,7 +72,14 @@ exports.handler = function(request,response,state) {
     } else {
       ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
     }
-    const filePath = decodeURIComponent(urlPieces.slice(urlPieces.indexOf(filePrefix)+1).join('/'));
+    let offset = 1;
+    let secondPathPart = '';
+    if ($tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]]) {
+      console.log(urlPieces[urlPieces.indexOf(filePrefix)+1]);
+      secondPathPart = $tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]];
+      offset += 1;
+    }
+    const filePath = decodeURIComponent(urlPieces.slice(urlPieces.indexOf(filePrefix)+offset).join('/'));
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
     if(authorised && ok) {
@@ -80,9 +88,9 @@ exports.handler = function(request,response,state) {
       if(wikiName !== '') {
         pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
       }
-      const pathname = path.resolve(pathRoot, filePath)
+      const pathname = path.resolve(pathRoot, secondPathPart, filePath);
       // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
-      if(pathname.startsWith(pathRoot)) {
+      if(pathname.startsWith(pathRoot) || pathname.startsWith(secondPathPart)) {
         fs.exists(pathname, function(exists) {
           if(!exists || fs.statSync(pathname).isDirectory()) {
             response.statusCode = 404;

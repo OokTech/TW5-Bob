@@ -57,17 +57,126 @@ username on the computer you are using.
   Enable File Server
 </$checkbox>
 
-Files Folder:
-<$edit-text
-  tiddler='$:/WikiSettings/split'
-  index='filePathRoot'
-  tag='input'
-  class='tc-edit-texteditor'
-  default='./files'
-/>
+File Folders:
 
-After enabling or disabling the file server you must shutdown the server and
-then restart it before using the file server.
+<table
+  style='width:100%;'
+>
+  <tr>
+    <th>
+    </th>
+    <th>
+      Prefix
+    </th>
+    <th>
+      Path
+    </th>
+  </tr>
+  <$list
+    filter='[[$:/WikiSettings/split/servingFiles]indexes[]]'
+  >
+    <tr>
+      <td>
+        <$button
+          class='tc-btn-invisible'
+        >
+          {{$:/core/images/delete-button}}
+          <$action-setfield
+            $tiddler='$:/WikiSettings/split/servingFiles'
+            $index=<<currentTiddler>>
+          />
+        </$button>
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split'
+          index='fileURLPrefix'
+        />/<$view
+          field='title'
+        />
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split/servingFiles'
+          index=<<currentTiddler>>
+        />
+      </td>
+    </tr>
+  </$list>
+</table>
+
+''Note:'' Changes take effect without having to restart the server, but if you
+have a _canonical_uri tiddler open and changing the settings here would change
+what is displayed than the tiddler must be closed and re-opened before you will
+see the media.
+
+''Note 2:'' You don't need to do anything special after adding a new folder, but
+after removing one you have to click the `Update Settings` button below or the
+change will not take effect or be saved.
+
+!! Serve files from a new folder
+
+Enter the prefix and path you want to use, then click `Add Folder` button
+
+<table
+  style='width:100%;'
+>
+  <tr>
+    <th>
+      Prefix
+    </th>
+    <th>
+      Path
+    </th>
+  </tr>
+  <tr>
+    <td>
+      <$edit-text
+        tiddler='$:/temp/Bob/AddServedFiles'
+        field='prefix'
+      />
+    </td>
+    <td>
+      <$edit-text
+        tiddler='$:/temp/Bob/AddServedFiles'
+        field='path'
+      />
+    </td>
+  </tr>
+</table>
+
+<$button>
+  Add Folder
+  <$list filter="""[[$:/temp/Bob/AddServedFiles]has[scan]scan[yes]]"""
+    emptyMessage='<$action-updatesetting servingFiles={{{ [[{"]addsuffix{$:/temp/Bob/AddServedFiles!!prefix}addsuffix[":"]addsuffix{$:/temp/Bob/AddServedFiles!!path}addsuffix["}]] }}}/>'
+  >
+    <$action-sendmessage
+      type='mediaScan'
+      folder={{$:/temp/Bob/AddServedFiles!!path}}
+      prefix={{$:/temp/Bob/AddServedFiles!!prefix}}
+    />
+  </$list>
+  <$action-setfield
+    $tiddler='$:/temp/Bob/AddServedFiles'
+    prefix=''
+    path=''
+  />
+</$button>
+
+<$checkbox
+  tiddler='$:/temp/Bob/AddServedFiles'
+  field='scan'
+  checked='yes'
+  unchecked='no'
+>
+  Also Scan Folder
+</$checkbox>
+
+After enabling or disabling the file server by checking or unchecking the box
+above you must shutdown the server and then restart it before using the file
+server.
+
+You must also have to do this if you change the Files folder
 
 First click this button:
 <$button>
@@ -84,6 +193,8 @@ Then click this button:
 Then refresh the page, this is not what the 'reconnect' button is for, refresh
 the entire page.
 
+! Advanced (Here there be Dragons)
+
 <$reveal
   type='nomatch'
   state='$:/settings/Bob/Verbose'
@@ -96,6 +207,9 @@ in a path to a file it isn't a path on your file system, it is a url that the
 server uses to determine how to respond.
 
 See [[serving files|$:/plugins/OokTech/Bob/Serving Files]] for more.
+
+Changing this may break everything and plunge the earth into a 1000 year reign
+of darkness. Or it may work just fine and cause no trouble.
 
 </$reveal>
 

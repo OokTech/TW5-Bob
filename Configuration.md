@@ -89,6 +89,9 @@ used. If the json isn't formatted correctly than default values will be used.
     "localMessageQueueTimeout": 500,
     "federatedMessageQueueTimeout": 1500,
     "saveTiddlerDelay": 200
+  },
+  "servingFiles": {
+    "name": "/path/to/files"
   }
 }
 ```

@@ -13,10 +13,10 @@ These are the tiddlers that currently have conflicts from resyncing with the ser
   >
     <tr>
       <th>
-      Server Version
+        Server Version
       </th>
       <th>
-      Conflicted Version
+        Conflicted Version
       </th>
     </tr>
     <$list
@@ -25,7 +25,7 @@ These are the tiddlers that currently have conflicts from resyncing with the ser
       <tr>
         <td>
         <$list
-          filter='[removeprefix[$:/state/Bob/Conflicts/]]'
+          filter='[<currentTiddler>removeprefix[$:/state/Bob/Conflicts/]]'
         >
           <$link>
             <<currentTiddler>>

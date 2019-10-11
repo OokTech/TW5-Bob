@@ -19,7 +19,7 @@ _canonical_uri tiddler for each file found.
 |!mediaTypes |(Optional) A space separated list of file extensions to scan for. If no list is given all types listed in the mimeMap will be used. |
 
 ```
-<$action-websocketmessage $type='mediaScan' folder='wikiFolderPath' ignoreExisting='editionName' overwrite='newWikiName' prune='basePath' mediaTypes='.jpg .png .jpeg'/>
+<$action-websocketmessage $type='mediaScan' folder='/path/to/folder' ignoreExisting='true' overwrite='false' prune='true' mediaTypes='.jpg .png .jpeg'/>
 ```
 
 The default mimeMap is:

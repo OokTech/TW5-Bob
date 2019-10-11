@@ -370,15 +370,22 @@ if($tw.node) {
   }
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
+    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
     if(typeof data.updateString === 'object') {
       let failed = false;
-      let updatesObject;
+      let updatesObject = {};
       let error = undefined;
       try {
-        updatesObject = JSON.parse(data.updateString);
+        if (typeof data.updateString === 'object') {
+          Object.keys(data.updateString).forEach(function(key) {
+            updatesObject[key] = (typeof data.updateString[key] === 'object')?data.updateString[key]:JSON.parse(data.updateString[key])
+          })
+        } else {
+          updatesObject = JSON.parse(data.updateString);
+        }
       } catch (e) {
         updatesObject = {};
         failed = true;
@@ -388,13 +395,14 @@ if($tw.node) {
         $tw.updateSettings($tw.settings, updatesObject);
       }
       if(!failed) {
-        $tw.CreateSettingsTiddlers();
+        $tw.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
       } else {
-        $tw.CreateSettingsTiddlers();
+        $tw.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Failed to update settings with error: ' + error
         };
@@ -1053,7 +1061,8 @@ if($tw.node) {
       ignoreExisting: 'true',
       overwrite: 'false',
       prune: 'false',
-      mediaTypes: [things listed in the mimemap]
+      mediaTypes: [things listed in the mimemap],
+      prefix: 'docs'
     }
     Folder paths are either absolute or relative to $tw.Bob.getBasePath()
 
@@ -1062,6 +1071,8 @@ if($tw.node) {
     overwrite - if this is true than tiddlers are made even if they overwrite existing tiddlers
     prune - remove tiddlers that have _canonical_uri fields pointing to files that don't exist in the folder
     mediaTypes - an array of file extensions to look for. If the media type is not in the mimemap than the tiddler type may be set incorrectly.
+    prefix - the prefix to put on the uri, the uri will be in the form
+            /wikiName/files/prefix/file.ext
 
     TODO - add a recursive option (with some sane limits, no recursively finding everything in /)
     TODO - figure out what permission this one should go with
@@ -1070,12 +1081,14 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.mediaScan = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    data.prefix = data.prefix || 'prefix';
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
     $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if (authorised) {
+      $tw.settings.servingFiles[data.prefix] = data.folder;
       const mimeMap = $tw.settings.mimeMap || {
         '.aac': 'audio/aac',
         '.avi': 'video/x-msvideo',
@@ -1101,7 +1114,7 @@ if($tw.node) {
       };
       if (typeof data.mediaTypes === 'string') {
         if (data.mediaTypes.length > 0) {
-          datat.mediaTypes = data.mediaTypes.split(' ');
+          data.mediaTypes = data.mediaTypes.split(' ');
         }
       } else {
         data.mediaTypes = undefined;
@@ -1132,7 +1145,7 @@ if($tw.node) {
               if (fs.statSync(path.join(mediaDir, file)).isFile()) {
                 const pathInfo = path.parse(file);
                 if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
-                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + path.relative(path.resolve($tw.ServerSide.getBasePath(),$tw.settings.filePathRoot),path.join(mediaDir, file));
+                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + data.prefix + '/' + path.relative(path.resolve(data.folder),path.join(mediaDir, file));
                   if (data.prune === 'yes') {
                     // Remove any _canonical_uri tiddlers that have paths to
                     // this folder but no files exist for them.
@@ -1191,6 +1204,8 @@ if($tw.node) {
           })
         }
       }
+      // Save the settings
+      $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki});
     }
   }
 }

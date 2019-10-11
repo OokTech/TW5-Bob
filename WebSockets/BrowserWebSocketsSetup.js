@@ -40,7 +40,7 @@ socket server, but it can be extended for use with other web socket servers.
     // Do all actions on startup.
     $tw.Bob.setup = function(reconnect) {
       // Add a message that the wiki isn't connected yet
-      const text = "<div      style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
+      const text = "<div  style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
       const warningTiddler = {
         title: '$:/plugins/OokTech/Bob/Server Warning',
         text: text,
@@ -50,7 +50,6 @@ socket server, but it can be extended for use with other web socket servers.
       if(reconnect) {
         $tw.connections = null;
       }
-      //$tw.Syncer.isDirty = false;
       const proxyPrefixTiddler = $tw.wiki.getTiddler('$:/ProxyPrefix');
       let ProxyPrefix = ''
       if(proxyPrefixTiddler) {
@@ -97,8 +96,7 @@ socket server, but it can be extended for use with other web socket servers.
         heartbeat: true,
         token: token
       };
-      //const messageData = $tw.Bob.Shared.createMessageData(data);
-      $tw.Bob.Shared.sendMessage(message, 0);
+      $tw.Bob.Shared.sendMessage(data, 0);
     }
     /*
       This is a wrapper function, each message from the websocket server has a
@@ -115,13 +113,14 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     const sendToServer = function (message) {
-      // Turn on the dirty indicator
-      $tw.utils.toggleClass(document.body,"tc-dirty",true);
-
-      const messageData = $tw.Bob.Shared.createMessageData(message);
+      const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
+      if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0 && tiddlerText !== '') {
+        // Turn on the dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",true);
+      }
       // If the connection is open, send the message
       if($tw.connections[connectionIndex].socket.readyState === 1) {
-        $tw.Bob.Shared.sendMessage(messageData, 0);
+        $tw.Bob.Shared.sendMessage(message, 0);
       } else {
         // If the connection is not open than store the message in the queue
         const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
@@ -136,6 +135,7 @@ socket server, but it can be extended for use with other web socket servers.
           }
         }
         // Check to make sure that the current message is eligible to be saved
+        const messageData = $tw.Bob.Shared.createMessageData(message)
         if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
           // Prune the queue and check if the current message makes any enqueued
           // messages redundant or overrides old messages
@@ -244,8 +244,14 @@ socket server, but it can be extended for use with other web socket servers.
                 };
                 sendToServer(message);
               }
-            } else if(changes[tiddlerTitle].deleted) {
+            } else if(changes[tiddlerTitle].deleted && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
+              // We have an additional check for tiddlers that start with
+              // $:/state because popups get deleted before the check is done.
+              // Without this than every time there is a popup the dirty
+              // indicator turns on
               const token = localStorage.getItem('ws-token');
+              console.log(list.indexOf(tiddlerTitle))
+              console.log('delete',tiddlerTitle)
               const message = {
                 type: 'deleteTiddler',
                 tiddler:{
@@ -321,6 +327,7 @@ socket server, but it can be extended for use with other web socket servers.
             token: token
           };
           sendToServer(message);
+          $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Unsent')
         }
       }
       /*

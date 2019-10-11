@@ -59,16 +59,16 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   let update = {};
   $tw.utils.each(this.attributes,function(attribute,name) {
-    update[attribute] = name;
+    //update[attribute] = name;
+    update[name] = attribute;
   });
-  return true; // Action was invoked
   const message = {
     "type": "updateSetting",
     "updateString": update,
     "token": token,
     "wiki": wikiName
-  }
-  $tw.Bob.Shared.sendMessage(message, 0)
+  };
+  $tw.Bob.Shared.sendMessage(message, 0);
   return true; // Action was invoked
 };
 

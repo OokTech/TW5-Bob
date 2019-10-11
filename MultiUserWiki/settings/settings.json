@@ -16,5 +16,6 @@
   },
   "wikisPath": "./Wikis",
   "pluginsPath": "./Plugins",
-  "themesPath": "./Themes"
+  "themesPath": "./Themes",
+  "servingFiles": {}
 }

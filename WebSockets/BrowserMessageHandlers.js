@@ -250,7 +250,12 @@ it will overwrite this file.
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
 
-      //$tw.utils.toggleClass(document.body,"tc-dirty",false);
+      if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+        // Turn on the dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",true);
+      } else {
+        $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.

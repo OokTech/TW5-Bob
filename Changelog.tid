@@ -1,49 +1,56 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.2.5 Tofurkey
+!! Version 1.3.0 Tofurkey
 
-  - maybe actually set the SaverFilter tiddler correctly
-  - start documentation on inter-server federation and syncing
-  - Add local chat
-    - different people using the same wiki served by a Bob server can have a
-      real-time chat.
-  - Add federated chat
-    - People on different servers can chat with each other
-    - Limited utility due to server discoverability and NAT shenanigans
-  - Hopefully fix the problems with saving .tid files that have unsorted tags
-  - split out routes into separate files
-    - this may allow doing things like enabling the file server without restarting the server.
-  - Started a hopefully better interface for federated things.
-  - Add some advanced settings
-    - local message queue timeout
-    - federated message queue timeout
-    - saveTiddlerDelay
-  - Added a server route for uploading files.
-    - The browser hook is still in the ServerImages plugin, I may move it into Bob later.
-  - Add a warning that the wiki hasn't connected to the server at startup
-    - the warning goes away as soon as the wiki connects to the server
-  - The dirty indicator is changed a bit, and very buggy
+* maybe actually set the SaverFilter tiddler correctly
+* start documentation on inter-server federation and syncing
+* Add local chat
+** different people using the same wiki served by a Bob server can have a real-time chat.
+* Add federated chat
+** People on different servers can chat with each other
+** Limited utility due to server discoverability and NAT shenanigans
+* Hopefully fix the problems with saving .tid files that have unsorted tags
+* split out routes into separate files
+** this may allow doing things like enabling the file server without restarting the server.
+* Started a hopefully better interface for federated things.
+* Add some advanced settings
+** local message queue timeout
+** federated message queue timeout
+** saveTiddlerDelay
+* Added a server route for uploading files.
+** The browser hook is still in the ServerImages plugin, I may move it into Bob later.
+* Add a warning that the wiki hasn't connected to the server at startup
+** the warning goes away as soon as the wiki connects to the server
+* The dirty indicator is changed to show dirty when there are messages in the send queue and clean when the queue is empty.
+* The resync has been modified, it may work inconsistently
+* Added easier way to turn on/off serving on the local network
+** Go to the control panel -> Bob Settings -> Server tab for instructions
+* Added an easier way to turn on/off the static file server
+** Go to the control panel -> Bob Settings -> Server tab -> File Server tab for instructions
+* Added an interface for adding multiple folders to serve media, see `Serving Files and Images` in the Bob documentation.
+* Improved the mediaScan so that it can scan any folder and serve the files in them.
+** This breaks the previous `filePathRoot` setup method
 
 !! Version 1.2.4 Mashed Potatoes with a fine black pepper gravy
 
-  - Cleaned up some code in `FileSystemMonitor.js` and `WebsocketAdaptor.js` to better partition what each does, no functional changes.
-  - Split out the start of the federation components for inter-server communication.
-  - Change all of the checks to see if a tiddler has changed to use the hash of the tiddler instead of matching fields. It should be less suceptable to bugs. It may be slightly faster but this probably isn't a place where that makes a difference.
-    - (unfinished) The hashes are cached where appropriate to make things a bit faster. Once again this may be unneeded but it was simple to implement.
-  - The normalizeTiddler and TiddlerHasChanged functions are used more consistently
-    - fix some incorrect handing of tags and list fields in normalizeTiddler
-  - Change code to use new core utility functions
-    - Used `$tw.utils.generateTiddlerFileInfo` where appropriate
-    - Used `$tw.utils.saveTiddlerToFileSync`,
-  - Added collapsing wiki listing
-  - Fixed a bug that sometimes prevented the file server from working correctly in the root wiki.
-  - Added the working framework for inter-server federation and messages.
-  - Added a check to see if Bob was running in an iframe and if so don't treat upgrade requests as websockets
-    - This is needed to make twederation work with Bob servers.
-  - Fixed a bug where the list field would be sorted when it shouldn't be.
-  - Added command to scan a folder for media and create _canonical_uri tiddlers for each thing found. (mediaScan)
-  - updated to tiddlywiki v5.1.21
-  - fixed a bug with how filter in $:/config/FileSystemPaths are handled
+* Cleaned up some code in `FileSystemMonitor.js` and `WebsocketAdaptor.js` to better partition what each does, no functional changes.
+* Split out the start of the federation components for inter-server communication.
+* Change all of the checks to see if a tiddler has changed to use the hash of the tiddler instead of matching fields. It should be less suceptable to bugs. It may be slightly faster but this probably isn't a place where that makes a difference.
+** (unfinished) The hashes are cached where appropriate to make things a bit faster. Once again this may be unneeded but it was simple to implement.
+* The normalizeTiddler and TiddlerHasChanged functions are used more consistently
+** fix some incorrect handing of tags and list fields in normalizeTiddler
+* Change code to use new core utility functions
+** Used `$tw.utils.generateTiddlerFileInfo` where appropriate
+** Used `$tw.utils.saveTiddlerToFileSync`,
+* Added collapsing wiki listing
+* Fixed a bug that sometimes prevented the file server from working correctly in the root wiki.
+* Added the working framework for inter-server federation and messages.
+* Added a check to see if Bob was running in an iframe and if so don't treat upgrade requests as websockets
+** This is needed to make twederation work with Bob servers.
+* Fixed a bug where the list field would be sorted when it shouldn't be.
+* Added command to scan a folder for media and create _canonical_uri tiddlers for each thing found. (mediaScan)
+* updated to tiddlywiki v5.1.21
+* fixed a bug with how filter in $:/config/FileSystemPaths are handled
 
 !! Version 1.2.3 Boiled Potatoes
 
