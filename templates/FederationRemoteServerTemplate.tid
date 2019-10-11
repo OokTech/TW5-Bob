@@ -55,7 +55,7 @@ Connection Status:
     </th>
   </tr>
   <$list
-    filter='[enlist{!!wikis}addprefix[/]addprefix<currentTiddler>]'
+    filter='[enlist{!!availablewikis}addprefix[/]addprefix<currentTiddler>]'
     emptyMessage='<tr><td colspan=8>No Wikis Available</td></tr>'
   >
     {{||$:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate}}

@@ -40,21 +40,9 @@ exports.handler = function(request,response,state) {
       const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
       const authorised = $tw.Bob.AccessCheck(bodyData.wiki, token, 'upload');
       if(authorised) {
-        /*
-        let filesPath;
-        const basePath = $tw.ServerSide.getBasePath();
-        let midPath;
-        if(bodyData.storeIn !== 'wiki') {
-          console.log(7)
-          midPath = path.join($tw.settings.wikisPath, bodyData.wiki);
-        } else {
-          console.log(8)
-          midPath = $tw.settings.filePathRoot;
-        }
-        filesPath = path.resolve(basePath, midPath, 'files');
-        */
         const filesPath = path.resolve($tw.ServerSide.getWikiPath(bodyData.wiki), 'files');
-        var buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
+        $tw.utils.createDirectory(filesPath);
+        const buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
         fs.writeFile(path.join(filesPath, bodyData.tiddler.fields.title), buf, function(error) {
           if (error) {
             console.log(error);
