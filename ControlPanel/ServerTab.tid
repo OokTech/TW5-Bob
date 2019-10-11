@@ -85,4 +85,4 @@ available until it is restarted.
   />
 </$button>
 
-<<tabs "[[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/FetchPlugins.tid]][[$:/plugins/OokTech/Bob/FileServerSetup.tid]][[$:/plugins/OokTech/Bob/ServerMessageHistory]]" "$:/plugins/OokTech/Bob/ManualSettingsTab">>
+<<tabs "[[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/FetchPlugins]][[$:/plugins/OokTech/Bob/FileServerSetup]][[$:/plugins/OokTech/Bob/ServerMessageHistory]]" "$:/plugins/OokTech/Bob/ManualSettingsTab">>

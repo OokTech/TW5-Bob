@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/FileServerSetup.tid
+title: $:/plugins/OokTech/Bob/FileServerSetup
 caption: File Server
 
 \define checkActions()

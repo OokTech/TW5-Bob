@@ -12,7 +12,6 @@ used. If the json isn't formatted correctly than default values will be used.
 ```
 {
   "editionsPath": "./Editions",
-  "filePathRoot": "./Wikis",
   "pluginsPath": "./Plugins",
   "themesPath": "./Themes"
   "wikisPath": "./Wikis",
@@ -111,10 +110,6 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `editionsPath` is the folder that holds any custom editions you want to be
   able to use when making wikis using the control panel.  If relative it is
   relative to `wikiPathBase`.
-- `filePathRoot` is the root folder where external files are served. If you
-  want to use an external image from your computer in your wiki than you need
-  to set this to a parent folder of where the pictures are. If none is given
-  than local files aren't served.
 - `pluginsPath` is the path to the plugins folder if you are using the as a
   plugin library.  If relative it is relative to `wikiPathBase`.
 - `themesPath` is the path to the folder where you have your themes.  If
@@ -237,6 +232,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
     update loop. The value is in ms. Default: `200`. Smaller values may cause
     more race conditions. Larger values make the server wait longer before
     saving a tiddler.
+- `servingFiles` this lists the prefixes and folders that hold files that can
+  be served.
+  - The items in this are in the form `prefix: /path/to/folder`, see the file
+    server documentation for more.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no
