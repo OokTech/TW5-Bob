@@ -29,14 +29,25 @@ if($tw.node) {
         return true
       }
       function openRemoteSocket() {
-        const serverName = $tw.settings.serverName || 'Noh Neigh-m';
+        $tw.settings.federation = $tw.settings.federation || {};
+        const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
-          name: serverName,
-          publicKey: 'c minor'
+          type: 'serverInfo',
+          info: {
+            name: serverName,
+            publicKey: 'c minor',
+            canLogin: 'no',
+            availableWikis: $tw.ServerSide.getViewableWikiList(),
+            availableChats: [],
+            staticUrl: 'no',
+            port: $tw.settings['ws-server'].port
+          }
         }
         console.log('REMOTE SOCKET OPENED', data.url)
-        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
-        $tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestTiddlers', data:'HI BACK'}))
+        $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
+        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}, data.url)
+        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
+        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}))
         $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the
@@ -67,6 +78,30 @@ if($tw.node) {
       } else {
         console.log('A connection already exists to ', data.url)
       }
+    }
+  }
+
+  /*
+    This sends a websocket message to a remote server.
+
+    data = {
+      $server: the server url (or human readable name? It has to be unique),
+      $message: the message type
+      otherThings: data to pass on to the other server as parameters of the message being sent.
+    }
+  */
+  $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    if (data.$server && data.$message) {
+      const newData = {
+        type: data.$message
+      }
+      Object.keys(data).forEach(function(key) {
+        if (['type', '$server', '$message'].indexOf(key) === -1) {
+          newData[key] = data[key]
+        }
+      })
+      $tw.Bob.Federation.remoteConnections[data.$server].socket.send(JSON.stringify(newData));
     }
   }
 
@@ -274,9 +309,23 @@ if($tw.node) {
         if(serverEntry.type === 'saveTiddler') {
           const longTitle = serverEntry.title;
           const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'saveTiddler',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         } else if(serverEntry.type === 'deleteTiddler') {
-          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'deleteTiddler',
+            tiddler: {
+              fields:{
+                title:serverEntry.title
+              }
+            },
+            wiki: data.wiki
+          };
         }
         if(message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -321,15 +370,22 @@ if($tw.node) {
   }
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
+    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
     if(typeof data.updateString === 'object') {
       let failed = false;
-      let updatesObject;
+      let updatesObject = {};
       let error = undefined;
       try {
-        updatesObject = JSON.parse(data.updateString);
+        if (typeof data.updateString === 'object') {
+          Object.keys(data.updateString).forEach(function(key) {
+            updatesObject[key] = (typeof data.updateString[key] === 'object')?data.updateString[key]:JSON.parse(data.updateString[key])
+          })
+        } else {
+          updatesObject = JSON.parse(data.updateString);
+        }
       } catch (e) {
         updatesObject = {};
         failed = true;
@@ -339,13 +395,14 @@ if($tw.node) {
         $tw.updateSettings($tw.settings, updatesObject);
       }
       if(!failed) {
-        $tw.CreateSettingsTiddlers();
+        $tw.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
         };
         $tw.ServerSide.sendBrowserAlert(message);
+        $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
       } else {
-        $tw.CreateSettingsTiddlers();
+        $tw.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Failed to update settings with error: ' + error
         };
@@ -383,7 +440,13 @@ if($tw.node) {
     // Add the tiddler
     //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
-    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
+    $tw.Bob.SendToBrowsers({
+      type: 'saveTiddler',
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: data.wiki
+    });
     // Save the updated settings
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
@@ -450,8 +513,14 @@ if($tw.node) {
       title: '$:/Bob/AvailablePluginList',
       list: $tw.utils.stringifyList(Object.keys(pluginNames))
     }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    }
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 
@@ -464,9 +533,15 @@ if($tw.node) {
     const fields = {
       title: '$:/Bob/AvailableThemeList',
       list: $tw.utils.stringifyList(Object.keys(themeNames))
-    }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    };
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    };
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 
@@ -986,7 +1061,8 @@ if($tw.node) {
       ignoreExisting: 'true',
       overwrite: 'false',
       prune: 'false',
-      mediaTypes: [things listed in the mimemap]
+      mediaTypes: [things listed in the mimemap],
+      prefix: 'docs'
     }
     Folder paths are either absolute or relative to $tw.Bob.getBasePath()
 
@@ -995,6 +1071,8 @@ if($tw.node) {
     overwrite - if this is true than tiddlers are made even if they overwrite existing tiddlers
     prune - remove tiddlers that have _canonical_uri fields pointing to files that don't exist in the folder
     mediaTypes - an array of file extensions to look for. If the media type is not in the mimemap than the tiddler type may be set incorrectly.
+    prefix - the prefix to put on the uri, the uri will be in the form
+            /wikiName/files/prefix/file.ext
 
     TODO - add a recursive option (with some sane limits, no recursively finding everything in /)
     TODO - figure out what permission this one should go with
@@ -1003,12 +1081,14 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.mediaScan = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    data.prefix = data.prefix || 'prefix';
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
     $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if (authorised) {
+      $tw.settings.servingFiles[data.prefix] = data.folder;
       const mimeMap = $tw.settings.mimeMap || {
         '.aac': 'audio/aac',
         '.avi': 'video/x-msvideo',
@@ -1034,7 +1114,7 @@ if($tw.node) {
       };
       if (typeof data.mediaTypes === 'string') {
         if (data.mediaTypes.length > 0) {
-          datat.mediaTypes = data.mediaTypes.split(' ');
+          data.mediaTypes = data.mediaTypes.split(' ');
         }
       } else {
         data.mediaTypes = undefined;
@@ -1065,7 +1145,7 @@ if($tw.node) {
               if (fs.statSync(path.join(mediaDir, file)).isFile()) {
                 const pathInfo = path.parse(file);
                 if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
-                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + path.relative(path.resolve($tw.ServerSide.getBasePath(),$tw.settings.filePathRoot),path.join(mediaDir, file));
+                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + data.prefix + '/' + path.relative(path.resolve(data.folder),path.join(mediaDir, file));
                   if (data.prune === 'yes') {
                     // Remove any _canonical_uri tiddlers that have paths to
                     // this folder but no files exist for them.
@@ -1124,6 +1204,8 @@ if($tw.node) {
           })
         }
       }
+      // Save the settings
+      $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki});
     }
   }
 }

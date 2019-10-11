@@ -175,6 +175,7 @@ if($tw.node) {
           $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo);
           // Save the tiddler in memory.
           internalSave(tiddler, prefix);
+          $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
         }
       });
     }
@@ -183,7 +184,13 @@ if($tw.node) {
   // After the tiddler file is saved this takes care of the internal part
   function internalSave (tiddler, prefix) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
-    const message = {type: 'saveTiddler', wiki: prefix, tiddler: {fields: tiddler.fields}};
+    const message = {
+      type: 'saveTiddler',
+      wiki: prefix,
+      tiddler: {
+        fields: tiddler.fields
+      }
+    };
     $tw.Bob.SendToBrowsers(message);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};

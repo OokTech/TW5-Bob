@@ -1,0 +1,48 @@
+title: $:/plugins/Bob/Federation/Chat/styles
+tags: $:/tags/Stylesheet
+
+.defaultChatHistoryView {
+  min-height: 3em;
+  max-height: 30em;
+  width: 100%;
+  overflow: scroll;
+  border: solid 1px grey;
+}
+
+.defaultChatHistoryViewOddMessages {
+  background-color: #4441;
+}
+
+.defaultChatHistoryViewEvenMessages {
+
+}
+
+.defaultChatInput {
+
+}
+
+.defaultChatSendButton {
+
+}
+
+.chatDateDisplay {
+  font-size: 10px;
+  line-height: 10px;
+}
+
+.chatNameDisplay {
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: bold;
+  position:relative;
+}
+
+.chatNameDisplay:after {
+    content: "<br/> ";
+    display: block;
+    position: relative;
+}
+
+.chatMessageDisplay {
+
+}

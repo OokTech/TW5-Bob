@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/FederationWebsocketSetup.js
+title: $:/plugins/OokTech/Bob/Federation/FederationWebsocketSetup.js
 type: application/javascript
 module-type: startup
 
@@ -12,10 +12,12 @@ A module that adds the framework for inter-server communication
 /*global $tw: false */
 "use strict";
 
+exports.name = "federation-websockets-setup";
 exports.platforms = ["node"];
+exports.after = ["render"];
+exports.synchronous = true;
 
-if($tw.node) {
-
+if($tw.node && $tw.settings.enableFederation === 'yes') {
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
@@ -31,9 +33,13 @@ if($tw.node) {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      let self = this;
+      console.log('federation message',event)
+      $tw.Bob.logger.log('Received federated message ', event, {level:4});
       try {
         let eventData = JSON.parse(event);
+        if (typeof eventData === 'string') {
+          eventData = JSON.parse(eventData);
+        }
         if (typeof this.url !== 'undefined') {
           const thisURL = URL.parse(this.url);
           eventData._source_info = {
@@ -43,10 +49,7 @@ if($tw.node) {
           };
         } else {
           eventData._source_info = this._socket._peername;
-          eventData._source_info.url = this._socket._peername.address + ':' +this._socket._peername.port;
-        }
-        if (typeof $tw.Bob.Federation.remoteConnections[eventData._source_info.url] === 'undefined') {
-          $tw.Bob.Federation.remoteConnections[eventData._source_info.url] = {socket: this}
+          eventData._source_info.url = this._socket._peername.address + ':' + this._socket._peername.port;
         }
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
@@ -87,10 +90,10 @@ if($tw.node) {
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection (client, request) {
-      $tw.Bob.logger.log("New Remote Connection", {level: 2})
-      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress] = {socket: client}
-      client.on('message', $tw.Bob.Federation.handleMessage)
-      $tw.Bob.Federation.updateConnections()
+      $tw.Bob.logger.log("New Remote Connection", {level: 2});
+      $tw.Bob.Federation.remoteConnections[request.connection.remoteAddress + ':' + request.connection.remotePort] = {socket: client};
+      client.on('message', $tw.Bob.Federation.handleMessage);
+      $tw.Bob.Federation.updateConnections();
     }
 
     /*
@@ -102,12 +105,25 @@ if($tw.node) {
       changes
     */
     $tw.Bob.Federation.updateConnections = function () {
-      console.log('update connections')
+      $tw.Bob.logger.log('Update federated connections', {level:3});
+      $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.remoteConnections), {level:4});
+      const connections = {}
+      Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(connectionKey) {
+        connections[connectionKey] = {
+          name: $tw.Bob.Federation.remoteConnections[connectionKey].name,
+          canLogin: $tw.Bob.Federation.remoteConnections[connectionKey].canLogin,
+          availableWikis: $tw.Bob.Federation.remoteConnections[connectionKey].availableWikis || [],
+          availableChats: $tw.Bob.Federation.remoteConnections[connectionKey].availableChats || [],
+          port: $tw.Bob.Federation.remoteConnections[connectionKey].port,
+          publicKey:  $tw.Bob.Federation.remoteConnections[connectionKey].publicKey,
+          staticUrl:$tw.Bob.Federation.remoteConnections[connectionKey].staticUrl
+        };
+      })
       const message = {
         type: 'updateConnections',
-        connections: Object.keys($tw.Bob.Federation.remoteConnections)
-      }
-      $tw.Bob.SendToBrowsers(message)
+        connections: connections
+      };
+      $tw.Bob.SendToBrowsers(message);
     }
     finishSetup();
   }

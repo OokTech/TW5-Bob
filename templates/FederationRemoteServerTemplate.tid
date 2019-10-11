@@ -1,0 +1,84 @@
+title: $:/plugins/OokTech/Bob/Federation/RemoteServerTemplate
+
+Connection Status:
+<$list
+  filter='[field:connection_status[connected]]'
+  emptyMessage="""
+  Disconnected
+  <$button>
+    Connect
+  </$button>
+  """
+  variable=unused
+>
+  Connected
+  <$button>
+    Disconnect
+  </$button>
+</$list>
+
+<$list
+  filter='[field:allows_login[yes]]'
+  variable=unused
+  emptyMessage='Server does not allow login'
+>
+  //Login Interface Here//
+</$list>
+
+!! Available Wikis on <$view field='name'><$view field='title'/></$view>
+
+<table>
+  <tr>
+    <th>
+      Edit
+    </th>
+    <th>
+      Wiki Name
+    </th>
+    <th>
+      Pubilc
+    </th>
+    <th>
+      Sync Filter
+    </th>
+    <th>
+      Sync Type
+    </th>
+    <th>
+      Conflict Handling
+    </th>
+    <th>
+      Auto Sync
+    </th>
+    <th>
+      Sync Now
+    </th>
+  </tr>
+  <$list
+    filter='[enlist{!!availablewikis}addprefix[/]addprefix<currentTiddler>]'
+    emptyMessage='<tr><td colspan=8>No Wikis Available</td></tr>'
+  >
+    {{||$:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate}}
+  </$list>
+</table>
+
+!! Available Chats
+
+<table>
+  <tr>
+    <th>
+      Chat Name
+    </th>
+    <th>
+      Public?
+    </th>
+    <th>
+    </th>
+  </tr>
+  <$list
+    filter='[[Chat 1]][[Chat 2]]'
+    emptyMessage='No Chats Available'
+  >
+    {{||$:/plugins/OokTech/Bob/Federation/AvailableChatsListingTemplate}}
+  </$list>
+</table>

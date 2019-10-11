@@ -1,7 +1,12 @@
 title: $:/plugins/OokTech/Bob/ExcludeSync
 
-[has[draft.of]][prefix[$:/state/]][prefix[$:/temp/]][[$:/StoryList]]
-[[$:/HistoryList]][[$:/status/UserName]][[$:/Import]]
+[has[draft.of]]
+[prefix[$:/state/]]
+[prefix[$:/temp/]]
+[[$:/StoryList]]
+[[$:/HistoryList]]
+[[$:/status/UserName]]
+[[$:/Import]]
 [[$:/plugins/OokTech/Bob/Server Warning]]
 [[$:/plugins/OokTech/Bob/Unsent]]
 [[$:/Bob/VisibleConfigurationTabs]]

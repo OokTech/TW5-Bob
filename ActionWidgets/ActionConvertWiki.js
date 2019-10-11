@@ -19,7 +19,7 @@ where #fileInput is the name given to the file input html element used.
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 const ActionConvertWiki = function(parseTreeNode,options) {
-	this.initialise(parseTreeNode,options);
+  this.initialise(parseTreeNode,options);
 };
 
 /*
@@ -31,15 +31,15 @@ ActionConvertWiki.prototype = new Widget();
 Render this widget into the DOM
 */
 ActionConvertWiki.prototype.render = function(parent,nextSibling) {
-	this.computeAttributes();
-	this.execute();
+  this.computeAttributes();
+  this.execute();
 };
 
 /*
 Compute the internal state of the widget
 */
 ActionConvertWiki.prototype.execute = function() {
-	this.inputName = this.getAttribute('fileInput', "#fileInput");
+  this.inputName = this.getAttribute('fileInput', "#fileInput");
   this.wikiFolder = this.getAttribute('wikiFolder', undefined);
   this.wikisPath = this.getAttribute('wikisPath', undefined);
   this.wikiName = this.getAttribute('wikiName', undefined);
@@ -50,12 +50,12 @@ ActionConvertWiki.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionConvertWiki.prototype.refresh = function(changedTiddlers) {
-	const changedAttributes = this.computeAttributes();
-	if(Object.keys(changedAttributes).length) {
-		this.refreshSelf();
-		return true;
-	}
-	return this.refreshChildren(changedTiddlers);
+  const changedAttributes = this.computeAttributes();
+  if(Object.keys(changedAttributes).length) {
+    this.refreshSelf();
+    return true;
+  }
+  return this.refreshChildren(changedTiddlers);
 };
 
 /*
@@ -83,14 +83,13 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
             "wiki": wikiName,
             "overwrite": self.overwrite
           }
-          const messageData = $tw.Bob.Shared.createMessageData(message)
-          $tw.Bob.Shared.sendMessage(messageData, 0)
+          $tw.Bob.Shared.sendMessage(message, 0)
         } else {
           console.log("No tiddlers found in input file!");
         }
       })
     }
-  	return true; // Action was invoked
+    return true; // Action was invoked
   }
 };
 

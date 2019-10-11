@@ -24,6 +24,8 @@ This has some functions that are needed by Bob in different places.
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
+  $tw.settings.advanced = $tw.settings.advanced || {};
+  let messageQueueTimer = false;
 
   /*
     This function takes two tiddler objects and returns a boolean value
@@ -76,7 +78,7 @@ This has some functions that are needed by Bob in different places.
     boolean indicating if the ack has been received yet or not.
   */
   Shared.createMessageData = function (message) {
-    const id = $tw.Bob.Shared.makeId();
+    const id = makeId();
     message.id = id;
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
@@ -112,17 +114,17 @@ This has some functions that are needed by Bob in different places.
     If the queue isn't empty the timeout is reset for this function to run
     again in 500ms
   */
-  Shared.checkMessageQueue = function () {
+  function checkMessageQueue() {
     // If the queue isn't empty
-    if($tw.Bob.MessageQueue.length > 0) {
+    if($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
-      $tw.Bob.MessageQueue = Shared.pruneMessageQueue($tw.Bob.MessageQueue);
+      $tw.Bob.MessageQueue = pruneMessageQueue($tw.Bob.MessageQueue);
       // Check if there are any messages that are more than 500ms old and have
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
       const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if(Date.now() - messageData.time > 500) {
+        if(Date.now() - messageData.time > $tw.settings.advanced.localMessageQueueTimeout || 500) {
           return true;
         } else {
           return false;
@@ -144,13 +146,17 @@ This has some functions that are needed by Bob in different places.
           }
         });
       });
-      if($tw.Bob.MessageQueueTimer) {
-        clearTimeout($tw.Bob.MessageQueueTimer);
+      if(messageQueueTimer) {
+        clearTimeout(messageQueueTimer);
       }
-      $tw.Bob.MessageQueueTimer = setTimeout(Shared.checkMessageQueue, 500);
+      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     } else {
-      clearTimeout($tw.Bob.MessageQueueTimer);
-      $tw.Bob.MessageQueueTimer = false;
+      clearTimeout(messageQueueTimer);
+      messageQueueTimer = false;
+      if ($tw.browser) {
+        //Turn off dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
     }
   }
 
@@ -159,7 +165,7 @@ This has some functions that are needed by Bob in different places.
     Messages from the browser have ids that start with b, messages from the
     server have an idea that starts with s.
   */
-  Shared.makeId = function () {
+  function makeId() {
     idNumber = idNumber + 1;
     const newId = ($tw.browser?'b':'s') + idNumber;
     return newId;
@@ -381,7 +387,11 @@ This has some functions that are needed by Bob in different places.
 
     This modifies $tw.Bob.MessageQueue as a side effect
   */
-  Shared.sendMessage = function(messageData, connectionIndex) {
+  Shared.sendMessage = function(message, connectionIndex) {
+    const messageData = Shared.createMessageData(message)
+    if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+      $tw.utils.toggleClass(document.body,"tc-dirty",true);
+    }
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
@@ -393,7 +403,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
       if($tw.browser) {
         // Check to see if the token has changed
-        $tw.Bob.MessageQueue = Shared.removeOldTokenMessages($tw.Bob.MessageQueue);
+        $tw.Bob.MessageQueue = removeOldTokenMessages($tw.Bob.MessageQueue);
       }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
@@ -420,20 +430,21 @@ This has some functions that are needed by Bob in different places.
         // we get a saveTiddler message for a tiddler
         clearTimeout($tw.Bob.Timers[messageData.title]);
         // then reset the timer
-        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
+        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, $tw.settings.advanced.saveTiddlerDelay || 200);
       } else {
         $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
       }
     }
-    clearTimeout($tw.Bob.MessageQueueTimer);
-    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+    clearTimeout(messageQueueTimer);
+    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+    return messageData;
   }
 
   /*
     If the token in the queued messages changes than remove messages that use
     the old token
   */
-  Shared.removeOldTokenMessages = function (messageQueue) {
+  function removeOldTokenMessages(messageQueue) {
     let outQueue = [];
     if(localStorage) {
       if(typeof localStorage.getItem === 'function') {
@@ -499,7 +510,7 @@ This has some functions that are needed by Bob in different places.
     multiple times and things get stuck in an infinite loop if we don't detect
     that they are duplicates.
   */
-  Shared.pruneMessageQueue = function (inQueue) {
+  function pruneMessageQueue(inQueue) {
     inQueue = inQueue || [];
     let token = false
     if($tw.browser && localStorage) {
@@ -518,8 +529,10 @@ This has some functions that are needed by Bob in different places.
     // it was waiting for. If it doesn't exist than it is still waiting.
     const outQueue = inQueue.filter(function(messageData) {
       if((token && messageData.message.token && messageData.message.token !== token) || (token && !messageData.message.token) ) {
-        // If we have a token, the message has a token and they are not the same than drop the message.
+        // If we have a token, the message has a token and they are not the
+        // same than drop the message. (possible imposter)
         // If we have a token and the message doesn't have a token than drop it
+        // (someone unathenticated trying to make changes)
         // If we don't have a token and the message does than what?
         return false
       } else if(messageData.ctime) {
@@ -534,7 +547,6 @@ This has some functions that are needed by Bob in different places.
         return true;
       }
     })
-
     return outQueue;
   }
 
@@ -594,6 +606,10 @@ This has some functions that are needed by Bob in different places.
     robust against collisions, it just needs to make collisions rare for a very
     easy value of rare, like 0.1% would be more than enough to make this very
     useful, and this should be much better than that.
+
+    Remember that this just cares about collisions between one tiddler and its
+    previous state after an edit, not between all tiddlers in the wiki or
+    anything like that.
   */
   // This is a stable json stringify function from https://github.com/epoberezkin/fast-json-stable-stringify
   function stableStringify (data, opts) {
@@ -668,28 +684,18 @@ This has some functions that are needed by Bob in different places.
   }
 
   /*
-    This sends a message to a remote server. This is used for syncing for now,
-    in the future it may be used for other things.
+    This acknowledges that a message has been received.
   */
-  Shared.sendToRemoteServer = function(message) {
-    let ok = true
-    if(typeof message === 'string') {
-      try{
-        message = JSON.parse(message)
-      } catch (e) {
-        ok = false
-      }
-      if(ok) {
-        message.source_server = 'ThisServerURL'
-        message.access_token = 'ThisAccessToken'
-      }
-    }
-  }
-
   Shared.sendAck = function (data) {
+    data = data || {};
     if($tw.browser) {
       const token = localStorage.getItem('ws-token')
-      $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
+      $tw.connections[0].socket.send(JSON.stringify({
+        type: 'ack',
+        id: data.id,
+        token: token,
+        wiki: $tw.wikiName
+      }));
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {

@@ -1,12 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/NodeFederationHandlers.js
+title: $:/plugins/OokTech/Bob/Federation/NodeFederationHandlers.js
 type: application/javascript
 module-type: startup
 
-These are message handler functions for the web socket servers. Use this file
-as a template for extending the web socket funcitons.
-
-This handles messages sent to the node process.
+These are basic handlers for federation between different Bob servers.
 \*/
 (function(){
 
@@ -16,9 +13,113 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
-if($tw.node) {
+if($tw.node && $tw.settings.enableFederation === 'yes') {
+  $tw.settings.Federation = $tw.settings.Federation || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
+
+  /*
+    This is asking a remote server for an update about its current status
+    including:
+
+    - Server name
+    - Available wikis
+    - Available chats
+    - (TODO) its public key
+      - For this one the requesting server would send a random number and the
+        reply would be a signed token where the payload is the random number
+        and the public key.
+
+    TODO - make the authorization checking something reasonable
+  */
+  function checkAuthorization() {
+    return true;
+  }
+  function getAvailableWikis(data) {
+    data = data || {};
+    function getList(obj, prefix) {
+      let output = []
+      Object.keys(obj).forEach(function(item) {
+        if(typeof obj[item] === 'string') {
+          if($tw.ServerSide.existsListed(prefix+item)) {
+            if(item == '__path') {
+              if(prefix.endsWith('/')) {
+                output.push(prefix.slice(0,-1));
+              } else {
+                output.push(prefix);
+              }
+            } else {
+              output.push(prefix+item);
+            }
+          }
+        } else if(typeof obj[item] === 'object') {
+          output = output.concat(getList(obj[item], prefix + item + '/'));
+        }
+      })
+      return output;
+    }
+    // Get the wiki list of wiki names from the settings object
+    const wikiList = getList($tw.settings.wikis, '')
+    const viewableWikis = []
+    wikiList.forEach(function(wikiName) {
+      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+        viewableWikis.push(wikiName);
+      }
+    })
+    return wikiList || {};
+  }
+  function getAvailableChats() {
+    return [];
+  }
+  function sendReply(reply, data) {
+    $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.send(data)
+  }
+
+  /*
+    Ask a remote server for updated information about the server.
+  */
+  $tw.Bob.Federation.messageHandlers.requestServerUpdate = function(data) {
+    const authorised = checkAuthorization(data);
+    if (authorised) {
+      // Reply with the server info listed above
+      const reply = {
+        type: 'serverInfo',
+        info: {
+          name: $tw.settings.Federation.serverName || 'Sever Name',
+          canLogin: $tw.settings.Federation.canLogin || 'no',
+          availableWikis: $tw.ServerSide.getViewableWikiList(data),
+          availableChats: getAvailableChats(data),
+          port: $tw.settings['ws-server'].port,
+          publicKey: 'c minor',
+          staticUrl: 'no'
+        }
+      };
+      $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
+    }
+  }
+
+  function addServerInfo(data) {
+    data = data || {};
+    data.info = (data.message)?(data.message.info || data.info):data.info;
+    if (data.info && data._source_info) {
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].port = data.info.port;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].publicKey = data.info.publicKey;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].staticUrl = data.info.staticUrl;
+    }
+    $tw.Bob.Federation.updateConnections();
+  }
+
+  $tw.Bob.Federation.messageHandlers.serverInfo = function(data) {
+    const authorised = checkAuthorization(data);
+    if (authorised) {
+      addServerInfo(data)
+    }
+  }
+
   /*
     Sync servers takes a filter and syncs all of the tiddlers returned by the
     filter with a remote server.
@@ -96,6 +197,7 @@ if($tw.node) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data.remoteUrl);
+        const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
         const websocketProtocol = (remoteUrl.protocol.startsWith('https'))?'wss://':'ws://';
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
