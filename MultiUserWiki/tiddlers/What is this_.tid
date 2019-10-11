@@ -32,4 +32,4 @@ Things you may want to do:
 
 * Enable the [[media file server|$:/plugins/OokTech/Bob/FileServerSetup]]
 * Enable the [[ServerImages plugin|$:/plugins/OokTech/Bob/SelectPlugins]] (requires the media server to be enabled)
-* Make the served wikis [[available on the local network|$:/plugins/OokTech/Bob/FileServerSetup]]
+* Make the served wikis [[available on the local network|$:/plugins/OokTech/Bob/ServerTab]]
