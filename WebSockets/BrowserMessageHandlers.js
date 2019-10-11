@@ -250,7 +250,7 @@ it will overwrite this file.
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
 
-      $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      //$tw.utils.toggleClass(document.body,"tc-dirty",false);
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.
@@ -288,7 +288,7 @@ it will overwrite this file.
   */
   function handleDisconnected() {
     console.log('Disconnected from server', {level:0});
-    const text = "<div      style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;'>''WARNING: You are no longer connected to the server.''<$button>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
+    const text = "<div style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: You are no longer connected to the server.''<$button style='color:black;'>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
     const tiddler = {
       title: '$:/plugins/OokTech/Bob/Server Warning',
       text: text,
@@ -306,13 +306,9 @@ it will overwrite this file.
         }));
       }
     }, $tw.settings.heartbeat.interval);
-    let queue = [];
-    $tw.Bob.MessageQueue.forEach(function(message) {
-      queue.push(message)
-    })
     const tiddler2 = {
       title: '$:/plugins/OokTech/Bob/Unsent',
-      text: JSON.stringify(queue, '', 2),
+      text: JSON.stringify($tw.Bob.MessageQueue, '', 2),
       type: 'application/json',
       start: Date.now()-Number($tw.settings.heartbeat.timeout)
     };

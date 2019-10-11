@@ -31,7 +31,7 @@ sends:
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 const ActionWebSocketMessage = function(parseTreeNode,options) {
-	this.initialise(parseTreeNode,options);
+  this.initialise(parseTreeNode,options);
 };
 
 /*
@@ -43,28 +43,28 @@ ActionWebSocketMessage.prototype = new Widget();
 Render this widget into the DOM
 */
 ActionWebSocketMessage.prototype.render = function(parent,nextSibling) {
-	this.computeAttributes();
-	this.execute();
+  this.computeAttributes();
+  this.execute();
 };
 
 /*
 Compute the internal state of the widget
 */
 ActionWebSocketMessage.prototype.execute = function() {
-	this.type = this.getAttribute('$type', undefined);
-	this.param = this.getAttribute('$param', undefined);
+  this.type = this.getAttribute('$type', undefined);
+  this.param = this.getAttribute('$param', undefined);
 };
 
 /*
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionWebSocketMessage.prototype.refresh = function(changedTiddlers) {
-	const changedAttributes = this.computeAttributes();
-	if(Object.keys(changedAttributes).length) {
-		this.refreshSelf();
-		return true;
-	}
-	return this.refreshChildren(changedTiddlers);
+  const changedAttributes = this.computeAttributes();
+  if(Object.keys(changedAttributes).length) {
+    this.refreshSelf();
+    return true;
+  }
+  return this.refreshChildren(changedTiddlers);
 };
 
 /*
@@ -84,20 +84,20 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // For any other attributes passed to the widget add them to the message as
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {
-		if(name.charAt(0) !== "$") {
+    if(name.charAt(0) !== "$") {
       message[name] = attribute;
-		}
-	});
+    }
+  });
   const token = localStorage.getItem('ws-token');
   message["token"] = token;
   // We need a message type at a minimum to send anything
   if(message.type) {
     // Send the message
-    const messageData = $tw.Bob.Shared.createMessageData(message)
-    $tw.Bob.Shared.sendMessage(messageData, 0)
+    //const messageData = $tw.Bob.Shared.createMessageData(message)
+    $tw.Bob.Shared.sendMessage(message, 0)
   }
 
-	return true; // Action was invoked
+  return true; // Action was invoked
 };
 
 exports["action-websocketmessage"] = ActionWebSocketMessage;

@@ -87,7 +87,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         info: {
           name: $tw.settings.Federation.serverName || 'Sever Name',
           canLogin: $tw.settings.Federation.canLogin || 'no',
-          availableWikis: $tw.Bob.Shared.getViewableWikiList(data),
+          availableWikis: $tw.ServerSide.getViewableWikiList(data),
           availableChats: getAvailableChats(data),
           port: $tw.settings['ws-server'].port,
           publicKey: 'c minor',

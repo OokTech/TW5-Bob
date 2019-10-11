@@ -37,7 +37,7 @@ if($tw.node) {
             name: serverName,
             publicKey: 'c minor',
             canLogin: 'no',
-            availableWikis: $tw.Bob.Shared.getViewableWikiList(),
+            availableWikis: $tw.ServerSide.getViewableWikiList(),
             availableChats: [],
             staticUrl: 'no',
             port: $tw.settings['ws-server'].port

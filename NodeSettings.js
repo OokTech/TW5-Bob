@@ -63,27 +63,27 @@ if($tw.node) {
     if($tw.node && !fs) {
       const fs = require('fs')
     }
-  	let rawSettings;
-  	let newSettings;
+    let rawSettings;
+    let newSettings;
 
-  	// try/catch in case defined path is invalid.
-  	try {
-  		rawSettings = fs.readFileSync(newSettingsPath);
-  	} catch (err) {
-  		console.log('NodeSettings - No settings file, creating one with default values.');
+    // try/catch in case defined path is invalid.
+    try {
+      rawSettings = fs.readFileSync(newSettingsPath);
+    } catch (err) {
+      console.log('NodeSettings - No settings file, creating one with default values.');
       rawSettings = '{}';
-  	}
+    }
 
-  	// Try to parse the JSON after loading the file.
-  	try {
-  		newSettings = JSON.parse(rawSettings);
-  		console.log('NodeSettings - Parsed raw settings.');
-  	} catch (err) {
-  		console.log('NodeSettings - Malformed settings. Using empty default.');
-  		console.log('NodeSettings - Check settings. Maybe comma error?');
-  		// Create an empty default settings.
-  		newSettings = {};
-  	}
+    // Try to parse the JSON after loading the file.
+    try {
+      newSettings = JSON.parse(rawSettings);
+      console.log('NodeSettings - Parsed raw settings.');
+    } catch (err) {
+      console.log('NodeSettings - Malformed settings. Using empty default.');
+      console.log('NodeSettings - Check settings. Maybe comma error?');
+      // Create an empty default settings.
+      newSettings = {};
+    }
 
     $tw.updateSettings(settings,newSettings);
   }
