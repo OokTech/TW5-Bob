@@ -283,7 +283,7 @@ This has some functions that are needed by Bob in different places.
         $tw.Bob.Federation.remoteConnections[connectionIndex].socket.send(JSON.stringify(messageData.message));
       }
       clearTimeout(messageQueueTimer);
-      //messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
+      //messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 1500);
     }
 
     /*
