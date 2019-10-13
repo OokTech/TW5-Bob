@@ -236,11 +236,12 @@ if($tw.node) {
   */
   $tw.Bob.SendToBrowsers = function (message) {
     $tw.Bob.UpdateHistory(message);
+    const messageData = $tw.Bob.Shared.createMessageData(message);
 
     $tw.connections.forEach(function (connection) {
       if (connection.socket) {
         if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-          $tw.Bob.Shared.sendMessage(message, connection.index);
+          $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
     })
@@ -258,10 +259,10 @@ if($tw.node) {
   $tw.Bob.SendToBrowser = function (connection, message) {
     if(connection) {
       $tw.Bob.UpdateHistory(message);
-
+      const messageData = $tw.Bob.Shared.createMessageData(message);
       if (connection.socket) {
         if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-          $tw.Bob.Shared.sendMessage(message, connection.index);
+          $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
     }

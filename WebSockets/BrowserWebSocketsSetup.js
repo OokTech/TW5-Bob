@@ -113,8 +113,10 @@ socket server, but it can be extended for use with other web socket servers.
     }
 
     const sendToServer = function (message) {
+      console.log(message)
       const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
-      if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0 && tiddlerText !== '') {
+      //if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0 && tiddlerText !== '') {
+      if ($tw.Bob.MessageQueue.length > 0 && tiddlerText !== '') {
         // Turn on the dirty indicator
         $tw.utils.toggleClass(document.body,"tc-dirty",true);
       }

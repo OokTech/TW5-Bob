@@ -66,6 +66,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.saveTiddler = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('ack', data.id)
     // Ignore the message if it isn't for this wiki
     if(data.wiki === $tw.wikiName) {
       if(data.tiddler) {
@@ -251,6 +252,7 @@ it will overwrite this file.
       }
 
       if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+      //if ($tw.Bob.MessageQueue.length > 0) {
         // Turn on the dirty indicator
         $tw.utils.toggleClass(document.body,"tc-dirty",true);
       } else {
