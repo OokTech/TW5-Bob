@@ -66,7 +66,6 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.saveTiddler = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('ack', data.id)
     // Ignore the message if it isn't for this wiki
     if(data.wiki === $tw.wikiName) {
       if(data.tiddler) {

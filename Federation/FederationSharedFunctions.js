@@ -442,7 +442,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverKey) {
       const messageData = createRemoteMessageData(message);
       if (messageData && (serverKey || serverKey === 0)) {
-        console.log('message data:',messageData)
+        //console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         sendMessage(messageData, serverKey);
@@ -455,11 +455,11 @@ This has some functions that are needed by Bob in different places.
       TODO figure out how to best specify which servers to send the message to
     */
     $tw.Bob.Federation.sendToRemoteServers = function(message) {
-      console.log('sendToRemoteServers')
-      console.log(message)
+      //console.log('sendToRemoteServers')
+      //console.log(message)
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
-      console.log(Object.keys($tw.Bob.Federation.remoteConnections))
+      //console.log(Object.keys($tw.Bob.Federation.remoteConnections))
       Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(serverKey) {
         $tw.Bob.Federation.sendToRemoteServer(message, serverKey);
       })

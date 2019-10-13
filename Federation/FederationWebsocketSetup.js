@@ -33,7 +33,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      console.log('federation message',event)
+      //console.log('federation message',event)
       $tw.Bob.logger.log('Received federated message ', event, {level:4});
       try {
         let eventData = JSON.parse(event);

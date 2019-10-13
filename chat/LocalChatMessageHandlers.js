@@ -32,7 +32,10 @@ if($tw.node) {
         history = JSON.parse(JSON.stringify(historyTiddler.fields.text));
       }
       const theTime = $tw.utils.stringifyDate(new Date());
-      history = JSON.parse(history)
+      //history = JSON.parse(history)
+      if (typeof history === 'string') {
+        history = JSON.parse(history);
+      }
       // Add new message
       history[theTime] = {
         message:data.message,
