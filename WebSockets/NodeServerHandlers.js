@@ -370,7 +370,6 @@ if($tw.node) {
   }
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
-    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');

@@ -251,6 +251,7 @@ it will overwrite this file.
       }
 
       if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+      //if ($tw.Bob.MessageQueue.length > 0) {
         // Turn on the dirty indicator
         $tw.utils.toggleClass(document.body,"tc-dirty",true);
       } else {

@@ -116,7 +116,15 @@ This has some functions that are needed by Bob in different places.
   */
   function checkMessageQueue() {
     // If the queue isn't empty
-    if($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+    if($tw.Bob.MessageQueue.filter(function(item) {
+      return (typeof item.ctime) === 'undefined'
+    }).length === 0) {
+      if ($tw.browser) {
+        //Turn off dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
+    }
+    if($tw.Bob.MessageQueue.length > 0) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
       $tw.Bob.MessageQueue = pruneMessageQueue($tw.Bob.MessageQueue);
@@ -387,9 +395,12 @@ This has some functions that are needed by Bob in different places.
 
     This modifies $tw.Bob.MessageQueue as a side effect
   */
-  Shared.sendMessage = function(message, connectionIndex) {
-    const messageData = Shared.createMessageData(message)
-    if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+  Shared.sendMessage = function(message, connectionIndex, messageData) {
+    //const messageData = Shared.createMessageData(message)
+    messageData = messageData || Shared.createMessageData(message)
+    if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item) {
+      return (typeof item.ctime) === 'undefined'
+    }).length > 0) {
       $tw.utils.toggleClass(document.body,"tc-dirty",true);
     }
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
@@ -430,7 +441,9 @@ This has some functions that are needed by Bob in different places.
         // we get a saveTiddler message for a tiddler
         clearTimeout($tw.Bob.Timers[messageData.title]);
         // then reset the timer
-        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, $tw.settings.advanced.saveTiddlerDelay || 200);
+        $tw.Bob.Timers[messageData.title] = setTimeout(function() {
+          $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+        }, $tw.settings.advanced.saveTiddlerDelay || 200);
       } else {
         $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
       }
@@ -699,7 +712,10 @@ This has some functions that are needed by Bob in different places.
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
-          $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+          $tw.connections[data.source_connection].socket.send(JSON.stringify({
+            type: 'ack',
+            id: data.id
+          }));
         }
       }
     }
