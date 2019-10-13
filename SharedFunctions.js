@@ -116,7 +116,7 @@ This has some functions that are needed by Bob in different places.
   */
   function checkMessageQueue() {
     // If the queue isn't empty
-    if($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
+    if($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0 || true) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
       $tw.Bob.MessageQueue = pruneMessageQueue($tw.Bob.MessageQueue);

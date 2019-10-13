@@ -3,6 +3,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.3.1 Splenda
 
 * Make the expandable wiki listing default to closed
+* Fix a rather serious bug where changes on some wiki wouldn't be saved back to the server.
 
 !! Version 1.3.0 Tofurkey
 
