@@ -43,12 +43,12 @@ ChatView.prototype.render = function(parent,nextSibling) {
   containerDiv.classList.add(this.class);
   containerDiv.id = this.id;
   // The tiddler should be a json tiddler so we get the json object here
-  const historyTiddlerThing = this.wiki.getTiddler(this.historyTiddler)
+  const historyTiddlerThing = this.wiki.getTiddler(this.historyTiddler);
   let chatHistoryObject = {};
   if (historyTiddlerThing) {
     try {
       chatHistoryObject = JSON.parse(historyTiddlerThing.fields.text);
-    } catch {
+    } catch (e) {
 
     }
   }
