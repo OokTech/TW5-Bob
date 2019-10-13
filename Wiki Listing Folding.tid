@@ -45,8 +45,8 @@ tags: $:/tags/Macro
           >
             <$reveal
               state=<<thisFoldingWikiListingMakeState>>
-              text='hide'
-              type='nomatch'
+              text='show'
+              type='match'
             >
               {{$:/core/images/chevron-down}}
               <$action-setfield
@@ -56,8 +56,8 @@ tags: $:/tags/Macro
             </$reveal>
             <$reveal
               state=<<thisFoldingWikiListingMakeState>>
-              text='hide'
-              type='match'
+              text='show'
+              type='nomatch'
             >
               {{$:/core/images/chevron-right}}
               <$action-setfield
@@ -86,8 +86,8 @@ tags: $:/tags/Macro
           <!-- Recurse for the next level -->
           <$reveal
             state=<<thisFoldingWikiListingMakeState>>
-            text='hide'
-            type='nomatch'
+            text='show'
+            type='match'
           >
             <$set
               name=WikiName
