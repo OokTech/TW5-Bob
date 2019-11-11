@@ -24,6 +24,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "namespacedWikis": "false",
   "suppressBrowser": "false",
   "enableFederation": "no",
+  "enableFileServer": "no",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -145,6 +146,7 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   when the server is started.
 - `enableFederation` setting this to `yes` enables federation with remote
   servers.
+- `enableFileServer` setting this to `yes` enables the static file server.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined

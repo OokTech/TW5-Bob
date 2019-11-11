@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/get-files.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/$/
+GET /^\/files\/<<filename>>$/
 
 Returns a wiki
 
@@ -55,7 +55,7 @@ function findName(url) {
 }
 
 exports.handler = function(request,response,state) {
-  if($tw.settings.enableFileServer === 'true') {
+  if($tw.settings.enableFileServer === 'yes') {
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');

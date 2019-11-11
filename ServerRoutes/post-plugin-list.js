@@ -3,9 +3,9 @@ title: $:/plugins/Bob/ServerRoutes/post-plugin-list.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/$/
+GET /^\/api\/plugins\/list$/
 
-Returns the root wiki
+fetch a list of available plugins
 
 \*/
 (function() {

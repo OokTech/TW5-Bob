@@ -3,9 +3,9 @@ title: $:/plugins/Bob/ServerRoutes/post-fetch.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/fetch&/
+POST /^\/api\/fetch\/list&/
 
-fetch tiddlers
+fetch a list of tiddlers returned by a filter
 
 \*/
 (function() {

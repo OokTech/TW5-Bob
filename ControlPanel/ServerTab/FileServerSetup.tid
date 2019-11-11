@@ -51,8 +51,8 @@ username on the computer you are using.
   actions=<<checkActions>>
   tiddler='$:/WikiSettings/split'
   index='enableFileServer'
-  checked='true'
-  unchecked='false'
+  checked='yes'
+  unchecked='no'
 >
   Enable File Server
 </$checkbox>

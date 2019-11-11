@@ -3,9 +3,9 @@ title: $:/plugins/Bob/ServerRoutes/get-wiki-favicon.js
 type: application/javascript
 module-type: wikiroute
 
-GET /^\/$/
+GET /^\/favicon.ico$/
 
-Returns the root wiki
+Returns the favicon of the root wiki
 
 \*/
 (function() {

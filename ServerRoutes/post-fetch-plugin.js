@@ -3,9 +3,9 @@ title: $:/plugins/Bob/ServerRoutes/post-fetch-plugin.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/$/
+GET /^\/api\/plugins\/fetch\/.+$/
 
-Returns the root wiki
+Fetch a plugin
 
 \*/
 (function() {
