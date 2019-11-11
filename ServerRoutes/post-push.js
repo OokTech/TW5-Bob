@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/post-push.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/push$/
+POST /^\/api\/push/
 
 Push tiddlers to the server
 

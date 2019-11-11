@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/post-fetch.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/fetch&/
+POST /^\/api\/fetch/
 
 fetch tiddlers
 
@@ -16,15 +16,15 @@ fetch tiddlers
 
 exports.method = "POST";
 
-exports.path = new RegExp('^\/api\/fetch&');
+exports.path = new RegExp('^\/api\/fetch');
 
 exports.handler = function(request,response,state) {
   if($tw.settings.API.enableFetch === 'yes') {
     let body = ''
     let list = []
     let data = {}
-    response.setHeader('Access-Control-Allow-Origin', '*')
-    response.writeHead(200, {"Content-Type": "application/json"})
+    //response.setHeader('Access-Control-Allow-Origin', '*')
+    response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
     request.on('data', function(chunk){
       body += chunk;
       // We limit this to 1mb, it should never be anywhere near that

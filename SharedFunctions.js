@@ -78,10 +78,11 @@ This has some functions that are needed by Bob in different places.
     boolean indicating if the ack has been received yet or not.
   */
   Shared.createMessageData = function (message) {
-    const id = makeId();
+    const id = message.id || makeId();
     message.id = id;
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
+      message.tiddler = JSON.parse(JSON.stringify(message.tiddler));
       title = message.tiddler.fields.title;
       message.tiddler.hash = $tw.Bob.Shared.getTiddlerHash(message.tiddler);
     }
@@ -91,7 +92,8 @@ This has some functions that are needed by Bob in different places.
       time: Date.now(),
       type: message.type,
       title: title,
-      ack: {}
+      ack: {},
+      wiki: message.wiki
     };
     return messageData;
   }
@@ -141,17 +143,11 @@ This has some functions that are needed by Bob in different places.
       oldMessages.forEach(function (messageData) {
         // If we are in the browser there is only one connection, but
         // everything here is the same.
-        $tw.connections.forEach(function(item) {
-          const index = item.index;
-          // Here make sure that the connection is live and hasn't already
-          // sent an ack for the current message.
-          if($tw.connections[index].socket !== undefined) {
-            if(!messageData.ack[index] && $tw.connections[index].socket.readyState === 1) {
-              // If we haven't received an ack from this connection yet than
-              // resend the message
-              $tw.connections[index].socket.send(JSON.stringify(messageData.message));
-            }
-          }
+        const targetConnections = $tw.node?(messageData.wiki?$tw.connections.filter(function(item) {
+          return item.wiki === messageData.wiki
+        }):[]):[$tw.connections[0]];
+        targetConnections.forEach(function(connection) {
+          _sendMessage(connection, messageData)
         });
       });
       if(messageQueueTimer) {
@@ -164,6 +160,35 @@ This has some functions that are needed by Bob in different places.
       if ($tw.browser) {
         //Turn off dirty indicator
         $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
+    }
+  }
+
+  function _sendMessage(connection, messageData) {
+    const index = connection.index;
+    // Here make sure that the connection is live and hasn't already
+    // sent an ack for the current message.
+    if(connection.socket !== undefined) {
+      if(!messageData.ack[index] && connection.socket.readyState === 1) {
+        // We have a slight delay before sending saveTiddler messages,
+        // this is because if you send them right away than you have
+        // trouble with fields that are edited outside the tiddler edit
+        // view (like setting the site title or subtitle) because a
+        // message is sent on each key press and it creates race
+        // conditions with the server and which was the last message can
+        // get confused and it can even get stuck in infinite update
+        // loops.
+        if(messageData.type === 'saveTiddler' && $tw.browser) {
+          // Each tiddler gets a timer invalidate the timer and reset it
+          // each time we get a saveTiddler message for a tiddler
+          clearTimeout($tw.Bob.Timers[messageData.title]);
+          // then reset the timer
+          $tw.Bob.Timers[messageData.title] = setTimeout(function() {
+            connection.socket.send(JSON.stringify(messageData.message));
+          }, $tw.settings.advanced.saveTiddlerDelay || 200);
+        } else {
+          connection.socket.send(JSON.stringify(messageData.message));
+        }
       }
     }
   }
@@ -396,7 +421,6 @@ This has some functions that are needed by Bob in different places.
     This modifies $tw.Bob.MessageQueue as a side effect
   */
   Shared.sendMessage = function(message, connectionIndex, messageData) {
-    //const messageData = Shared.createMessageData(message)
     messageData = messageData || Shared.createMessageData(message)
     if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item) {
       return (typeof item.ctime) === 'undefined'
@@ -429,24 +453,7 @@ This has some functions that are needed by Bob in different places.
         messageData.ack[connectionIndex] = false;
         $tw.Bob.MessageQueue.push(messageData);
       }
-      // We have a slight delay before sending saveTiddler messages, this
-      // is because if you send them right away than you have trouble with
-      // fields that are edited outside the tiddler edit view (like setting
-      // the site title or subtitle) because a message is sent on each key
-      // press and it creates race conditions with the server and which was
-      // the last message can get confused and it can even get stuck in
-      // infinite update loops.
-      if(messageData.type === 'saveTiddler' && $tw.browser) {
-        // Each tiddler gets a timer invalidate the timer and reset it each time
-        // we get a saveTiddler message for a tiddler
-        clearTimeout($tw.Bob.Timers[messageData.title]);
-        // then reset the timer
-        $tw.Bob.Timers[messageData.title] = setTimeout(function() {
-          $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
-        }, $tw.settings.advanced.saveTiddlerDelay || 200);
-      } else {
-        $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
-      }
+      _sendMessage($tw.connections[connectionIndex], messageData)
     }
     clearTimeout(messageQueueTimer);
     messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
@@ -500,7 +507,7 @@ This has some functions that are needed by Bob in different places.
         $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
         // Check if all the expected acks have been received
         const complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
-          return $tw.Bob.MessageQueue[index].ack[value] === false;
+          return $tw.Bob.MessageQueue[index].ack[value] !== true;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
         if(complete && !$tw.Bob.MessageQueue[index].ctime) {

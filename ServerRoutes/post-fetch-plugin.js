@@ -16,7 +16,7 @@ Fetch a plugin
 
 exports.method = "POST";
 
-exports.path = new RegExp('^\/api\/plugins\/fetch\/.+');
+exports.path = new RegExp('^\/api\/plugins\/fetch\/.+&');
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
@@ -39,8 +39,8 @@ exports.handler = function(request,response,state) {
     if(authorised) {
       const plugin = getPlugin(request)
       if(plugin) {
-        response.setHeader('Access-Control-Allow-Origin', '*')
-        response.writeHead(200)
+        //response.setHeader('Access-Control-Allow-Origin', '*')
+        response.writeHead(200, {"Access-Control-Allow-Origin":"*"})
         response.end(JSON.stringify(plugin))
       } else {
         response.writeHead(403)

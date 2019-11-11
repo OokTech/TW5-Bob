@@ -643,10 +643,14 @@ ServerSide.sendBrowserAlert = function(input) {
           const authenticationsSet = new Set(authenticationsList);
           intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
         }
+        console.log('intersection', intersection)
         intersection.forEach(function(index) {
+          message.wiki = $tw.connections.wiki
+          console.log(message)
           $tw.Bob.SendToBrowser($tw.connections[index], message);
         });
       } else {
+        console.log('why here?')
         $tw.Bob.SendToBrowsers(message);
       }
     }

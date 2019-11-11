@@ -85,22 +85,13 @@ if($tw.node) {
 
   SimpleServer.prototype.findMatchingRoute = function(request,state) {
     const pathprefix = this.get("pathprefix") || "";
+    let pathname = decodeURIComponent(state.urlInfo.pathname);
+    pathname = pathname.replace(pathprefix,'');
     for(let t=0; t<this.routes.length; t++) {
       const potentialRoute = this.routes[t];
-      let pathname = decodeURIComponent(state.urlInfo.pathname);
       let match;
-      if(pathprefix) {
-        // This should help with some unicode names
-        if(pathname.startsWith(pathprefix)) {
-          pathname = pathname.replace(pathprefix,'');
-          match = potentialRoute.path.exec(pathname);
-        } else {
-          match = false;
-        }
-      } else {
-        if(typeof potentialRoute.path.exec === 'function') {
-          match = potentialRoute.path.exec(pathname);
-        }
+      if(typeof potentialRoute.path.exec === 'function') {
+        match = potentialRoute.path.exec(pathname);
       }
       if(match && request.method === potentialRoute.method) {
         state.params = [];

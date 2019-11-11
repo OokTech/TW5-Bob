@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/post-plugin-list.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/plugins\/list$/
+GET /^\/api\/plugins\/list/
 
 fetch a list of available plugins
 
@@ -77,8 +77,8 @@ exports.handler = function(request,response,state) {
     const authorised = $tw.Bob.AccessCheck("RootWiki", token, 'list');
     if(authorised) {
       const pluginList = getPluginList()
-      response.setHeader('Access-Control-Allow-Origin', '*')
-      response.writeHead(200)
+      //response.setHeader('Access-Control-Allow-Origin', '*')
+      response.writeHead(200, {"Access-Control-Allow-Origin": "*"})
       response.end(JSON.stringify(pluginList))
     } else {
       response.writeHead(403)

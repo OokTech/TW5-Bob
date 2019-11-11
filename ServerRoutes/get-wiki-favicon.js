@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/get-wiki-favicon.js
 type: application/javascript
 module-type: wikiroute
 
-GET /^\/favicon.ico$/
+GET /^\/favicon.ico/
 
 Returns the favicon of the root wiki
 
@@ -15,7 +15,7 @@ Returns the favicon of the root wiki
 "use strict";
 
 module.exports = function(fullName) {
-  const thePath = (!fullName || fullName === 'RootWiki' || fullName === '')?new RegExp('^\/favicon.ico$'):new RegExp('^\/' + fullName + '\/favicon.ico$');
+  const thePath = (!fullName || fullName === 'RootWiki' || fullName === '')?new RegExp('^\/favicon.ico'):new RegExp('^\/' + fullName + '\/favicon.ico');
   return {
     method: "GET",
     path: thePath,
