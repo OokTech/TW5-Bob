@@ -20,7 +20,7 @@ exports.synchronous = true;
 if($tw.node && $tw.settings.enableFederation === 'yes') {
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
-    $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+    //$tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
     $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {}
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
