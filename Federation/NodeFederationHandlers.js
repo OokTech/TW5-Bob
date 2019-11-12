@@ -307,6 +307,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   }
 
+  /*
+    This message is used to send the actual tiddler payload between servers.
+  */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log(data)
   }
@@ -316,7 +319,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
     data:
     {
-      remote: remoteWikiInfo,
+      wikiName: the name of the wiki to pull from,
       filter: requestFilter
     }
   */
@@ -329,9 +332,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         type: 'sendTiddlers',
         titles: tiddlerTitles
       }
-      if ($tw.Federation.remoteConnections[data._source_info.url]) {
-        if ($tw.Federation.remoteConnections[data._source_info.url].socket) {
-          if ($tw.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
+      if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
+        if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
+          if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
             // Send the message
             $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
           }
