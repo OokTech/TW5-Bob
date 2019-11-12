@@ -20,7 +20,6 @@ exports.synchronous = true;
 if($tw.node && $tw.settings.enableFederation === 'yes') {
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
-    //$tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
     $tw.settings['fed-wss'] = $tw.settings['fed-wss'] || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {}
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
@@ -33,7 +32,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
 
     $tw.Bob.Federation.handleMessage = function (event) {
-      //console.log('federation message',event)
       $tw.Bob.logger.log('Received federated message ', event, {level:4});
       try {
         let eventData = JSON.parse(event);
@@ -107,7 +105,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.updateConnections = function () {
       $tw.Bob.logger.log('Update federated connections', {level:3});
       $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.remoteConnections), {level:4});
-      const connections = {}
+      const connections = {};
       Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(connectionKey) {
         connections[connectionKey] = {
           name: $tw.Bob.Federation.remoteConnections[connectionKey].name,

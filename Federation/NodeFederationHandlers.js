@@ -307,6 +307,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   }
 
+  $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
+    console.log(data)
+  }
+
   /*
     This requets specific tiddlers from a remote wiki using a filter.
 
@@ -319,6 +323,20 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
     //$tw.sendAck(data);
     if(data._source_info && data.filter) {
+      // Get the tiddlers
+      const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter)
+      const message = {
+        type: 'sendTiddlers',
+        titles: tiddlerTitles
+      }
+      if ($tw.Federation.remoteConnections[data._source_info.url]) {
+        if ($tw.Federation.remoteConnections[data._source_info.url].socket) {
+          if ($tw.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
+            // Send the message
+            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+          }
+        }
+      }
       /*
       // Do the request
       // Try to connect to the remote server

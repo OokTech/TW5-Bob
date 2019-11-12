@@ -24,6 +24,8 @@ uniqueName: {
   url: the most recent url used to connect to the remote server,
   staticUrl: if the url changes or not (yes or no),
   publicKey: a public key,
+  notes: optional notes you can make about the server,
+  canLogin: if the server allows you to login,
   availableWikis: {
     wikiName1: {
       sync: yes/no,
@@ -47,6 +49,54 @@ uniqueName: {
 }
 ```
 
+Server info tiddler:
+
+$:/Federation/RemoteServer/<uniqueName>
+
+Server info tiddler format:
+
+```
+{
+  serverName: some name,
+  url: server url,
+  staticUrl: yes/no,
+  publicKey: a key,
+  canLogin: yes/no,
+  notes: some notes,
+  availableWikis: space separated list of wiki names,
+  availableChats: space separated list of chat names
+}
+```
+
+Each wiki on the server gets:
+
+$:/Federation/RemoteServer/<uniqueName>/wikis/<wikiName>
+
+```
+{
+  sync: yes/no,
+  syncFilter: <<someFilter>>,
+  syncType: pull/push/bidirectional,
+  autoSync: yes/no,
+  public: yes/no,
+  conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
+  allowsLogin: yes/no
+}
+```
+
+Each chat on the server gets:
+
+$:/Federation/RemoteServer/<uniqueName>/chats/<chatName>
+
+```
+{
+  public: yes/no,
+  relay: yes/no
+}
+```
+
+* `uniqueName` will be `serverName (publicKey)` for now, it may end up just being 0, 1, 2, ... as more servers get added, it may never need to be shared with anyone else.
+
 to connect to another server select the serverName from a select widget,
 then there is an interface that has the availableWikis and the current sync
 status and setup for the wiki.
@@ -61,7 +111,7 @@ This should probably use this process:
 # Local server requests a login to the remote wiki
 # Remote server replies with a random number
 # Local server puts the random number into a signed token and sends it back to the remote server, if everything matches than this is the access token for further interactions.
-# Because the token handshake is taken care of by the servers without needing human interaction the tokens can be changed as often as desired, possibly using a unique random number for each token sent.
+# Because the token handshake is taken care of by the servers without needing human interaction the tokens can be changed as often as desired. Use a unique random number for each token sent.
 
 To connect to a new server there is an interface where you enter the URL and it
 requests information from the remote server.

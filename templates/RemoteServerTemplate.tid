@@ -55,7 +55,7 @@ Connection Status:
     </th>
   </tr>
   <$list
-    filter='[enlist{!!availablewikis}addprefix[/]addprefix<currentTiddler>]'
+    filter='[enlist{!!availablewikis}addprefix[/wikis/]addprefix<currentTiddler>]'
     emptyMessage='<tr><td colspan=8>No Wikis Available</td></tr>'
   >
     {{||$:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate}}
@@ -76,7 +76,7 @@ Connection Status:
     </th>
   </tr>
   <$list
-    filter='[[Chat 1]][[Chat 2]]'
+    filter='[enlist{!!availablechats}addprefix[/chats/]addprefix<currentTiddler>]'
     emptyMessage='No Chats Available'
   >
     {{||$:/plugins/OokTech/Bob/Federation/AvailableChatsListingTemplate}}
