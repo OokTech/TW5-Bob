@@ -53,7 +53,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(eventData);
-          const eventData.wiki = checkNonce(eventData)
+          eventData.wiki = checkNonce(eventData)
           if(authorised && eventData.wiki) {
             eventData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
