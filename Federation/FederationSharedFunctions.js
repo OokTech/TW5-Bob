@@ -27,6 +27,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+    $tw.Bob.Federation.nonce = $tw.Bob.Federation.nonce || [];
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.settings.advanced = $tw.settings.advanced || {};
 
