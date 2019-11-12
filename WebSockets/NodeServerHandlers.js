@@ -95,12 +95,11 @@ if($tw.node) {
         type: data.$message
       }
       Object.keys(data).forEach(function(key) {
-        if (['type', '$server', '$message'].indexOf(key) === -1) {
+        if (['type', '$server', '$message', 'wiki'].indexOf(key) === -1) {
           newData[key] = data[key]
         }
       })
-      //$tw.Bob.Federation.remoteConnections[data.$server].socket.send(JSON.stringify(newData));
-      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server)
+      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server, data.wiki)
     }
   }
 

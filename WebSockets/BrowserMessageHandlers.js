@@ -179,8 +179,8 @@ it will overwrite this file.
             $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
           }
         } else {
-          // If the tiddler doesn't actually have a conflicting version than just
-          // add the tiddler.
+          // If the tiddler doesn't actually have a conflicting version than
+          // just add the tiddler.
           $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields));
         }
       }

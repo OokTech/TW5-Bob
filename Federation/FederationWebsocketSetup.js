@@ -53,7 +53,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if(typeof $tw.Bob.Federation.messageHandlers[eventData.type] === 'function') {
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(eventData);
-          if(authorised) {
+          const eventData.wiki = checkNonce(eventData)
+          if(authorised && eventData.wiki) {
             eventData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
           }
@@ -63,6 +64,23 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       } catch (e) {
         $tw.Bob.logger.error("Federation WebSocket error: ", e, {level:1});
       }
+    }
+
+    function checkNonce(data) {
+      if (!data.nonce) {
+        return false;
+      }
+      let theWiki = undefined
+      const match = $tw.Bob.Federation.nonce.filter(function(thisOne) {return thisOne.nonce === data.nonce})
+      if (match.length > 0) {
+        theWiki = (match[0].wiki)?match[0].wiki:undefined;
+        server = match[0].server;
+        $tw.Bob.Federation.nonce = $tw.Bob.Federation.nonce.filter(function(thisOne) {return thisOne.nonce !== data.nonce});
+      }
+      if (typeof theWiki === 'undefined' && typeof server === 'undefined') {
+        return false;
+      }
+      return theWiki || server;
     }
 
     // require the websockets module if we are running node
