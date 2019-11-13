@@ -132,7 +132,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {
         type: 'sendHashes',
         hashes: outputHashes,
-        nonce: data.rnonce
+        nonce: data.rnonce,
+        fromWiki: data.fromWiki
       }
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
     }
@@ -144,11 +145,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
     console.log('sendHashes')
-    if (data.hashes && data.wiki) {
+    if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
       Object.keys(data.hashes).forEach(function(tidTitle) {
         // check if the tiddler exists locally
-        const thisTid = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle);
+        const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
         if (thisTid) {
           // If the tiddler exists than check if the hashes match
           if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
@@ -165,7 +166,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         const message = {
           type: 'requestTiddlers',
           filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
-          wikiName: data.wiki
+          wikiName: data.fromWiki
         }
         $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
       }
