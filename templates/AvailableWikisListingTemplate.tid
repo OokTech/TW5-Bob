@@ -169,7 +169,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       Sync Now
       <$action-websocketmessage
         $type='sendRemoteMessage'
-        $server={{{ [<currentTiddler>split[/]nth[4]] }}}
+        $server={{{ [<currentTiddler>split[/]nth[4]addprefix[$:/Federation/RemoteServer/]get[url]] }}}
         $message='requestHashes'
         filter={{!!sync_filter}}
         fromWiki={{{ [<currentTiddler>split[/]nth[6]] }}}

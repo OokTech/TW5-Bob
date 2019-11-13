@@ -209,6 +209,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
     console.log('requestTiddlers')
+    console.log(data)
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
