@@ -56,7 +56,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           eventData.wiki = checkNonce(eventData)
           // TODO fix this dirty hack. We need a better way to list which
           // messages don't require a nonce.
-          if(authorised && (eventData.wiki || data.startsWith('request'))) {
+          if(authorised && (eventData.wiki || eventData.type.startsWith('request'))) {
             eventData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
           }

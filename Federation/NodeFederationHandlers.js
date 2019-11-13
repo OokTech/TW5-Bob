@@ -119,6 +119,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
+    console.log('requestHashes')
     if (data.filter && data.fromWiki) {
       // get list of tiddlers
       const titleList = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
@@ -142,6 +143,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     local wiki and requests any that are missing.
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
+    console.log('sendHashes')
     if (data.hashes && data.wiki) {
       const tiddlersToRequest = [];
       Object.keys(data.hashes).forEach(function(tidTitle) {
@@ -181,6 +183,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
+    console.log('sendTiddlers')
     console.log(data)
     if (typeof data.tiddlers === 'object') {
       Object.values(data.tiddlers).forEach(function(tidFields) {
@@ -205,6 +208,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
+    console.log('requestTiddlers')
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
