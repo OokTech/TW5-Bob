@@ -429,7 +429,7 @@ it will overwrite this file.
             $tw.wiki.addTiddler(new $tw.Tiddler({
               title: '$:/Federation/RemoteServer/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
               sync: 'no',
-              synctype: 'pull',
+              synctype: '',
               autosync: 'no',
               public: 'yes',
               conflicttype: 'manual',

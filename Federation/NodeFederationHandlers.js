@@ -29,12 +29,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       - For this one the requesting server would send a random number and the
         reply would be a signed token where the payload is the random number
         and the public key.
-
-    TODO - make the authorization checking something reasonable
   */
-  function checkAuthorization() {
-    return true;
-  }
   function getAvailableWikis(data) {
     data = data || {};
     function getList(obj, prefix) {
@@ -75,24 +70,22 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   /*
     Ask a remote server for updated information about the server.
   */
-  $tw.Bob.Federation.messageHandlers.requestServerUpdate = function(data) {
-    const authorised = checkAuthorization(data);
-    if (authorised) {
-      // Reply with the server info listed above
-      const reply = {
-        type: 'serverInfo',
-        info: {
-          name: $tw.settings.Federation.serverName || 'Sever Name',
-          canLogin: $tw.settings.Federation.canLogin || 'no',
-          availableWikis: $tw.ServerSide.getViewableWikiList(data),
-          availableChats: getAvailableChats(data),
-          port: $tw.settings['ws-server'].port,
-          publicKey: 'c minor',
-          staticUrl: 'no'
-        }
-      };
-      $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
-    }
+  $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {
+    // Reply with the server info listed above
+    const reply = {
+      type: 'sendServerInfo',
+      info: {
+        name: $tw.settings.Federation.serverName || 'Sever Name',
+        canLogin: $tw.settings.Federation.canLogin || 'no',
+        availableWikis: $tw.ServerSide.getViewableWikiList(data),
+        availableChats: getAvailableChats(data),
+        port: $tw.settings['ws-server'].port,
+        publicKey: 'c minor',
+        staticUrl: 'no'
+      },
+      nonce: data.rnonce
+    };
+    $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
   }
 
   function addServerInfo(data) {
@@ -110,11 +103,177 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.updateConnections();
   }
 
-  $tw.Bob.Federation.messageHandlers.serverInfo = function(data) {
-    const authorised = checkAuthorization(data);
-    if (authorised) {
-      addServerInfo(data)
+  /*
+    Add or update local information about a remote server when it is received
+  */
+  $tw.Bob.Federation.messageHandlers.sendServerInfo = function(data) {
+    addServerInfo(data)
+  }
+
+  /*
+    This requests tiddler hashes from a server in preparation for syncing
+
+    data {
+      filter: <some filter>,
+      fromWiki: wiki name
     }
+  */
+  $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
+    if (data.filter && data.fromWiki) {
+      // get list of tiddlers
+      const titleList = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
+      // get tiddler hashes
+      const outputHashes = {};
+      titleList.forEach(function(thisTitle) {
+        outputHashes[thisTitle] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle));
+      })
+      // send them back
+      const message = {
+        type: 'sendHashes',
+        hashes: outputHashes,
+        nonce: data.rnonce
+      }
+      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+    }
+  }
+
+  /*
+    This takes hashes of tiddlers from the remote wiki and compares them to the
+    local wiki and requests any that are missing.
+  */
+  $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
+    if (data.hashes && data.wiki) {
+      const tiddlersToRequest = [];
+      Object.keys(data.hashes).forEach(function(tidTitle) {
+        // check if the tiddler exists locally
+        const thisTid = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tidTitle);
+        if (thisTid) {
+          // If the tiddler exists than check if the hashes match
+          if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
+            // If the hashes don't match add it to the list
+            tiddlersToRequest.push(tidTitle);
+          }
+        } else {
+          // If the tiddler doesn't exist than add it to the list
+          tiddlersToRequest.push(tidTitle);
+        }
+      })
+      if (tiddlersToRequest.length > 0) {
+        // If there are any tiddlers to request than send the request
+        const message = {
+          type: 'requestTiddlers',
+          filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join('')
+        }
+        $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+      }
+    }
+  }
+
+  /*
+    This message is used to send the actual tiddler payload between servers.
+
+    data {
+      tiddlers: {
+        title1: tidObject 1,
+        title2: tidObject 2,
+        ...
+      }
+    }
+  */
+  $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
+    console.log(data)
+    if (typeof data.tiddlers === 'object') {
+      Object.values(data.tiddlers).forEach(function(tidFields) {
+        //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
+        // Send each tiddler recieved to the browser using the conflict message
+        // and then let the browser handle it.
+        $tw.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki})
+      })
+    }
+  }
+
+  /*
+    This requets specific tiddlers from a remote wiki using a filter.
+
+    TODO figure out if the response to this should be split up into one message
+    per tiddler instead of all of the tiddlers in one message.
+
+    data:
+    {
+      wikiName: the name of the wiki to pull from,
+      filter: requestFilter
+    }
+  */
+  $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
+    data.wikiName = data.wikiName || 'RootWiki';
+    data.filter = data.filter || '[!is[system]is[system]]';
+    //data.conflictType = data.conflictType || 'newestWins';
+
+    $tw.Bob.Federation.remoteConnections[data._source_info.url] = $tw.Bob.Federation.remoteConnections[data._source_info.url] || {};
+
+    $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = $tw.Bob.Federation.remoteConnections[data._source_info.url].socket || {};
+    //$tw.Bob.Federation.remoteConnections[data._source_info.url].conflictType = data.conflictType || 'manual';
+
+    if(data._source_info && data.nonce) {
+      // Get the tiddlers
+      const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
+      const tidObj = {};
+      tiddlerTitles.forEach(function(tidTitle) {
+        const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle)
+        if (tempTid) {
+          tidObj[tidTitle] = tempTid.fields;
+        }
+      })
+      const message = {
+        type: 'sendTiddlers',
+        tiddlers: tiddlerObj,
+        nonce: data.nonce
+      }
+      if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
+        if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
+          if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
+            // Send the message
+            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    This message asks a remote server to sync with the local server
+
+    data {
+      wikis: {
+        wikiName1: filter1,
+        wikiName2: filter2
+      }
+    }
+
+    When receiving this message the receiving server will, if the
+    authentication and everything is correct, request tiddlers from the sending
+    server using the provided wikis and filters.
+  */
+  $tw.Bob.Federation.messageHandlers.requestRemoteSync = function(data) {
+    // By this point the authentication has been done, so check to make sure
+    // that the wikis are listed for syncing.
+    Object.keys(data.wikis).forEach(function(wikiName) {
+      const serverName = $tw.Bob.Federation.remoteConnections[data._source_info.url].name;
+      // Get the tiddler name that has the information for the wiki
+      const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/Federation/RemoteServer/' + serverName + '/wikis/' + wikiName);
+      if (wikiInfoTid) {
+        // make sure that the wiki is set up to be synced
+        if (['pull','bidirectional'].indexOf(wikiInfoTid.fields.synctype)) {
+          // Make the request for the tiddlers
+          const message = {
+            type: 'requestTiddlers',
+            wikiName: wikiName,
+            filter: data.wikis.wikiName
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+        }
+      }
+    })
   }
 
   /*
@@ -300,78 +459,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // This may mean that it has to have a persistent record of changes.
 
       // TODO this bit
-    }
-  }
-
-  /*
-    This message is used to send the actual tiddler payload between servers.
-
-    data {
-      tiddlers: {
-        title1: tidObject 1,
-        title2: tidObject 2,
-        ...
-      }
-    }
-  */
-  $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
-    console.log(data)
-    if (typeof data.tiddlers === 'object') {
-      Object.values(data.tiddlers).forEach(function(tidFields) {
-        //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
-        // Send each tiddler recieved to the browser using the conflict message
-        // and then let the browser handle it.
-        $tw.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki})
-      })
-    }
-  }
-
-  /*
-    This requets specific tiddlers from a remote wiki using a filter.
-
-    TODO figure out if the response to this should be split up into one message
-    per tiddler instead of all of the tiddlers in one message.
-
-    data:
-    {
-      wikiName: the name of the wiki to pull from,
-      filter: requestFilter
-    }
-  */
-  $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
-    data.wikiName = data.wikiName || 'RootWiki';
-    data.filter = data.filter || '[!is[system]is[system]]';
-    data.conflictType = data.conflictType || 'newestWins';
-
-    $tw.Bob.Federation.remoteConnections[data._source_info.url] = $tw.Bob.Federation.remoteConnections[data._source_info.url] || {};
-
-    $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = $tw.Bob.Federation.remoteConnections[data._source_info.url].socket || {};
-    //$tw.Bob.Federation.remoteConnections[data._source_info.url].pendingAction = 'requestTiddlers';
-    $tw.Bob.Federation.remoteConnections[data._source_info.url].conflictType = data.conflictType || 'manual';
-
-    if(data._source_info && data.nonce) {
-      // Get the tiddlers
-      const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
-      const tidObj = {};
-      tiddlerTitles.forEach(function(tidTitle) {
-        const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle)
-        if (tempTid) {
-          tidObj[tidTitle] = tempTid.fields;
-        }
-      })
-      const message = {
-        type: 'sendTiddlers',
-        tiddlers: tiddlerObj,
-        nonce: data.nonce
-      }
-      if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
-        if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
-          if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
-            // Send the message
-            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
-          }
-        }
-      }
     }
   }
 

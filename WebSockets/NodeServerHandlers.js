@@ -32,7 +32,7 @@ if($tw.node) {
         $tw.settings.federation = $tw.settings.federation || {};
         const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
-          type: 'serverInfo',
+          type: 'requestServerInfo',
           info: {
             name: serverName,
             publicKey: 'c minor',
@@ -45,7 +45,7 @@ if($tw.node) {
         }
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
-        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}, data.url)
+        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings['ws-server'].port}, data.url)
         $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the

@@ -431,7 +431,7 @@ This has some functions that are needed by Bob in different places.
       const id = makeId();
       const token = false;
       message.id = id;
-      message.nonce = nonce;
+      message.rnonce = nonce;
       let messageData = {
         message: message,
         id: id,
@@ -441,7 +441,7 @@ This has some functions that are needed by Bob in different places.
         token: token
       };
       const server = (typeof wiki === 'undefined')?true:false;
-      $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server})
+      $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server, type: message.type})
       return messageData;
     }
 

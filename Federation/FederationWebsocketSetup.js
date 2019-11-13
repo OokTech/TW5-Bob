@@ -54,7 +54,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(eventData);
           eventData.wiki = checkNonce(eventData)
-          if(authorised && eventData.wiki) {
+          // TODO fix this dirty hack. We need a better way to list which
+          // messages don't require a nonce.
+          if(authorised && (eventData.wiki || data.startsWith('request'))) {
             eventData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[eventData.type](eventData);
           }
@@ -71,6 +73,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return false;
       }
       let theWiki = undefined
+      let server = undefined
       const match = $tw.Bob.Federation.nonce.filter(function(thisOne) {return thisOne.nonce === data.nonce})
       if (match.length > 0) {
         theWiki = (match[0].wiki)?match[0].wiki:undefined;
