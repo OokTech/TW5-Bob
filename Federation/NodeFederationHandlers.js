@@ -233,7 +233,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       })
       const message = {
         type: 'sendTiddlers',
-        tiddlers: tiddlerObj,
+        tiddlers: tidObj,
         nonce: data.rnonce
       }
       if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
