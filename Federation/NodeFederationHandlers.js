@@ -164,7 +164,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // If there are any tiddlers to request than send the request
         const message = {
           type: 'requestTiddlers',
-          filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join('')
+          filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
+          wikiName: data.wiki
         }
         $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
       }
@@ -232,7 +233,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {
         type: 'sendTiddlers',
         tiddlers: tiddlerObj,
-        nonce: data.nonce
+        nonce: data.rnonce
       }
       if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
         if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
