@@ -220,7 +220,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = $tw.Bob.Federation.remoteConnections[data._source_info.url].socket || {};
     //$tw.Bob.Federation.remoteConnections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
-    if(data._source_info && data.nonce) {
+    if(data._source_info && data.rnonce) {
+      console.log(1)
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
       const tidObj = {};
@@ -236,8 +237,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce
       }
       if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
+        console.log(2)
         if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
+          console.log(3)
           if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
+            console.log(4)
             // Send the message
             $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
           }
