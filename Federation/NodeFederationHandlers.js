@@ -176,6 +176,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   /*
     This message is used to send the actual tiddler payload between servers.
 
+    TODO figure out the best way to set this up so that tiddlers can be saved
+    without the browser being open.
+
     data {
       tiddlers: {
         title1: tidObject 1,
@@ -192,7 +195,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
         // Send each tiddler recieved to the browser using the conflict message
         // and then let the browser handle it.
-        $tw.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki})
+        $tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki})
       })
     }
   }
