@@ -25,6 +25,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "suppressBrowser": "false",
   "enableFederation": "no",
   "enableFileServer": "no",
+  "enableBobSaver": "yes",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -147,6 +148,8 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `enableFederation` setting this to `yes` enables federation with remote
   servers.
 - `enableFileServer` setting this to `yes` enables the static file server.
+- `enableBobSaver` setting this to `no` disables the Bob saver for single file
+  wikis. By default this is enabled.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined
