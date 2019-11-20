@@ -1,0 +1,79 @@
+title: $:/plugins/OokTech/Bob/Federation/FederationSecurity
+
+* means that it expects a reply
+-> means it is the reply
+
+* requestServerInfo
+-> sendServerInfo
+
+* requestHashes
+-> sendHashes
+
+* requestTiddlers
+-> sendTiddlers
+
+requestRemoteSync
+
+an rnonce is sent with each *, it is put into the response as a nonce.
+
+The basic structure of communication between different servers is the same as
+the communication between a server and connected browsers.
+
+Information is sent in discrete messages in JSON format.
+Each message has a `type` property that determines how it is handled.
+
+New functionality is added by creating new message types and handlers.
+
+!Security
+
+''Security is a work in progress, this shouldn't be used anywhere that is
+accessible outside a local network until more work is done.''
+
+!!nonce
+
+''Note:'' for the moment the nonce is generated using the `Math.random`
+function which does not generate random numbers suitable for security in
+production environments, this is just a stop-gap until a better system is made.
+One benefit of the nonce, even an insecure one like this, is that it allows a
+server to make a request without informing the remote server of anything other
+than that the request is being made, the nonce being sent back with the
+response allows the requesting server to match the response with the correct
+wiki without having to send out the information.
+
+The most basic component for security is anything that affects the local server
+must originate from the local server.
+To achieve this we use the nonce concept.
+
+Any message that changes the local server has to come as a response to a
+request by the local server, to enforce this the local server will only accept
+incoming messages that make local changes if they are in response to a request.
+
+Because the server is mostly stateless in its responses (that is responses are
+not affected by anything other than the tiddlers and wikis on the server) there
+isn't a record of currently active transactions or communication past the
+current message queue. So to ensure that an incoming message is in response to
+a request a unique random number (called a nonce) is added to any outgoing
+request and saved with the request type until a response matching the nonce is
+returned.
+
+This means that the server is no longer stateless. We are looking into ways to
+change this in the future.
+
+!!!Messages that use nonce
+
+Messages that make requests or otherwise don't affect the receiving server
+don't require a nonce.
+They will require proper authentication on servers that support it.
+
+Messages that make requests from a server don't use a nonce themselves, but
+they come with one that gets returned with the response.
+
+Outgoing nonces are put in the key `rnonce`.
+
+!!encryption
+
+''This is unimplemented''
+
+!!cryptographic signing
+
+''This is unimplemented''

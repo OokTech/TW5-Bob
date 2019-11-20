@@ -85,22 +85,13 @@ if($tw.node) {
 
   SimpleServer.prototype.findMatchingRoute = function(request,state) {
     const pathprefix = this.get("pathprefix") || "";
+    let pathname = decodeURIComponent(state.urlInfo.pathname);
+    pathname = pathname.replace(pathprefix,'');
     for(let t=0; t<this.routes.length; t++) {
       const potentialRoute = this.routes[t];
-      let pathname = decodeURIComponent(state.urlInfo.pathname);
       let match;
-      if(pathprefix) {
-        // This should help with some unicode names
-        if(pathname.startsWith(pathprefix)) {
-          pathname = pathname.replace(pathprefix,'');
-          match = potentialRoute.path.exec(pathname);
-        } else {
-          match = false;
-        }
-      } else {
-        if(typeof potentialRoute.path.exec === 'function') {
-          match = potentialRoute.path.exec(pathname);
-        }
+      if(typeof potentialRoute.path.exec === 'function') {
+        match = potentialRoute.path.exec(pathname);
       }
       if(match && request.method === potentialRoute.method) {
         state.params = [];
@@ -313,6 +304,57 @@ if($tw.node) {
     }
   }
 
+  function createSaverServer() {
+    const port = 61192;
+    function saverHandler(request, response) {
+      let body = '';
+      response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"});
+      if (request.url.endsWith('/save')) {
+        request.on('data', function(chunk){
+          body += chunk;
+          // We limit this to 100mb, this could change if people have gigantic
+          // wkis.
+          if(body.length > 100e6) {
+            response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+            request.connection.destroy();
+          }
+        });
+        request.on('end', function() {
+          // The body should be the html text of a wiki
+          body = body.replace(/^message=/, '');
+          const responseData = {'ok':'no'};
+          const filepath = request.headers['x-file-path'];
+          if (typeof body === 'string' && body.length > 0 && filepath) {
+            // Write the file
+            const fs = require('fs');
+            const path = require('path');
+            // Make sure that the path exists, if so save the wiki file
+            fs.writeFile(filepath,body,{encoding: "utf8"},function (err) {
+              if(err) {
+                $tw.Bob.logger.error(err, {level:1});
+                responseData.error = err;
+              } else {
+                $tw.Bob.logger.log('saved file', filepath, {level:2});
+                responseData.ok = 'yes';
+              }
+            });
+          }
+          response.end(JSON.stringify(responseData));
+        });
+      } else if (request.url.endsWith('/check')) {
+        response.end('{"ok":"yes"}')
+      }
+    }
+    const saverServer = http.createServer(saverHandler);
+    saverServer.listen(port, '127.0.0.1', function(err) {
+      if (err) {
+        console.log('Bob saver server error!', err);
+      } else {
+        console.log('Bob saver server running on port', port);
+      }
+    })
+  }
+
   Command.prototype.execute = function() {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
@@ -335,6 +377,11 @@ if($tw.node) {
       password: password,
       pathprefix: pathprefix
     });
+
+    if ($tw.settings.enableSaver !== 'no') {
+      // Create single file saver server
+      createSaverServer()
+    }
 
     const basePath = $tw.ServerSide.getBasePath();
     $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';

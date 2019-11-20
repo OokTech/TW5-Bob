@@ -27,6 +27,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+    $tw.Bob.Federation.nonce = $tw.Bob.Federation.nonce || [];
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.settings.advanced = $tw.settings.advanced || {};
 
@@ -408,8 +409,9 @@ This has some functions that are needed by Bob in different places.
       This creates the needed message data for remote servers
 
       TODO get access token part
+      TODO make the nonce not terrible
     */
-    function createRemoteMessageData(message) {
+    function createRemoteMessageData(message, wiki) {
       if(typeof message === 'string') {
         try{
           message = JSON.parse(message);
@@ -418,12 +420,18 @@ This has some functions that are needed by Bob in different places.
           return false;
         }
       }
+      // The nonce is used for some privacy and to keep track of what wikis
+      // messages are for. With the proper implementation it could also be used
+      // for security, but the Math.random function isn't cryptographically
+      // secure so this isn't the proper implementation.
+      const nonce = Math.random()*99999999999999
       // The messages ids are shared with sending things to browsers, but this
       // has no effect on anything other than making the numbers increase a bit
       // faster.
       const id = makeId();
       const token = false;
       message.id = id;
+      message.rnonce = nonce;
       let messageData = {
         message: message,
         id: id,
@@ -432,6 +440,8 @@ This has some functions that are needed by Bob in different places.
         ack: {},
         token: token
       };
+      const server = (typeof wiki === 'undefined')?true:false;
+      $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server, type: message.type})
       return messageData;
     }
 
@@ -439,8 +449,8 @@ This has some functions that are needed by Bob in different places.
       This sends a message to a remote server. This is used for syncing for now,
       in the future it may be used for other things.
     */
-    $tw.Bob.Federation.sendToRemoteServer = function(message, serverKey) {
-      const messageData = createRemoteMessageData(message);
+    $tw.Bob.Federation.sendToRemoteServer = function(message, serverKey, wiki) {
+      const messageData = createRemoteMessageData(message, wiki);
       if (messageData && (serverKey || serverKey === 0)) {
         //console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to

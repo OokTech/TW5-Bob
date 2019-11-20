@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/get-files.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/$/
+GET /^\/files\/<<filename>>/
 
 Returns a wiki
 
@@ -17,7 +17,7 @@ Returns a wiki
 exports.method = "GET";
 
 // Start with the same base path as the --listen command
-let pathRegExp = new RegExp('\/files\/.+$');
+let pathRegExp = new RegExp('\/files\/.+');
 if(typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
   if($tw.settings.fileURLPrefix === '') {
     pathRegExp = new RegExp('^/.+$');
@@ -55,7 +55,7 @@ function findName(url) {
 }
 
 exports.handler = function(request,response,state) {
-  if($tw.settings.enableFileServer === 'true') {
+  if($tw.settings.enableFileServer === 'yes') {
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');

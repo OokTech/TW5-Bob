@@ -4,6 +4,7 @@ type: application/javascript
 module-type: wikiroute
 
 GET /^\/$/
+GET /^\/<<fullname>>\/?$/
 
 Returns a wiki
 

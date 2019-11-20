@@ -18,7 +18,6 @@ exports.after = ["render"];
 exports.synchronous = true;
 
 if($tw.node && $tw.settings.enableFederation === 'yes') {
-  $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
   $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
@@ -45,7 +44,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         server: data.server
       }
       // Add new message
-      history[data.time] = data.message
+      //history[data.time] = data.message
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
         text:JSON.stringify(history, null, 2),
@@ -74,7 +73,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         history = JSON.parse(JSON.stringify(historyTiddler.fields));
       }
       Object.keys(data.messages).forEach(function(message) {
-        history[message.time] = message.message;
+        history[message.time] = {
+          message: message.message,
+          from: message.from || ''
+        }
       })
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({

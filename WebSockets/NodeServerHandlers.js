@@ -32,7 +32,7 @@ if($tw.node) {
         $tw.settings.federation = $tw.settings.federation || {};
         const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
         const serverFederationInfo = {
-          type: 'serverInfo',
+          type: 'requestServerInfo',
           info: {
             name: serverName,
             publicKey: 'c minor',
@@ -45,9 +45,7 @@ if($tw.node) {
         }
         console.log('REMOTE SOCKET OPENED', data.url)
         $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
-        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}, data.url)
-        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify(serverFederationInfo))
-        //$tw.Bob.Federation.remoteConnections[data.url].socket.send(JSON.stringify({type:'requestServerUpdate', port:$tw.settings['ws-server'].port}))
+        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings['ws-server'].port}, data.url)
         $tw.Bob.Federation.updateConnections()
       }
       // Check to make sure that we don't already have a connection to the
@@ -97,11 +95,11 @@ if($tw.node) {
         type: data.$message
       }
       Object.keys(data).forEach(function(key) {
-        if (['type', '$server', '$message'].indexOf(key) === -1) {
+        if (['type', '$server', '$message', 'wiki'].indexOf(key) === -1) {
           newData[key] = data[key]
         }
       })
-      $tw.Bob.Federation.remoteConnections[data.$server].socket.send(JSON.stringify(newData));
+      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server, data.wiki)
     }
   }
 

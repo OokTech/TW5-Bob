@@ -60,9 +60,14 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       filter='[<currentTiddler>!field:edit[edit]]'
       emptyMessage="""
         <$select
-          field='sync_type'
-          default='bidirectional'
+          field='synctype'
+          default='none'
         >
+          <option
+            value=''
+          >
+            None
+          </option>
           <option
             value='bidirectional'
           >
@@ -82,9 +87,9 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       """
     >
       <$view
-        field='sync_type'
+        field='synctype'
       >
-        Bidirectional
+        None
       </$view>
     </$list>
   </td>
@@ -162,6 +167,13 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
   <td>
     <$button>
       Sync Now
+      <$action-websocketmessage
+        $type='sendRemoteMessage'
+        $server={{{ [<currentTiddler>split[/]nth[4]addprefix[$:/Federation/RemoteServer/]get[url]] }}}
+        $message='requestHashes'
+        filter={{!!sync_filter}}
+        fromWiki={{{ [<currentTiddler>split[/]nth[6]] }}}
+      />
     </$button>
   </td>
 </tr>

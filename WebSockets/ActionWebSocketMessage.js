@@ -84,7 +84,8 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // For any other attributes passed to the widget add them to the message as
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {
-    if(name.charAt(0) !== "$") {
+    //if(name.charAt(0) !== "$") {
+    if (['$type', '$param'].indexOf(name) === -1) {
       message[name] = attribute;
     }
   });

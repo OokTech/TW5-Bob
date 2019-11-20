@@ -179,8 +179,8 @@ it will overwrite this file.
             $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
           }
         } else {
-          // If the tiddler doesn't actually have a conflicting version than just
-          // add the tiddler.
+          // If the tiddler doesn't actually have a conflicting version than
+          // just add the tiddler.
           $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields));
         }
       }
@@ -412,17 +412,40 @@ it will overwrite this file.
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       console.log('connections 1',data.connections)
       Object.keys(data.connections).forEach(function(connectionUrl) {
-        console.log(data.connections)
-        const connectionFields = {
-          title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
-          tags: '[[Remote Server]]',
-          url: connectionUrl,
-          staticUrl: data.connections[connectionUrl].staticUrl,
-          availableWikis: data.connections[connectionUrl].availableWikis.join(' '),
-          availableChats: data.connections[connectionUrl].availableChats.join(' '),
-          publicKey: data.connections[connectionUrl].publicKey
+        if (data.connections[connectionUrl].name) {
+          const connectionFields = {
+            title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
+            tags: '[[Remote Server]]',
+            url: connectionUrl,
+            staticurl: data.connections[connectionUrl].staticUrl,
+            availablewikis: data.connections[connectionUrl].availableWikis.join(' '),
+            availablechats: data.connections[connectionUrl].availableChats.join(' '),
+            publickey: data.connections[connectionUrl].publicKey,
+            canlogin: data.connections[connectionUrl].canLogin,
+            name: data.connections[connectionUrl].name
+          }
+          $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
+          data.connections[connectionUrl].availableWikis.forEach(function(thisWikiName) {
+            $tw.wiki.addTiddler(new $tw.Tiddler({
+              title: '$:/Federation/RemoteServer/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
+              sync: 'no',
+              synctype: '',
+              autosync: 'no',
+              public: 'yes',
+              conflicttype: 'manual',
+              allowslogin: 'no',
+              name: thisWikiName
+            }))
+          })
+          data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {
+            $tw.wiki.addTiddler(new $tw.Tiddler({
+              title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name + '/wikis/' + thisChatName,
+              public: 'yes',
+              relay: 'no',
+              name: thisChatName
+            }))
+          })
         }
-        $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
       })
     }
   }
