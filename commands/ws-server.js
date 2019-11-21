@@ -310,7 +310,7 @@ if($tw.node) {
     const host = $tw.settings.saver.host || '127.0.0.1'
     function saverHandler(request, response) {
       let body = '';
-      response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*"});
+      response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, x-file-path, x-saver-key"});
       if (request.url.endsWith('/save')) {
         request.on('data', function(chunk){
           body += chunk;
@@ -333,7 +333,7 @@ if($tw.node) {
             const fs = require('fs');
             const path = require('path');
             // Make sure that the path exists, if so save the wiki file
-            fs.writeFile(filepath,body,{encoding: "utf8"},function (err) {
+            fs.writeFile(path.resolve(filepath),body,{encoding: "utf8"},function (err) {
               if(err) {
                 $tw.Bob.logger.error(err, {level:1});
                 responseData.error = err;
