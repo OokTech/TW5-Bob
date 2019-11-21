@@ -551,11 +551,13 @@ if($tw.node) {
         wiki: data.wiki
       };
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-      const thisMessage = {
-        alert: 'Fetched Tiddlers, see import list',
-        wikis: [data.wiki]
-      };
-      $tw.ServerSide.sendBrowserAlert(thisMessage);
+      if (data.resolution !== 'force')
+        const thisMessage = {
+          alert: 'Fetched Tiddlers, see import list',
+          wikis: [data.wiki]
+        };
+        $tw.ServerSide.sendBrowserAlert(thisMessage);
+      }
       $tw.Bob.logger.log('Fetched tiddlers', {level: 2})
       $tw.Bob.logger.log('Fetched ',list, {level: 4})
     }

@@ -305,7 +305,9 @@ if($tw.node) {
   }
 
   function createSaverServer() {
-    const port = 61192;
+    $tw.settings.saver = $tw.settings.saver || {};
+    const port = $tw.settings.saver.port || 61192;
+    const host = $tw.settings.saver.host || '127.0.0.1'
     function saverHandler(request, response) {
       let body = '';
       response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"});
@@ -324,7 +326,9 @@ if($tw.node) {
           body = body.replace(/^message=/, '');
           const responseData = {'ok':'no'};
           const filepath = request.headers['x-file-path'];
-          if (typeof body === 'string' && body.length > 0 && filepath) {
+          const key = request.headers['x-saver-key'];
+          const match = (key === $tw.settings.saver.key) || (typeof $tw.settings.saver.key === 'undefined');
+          if (typeof body === 'string' && body.length > 0 && filepath && match) {
             // Write the file
             const fs = require('fs');
             const path = require('path');
@@ -337,20 +341,31 @@ if($tw.node) {
                 $tw.Bob.logger.log('saved file', filepath, {level:2});
                 responseData.ok = 'yes';
               }
+              response.end(JSON.stringify(responseData));
             });
+          } else {
+            response.end(JSON.stringify(responseData));
           }
-          response.end(JSON.stringify(responseData));
         });
       } else if (request.url.endsWith('/check')) {
         response.end('{"ok":"yes"}')
       }
     }
     const saverServer = http.createServer(saverHandler);
-    saverServer.listen(port, '127.0.0.1', function(err) {
+    saverServer.on('error', function (e) {
+      if($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
+        if(e.code === 'EADDRINUSE') {
+          $tw.Bob.logger.error('Port conflict with the saver server, do you have Bob running already?', e,{level:0})
+        }
+      } else {
+        $tw.Bob.logger.error(e, {level:0});
+      }
+    });
+    saverServer.listen(port, host, function(err) {
       if (err) {
         console.log('Bob saver server error!', err);
       } else {
-        console.log('Bob saver server running on port', port);
+        console.log('Bob saver server running on', host + ':' + port);
       }
     })
   }

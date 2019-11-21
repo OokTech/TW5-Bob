@@ -93,6 +93,12 @@ used. If the json isn't formatted correctly than default values will be used.
   },
   "servingFiles": {
     "name": "/path/to/files"
+  },
+  "saver": {
+    "host": "localhost",
+    "port": "61192",
+    "key": "",
+    "disable": "no"
   }
 }
 ```
@@ -241,6 +247,12 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   be served.
   - The items in this are in the form `prefix: /path/to/folder`, see the file
     server documentation for more.
+- `saver` this holds settings for the single file saver
+  - `host` the host for the saver server
+  - `port` the port that the saver listens on
+  - `key` an optional key, if this is set than the same key has to be entered
+    in each of the single file wikis in order for the server to save them.
+  - `disable` set this to `yes` to disable the single file saver sever
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no

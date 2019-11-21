@@ -1,5 +1,18 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.3.3 Kohlrabi
+
+* Added saver key to the single file saver
+** This means that you can set a key and a wiki will only save if it you enter the correct key.
+** Leaving the key blank means that no key is required.
+* Added saver configuration tab under Bob settings
+** Enable/disable saver server
+** Set saver key
+** Set host (WARNING: This can very easily break the saver)
+** Set port (WARNING: This can very easily break the saver)
+* internalFetch no longer causes a browser alert when you use resolution=force
+* Browser alert tiddlers are now prefixed with `$:/temp/` so that they don't show up in the sidebar and don't get saved.
+
 !! Version 1.3.2 Sugar Beets
 
 * Update documentation in the server routes

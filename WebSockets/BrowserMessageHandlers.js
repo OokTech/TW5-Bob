@@ -378,7 +378,7 @@ it will overwrite this file.
         const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
           return Number(item.replace(/^Server Alert /, ''))
         }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
-        const AlertTitle = 'Server Alert ' + newNumber;
+        const AlertTitle = '$:/temp/Server Alert ' + newNumber;
         tidObj.text = JSON.parse(tidObj.text);
         tidObj.text[AlertTitle] = data.alert + ' - ' + $tw.utils.formatDateString(new Date(),"0hh:0mm, 0DD/0MM/YY");
         tidObj.text = JSON.stringify(tidObj.text);
