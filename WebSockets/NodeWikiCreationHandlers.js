@@ -551,7 +551,7 @@ if($tw.node) {
         wiki: data.wiki
       };
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-      if (data.resolution !== 'force')
+      if (data.resolution !== 'force') {
         const thisMessage = {
           alert: 'Fetched Tiddlers, see import list',
           wikis: [data.wiki]
