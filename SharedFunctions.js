@@ -24,6 +24,8 @@ This has some functions that are needed by Bob in different places.
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
+  $tw.settings.advanced = $tw.settings.advanced || {};
+  let messageQueueTimer = false;
 
   /*
     This function takes two tiddler objects and returns a boolean value
@@ -42,80 +44,9 @@ This has some functions that are needed by Bob in different places.
     if(!tiddler.fields && otherTiddler.fields) {
       return true;
     }
-    let changed = false;
-    // Some cleverness that gives a list of all fields in both tiddlers without
-    // duplicates.
-    const allFields = Object.keys(tiddler.fields).concat(Object.keys(otherTiddler.fields).filter(function (item) {
-      return Object.keys(tiddler.fields).indexOf(item) < 0;
-    }));
-    // check to see if the field values are the same, ignore modified for now
-    allFields.forEach(function(field) {
-      if(field !== 'modified' && field !== 'created' && field !== 'list' && field !== 'tags') {
-        if(otherTiddler.fields[field] !== tiddler.fields[field]) {
-          // There is a difference!
-          changed = true;
-        }
-      } else if(field === 'list' || field === 'tags') {
-        if((tiddler.fields[field] || tiddler.fields[field] === '' || tiddler.fields[field] === []) && (otherTiddler.fields[field] || otherTiddler.fields[field] === '' || otherTiddler.fields[field] === [])) {
-          // We need a special check to check against empty arrays and empty
-          // strings, which in this context match.
-          let empty1 = false;
-          let empty2 = false;
-          let field1 = tiddler.fields[field]
-          if(!Array.isArray(field1)) {
-            field1 = $tw.utils.parseStringArray(field1);
-          }
-          let field2 = otherTiddler.fields[field]
-          if(!Array.isArray(field2)) {
-            field2 = $tw.utils.parseStringArray(field2);
-          }
-          if(field1) {
-            if(field1.length === 0) {
-              empty1 = true;
-            }
-          }
-          if(field2) {
-            if(field2.length === 0) {
-              empty2 = true;
-            }
-          }
-          if(!empty1 && !empty2) {
-            if(field1.length !== field2.length) {
-              changed = true;
-            } else {
-              const arrayList = field2;
-              arrayList.forEach(function(item) {
-                if(field1.indexOf(item) === -1) {
-                  changed = true;
-                }
-              })
-            }
-          } else if(empty1 !== empty2) {
-            changed = true;
-          }
-        } else {
-          changed = true;
-        }
-      } else if(field === 'modified' || field === 'created') {
-        // Make sure the fields are parsed as strings then check if they match.
-        let date1;
-        let date2;
-        if(typeof tiddler.fields[field] === 'string') {
-          date1 = tiddler.fields[field];
-        } else if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
-          date1 = $tw.utils.stringifyDate(tiddler.fields[field]);
-        }
-        if(typeof otherTiddler.fields[field] === 'string') {
-          date2 = otherTiddler.fields[field];
-        } else if(typeof otherTiddler.fields[field] === 'object' && otherTiddler.fields[field] !== null){
-          date2 = $tw.utils.stringifyDate(otherTiddler.fields[field]);
-        }
-        if(date1 !== date2) {
-          changed = true;
-        }
-      }
-    })
-    return changed;
+    const hash1 = tiddler.hash || $tw.Bob.Shared.getTiddlerHash(tiddler);
+    const hash2 = otherTiddler.hash || $tw.Bob.Shared.getTiddlerHash(otherTiddler);
+    return hash1 !== hash2;
   };
 
   /*
@@ -147,11 +78,13 @@ This has some functions that are needed by Bob in different places.
     boolean indicating if the ack has been received yet or not.
   */
   Shared.createMessageData = function (message) {
-    const id = $tw.Bob.Shared.makeId();
+    const id = message.id || makeId();
     message.id = id;
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
+      message.tiddler = JSON.parse(JSON.stringify(message.tiddler));
       title = message.tiddler.fields.title;
+      message.tiddler.hash = $tw.Bob.Shared.getTiddlerHash(message.tiddler);
     }
     let messageData = {
       message: message,
@@ -159,7 +92,8 @@ This has some functions that are needed by Bob in different places.
       time: Date.now(),
       type: message.type,
       title: title,
-      ack: {}
+      ack: {},
+      wiki: message.wiki
     };
     return messageData;
   }
@@ -182,17 +116,25 @@ This has some functions that are needed by Bob in different places.
     If the queue isn't empty the timeout is reset for this function to run
     again in 500ms
   */
-  Shared.checkMessageQueue = function () {
+  function checkMessageQueue() {
     // If the queue isn't empty
+    if($tw.Bob.MessageQueue.filter(function(item) {
+      return (typeof item.ctime) === 'undefined'
+    }).length === 0) {
+      if ($tw.browser) {
+        //Turn off dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
+    }
     if($tw.Bob.MessageQueue.length > 0) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
-      $tw.Bob.MessageQueue = Shared.pruneMessageQueue($tw.Bob.MessageQueue);
+      $tw.Bob.MessageQueue = pruneMessageQueue($tw.Bob.MessageQueue);
       // Check if there are any messages that are more than 500ms old and have
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
       const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if(Date.now() - messageData.time > 500) {
+        if(Date.now() - messageData.time > $tw.settings.advanced.localMessageQueueTimeout || 500) {
           return true;
         } else {
           return false;
@@ -201,26 +143,53 @@ This has some functions that are needed by Bob in different places.
       oldMessages.forEach(function (messageData) {
         // If we are in the browser there is only one connection, but
         // everything here is the same.
-        $tw.connections.forEach(function(item) {
-          const index = item.index;
-          // Here make sure that the connection is live and hasn't already
-          // sent an ack for the current message.
-          if($tw.connections[index].socket !== undefined) {
-            if(!messageData.ack[index] && $tw.connections[index].socket.readyState === 1) {
-              // If we haven't received an ack from this connection yet than
-              // resend the message
-              $tw.connections[index].socket.send(JSON.stringify(messageData.message));
-            }
-          }
+        const targetConnections = $tw.node?(messageData.wiki?$tw.connections.filter(function(item) {
+          return item.wiki === messageData.wiki
+        }):[]):[$tw.connections[0]];
+        targetConnections.forEach(function(connection) {
+          _sendMessage(connection, messageData)
         });
       });
-      if($tw.Bob.MessageQueueTimer) {
-        clearTimeout($tw.Bob.MessageQueueTimer);
+      if(messageQueueTimer) {
+        clearTimeout(messageQueueTimer);
       }
-      $tw.Bob.MessageQueueTimer = setTimeout(Shared.checkMessageQueue, 500);
+      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     } else {
-      clearTimeout($tw.Bob.MessageQueueTimer);
-      $tw.Bob.MessageQueueTimer = false;
+      clearTimeout(messageQueueTimer);
+      messageQueueTimer = false;
+      if ($tw.browser) {
+        //Turn off dirty indicator
+        $tw.utils.toggleClass(document.body,"tc-dirty",false);
+      }
+    }
+  }
+
+  function _sendMessage(connection, messageData) {
+    const index = connection.index;
+    // Here make sure that the connection is live and hasn't already
+    // sent an ack for the current message.
+    if(connection.socket !== undefined) {
+      if(!messageData.ack[index] && connection.socket.readyState === 1) {
+        // We have a slight delay before sending saveTiddler messages,
+        // this is because if you send them right away than you have
+        // trouble with fields that are edited outside the tiddler edit
+        // view (like setting the site title or subtitle) because a
+        // message is sent on each key press and it creates race
+        // conditions with the server and which was the last message can
+        // get confused and it can even get stuck in infinite update
+        // loops.
+        if(messageData.type === 'saveTiddler' && $tw.browser) {
+          // Each tiddler gets a timer invalidate the timer and reset it
+          // each time we get a saveTiddler message for a tiddler
+          clearTimeout($tw.Bob.Timers[messageData.title]);
+          // then reset the timer
+          $tw.Bob.Timers[messageData.title] = setTimeout(function() {
+            connection.socket.send(JSON.stringify(messageData.message));
+          }, $tw.settings.advanced.saveTiddlerDelay || 200);
+        } else {
+          connection.socket.send(JSON.stringify(messageData.message));
+        }
+      }
     }
   }
 
@@ -229,7 +198,7 @@ This has some functions that are needed by Bob in different places.
     Messages from the browser have ids that start with b, messages from the
     server have an idea that starts with s.
   */
-  Shared.makeId = function () {
+  function makeId() {
     idNumber = idNumber + 1;
     const newId = ($tw.browser?'b':'s') + idNumber;
     return newId;
@@ -343,26 +312,7 @@ This has some functions that are needed by Bob in different places.
     let send = false;
     // Make sure that the tags field is an array so it fits what is expected
     if(messageData.type === 'saveTiddler') {
-      if(messageData.message.tiddler.fields.tags) {
-        if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-          messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
-          if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-            messageData.message.tiddler.fields.tags = [];
-          }
-        }
-      }
-      if(messageData.message.tiddler.fields.tags === '')  {
-        messageData.message.tiddler.fields.tags = [];
-      }
-      if(messageData.message.tiddler.fields.list) {
-        // Make sure that the list field is an array so it fits what is expected
-        if(!Array.isArray(messageData.message.tiddler.fields.list)) {
-          messageData.message.tiddler.fields.list = $tw.utils.parseStringArray(messageData.message.tiddler.fields.list);
-          if(!Array.isArray(messageData.message.tiddler.fields.list)) {
-            messageData.message.tiddler.fields.list = [];
-          }
-        }
-      }
+      messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
     }
     // Only send things if the message is meant for the wiki or if the browser
     // is sending a message to the server. No wiki listed in the message means
@@ -470,25 +420,25 @@ This has some functions that are needed by Bob in different places.
 
     This modifies $tw.Bob.MessageQueue as a side effect
   */
-  Shared.sendMessage = function(messageData, connectionIndex) {
+  Shared.sendMessage = function(message, connectionIndex, messageData) {
+    messageData = messageData || Shared.createMessageData(message)
+    if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item) {
+      return (typeof item.ctime) === 'undefined'
+    }).length > 0) {
+      $tw.utils.toggleClass(document.body,"tc-dirty",true);
+    }
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
-      // Empty tags fields will be converted to empty strings.
-      if(messageData.type === 'saveTiddler') {
-        if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-          messageData.message.tiddler.fields.tags = $tw.utils.parseStringArray(messageData.message.tiddler.fields.tags);
-          if(!Array.isArray(messageData.message.tiddler.fields.tags)) {
-            messageData.message.tiddler.fields.tags = [];
-          }
-        }
+      if (messageData.message.tiddler) {
+        messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler);
       }
 
       // Remove any messages made redundant by this message
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
       if($tw.browser) {
         // Check to see if the token has changed
-        $tw.Bob.MessageQueue = Shared.removeOldTokenMessages($tw.Bob.MessageQueue);
+        $tw.Bob.MessageQueue = removeOldTokenMessages($tw.Bob.MessageQueue);
       }
       // If the message is already in the queue (as determined by the message
       // id), than just add the new target to the ackObject
@@ -503,32 +453,18 @@ This has some functions that are needed by Bob in different places.
         messageData.ack[connectionIndex] = false;
         $tw.Bob.MessageQueue.push(messageData);
       }
-      // We have a slight delay before sending saveTiddler messages, this
-      // is because if you send them right away than you have trouble with
-      // fields that are edited outside the tiddler edit view (like setting
-      // the site title or subtitle) because a message is sent on each key
-      // press and it creates race conditions with the server and which was
-      // the last message can get confused and it can even get stuck in
-      // infinite update loops.
-      if(messageData.type === 'saveTiddler' && $tw.browser) {
-        // Each tiddler gets a timer invalidate the timer and reset it each time
-        // we get a saveTiddler message for a tiddler
-        clearTimeout($tw.Bob.Timers[messageData.title]);
-        // then reset the timer
-        $tw.Bob.Timers[messageData.title] = setTimeout(function(){$tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));}, 200);
-      } else {
-        $tw.connections[connectionIndex].socket.send(JSON.stringify(messageData.message));
-      }
+      _sendMessage($tw.connections[connectionIndex], messageData)
     }
-    clearTimeout($tw.Bob.MessageQueueTimer);
-    $tw.Bob.MessageQueueTimer = setTimeout($tw.Bob.Shared.checkMessageQueue, 500);
+    clearTimeout(messageQueueTimer);
+    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+    return messageData;
   }
 
   /*
     If the token in the queued messages changes than remove messages that use
     the old token
   */
-  Shared.removeOldTokenMessages = function (messageQueue) {
+  function removeOldTokenMessages(messageQueue) {
     let outQueue = [];
     if(localStorage) {
       if(typeof localStorage.getItem === 'function') {
@@ -571,7 +507,7 @@ This has some functions that are needed by Bob in different places.
         $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
         // Check if all the expected acks have been received
         const complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
-          return $tw.Bob.MessageQueue[index].ack[value] === false;
+          return $tw.Bob.MessageQueue[index].ack[value] !== true;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
         if(complete && !$tw.Bob.MessageQueue[index].ctime) {
@@ -594,7 +530,7 @@ This has some functions that are needed by Bob in different places.
     multiple times and things get stuck in an infinite loop if we don't detect
     that they are duplicates.
   */
-  Shared.pruneMessageQueue = function (inQueue) {
+  function pruneMessageQueue(inQueue) {
     inQueue = inQueue || [];
     let token = false
     if($tw.browser && localStorage) {
@@ -613,8 +549,10 @@ This has some functions that are needed by Bob in different places.
     // it was waiting for. If it doesn't exist than it is still waiting.
     const outQueue = inQueue.filter(function(messageData) {
       if((token && messageData.message.token && messageData.message.token !== token) || (token && !messageData.message.token) ) {
-        // If we have a token, the message has a token and they are not the same than drop the message.
+        // If we have a token, the message has a token and they are not the
+        // same than drop the message. (possible imposter)
         // If we have a token and the message doesn't have a token than drop it
+        // (someone unathenticated trying to make changes)
         // If we don't have a token and the message does than what?
         return false
       } else if(messageData.ctime) {
@@ -629,10 +567,25 @@ This has some functions that are needed by Bob in different places.
         return true;
       }
     })
-
     return outQueue;
   }
 
+  /*
+    This normalizes a tiddler so that it can be compared to another tiddler to
+    determine if they are the same.
+
+    Any two tiddlers that have the same fields and content (including title)
+    will return exactly the same thing using this function.
+
+    Fields are included in alphabetical order, as defined by the javascript
+    array sort method.
+
+    The tag field gets sorted and the list field is interpreted as a string
+    array. If either field exists but it is an empty string it is replaced with
+    an empty array.
+
+    Date fields (modified and created) are stringified.
+  */
   Shared.normalizeTiddler = function(tiddler) {
     let newTid = {};
     if(tiddler) {
@@ -642,11 +595,14 @@ This has some functions that are needed by Bob in different places.
         fields.forEach(function(field) {
           if(field === 'list' || field === 'tags') {
             if(Array.isArray(tiddler.fields[field])) {
-              newTid[field] = tiddler.fields[field].slice().sort()
+              newTid[field] = tiddler.fields[field].slice()
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
-              newTid[field] = tiddler.fields[field]
+              newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice()
+              if (field === 'tags') {
+                newTid[field] = newTid[field].sort()
+              }
             }
           } else if(field === 'modified' || field === 'created') {
             if(typeof tiddler.fields[field] === 'object' && tiddler.fields[field] !== null) {
@@ -660,7 +616,7 @@ This has some functions that are needed by Bob in different places.
         })
       }
     }
-    return newTid
+    return {fields: newTid}
   }
 
   /*
@@ -670,6 +626,10 @@ This has some functions that are needed by Bob in different places.
     robust against collisions, it just needs to make collisions rare for a very
     easy value of rare, like 0.1% would be more than enough to make this very
     useful, and this should be much better than that.
+
+    Remember that this just cares about collisions between one tiddler and its
+    previous state after an edit, not between all tiddlers in the wiki or
+    anything like that.
   */
   // This is a stable json stringify function from https://github.com/epoberezkin/fast-json-stable-stringify
   function stableStringify (data, opts) {
@@ -744,32 +704,25 @@ This has some functions that are needed by Bob in different places.
   }
 
   /*
-    This sends a message to a remote server. This is used for syncing for now,
-    in the future it may be used for other things.
+    This acknowledges that a message has been received.
   */
-  Shared.sendToRemoteServer = function(message) {
-    let ok = true
-    if(typeof message === 'string') {
-      try{
-        message = JSON.parse(message)
-      } catch (e) {
-        ok = false
-      }
-      if(ok) {
-        message.source_server = 'ThisServerURL'
-        message.access_token = 'ThisAccessToken'
-      }
-    }
-  }
-
   Shared.sendAck = function (data) {
+    data = data || {};
     if($tw.browser) {
       const token = localStorage.getItem('ws-token')
-      $tw.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
+      $tw.connections[0].socket.send(JSON.stringify({
+        type: 'ack',
+        id: data.id,
+        token: token,
+        wiki: $tw.wikiName
+      }));
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
-          $tw.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+          $tw.connections[data.source_connection].socket.send(JSON.stringify({
+            type: 'ack',
+            id: data.id
+          }));
         }
       }
     }

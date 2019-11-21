@@ -1,0 +1,151 @@
+title: $:/plugins/OokTech/Bob/Federation
+caption: Federation
+tags: [[Bob Documentation]]
+description: Federation between servers
+
+!! Federation
+
+Federation lets you communicate between different servers.
+
+This allows many things, including:
+
+* syncing wikis
+* fetching tiddlers from wikis on remote servers
+* sending tiddlers to wikis on remote servers
+* real-time chat between different servers
+
+!! Backend things
+
+The local server saves information about remote servers. This includes:
+
+```
+uniqueName: {
+  serverName: human readable name,
+  url: the most recent url used to connect to the remote server,
+  staticUrl: if the url changes or not (yes or no),
+  publicKey: a public key,
+  notes: optional notes you can make about the server,
+  canLogin: if the server allows you to login,
+  availableWikis: {
+    wikiName1: {
+      sync: yes/no,
+      syncFilter: <<someFilter>>,
+      syncType: pull/push/bidirectional,
+      autoSync: yes/no,
+      public: yes/no,
+      conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
+      allowsLogin: yes/no
+    },
+    wikiName2: {
+      <<same stuff>>
+    }
+  },
+  chats: {
+    chatName1: {
+      public: yes/no,
+      relay: yes/no
+    }
+  }
+}
+```
+
+Server info tiddler:
+
+$:/Federation/RemoteServer/<uniqueName>
+
+Server info tiddler format:
+
+```
+{
+  serverName: some name,
+  url: server url,
+  staticUrl: yes/no,
+  publicKey: a key,
+  canLogin: yes/no,
+  notes: some notes,
+  availableWikis: space separated list of wiki names,
+  availableChats: space separated list of chat names
+}
+```
+
+Each wiki on the server gets:
+
+$:/Federation/RemoteServer/<uniqueName>/wikis/<wikiName>
+
+```
+{
+  sync: yes/no,
+  syncFilter: <<someFilter>>,
+  syncType: pull/push/bidirectional,
+  autoSync: yes/no,
+  public: yes/no,
+  conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
+  allowsLogin: yes/no
+}
+```
+
+Each chat on the server gets:
+
+$:/Federation/RemoteServer/<uniqueName>/chats/<chatName>
+
+```
+{
+  public: yes/no,
+  relay: yes/no
+}
+```
+
+* `uniqueName` will be `serverName (publicKey)` for now, it may end up just being 0, 1, 2, ... as more servers get added, it may never need to be shared with anyone else.
+
+to connect to another server select the serverName from a select widget,
+then there is an interface that has the availableWikis and the current sync
+status and setup for the wiki.
+
+Servers have to have a login interface as well so you can log in to see private
+wikis and edit wikis.
+
+For this the login is done using either username/password pairs or by a signed
+token that the remote server can check against the public key it has listed.
+This should probably use this process:
+
+# Local server requests a login to the remote wiki
+# Remote server replies with a random number
+# Local server puts the random number into a signed token and sends it back to the remote server, if everything matches than this is the access token for further interactions.
+# Because the token handshake is taken care of by the servers without needing human interaction the tokens can be changed as often as desired. Use a unique random number for each token sent.
+
+To connect to a new server there is an interface where you enter the URL and it
+requests information from the remote server.
+The requested information is:
+
+* human readable server name
+* public key
+* available wikis
+* if the server hosts chats
+** if so which chats are currently available
+** if new chats can be created using this server
+
+this information is saved locally and can be used in the above interface.
+
+!!! Chat
+
+each server can host a chat server as well.
+Each chat on a server has a unique name and can be public or private.
+
+When you connect to a server you get a list of chats available on that server.
+
+then in the connection interface above you select the server and then a list of
+chats that are available on that server appear, you can select a chat and the
+chat interface for that chat appears and you get an update of the chat history
+for that server.
+
+You probably have to click a button to load the conversation.
+
+The chat message is the same for both local and federated chats, the setup of
+the chat itself lets the server know who to send what messages to.
+
+So chats can be:
+
+* Public - Anyone can see it if they have joined, the chat will be listed in the public chats when a new server connection is made.
+* Private - only explicitly listed logins can see them, regardless of location.
+* Local - Anyone on the same Bob server can see the chat but it isn't federated out to other servers.
+* Invite-Only - the same as private, except the chat is listed in the available chats and people can request access.

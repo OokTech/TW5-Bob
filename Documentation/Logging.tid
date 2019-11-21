@@ -1,0 +1,38 @@
+title: $:/plugins/OokTech/Bob/Logging
+caption: Bob Logging
+tags: [[Bob Documentation]]
+description: logging output from Bob
+
+Output from Bob can be logged in three places, a file, in the browser or to the
+terminal console.
+
+The logging output can be to any mix of the outputs, or none.
+The logging can also have multiple levels, and the logging level for each
+output can be set independently.
+
+!! Configuring logging
+
+Configuration options are set using in the `logging` section of the settings.
+
+By default, if nothing is set, than the logging level is `2` and only logging
+to the console is enabled.
+To enable each logging output the keys `useFileLogging`, `useConsoleLogging`
+and `useBrowserLogging` can be set to `yes` or `no`.
+
+Setting the logging level for each logging endpoint is set using `fileLogLevel`
+`browserLogLevel` and `consoleLogLevel`
+
+!! Logging levels
+
+Higher numbers have more logging output, each level adds to the levels below
+it.
+
+* `-1` (almost) no logging. There is still some output from loading the settings initially because the settings are what tell the system the logging level.
+* `0` Only necessary outputs, like what port the wikis are served on and errors that crash the server.
+* `1` 'Normal' messages, listing wikis that are created or deleted, wiki paths, etc.
+* `2` verbose logging. Every tiddler that is saved or deleted is listed, every error is also listed.
+* `3` debugging level of output. Lots of information that isn't useful for anything other than debugging.
+* `4` a truly ridiculous amount of logging
+
+''Note:'' Output for levels 3 and 4 is still being added, so it may not be as
+verbose as expected.

@@ -1,0 +1,21 @@
+title: $:/plugins/OokTech/Bob/Federation/AvailableChatsListingTemplate
+
+<tr>
+  <th>
+    <$view
+      field='title'
+    />
+  </th>
+  <td>
+    <$view
+      field='public'
+    >
+      No
+    </$view>
+  </td>
+  <td>
+    <$button>
+      Join
+    </$button>
+  </td>
+</tr>

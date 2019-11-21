@@ -13,6 +13,8 @@ there may be bugs that I don't know about. Also see notes below.
 - All configuration can be done from inside the wiki
 - Serve external files (like images) so you can include them in your wikis
 - Allows you to run shell scripts and commands from inside the wiki
+- Can be used as a plugin library to make plugins available to other wikis (requires the TWederBob plugin on the other wikis to connect)
+- Inter-server federation. Different Bob servers can communicate to share tiddlers and as chat servers/relays
 
 A lot of the documentation is in the tiddler files in the Documentation folder
 of the plugin, or in the wiki in the plugin information on the control panel.
@@ -58,7 +60,7 @@ instructions:
 Clone the tiddlywiki repo and get the plugin (Only do this the first time to
 install everything):
 ```
-git clone --depth=1 --branch v5.1.18 https://github.com/Jermolene/TiddlyWiki5.git
+git clone --depth=1 --branch v5.1.21 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
 cp -r TiddlyWiki5/plugins/OokTech/Bob/MultiUserWiki TiddlyWiki5/Wikis/BobWiki/
@@ -129,8 +131,11 @@ In a terminal type these commands:
 ```
 cd TiddlyWiki5
 git fetch --all --tags --prune
-git checkout tags/v5.1.18
+git checkout tags/v5.1.21
 ```
+
+To use future or previous versions you would change the `5.1.21` in the last
+command to match the version number you want to use.
 
 ### Notes
 
@@ -162,11 +167,14 @@ Here is a more detailed list of things added or changed by this plugin
   - Create wikis using editions
   - Create wikis from existing single html file wikis
   - Create wikis using tiddlers drawn from other existing wikis
+  - Add existing node wikis so that they are served by Bob
 - Serve normal node wikis with all the features of Bob
 - Two-way real-time syncing between the browser and file system
   - Updates the wiki in the browser immediately when any changes are made to the file system
   - Immediately save changes to tiddlers made in the browser to the file system
   - Syncing can ignore tiddlers based on an editable exclude filter
+  - If the browser is disconnected from the server it can reconnect when the server is accessible again and sync the changes that happened. The syncing is two-way so the browser gets any changes from the server and the server gets changes from the browser.
+    - Conflicts are displayed for you to handle.
 - Multi-User support
   - Allows any number of people/computers/browser tabs to connect to the wiki
     server and use or edit the same wiki(s) simultaneously.
@@ -177,8 +185,7 @@ Here is a more detailed list of things added or changed by this plugin
 - Websockets!! (used on the back-end, can be used by other plugins in the
   future)
   - Adds a websocket interface to tiddlywiki (currently only used by this
-    plugin, a git plugin is currently being developed as well as plugins to run
-    scripts on the local computer from tiddlywiki)
+    plugin, a git plugin is currently being developed)
   - Adds an action widget that allows you to send arbitrary websocket messages
     to the server. This can be used to do things like trigger shell scripts
     from inside the wiki.
@@ -186,16 +193,28 @@ Here is a more detailed list of things added or changed by this plugin
   server used for the real-time communication between the browser and server.
 - Adds a new command `externalserver` which starts up the wiki without a server
   so that you can use an external server, like an expressjs server.
-- Allows you to reset the tiddlywiki server from the browser using a websocket
-  message.
+- Allows you to shutdown the tiddlywiki server from the browser using a websocket message.
 - Lets you run shell scripts from inside the wiki
 - Everything is configurable from inside the wiki
-- Your connection to the server is monitored and you are warned if there is a
-  problem
+- Your connection to the server is monitored and you are warned if there is a problem
+  - If the browser disconnects from the server you can reconnect.
+  - If the server was shutdown/restarted than you need to reload the page to reconnect.
 - Serve files from the local file system (like images) so that they can be
   used in the wiki.
 - Build a single file version of any served wikis from within the wiki.
 - Share tiddlers between the wikis using the internalFetch mechanism
 - Build single file wikis that take tiddlers from different wikis
+- Inter-server federation
+  - Chat (see below)
+  - Wiki syncing
+    - optionally using a filter to limit which tiddlers are synced
+  - fetch/push tiddlers from/to other servers
+- Chat
+  - Local chat works between different wikis/connections to the same Bob server
+  - Federated chat works between different Bob servers.
+- Plugin library
+  - The server can act as a plugin library for other wikis
+  - The library can be updated by plugin authors without having to have access to the server
+  - The library can be updated directly from github/gitlab/other git server
 - *coming soon* Exclude lists on a per-wiki and per-user basis
 - *under consideration* Security and authentication to limit access and editing

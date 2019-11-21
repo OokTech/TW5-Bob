@@ -1,0 +1,67 @@
+title: $:/plugins/OokTech/Bob/FederationTab/ChatInterface
+caption: Chat Interface
+tags: FederationTab
+
+This is the basic chat interface that uses the federated connections.
+
+Current Name:
+<$edit-text
+  tiddler='$:/temp/Bob/Federation/ChatMessage'
+  field='from'
+  default=''
+/>
+
+<$chatview
+  tiddler='$:/chat/DefaultChat'
+/>
+
+<$list
+  filter='[[$:/chats/DefaultChat]indexes[]]'
+  variable=CurrentTimestamp
+>
+  <<CurrentTimeStamp>>
+  <$view
+    tiddler='$:/chats/DefaultChat'
+    index=<<currentTimeStamp>>
+  />
+  <br/>
+</$list>
+
+<$keyboard
+  actions="""
+    <$action-websocketmessage
+      $type='chatMessage'
+      message={{$:/temp/Bob/Federation/ChatMessage}}
+      from={{$:/temp/Bob/Federation/ChatMessage!!from}}
+    />
+    <$action-setfield
+      $tiddler='$:/temp/Bob/Federation/ChatMessage'
+      text=''
+    />
+  """
+  key=enter
+>
+  <$edit-text
+    tiddler='$:/temp/Bob/Federation/ChatMessage'
+    class='tc-edit-texteditor'
+    tag='input'
+    default=''
+  />
+</$keyboard>
+
+<$button>
+  Send
+  <$action-websocketmessage
+    $type='chatMessage'
+    message={{$:/temp/Bob/Federation/ChatMessage}}
+  />
+  <$action-setfield
+    $tiddler='$:/temp/Bob/Federation/ChatMessage'
+    text=''
+  />
+</$button>
+
+''TODO'' make the input field detect the length of the input and if the input
+is too long have it change from a single line input to a multi-line input.
+The difficult part may be making it not lose focus and cursor position.
+It may have to be a new javascript widget.

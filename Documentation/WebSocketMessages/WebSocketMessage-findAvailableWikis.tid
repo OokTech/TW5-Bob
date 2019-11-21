@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-getViewableWikiList
+tags: [[Websocket Message]] [[Human Usable]]
+caption: findAvailableWikis
+description: Get a list of all available wikis
+
+Get a list of all available wikis.
+
+This takes no input parameters.

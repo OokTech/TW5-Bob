@@ -1,0 +1,88 @@
+title: $:/plugins/OokTech/Bob/ServerTab
+caption: Server
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+  These are actions that affect the server and may affect all wikis served.
+
+</$reveal>
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  This button takes any embedded images or other media in the wiki and save
+  them in the files folder and replace the embedded media with tiddlers that
+  use a `_canonical_uri` field to embed the external media. This is only for
+  the current wiki, other wikis are unaffected.
+</$reveal>
+
+<$button>
+  Make Images External
+  <$action-websocketmessage
+    $type='makeImagesExternal'
+    storeIn={{$:/state/ExternaliseImages/storeIn}}
+  />
+</$button>
+<$checkbox
+  tiddler='$:/state/ExternaliseImages/storeIn'
+  checked='true'
+  unchecked='false'
+>
+  Store specific to wiki
+</$checkbox>
+
+See [[big note of DOOM|What is this?]] before doing this.
+
+<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>
+
+To make Bob available on the local network:
+
+# first click the `Make wikis available on the local network` button
+# click the `Shutdown Wiki` button
+# Close this tab
+# Restart Bob (or BobEXE)
+
+<$button>
+  <$action-updatesetting
+    ws-server='{"host": "0.0.0.0"}'
+  />
+  Make wikis available on the local network
+</$button>
+
+</$reveal>
+
+<$reveal type='match' state='$:/ServerIP!!host' text='0.0.0.0'>
+
+To make Bob available only on this computer:
+
+# first click the `Make wikis available only on this computer` button
+# click the `Shutdown Wiki` button
+# Close this tab
+# Restart Bob (or BobEXE)
+
+<$button>
+  <$action-updatesetting
+    ws-server='{"host": "127.0.0.1"}'
+  />
+  Make wikis available only on this computer
+</$button>
+
+</$reveal>
+
+WARNING: This button will shutdown the wiki server. None of the wikis will be
+available until it is restarted.
+
+<$button>
+  Shutdown Wiki
+  <$action-websocketmessage
+    $type=shutdownServer
+  />
+</$button>
+
+<<tabs "[[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/FetchPlugins]][[$:/plugins/OokTech/Bob/FileServerSetup]][[$:/plugins/OokTech/Bob/ServerMessageHistory]]" "$:/plugins/OokTech/Bob/ManualSettingsTab">>

@@ -1,0 +1,11 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-duplicateWiki
+tags: [[Websocket Message]] [[Human Usable]]
+caption: duplicateWiki
+description: A message that creates a duplicate of an existing wiki.
+
+This message is used to create a duplicate of an existing wiki.
+
+|!Parameter |!Description |
+|!fromWiki |The wiki to duplicate. |
+|!newWiki |The name of the new wiki. |
+|!copyChildren |If this is set to `true` child wikis will be copied as well. (Default: false) |

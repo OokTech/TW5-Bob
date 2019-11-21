@@ -1,0 +1,27 @@
+title: $:/plugins/OokTech/Bob/ThisWikiTab
+caption: This Wiki
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+  These are options that are specific to this wiki. They don't affect any other
+  wikis.
+
+  This button will unload the current wiki. This means that it will be
+  disconnected from the server and any changes you make will not be saved.
+
+  In order to reconnect you have to reload the wiki page.
+</$reveal>
+
+<$button>
+  Unload Wiki
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button>
+
+<<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]]" "$:/plugins/OokTech/Bob/SelectPlugins">>

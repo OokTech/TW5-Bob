@@ -38,7 +38,7 @@ both include and exclude filters.
 const Widget = require("$:/core/modules/widgets/widget.js").widget;
 
 const ActionDownloadWiki = function(parseTreeNode,options) {
-	this.initialise(parseTreeNode,options);
+  this.initialise(parseTreeNode,options);
 };
 
 /*
@@ -50,15 +50,15 @@ ActionDownloadWiki.prototype = new Widget();
 Render this widget into the DOM
 */
 ActionDownloadWiki.prototype.render = function(parent,nextSibling) {
-	this.computeAttributes();
-	this.execute();
+  this.computeAttributes();
+  this.execute();
 };
 
 /*
 Compute the internal state of the widget
 */
 ActionDownloadWiki.prototype.execute = function() {
-	this.excludeFilter = this.getAttribute('excludeFilter',undefined)
+  this.excludeFilter = this.getAttribute('excludeFilter',undefined)
   this.includeFilter = this.getAttribute('includeFilter',undefined)
   this.ignoreDefaultExclude = this.getAttribute('ignoreDefaultExclude', false)
   this.defaultName = this.getAttribute('defaultName', 'index.html')
@@ -68,12 +68,12 @@ ActionDownloadWiki.prototype.execute = function() {
 Refresh the widget by ensuring our attributes are up to date
 */
 ActionDownloadWiki.prototype.refresh = function(changedTiddlers) {
-	const changedAttributes = this.computeAttributes();
-	if(Object.keys(changedAttributes).length) {
-		this.refreshSelf();
-		return true;
-	}
-	return this.refreshChildren(changedTiddlers);
+  const changedAttributes = this.computeAttributes();
+  if(Object.keys(changedAttributes).length) {
+    this.refreshSelf();
+    return true;
+  }
+  return this.refreshChildren(changedTiddlers);
 };
 
 /*

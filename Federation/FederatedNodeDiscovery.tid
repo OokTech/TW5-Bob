@@ -1,0 +1,10 @@
+title: $:/plugins/OokTech/Bob/Federation/FederatedNodeDiscovery
+
+There are many options, I think that an mdns plugin to find nodes on the local
+network is going to be the most effective and simplest method.
+
+The mdns plugin is probably going to end up be separate from Bob, it may be
+packaged with BobEXE.
+
+For nodes that are off the local network I will use Dodo. I am not sure about
+packaging that with Bob.

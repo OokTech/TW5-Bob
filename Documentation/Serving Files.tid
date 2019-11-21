@@ -13,7 +13,58 @@ your home network.
 
 ---
 
-!! Enabling the file server
+!! Using the interface
+
+Everything can be done using the graphical interface in the control panel.
+
+To get to the interface go to the $:/ControlPanel -> `Bob Settings` tab -> `Server` tab -> `File Server` tab
+
+!!! Enabling the server
+
+To enable the file server check the `Enable File Server` box.
+
+In order for this to take effect you have to click the `Update Settings` button
+near the bottom of the tiddler.
+
+Then click the `Shutdown Wiki` button and restart Bob.
+
+!!! Default Setup
+
+Once the file server is enabled than every wiki can have a folder called
+`files` next to the `tiddlers` folder that contains files that are accessible
+to that wiki. This requires no setup past enabling the file server.
+
+Files for each wiki have different uri prefixes. For the root wiki getting a
+file called `FileName.jpg` it is:
+
+`/files/FileName.jpg`
+
+For a wiki called `This/Wiki` the uri would be:
+
+`/files/This/Wiki/FileName.jpg`
+
+!!! The Server Images Plugin
+
+If the ServerImages plugin is installed and enabled when you import an image or
+other media file it is uploaded to the `files` of the wiki it is imported into
+and a `_canonical_uri` tiddler pointing to the image file is created.
+
+!!! Advanced Setup
+
+Below the check box there is a table that lists all of the other folders that
+have files that are accessible from within the wiki along with the prefix for
+those folders.
+
+To add a new folder enter a prefix and path in the interface and click
+`Add Folder`.
+
+If you give the prefix `media` and what to access the file `FileName.jpg` in
+the folder listed the files in the folder are available in a similar way to
+above, the url prefix is `/files/media`
+
+So the file would be available using at the url `/files/media/FileName.jpg`
+
+!! Enabling the file server the hard way
 
 Bob, like the node.js version of tiddlywiki, does not handle external files the
 same way that the html wikis do.
@@ -23,6 +74,9 @@ To access files on your harddrive you have to enable the file server component
 of Bob. To do this open the $:/ControlPanel, then the tab `Bob Settings` and
 under that the tab `File Server` and check the `Enable File Server` checkbox.
 
+After the box is checked you have to restart the wiki server before it will
+work.
+
 !!! Setting up the file server
 
 After enabling the file server it is easiest to just use the default settings.
@@ -31,18 +85,32 @@ you stick with the defaults.
 
 If you have a reason to change the settings there are two relevant settings:
 
-* `filePathRoot` - This is the base folder for the files that are served.
-* `fileURLPrefix` - this is the uri prefix to use for accessing files.
+* `fileURLPrefix` - this is the uri prefix to use for accessing files. This is used for files specific to individual wikis and files listed in the `servingFiles` section of the settings.
+* `servingFiles` - this is an object that holds the prefix and path for different places where files are served from
+** The content is in the form `prefix:path` as shown below
 
-By default globally available files are served from the folder `files` in the
-same folder as the executable (for BobEXE) or the current working directory for
-the plugin version.
+Example:
+
+```
+servingFiles: {
+  docs: '/path/to/docs/folder',
+  otherprefix: '/path/to/other/folder'
+}
+```
+
+then the uri for files in the folder listed as `docs` would be in the form:
+
+`/wikiName/files/docs/fileName.ext`
 
 Files that are only available to one wiki are served by default from the folder
 called `files` inside the wiki folder, next to the `tiddlers` folder.
 
 These defaults give the same paths to files as a single file wiki in the same
 place.
+
+---
+
+! Below here things may be inaccurate
 
 !! Globally available files
 

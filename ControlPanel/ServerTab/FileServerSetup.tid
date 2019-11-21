@@ -1,0 +1,223 @@
+title: $:/plugins/OokTech/Bob/FileServerSetup
+caption: File Server
+
+\define checkActions()
+<$list
+  filter='[[$:/WikiSettings/split]getindex[filePathRoot]]'
+  emptyMessage="""<$action-setfield $tiddler='$:/WikiSettings/split' $index='filePathRoot' $value='./files'/>"""
+>
+</$list>
+\end
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+These are options for how to turn on and configure the file server included in
+Bob.
+
+''Big Note of Doom:'' You can, of course, set these options to whatever you
+choose. But if you don't know what you are doing I strongly urge you to follow
+the advice for each setting. If this is improperly configured than you could be
+giving everyone in the coffee shop access to you tax documents and photos.
+
+''Smaller Note of Caution:'' If you have Bob setup to be accessible on the
+local network than any files Bob is serving are also accessible on the local
+network. So be careful to not put sensitive personal information in any wikis
+and make Bob available to the local network away from your home network.
+
+---
+
+The `Files Folder` is the folder on your computer where you place files to make
+them available to wikis. By default it is a folder called `Files` in the same
+folder as the executable (if you are using BobEXE) or where you run the script
+from (if you are using the plugin version). If you don't have a specific reason
+to change this than you shouldn't change it.
+
+One reasonable alternative option is your documents folder:
+
+* On Windows this is normally `C:\Users\USERNAME\Documents`
+* On many Linux distributions this is normally `/home/USERNAME/Documents`
+* On OSX this is `/Users/USERNAME/Documents`
+
+make sure to change `USERNAME` in the above examples to match your actual
+username on the computer you are using.
+
+</$reveal>
+
+<$checkbox
+  actions=<<checkActions>>
+  tiddler='$:/WikiSettings/split'
+  index='enableFileServer'
+  checked='yes'
+  unchecked='no'
+>
+  Enable File Server
+</$checkbox>
+
+File Folders:
+
+<table
+  style='width:100%;'
+>
+  <tr>
+    <th>
+    </th>
+    <th>
+      Prefix
+    </th>
+    <th>
+      Path
+    </th>
+  </tr>
+  <$list
+    filter='[[$:/WikiSettings/split/servingFiles]indexes[]]'
+  >
+    <tr>
+      <td>
+        <$button
+          class='tc-btn-invisible'
+        >
+          {{$:/core/images/delete-button}}
+          <$action-setfield
+            $tiddler='$:/WikiSettings/split/servingFiles'
+            $index=<<currentTiddler>>
+          />
+        </$button>
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split'
+          index='fileURLPrefix'
+        />/<$view
+          field='title'
+        />
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split/servingFiles'
+          index=<<currentTiddler>>
+        />
+      </td>
+    </tr>
+  </$list>
+</table>
+
+''Note:'' Changes take effect without having to restart the server, but if you
+have a _canonical_uri tiddler open and changing the settings here would change
+what is displayed than the tiddler must be closed and re-opened before you will
+see the media.
+
+''Note 2:'' You don't need to do anything special after adding a new folder, but
+after removing one you have to click the `Update Settings` button below or the
+change will not take effect or be saved.
+
+!! Serve files from a new folder
+
+Enter the prefix and path you want to use, then click `Add Folder` button
+
+<table
+  style='width:100%;'
+>
+  <tr>
+    <th>
+      Prefix
+    </th>
+    <th>
+      Path
+    </th>
+  </tr>
+  <tr>
+    <td>
+      <$edit-text
+        tiddler='$:/temp/Bob/AddServedFiles'
+        field='prefix'
+      />
+    </td>
+    <td>
+      <$edit-text
+        tiddler='$:/temp/Bob/AddServedFiles'
+        field='path'
+      />
+    </td>
+  </tr>
+</table>
+
+<$button>
+  Add Folder
+  <$list filter="""[[$:/temp/Bob/AddServedFiles]has[scan]scan[yes]]"""
+    emptyMessage='<$action-updatesetting servingFiles={{{ [[{"]addsuffix{$:/temp/Bob/AddServedFiles!!prefix}addsuffix[":"]addsuffix{$:/temp/Bob/AddServedFiles!!path}addsuffix["}]] }}}/>'
+  >
+    <$action-sendmessage
+      type='mediaScan'
+      folder={{$:/temp/Bob/AddServedFiles!!path}}
+      prefix={{$:/temp/Bob/AddServedFiles!!prefix}}
+    />
+  </$list>
+  <$action-setfield
+    $tiddler='$:/temp/Bob/AddServedFiles'
+    prefix=''
+    path=''
+  />
+</$button>
+
+<$checkbox
+  tiddler='$:/temp/Bob/AddServedFiles'
+  field='scan'
+  checked='yes'
+  unchecked='no'
+>
+  Also Scan Folder
+</$checkbox>
+
+After enabling or disabling the file server by checking or unchecking the box
+above you must shutdown the server and then restart it before using the file
+server.
+
+You must also have to do this if you change the Files folder
+
+First click this button:
+<$button>
+  Update Settings
+  <$action-savesettings/>
+</$button>
+
+Then click this button:
+<$button>
+  Shutdown Wiki
+  <$action-websocketmessage $type=shutdownServer/>
+</$button>
+
+Then refresh the page, this is not what the 'reconnect' button is for, refresh
+the entire page.
+
+! Advanced (Here there be Dragons)
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+
+The file URL prefix is used to build the paths to the files on your computer.
+Bob is not the same as using a single file wiki, it is a server. When you put
+in a path to a file it isn't a path on your file system, it is a url that the
+server uses to determine how to respond.
+
+See [[serving files|$:/plugins/OokTech/Bob/Serving Files]] for more.
+
+Changing this may break everything and plunge the earth into a 1000 year reign
+of darkness. Or it may work just fine and cause no trouble.
+
+</$reveal>
+
+File URL Prefix:
+<$edit-text
+  tiddler='$:/WikiSettings/split'
+  index='fileURLPrefix'
+  tag='input'
+  class='tc-edit-texteditor'
+  default='files'
+/>

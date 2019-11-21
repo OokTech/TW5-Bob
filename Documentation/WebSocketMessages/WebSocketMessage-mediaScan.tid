@@ -1,0 +1,51 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-mediaScan
+tags: [[Websocket Message]]
+caption: mediaScan
+description: Scan a folder for media and create _canonical_uri tiddlers for each file found
+
+This message is used to scan a folder for media files and create a
+_canonical_uri tiddler for each file found.
+
+''NOTE:'' Only folders that are children of the folder set as the
+`filePathRoot` in the settings can be scanned.
+
+!!Usage
+
+|!Name |!Description |
+|!folder |The folder to scan, either absolute or relative to the file path root. (No Default) |
+|!ignoreExisting |If this is set to `yes` any tiddler with _canonical_uri that matches a file exists nothing further is done with that file (this takes precidence over overwrite) (Default `no`) |
+|!overwrite |If this is set to `yes` than new tiddlers are made even if they overwrite existing tiddlers. (Default `no`) |
+|!prune |If this is set to `yes` than any tiddlers that have _canonical_uri fields that point to a file that would be in the folder being scanned that doesn't exist the tiddler is removed. (Default `no`) |
+|!mediaTypes |(Optional) A space separated list of file extensions to scan for. If no list is given all types listed in the mimeMap will be used. |
+
+```
+<$action-websocketmessage $type='mediaScan' folder='/path/to/folder' ignoreExisting='true' overwrite='false' prune='true' mediaTypes='.jpg .png .jpeg'/>
+```
+
+The default mimeMap is:
+
+```
+{
+  '.aac': 'audio/aac',
+  '.avi': 'video/x-msvideo',
+  '.csv': 'text/csv',
+  '.doc': 'application/msword',
+  '.epub': 'application/epub+zip',
+  '.gif': 'image/gif',
+  '.html': 'text/html',
+  '.htm': 'text/html',
+  '.ico': 'image/x-icon',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.mp3': 'audio/mpeg',
+  '.mpeg': 'video/mpeg',
+  '.oga': 'audio/ogg',
+  '.ogv': 'video/ogg',
+  '.ogx': 'application/ogg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.weba': 'audio/weba',
+  '.webm': 'video/webm',
+  '.wav': 'audio/wav'
+}
+```

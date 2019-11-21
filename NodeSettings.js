@@ -63,27 +63,27 @@ if($tw.node) {
     if($tw.node && !fs) {
       const fs = require('fs')
     }
-  	let rawSettings;
-  	let newSettings;
+    let rawSettings;
+    let newSettings;
 
-  	// try/catch in case defined path is invalid.
-  	try {
-  		rawSettings = fs.readFileSync(newSettingsPath);
-  	} catch (err) {
-  		console.log('NodeSettings - No settings file, creating one with default values.');
+    // try/catch in case defined path is invalid.
+    try {
+      rawSettings = fs.readFileSync(newSettingsPath);
+    } catch (err) {
+      console.log('NodeSettings - No settings file, creating one with default values.');
       rawSettings = '{}';
-  	}
+    }
 
-  	// Try to parse the JSON after loading the file.
-  	try {
-  		newSettings = JSON.parse(rawSettings);
-  		console.log('NodeSettings - Parsed raw settings.');
-  	} catch (err) {
-  		console.log('NodeSettings - Malformed settings. Using empty default.');
-  		console.log('NodeSettings - Check settings. Maybe comma error?');
-  		// Create an empty default settings.
-  		newSettings = {};
-  	}
+    // Try to parse the JSON after loading the file.
+    try {
+      newSettings = JSON.parse(rawSettings);
+      console.log('NodeSettings - Parsed raw settings.');
+    } catch (err) {
+      console.log('NodeSettings - Malformed settings. Using empty default.');
+      console.log('NodeSettings - Check settings. Maybe comma error?');
+      // Create an empty default settings.
+      newSettings = {};
+    }
 
     $tw.updateSettings(settings,newSettings);
   }
@@ -120,17 +120,12 @@ if($tw.node) {
   }
 
   $tw.CreateSettingsTiddlers = function (data) {
+    data = data || {}
+    data.wiki = data.wiki || 'RootWiki'
     // Set the environment variable for the editions path from the settings.
     // Because we cheat and don't use command line arguments.
     if(typeof $tw.settings.editionsPath === 'string') {
-      let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      if($tw.settings.wikiPathBase === 'homedir') {
-        basePath = os.homedir();
-      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-        basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-      } else {
-        basePath = path.resolve($tw.settings.wikiPathBase);
-      }
+      const basePath = $tw.ServerSide.getBasePath();
       // We need to make sure this doesn't overwrite existing thing
       const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
       if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
@@ -140,22 +135,61 @@ if($tw.node) {
       }
     }
     /*
-      TODO this needs to be set up so that it only shows editions that you have
+      TODO this needs to be set up so that it only shows things that you have
       permissions to see
     */
-    // Create the $:/EditionsList tiddler
+    // Create the list of plugins on the server
+    const pluginList = $tw.utils.getPluginInfo();
+    $tw.pluginsInfo = {};
+    Object.keys(pluginList).forEach(function(index) {
+      $tw.pluginsInfo[index] = pluginList[index].description;
+    });
+    let message = {
+      type: 'saveTiddler',
+      tiddler: {fields:{title: "$:/Bob/AvailablePluginList", text: JSON.stringify($tw.pluginsInfo, "", 2), type: "application/json"}},
+      wiki: data.wiki
+    };
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
+    // Create the list of themes on the server
+    const themeList = $tw.utils.getThemeInfo();
+    $tw.themesInfo = {};
+    Object.keys(themeList).forEach(function(index) {
+      $tw.themesInfo[index] = themeList[index].description;
+    });
+    message = {
+      type: 'saveTiddler',
+      tiddler: {fields:{title: "$:/Bob/AvailableThemeList", text: JSON.stringify($tw.themesInfo, "", 2), type: "application/json"}},
+      wiki: data.wiki
+    };
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
+    // Create the list of languages on the server
+    const languageList = $tw.utils.getLanguageInfo();
+    $tw.languagesInfo = {};
+    Object.keys(languageList).forEach(function(index) {
+      $tw.languagesInfo[index] = languageList[index].description;
+    });
+    message = {
+      type: 'saveTiddler',
+      tiddler: {fields:{title: "$:/Bob/AvailableLanguageList", text: JSON.stringify($tw.languagesInfo, "", 2), type: "application/json"}},
+      wiki: data.wiki
+    };
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
+    // Create the $:/Bob/AvailableEditionList tiddler
     const editionsList = $tw.utils.getEditionInfo();
     $tw.editionsInfo = {};
     Object.keys(editionsList).forEach(function(index) {
       $tw.editionsInfo[index] = editionsList[index].description;
     });
-    let message = {
+    message = {
       type: 'saveTiddler',
-      tiddler: {fields:{title: "$:/EditionsList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}},
+      tiddler: {fields:{title: "$:/Bob/AvailableEditionList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}},
       wiki: data.wiki
     };
-
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
     // Create the $:/ServerIP tiddler
     message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -205,9 +239,12 @@ if($tw.node) {
     let currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if(typeof inputObject[property] === 'object') {
-        // Call recursive function to walk through properties
-        doThisLevel(inputObject[property], currentName + '/' + property, data);
-        currentLevel[property] = currentName + '/' + property;
+        // Call recursive function to walk through properties, but only if
+        // there are properties
+        if(Object.keys(inputObject[property])) {
+          doThisLevel(inputObject[property], currentName + '/' + property, data);
+          currentLevel[property] = currentName + '/' + property;
+        }
       } else {
         // Add it to this one.
         currentLevel[property] = inputObject[property];

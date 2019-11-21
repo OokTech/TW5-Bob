@@ -87,7 +87,7 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 
 <$list
   filter='[[$:/WikiName]text[RootWiki]][[$:/settings/Bob/DisplayOnChildWikis]text[yes]] +[limit[1]]'
-  emptyMessage="""<<tabs "[[$:/plugins/OokTech/Bob/ManageWikis]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]][[$:/plugins/OokTech/Bob/ServerMessageHistory]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/Wiki Listing">>"""
+  emptyMessage="""<<tabs "[[$:/plugins/OokTech/Bob/ManageWikis]][[$:/plugins/OokTech/Bob/ThisWikiTab]][[$:/plugins/OokTech/Bob/ServerMessageHistory]][[$:/plugins/OokTech/Bob/SaverServer]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/Wiki Listing">>"""
 >
-  <<tabs "[[$:/plugins/OokTech/Bob/ManageWikis]][[$:/plugins/OokTech/Bob/ManualSettingsTab]][[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/FetchPlugins.tid]][[$:/plugins/OokTech/Bob/FileServerSetup.tid]][[$:/plugins/OokTech/Bob/SelectThemes]][[$:/plugins/OokTech/Bob/ServerActionsTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/ServerMessageHistory]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/ManageWikis">>
+  <<tabs "[[$:/plugins/OokTech/Bob/ManageWikis]][[$:/plugins/OokTech/Bob/ThisWikiTab]][[$:/plugins/OokTech/Bob/ServerTab]][[$:/plugins/OokTech/Bob/FederationTab]][[$:/plugins/OokTech/Bob/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/ManageWikis">>
 </$list>

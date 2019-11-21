@@ -1,0 +1,56 @@
+title: $:/plugins/OokTech/Bob/Federation/FederationSyncing
+
+Federated syncing refers to two separate servers syncing the state of a wiki on
+each server.
+Each server uses its wikis normally without external influence, but when
+desired two servers can share their changes to a wiki so both servers have the
+same information.
+
+Perhaps the most useful case for this is to have Bob running on multiple
+computers (like a desktop at home and a laptop that travels), when the
+computers aren't in the same location each one can use Bob and edit the wikis
+however they wish.
+When the two computers are on the same network they can sync their changes.
+
+!! The process
+
+Due to the security model used syncing can be two-way, but two way syncing is
+one way syncing done by each server separately.
+This is because nothing that affects a server can be initiated by another
+server.
+
+!!! A high level view
+
+# Server A wants to sync
+# Server A asks server B for all of the tiddlers that are different in the wiki they want to sync
+# Server B sends the tiddlers to server A
+# Server A saves the tiddlers
+
+!!! A lower level view
+
+The way that syncing works at a relatively low level is:
+
+# Server A wishes to sync a wiki with server B
+# Server A sends a `requestHashes` message to server B
+#* The message contains:
+#** A filter that determines which tiddlers server A wants hashes for
+#** The name of the wiki server A wants information about
+#** A nonce (see [[FederatedSecurity|$:/plugins/OokTech/Bob/Federation/FederationSecurity]])
+# Server B receives the message and collects the tiddlers from the requested wiki that match the supplied filter.
+# Server B calculates the hashes for each of the collected tiddlers and sends a `sendHashes` message to server A
+#* The message contains:
+#** The nonce send by server A with the `requestHashes`
+#** The tiddler hashes
+#** The name of the wiki that the tiddlers are from
+# Server A receives the message and checks the hashes in the message against the tiddler hashes in its local wiki and makes a list of tiddlers that are different
+# Server A sends a `requestTiddlers` message to server B that lists all of the changed tiddlers
+#* The message contains:
+#** A filter that is a title list of all of the changed tiddlers
+#** The name of the wiki the tiddlers are from
+#** A new nonce
+# Server B receives the `requestTiddlers` message and collects the requested tiddlers from the listed wiki
+# Server B sends a `sendTiddlers` message to server A that contains the requested tiddlers
+#* The message contains:
+#** The tiddlers requested
+#** The nonce sent by server A
+# Server A receives the `sendTiddlers` message and saves the received tiddlers using whatever conflict resolution method is set.

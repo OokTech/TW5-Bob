@@ -1,4 +1,5 @@
 {
+  "serverName": "Noh Neigh-m",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -15,5 +16,6 @@
   },
   "wikisPath": "./Wikis",
   "pluginsPath": "./Plugins",
-  "themesPath": "./Themes"
+  "themesPath": "./Themes",
+  "servingFiles": {}
 }

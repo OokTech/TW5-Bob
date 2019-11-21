@@ -18,25 +18,88 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  /*
-    This lets us restart the tiddlywiki server without having to use the command
-    line.
-  */
-  $tw.nodeMessageHandlers.restartServer = function(data) {
+  $tw.Bob.Federation = $tw.Bob.Federation || {};
+  $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+
+  $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
+    console.log('openRemoteConnection', data)
     $tw.Bob.Shared.sendAck(data);
-    if($tw.node) {
-      console.log('Restarting Server!');
-      // Close web socket server.
-      $tw.wss.close(function () {
-        console.log('Closed WSS');
-      });
-      // This bit of magic restarts whatever node process is running. In this
-      // case the tiddlywiki server.
-      require('child_process').spawn(process.argv.shift(), process.argv, {
-        cwd: process.cwd(),
-        detached: false,
-        stdio: "inherit"
-      });
+    if(data.url) {
+      function authenticateMessage() {
+        return true
+      }
+      function openRemoteSocket() {
+        $tw.settings.federation = $tw.settings.federation || {};
+        const serverName = $tw.settings.federation.serverName || 'Noh Neigh-m';
+        const serverFederationInfo = {
+          type: 'requestServerInfo',
+          info: {
+            name: serverName,
+            publicKey: 'c minor',
+            canLogin: 'no',
+            availableWikis: $tw.ServerSide.getViewableWikiList(),
+            availableChats: [],
+            staticUrl: 'no',
+            port: $tw.settings['ws-server'].port
+          }
+        }
+        console.log('REMOTE SOCKET OPENED', data.url)
+        $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
+        $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings['ws-server'].port}, data.url)
+        $tw.Bob.Federation.updateConnections()
+      }
+      // Check to make sure that we don't already have a connection to the
+      // remote server
+      // If the socket is closed than reconnect
+      const remoteSocketAddress = data.url.startsWith('ws://')?data.url:'ws://'+data.url+'/api/federation/socket'
+      const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
+      if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
+        try {
+          $tw.Bob.Federation.remoteConnections[data.url] = {}
+          $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
+          /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('open', openRemoteSocket)
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
+          /* TODO
+            add a readable name and something for a key here so that a server
+            can change it's url and maintain the same name across different
+            sessions
+
+            Add an on open function that alerts the browsers that the
+            connection has been made
+
+            Add the on message handlers
+          */
+        } catch (e) {
+          console.log('error opening federated connection ', e)
+        }
+      } else {
+        console.log('A connection already exists to ', data.url)
+      }
+    }
+  }
+
+  /*
+    This sends a websocket message to a remote server.
+
+    data = {
+      $server: the server url (or human readable name? It has to be unique),
+      $message: the message type
+      otherThings: data to pass on to the other server as parameters of the message being sent.
+    }
+  */
+  $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    if (data.$server && data.$message) {
+      const newData = {
+        type: data.$message
+      }
+      Object.keys(data).forEach(function(key) {
+        if (['type', '$server', '$message', 'wiki'].indexOf(key) === -1) {
+          newData[key] = data[key]
+        }
+      })
+      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server, data.wiki)
     }
   }
 
@@ -44,7 +107,7 @@ if($tw.node) {
     This lets us shutdown the server from within the wiki.
   */
   $tw.nodeMessageHandlers.shutdownServer = function(data) {
-    console.log('Shutting down server.');
+    $tw.Bob.logger.log('Shutting down server.', {level:0});
     // TODO figure out if there are any cleanup tasks we should do here.
     // Sennd message to parent saying server is shutting down
     $tw.Bob.Shared.sendAck(data);
@@ -161,7 +224,7 @@ if($tw.node) {
         connections: [data.source_connection]
       };
       $tw.ServerSide.sendBrowserAlert(message);
-      console.log("Can't parse server changes!!");
+      $tw.Bob.logger.error("Can't parse server changes!!", {level:1});
     }
     // Only look at changes more recent than when the browser disconnected
     const recentServer = $tw.Bob.ServerHistory[data.wiki].filter(function(entry) {
@@ -187,6 +250,7 @@ if($tw.node) {
           // aren't the same.
           let tempTid = JSON.parse(JSON.stringify(messageData.message.tiddler));
           tempTid.fields.title = messageData.title;
+          tempTid.hash = messageData.hash;
           const serverTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(tempTid.fields.title);
           if($tw.Bob.Shared.TiddlerHasChanged(serverTiddler, tempTid)) {
             conflicts.push(messageData.title);
@@ -243,9 +307,23 @@ if($tw.node) {
         if(serverEntry.type === 'saveTiddler') {
           const longTitle = serverEntry.title;
           const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(longTitle);
-          message = {type: 'conflict', message: 'saveTiddler', tiddler: tiddler, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'saveTiddler',
+            tiddler: tiddler,
+            wiki: data.wiki
+          };
         } else if(serverEntry.type === 'deleteTiddler') {
-          message = {type: 'conflict', message: 'deleteTiddler', tiddler: {fields:{title:serverEntry.title}}, wiki: data.wiki};
+          message = {
+            type: 'conflict',
+            message: 'deleteTiddler',
+            tiddler: {
+              fields:{
+                title:serverEntry.title
+              }
+            },
+            wiki: data.wiki
+          };
         }
         if(message) {
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -289,10 +367,50 @@ if($tw.node) {
     })
   }
 
+  $tw.nodeMessageHandlers.updateSetting = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    if(typeof data.updateString === 'object') {
+      let failed = false;
+      let updatesObject = {};
+      let error = undefined;
+      try {
+        if (typeof data.updateString === 'object') {
+          Object.keys(data.updateString).forEach(function(key) {
+            updatesObject[key] = (typeof data.updateString[key] === 'object')?data.updateString[key]:JSON.parse(data.updateString[key])
+          })
+        } else {
+          updatesObject = JSON.parse(data.updateString);
+        }
+      } catch (e) {
+        updatesObject = {};
+        failed = true;
+        error = e;
+      }
+      if(Object.keys(updatesObject).length > 0) {
+        $tw.updateSettings($tw.settings, updatesObject);
+      }
+      if(!failed) {
+        $tw.CreateSettingsTiddlers(data);
+        const message = {
+          alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+        $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
+      } else {
+        $tw.CreateSettingsTiddlers(data);
+        const message = {
+          alert: 'Failed to update settings with error: ' + error
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      }
+    }
+  }
+
   /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
-    TODO update this to work with child wikis
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);
@@ -319,7 +437,13 @@ if($tw.node) {
     // Add the tiddler
     //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
-    $tw.Bob.SendToBrowsers({type: 'saveTiddler', tiddler: {fields: tiddlerFields}, wiki: data.wiki});
+    $tw.Bob.SendToBrowsers({
+      type: 'saveTiddler',
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: data.wiki
+    });
     // Save the updated settings
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
@@ -334,9 +458,9 @@ if($tw.node) {
           connections: [data.source_connection]
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        console.log(err);
+        $tw.Bob.logger.error(err, {level:1});
       } else {
-        console.log('Wrote settings file')
+        $tw.Bob.logger.log('Wrote settings file', {level:1})
       }
     });
 
@@ -360,7 +484,8 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that there is a wiki name given.
     if(data.wikiName) {
-      console.log('Unload wiki ', data.wikiName)
+      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1})
+      $tw.stopFileWatchers(data.wikiName);
       // Make sure that the wiki is loaded
       if($tw.Bob.Wikis[data.wikiName]) {
         if($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
@@ -385,8 +510,14 @@ if($tw.node) {
       title: '$:/Bob/AvailablePluginList',
       list: $tw.utils.stringifyList(Object.keys(pluginNames))
     }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    }
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 
@@ -399,9 +530,15 @@ if($tw.node) {
     const fields = {
       title: '$:/Bob/AvailableThemeList',
       list: $tw.utils.stringifyList(Object.keys(themeNames))
-    }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
+    };
+    const tiddler = {
+      fields: fields
+    };
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tiddler,
+      wiki: data.wiki
+    };
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
   }
 
@@ -419,7 +556,7 @@ if($tw.node) {
       try {
         wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
       } catch(e) {
-        console.log(e)
+        $tw.Bob.logger.error(e, {level:1})
       }
       if(data.description || data.description === "") {
         wikiInfo.description = data.description;
@@ -436,7 +573,7 @@ if($tw.node) {
       try {
         fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
       } catch (e) {
-        console.log(e)
+        $tw.Bob.logger.error(e, {level:1})
       }
     }
   }
@@ -472,7 +609,7 @@ if($tw.node) {
             oldInfo = JSON.parse(fs.readFileSync(pluginInfoPath, 'utf8'))
           } catch (e) {
             //Something
-            console.log(e)
+            $tw.Bob.logger.error(e, {level:1})
           }
           if(oldInfo) {
             // Check the version here
@@ -490,7 +627,7 @@ if($tw.node) {
           // We don't have any version of the plugin yet
           let error = $tw.utils.createDirectory(pluginFolderPath);
           if(error) {
-            console.log(error)
+            $tw.Bob.logger.error(error, {level:1})
           }
         }
         if(isNewVersion) {
@@ -502,9 +639,9 @@ if($tw.node) {
             // If we aren't passed a path
             fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
               if(err) {
-                console.log(err);
+                $tw.Bob.logger.error(err, {level:1});
               } else {
-                console.log('saved file', filepath)
+                $tw.Bob.logger.log('saved file', filepath, {level:2})
               }
             });
           })
@@ -517,13 +654,13 @@ if($tw.node) {
           })
           fs.writeFile(pluginInfoPath,JSON.stringify(pluginInfo, null, 2),{encoding: "utf8"},function (err) {
             if(err) {
-              console.log(err);
+              $tw.Bob.logger.error(err, {level:1});
             } else {
-              console.log('saved file', pluginInfoPath)
+              $tw.Bob.logger.log('saved file', pluginInfoPath, {level:2})
             }
           });
         } else {
-          console.log("Didn't save plugin", pluginName, "with version", newVersion.version,"it is already saved with version", oldVersion.version)
+          $tw.Bob.logger.log("Didn't save plugin", pluginName, "with version", newVersion.version,"it is already saved with version", oldVersion.version, {level:1})
         }
       }
     }
@@ -552,7 +689,7 @@ if($tw.node) {
       const http = require("$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js")[protocol];
       var req = http.get(data.url, function (res) {
         if(res.statusCode !== 200) {
-          console.log(res.statusCode);
+          $tw.Bob.logger.error('failed to fetch git plugin with code', res.statusCode, {level:1});
           // handle error
           return;
         }
@@ -612,7 +749,7 @@ if($tw.node) {
                   file.nodeStream()
                   .pipe(fs.createWriteStream(path.join(pluginsPath,pluginName,relativePath)))
                   .on('finish', function() {
-                    console.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath));
+                    $tw.Bob.logger.log('wrote file: ', path.join(pluginsPath,pluginName,relativePath), {level:2});
                   })
                 }
               });
@@ -622,14 +759,14 @@ if($tw.node) {
               $tw.ServerSide.sendBrowserAlert(message);
             }
           }).catch(function(err) {
-            console.log(err);
+            $tw.Bob.logger.error('some error saving git plugin',err, {level:1});
           });
         });
       });
 
       req.on("error", function(err){
         // handle error
-        console.log('Rocks fall, everyone dies: ',err);
+        $tw.Bob.logger.error('Rocks fall, everyone dies: ',err, {level:0});
       });
     }
   }
@@ -686,7 +823,7 @@ if($tw.node) {
                 const fileName = $tw.Bob.Files[data.wiki][tidTitle].filepath.split('/').slice(-1)[0]
                 fs.rename($tw.Bob.Files[data.wiki][tidTitle].filepath, path.join(filesPath, fileName), function(e) {
                   if(e) {
-                    console.log(e);
+                    $tw.Bob.logger.error('failed to move image file',e, {level:1});
                   } else {
                     let newFields = JSON.parse(JSON.stringify(tiddler.fields));
                     newFields.text = ''
@@ -742,7 +879,7 @@ if($tw.node) {
       const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
       fs.rename(oldWikiPath, newWikiPath, function(e) {
         if(e) {
-          console.log(e);
+          $tw.Bob.logger.log('failed to rename wiki',e,{level:1});
         } else {
           // Refresh wiki listing
           data.update = 'true';
@@ -797,7 +934,7 @@ if($tw.node) {
           }
         });
       } else {
-        reject('The folder is not in expected pace!');
+        reject('The folder is not in expected place!');
       }
     });
   };
@@ -810,6 +947,9 @@ if($tw.node) {
       if(dir.startsWith($tw.ServerSide.getBasePath())) {
         fs.access(dir, function (err) {
           if(err) {
+            if(err.code === 'ENOENT') {
+              return resolve();
+            }
             return reject(err);
           }
           fs.readdir(dir, function (err, files) {
@@ -833,6 +973,16 @@ if($tw.node) {
       }
     });
   };
+  $tw.stopFileWatchers = function(wikiName) {
+    // Close any file watchers that are active for the wiki
+    if ($tw.Bob.Wikis[wikiName]) {
+      if ($tw.Bob.Wikis[wikiName].watchers) {
+        Object.values($tw.Bob.Wikis[wikiName].watchers).forEach(function(thisWatcher) {
+          thisWatcher.close();
+        })
+      }
+    }
+  }
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
     $tw.Bob.Shared.sendAck(data)
     const path = require('path')
@@ -840,6 +990,7 @@ if($tw.node) {
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
     // Make sure that the wiki exists and is listed
     if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
+      $tw.stopFileWatchers(data.deleteWiki)
       const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
       if(data.deleteChildren === 'yes') {
         deleteDirectory(wikiPath).then(function() {
@@ -852,17 +1003,20 @@ if($tw.node) {
           };
           $tw.ServerSide.sendBrowserAlert(message);
         }).catch(function(e) {
-          console.log(e);
           // Refresh wiki listing
           data.update = 'true';
           data.saveSettings = 'true';
           $tw.nodeMessageHandlers.findAvailableWikis(data);
+          const message = {
+            alert: 'Error trying to delete wiki ' + e
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
         })
       } else {
         // Delete the tiddlywiki.info file
         fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
           if(e) {
-            console.log(e);
+            $tw.Bob.logger.error('failed to delete tiddlywiki.info',e, {level:1});
           } else {
             // Delete the tiddlers folder (if any)
             deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
@@ -877,6 +1031,10 @@ if($tw.node) {
                 $tw.ServerSide.sendBrowserAlert(message);
               });
             }).catch(function(e){
+              // Refresh wiki listing
+              data.update = 'true';
+              data.saveSettings = 'true';
+              $tw.nodeMessageHandlers.findAvailableWikis(data);
               const message = {
                 alert: 'Error trying to delete wiki ' + e
               };
@@ -885,6 +1043,166 @@ if($tw.node) {
           }
         })
       }
+    }
+  }
+
+  /*
+    This handler takes a folder as input and scans the folder for media
+    and creates _canonical_uri tiddlers for each file found.,
+    an optional extension list can be passed to restrict the media types scanned for.
+
+    ignoreExisting takes precidence over overwrite
+
+    data = {
+      folder: './',
+      ignoreExisting: 'true',
+      overwrite: 'false',
+      prune: 'false',
+      mediaTypes: [things listed in the mimemap],
+      prefix: 'docs'
+    }
+    Folder paths are either absolute or relative to $tw.Bob.getBasePath()
+
+    folder - the folder to scan
+    ignoreExisting -
+    overwrite - if this is true than tiddlers are made even if they overwrite existing tiddlers
+    prune - remove tiddlers that have _canonical_uri fields pointing to files that don't exist in the folder
+    mediaTypes - an array of file extensions to look for. If the media type is not in the mimemap than the tiddler type may be set incorrectly.
+    prefix - the prefix to put on the uri, the uri will be in the form
+            /wikiName/files/prefix/file.ext
+
+    TODO - add a recursive option (with some sane limits, no recursively finding everything in /)
+    TODO - figure out what permission this one should go with
+    TODO - maybe add some check to limit where the folders can be
+    TODO - add a flag to add folders to the static file server component
+  */
+  $tw.nodeMessageHandlers.mediaScan = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    data.prefix = data.prefix || 'prefix';
+    const path = require('path');
+    const fs = require('fs');
+    const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+    if (authorised) {
+      $tw.settings.servingFiles[data.prefix] = data.folder;
+      const mimeMap = $tw.settings.mimeMap || {
+        '.aac': 'audio/aac',
+        '.avi': 'video/x-msvideo',
+        '.csv': 'text/csv',
+        '.doc': 'application/msword',
+        '.epub': 'application/epub+zip',
+        '.gif': 'image/gif',
+        '.html': 'text/html',
+        '.htm': 'text/html',
+        '.ico': 'image/x-icon',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.mp3': 'audio/mpeg',
+        '.mpeg': 'video/mpeg',
+        '.oga': 'audio/ogg',
+        '.ogv': 'video/ogg',
+        '.ogx': 'application/ogg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.weba': 'audio/weba',
+        '.webm': 'video/webm',
+        '.wav': 'audio/wav'
+      };
+      if (typeof data.mediaTypes === 'string') {
+        if (data.mediaTypes.length > 0) {
+          data.mediaTypes = data.mediaTypes.split(' ');
+        }
+      } else {
+        data.mediaTypes = undefined;
+      }
+      data.mediaTypes = data.mediaTypes || Object.keys(mimeMap);
+      if (data.folder && data.wiki) {
+        // Make sure the folder exists
+        let mediaURIList = [];
+        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
+        if($tw.utils.isDirectory(mediaDir)) {
+          fs.readdir(mediaDir, function(err, files) {
+            if (err) {
+              $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
+              return;
+            }
+            const uriPrefix = '/' + path.relative($tw.ServerSide.getBasePath(), mediaDir);
+            if (data.keepBroken !== true) {
+              // get a list of all tiddlers with _canonical_uri fields that
+              // point to this folder.
+              mediaURIList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[has[_canonical_uri]get[_canonical_uri]prefix[${uriPrefix}]]`);
+              // We don't want to list uris for subfolders until we do a recursive find thing
+              mediaURIList = mediaURIList.filter(function(uri) {
+                return uri.slice(uriPrefix.length+1).indexOf('/') === -1;
+              })
+            }
+            // For each file check the extension against the mimemap, if it matches make the corresponding _canonical_uri tiddler.
+            files.forEach(function(file) {
+              if (fs.statSync(path.join(mediaDir, file)).isFile()) {
+                const pathInfo = path.parse(file);
+                if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
+                  const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + data.prefix + '/' + path.relative(path.resolve(data.folder),path.join(mediaDir, file));
+                  if (data.prune === 'yes') {
+                    // Remove any _canonical_uri tiddlers that have paths to
+                    // this folder but no files exist for them.
+                    // remove the current file from the mediaURIList so that at
+                    // the end we have a list of URIs that don't have files
+                    // that exist.
+                    if (mediaURIList.indexOf(thisURI) > -1) {
+                      mediaURIList.splice(mediaURIList.indexOf(thisURI),1);
+                    }
+                  }
+                  // It is a file and the extension is listed, so create a tiddler for it.
+                  const fields = {
+                    title: pathInfo.base,
+                    type: mimeMap[pathInfo.ext],
+                    _canonical_uri: thisURI
+                  };
+                  if (data.ignoreExisting !== 'yes') {
+                    // check if the tiddler with this _canonical_uri already
+                    // exists.
+                    // If we aren't set to overwrite than don't do anything for
+                    // this file if it exists
+                    if ($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${fields._canonical_uri}]]`).length > 0) {
+                      return;
+                    }
+                  }
+                  const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
+                  const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
+                  // We have to have an empty file to make the .meta file work.
+                  // For some reason.
+                  // But we don't want to overwrite the file if it exists.
+                  if (data.overwrite === 'yes' || !fs.existsSync(tiddlerPath)) {
+                    fs.writeFile(tiddlerPath,'',function() {
+                    })
+                  }
+                  // Check if the file exists and only overwrite it if the
+                  // overwrite flag is set.
+                  // Update this to check for files by the _canonical_uri field
+                  if (data.overwrite === 'yes' || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
+                    // Add tiddler to the wiki listed in data.wiki
+                    $tw.syncadaptor.saveTiddler(thisTiddler, data.wiki);
+                  }
+                }
+              }
+            });
+            if (data.prune === 'yes') {
+              // mediaURIList now has the uris from tiddlers that don't point
+              // to real files.
+              // Get the tiddlers with the uris listed and remove them.
+              mediaURIList.forEach(function(uri) {
+                const tiddlerList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${uri}]]`);
+                tiddlerList.forEach(function(tidTitle) {
+                  $tw.syncadaptor.deleteTiddler(tidTitle, {wiki: data.wiki});
+                })
+              })
+            }
+          })
+        }
+      }
+      // Save the settings
+      $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki});
     }
   }
 }

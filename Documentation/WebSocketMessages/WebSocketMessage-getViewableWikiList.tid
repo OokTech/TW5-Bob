@@ -1,0 +1,9 @@
+title: $:/plugins/OokTech/Bob/WebSocketMessage-getViewableWikiList
+tags: [[Websocket Message]] [[Human Usable]]
+caption: getViewableWikiList
+description: Get a list of all viewable wikis
+
+This sends back a list of all wikis that are viewable using the current access
+token.
+
+If no access controls are present this returns a list of all available wikis.

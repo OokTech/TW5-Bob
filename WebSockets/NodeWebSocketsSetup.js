@@ -33,7 +33,6 @@ if($tw.node) {
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
-  $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   // Initialise connections array
   $tw.connections = $tw.connections || [];
   /*
@@ -45,12 +44,8 @@ if($tw.node) {
     // initialise the empty $tw.nodeMessageHandlers object. This holds the
     // functions that are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
-    //const ServerPort = Number($tw.settings['ws-server'].port) || 8080;
-    //const host = $tw.settings['ws-server'].host || '127.0.0.1';
 
-    //var server;
     /*
       Setup the websocket server if we aren't using an external one
     */
@@ -62,14 +57,13 @@ if($tw.node) {
         // I don't know how to set up actually closing a connection, so this doesn't
         // do anything useful yet
         $tw.wss.on('close', function(connection) {
-          console.log('closed connection ', connection);
+          $tw.Bob.logger.log('closed connection ', connection, {level:2});
         });
       }
       $tw.PruneTimeout = setInterval(function(){
         $tw.Bob.PruneConnections();
       }, 10000);
     }
-
     finishSetup();
   }
 
@@ -90,7 +84,7 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
-    console.log("new connection");
+    $tw.Bob.logger.log("new connection", {level:2});
     $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);
     // Respond to the initial connection with a request for the tiddlers the
@@ -111,6 +105,7 @@ if($tw.node) {
     The handle message function, split out so we can use it other places
   */
   $tw.Bob.handleMessage = function(event) {
+    $tw.Bob.logger.log('Received websocket message ', event, {level:4});
     let self = this;
     // Determine which connection the message came from
     const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
@@ -148,13 +143,13 @@ if($tw.node) {
             $tw.nodeMessageHandlers[eventData.type](eventData);
           }
         } else {
-          console.log('No handler for message of type ', eventData.type);
+          $tw.Bob.logger.error('No handler for message of type ', eventData.type, {level:3});
         }
       } else {
-        console.log('Target wiki and connected wiki don\'t match');
+        $tw.Bob.logger.log('Target wiki and connected wiki don\'t match', {level:3});
       }
     } catch (e) {
-      console.log("WebSocket error: ", e);
+      $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
     }
   }
 
@@ -221,6 +216,7 @@ if($tw.node) {
           const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
           const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
           $tw.Bob.SendToBrowser($tw.connections[index], message);
+          $tw.Bob.logger.log('Update Editing Tiddlers', {level: 4})
         }
       });
     }
@@ -241,11 +237,11 @@ if($tw.node) {
   $tw.Bob.SendToBrowsers = function (message) {
     $tw.Bob.UpdateHistory(message);
     const messageData = $tw.Bob.Shared.createMessageData(message);
-    // Send message to all connections.
+
     $tw.connections.forEach(function (connection) {
-      if(connection.socket) {
-        if(connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
-          $tw.Bob.Shared.sendMessage(messageData, connection.index);
+      if (connection.socket) {
+        if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+          $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
     })
@@ -264,10 +260,9 @@ if($tw.node) {
     if(connection) {
       $tw.Bob.UpdateHistory(message);
       const messageData = $tw.Bob.Shared.createMessageData(message);
-      // If the connection is open, send the message
-      if(connection.socket) {
-        if(connection.socket.readyState === 1 && (connection.wiki === messageData.message.wiki || !messageData.message.wiki)) {
-          $tw.Bob.Shared.sendMessage(messageData, connection.index);
+      if (connection.socket) {
+        if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+          $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
     }

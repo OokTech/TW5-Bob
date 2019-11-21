@@ -10,85 +10,26 @@ using the same router as you. This means anyone on the same wifi network or
 using a wired connection on the same router. So when you are at starbucks or a
 library on the wifi anyone else who is on that wifi is on the local network.
 
-By default the wiki is only availble on `localhost` on the computer you are
-running the node process on. If you want to make it availble to other computers
-than you need to set the host to `0.0.0.0`. But this means that anyone on the
-local network will be able to access the wiki. To do this go to the
-`Bob Settings` tab on the $:/ControlPanel and click on the value listed for
-`host` under `ws-server`, it is `127.0.0.1` by default. If you set it to
-`0.0.0.0` then click `Done` and then click on `Update Settings`. Then you need
-to restart the wiki server.
+By default the wiki is only available on `localhost` on the computer you are
+running the node process on.
 
-<$reveal
-  type='nomatch'
-  state='$:/WikiSettings/split/ws-server##host'
-  text='0.0.0.0'
->
-  Host has to be set to `0.0.0.0` in order to connect from other computers.
-  <br><br>
-  <$button>
-    Click here
-    <$action-setfield
-      $tiddler='$:/WikiSettings/split/serverInfo'
-      $index=host
-      $value="0.0.0.0"
-    />
-    <$action-setfield
-      $tiddler='$:/WikiSettings/split/ws-server'
-      $index=host
-      $value="0.0.0.0"
-    />
-    <$action-websocketmessage
-      $type=saveSettings
-    />
-  </$button>
-  to set the host to `0.0.0.0`
+If you want to make it available to other computers on the local network you
+have to change the settings in the $:/ControlPanel under the `Bob Settings`
+tab.
 
-  Then wait a moment for the settings files to be updated on the server (the
-  save icon shold turn back to grey) and stop then restart the server to make
-  this wiki accessible to other computers on the network.
+There are a few tabs available in the `Bob Settings`:
 
-  After setting the host and restarting you can connect to this wiki from
-  another computer on the same network by entering the ip address into the
-  address bar of a browser. After you change the host value the ip address
-  will be listed in this tiddler.
-
-  You can then create and edit tiddlers in any connected wiki.
-</$reveal>
-
-<$reveal
-  type='match'
-  state='$:/WikiSettings/split/ws-server##host'
-  text='0.0.0.0'
->
-  The wiki server ip address and port is:
-
-  <pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}</pre>
-
-  The host is set to `0.0.0.0`, this means that this wiki is available to
-  anyone on the local network. See the big note of doom above.
-  <br><br>
-  <$button>
-    Click here
-    <$action-setfield
-      $tiddler='$:/WikiSettings/split/serverInfo'
-      $index=host
-      $value="127.0.0.1"
-    />
-    <$action-setfield
-      $tiddler='$:/WikiSettings/split/ws-server'
-      $index=host
-      $value="127.0.0.1"
-    />
-    <$action-websocketmessage
-      $type=saveSettings
-    />
-  </$button>
-  to set the host to `127.0.0.1`.
-
-  Then wait a moment for the settings files to be updated on the server (the
-  save icon shold turn back to grey) and stop then restart the server to make
-  this wiki only accessible on the computer running it.
-</$reveal>
+* The `Manage Wikis` tab lets you create new wikis and manage existing wikis.
+* The `This Wiki` tab lets you change the plugins and themes that are available and active in the current wiki.
+* The `Server` tab lets you do things that affect the wiki server, like making the wikis available on the local network and setting up a static file server to access local media files.
+* The `Federation` tab has some very experimental things, they probably won't work well.
+* The `Bob Documentation` tab has further documentation about Bob.
+* The `About OokTech/Support Documentation` tab has information about OokTech and how to to support the further development of Bob and the related plugins.
 
 More Bob documentation [[$:/plugins/OokTech/Bob/readme]]
+
+Things you may want to do:
+
+* Enable the [[media file server|$:/plugins/OokTech/Bob/FileServerSetup]]
+* Enable the [[ServerImages plugin|$:/plugins/OokTech/Bob/SelectPlugins]] (requires the media server to be enabled)
+* Make the served wikis [[available on the local network|$:/plugins/OokTech/Bob/ServerTab]]
