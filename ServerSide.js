@@ -167,6 +167,7 @@ ServerSide.loadWiki = function (wikiName) {
   */
   // Add tiddlers to the node process
   if(wikiFolder) {
+    $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
