@@ -307,7 +307,10 @@ if($tw.node) {
   function createSaverServer() {
     $tw.settings.saver = $tw.settings.saver || {};
     const port = $tw.settings.saver.port || 61192;
-    const host = $tw.settings.saver.host || '127.0.0.1'
+    let host = '127.0.0.1';
+    if ($tw.settings.saver.host && $tw.settings.acceptance === 'I Will Not Get Tech Support For This') {
+      host = $tw.settings.saver.host;
+    }
     function saverHandler(request, response) {
       let body = '';
       response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, x-file-path, x-saver-key"});
@@ -332,6 +335,9 @@ if($tw.node) {
             // Write the file
             const fs = require('fs');
             const path = require('path');
+            if (['.html', '.htm', '.hta'].indexOf(path.extname(filepath)) === -1) {
+              response.writeHead(403, {'Content-Type': 'text/plain'}).end();
+            }
             // Make sure that the path exists, if so save the wiki file
             fs.writeFile(path.resolve(filepath),body,{encoding: "utf8"},function (err) {
               if(err) {

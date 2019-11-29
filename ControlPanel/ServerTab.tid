@@ -1,6 +1,18 @@
 title: $:/plugins/OokTech/Bob/ServerTab
 caption: Server
 
+\define checkActions()
+<$action-websocketmessage
+  $type='updatesetting'
+  suppressBrowser='yes'
+\end
+
+\define uncheckActions()
+<$action-websocketmessage
+  $type='updatesetting'
+  suppressBrowser='no'
+\end
+
 <$reveal
   type='nomatch'
   state='$:/settings/Bob/Verbose'
@@ -16,10 +28,33 @@ caption: Server
   state='$:/settings/Bob/Verbose'
   text='false'
 >
-  This button takes any embedded images or other media in the wiki and save
-  them in the files folder and replace the embedded media with tiddlers that
-  use a `_canonical_uri` field to embed the external media. This is only for
-  the current wiki, other wikis are unaffected.
+
+  Checking this box will keep BobEXE from opening the index wiki in the browser
+  automatically each time it is started.
+
+</$reveal>
+
+<$checkbox
+  checkactions=<<checkActions>>
+  uncheckactions=<<uncheckActions>>
+  tiddler='$:/WikiSettings/split'
+  index='suppressBrowser'
+  checked='no'
+  unchecked='yes'
+>
+  Automatically open browser when ~BobEXE starts
+</$checkbox>
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  This button takes any embedded images or other media that are already in the
+  wiki and save them in the files folder and replace the embedded media with
+  tiddlers that use a `_canonical_uri` field to embed the external media. This
+  is a one-time process and only for the current wiki, other wikis are
+  unaffected.
 </$reveal>
 
 <$button>
@@ -37,13 +72,14 @@ caption: Server
   Store specific to wiki
 </$checkbox>
 
-See [[big note of DOOM|What is this?]] before doing this.
+See [[big note of DOOM|$:/plugins/OokTech/Bob/BigNoteOfDoom]] before doing this.
 
 <$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>
 
 To make Bob available on the local network:
 
-# first click the `Make wikis available on the local network` button
+# Read the [[big note of DOOM|$:/plugins/OokTech/Bob/BigNoteOfDoom]]
+# click the `Make wikis available on the local network` button
 # click the `Shutdown Wiki` button
 # Close this tab
 # Restart Bob (or BobEXE)

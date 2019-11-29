@@ -261,7 +261,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - The items in this are in the form `prefix: /path/to/folder`, see the file
     server documentation for more.
 - `saver` this holds settings for the single file saver
-  - `host` the host for the saver server. You should never change this.
+  - `host` the host for the saver server. You should never change this. if you
+    change this you will get no assistance for anything that you lose, break or
+    have stolen from you. Changing this requires you to fill out the
+    `acceptance` field below.
   - `port` the port that the saver listens on. Changing this can break the
     saver, so only change it if you know what you are doing.
   - `key` an optional key, if this is set than the same key has to be entered

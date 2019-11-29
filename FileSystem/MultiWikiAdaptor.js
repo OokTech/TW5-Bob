@@ -173,10 +173,8 @@ if($tw.node) {
         if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
           $tw.utils.saveTiddlerToFile(new $tw.Tiddler(tiddler.fields), fileInfo, function(err) {
             if (err) {
-              console.log(err)
               $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, err, {level:1});
             } else {
-              console.log('trying to save')
               // Save the tiddler in memory.
               internalSave(tiddler, prefix);
               $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
