@@ -56,23 +56,14 @@ exports.handler = function(request,response,state) {
               // Make sure that the wiki exists and is loaded
               if($tw.Bob.Wikis[bodyData.fromWiki]) {
                 if($tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
-                  $tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
-                    const tiddler = $tw.wiki.getTiddler(internalTitle);
-                    let newTiddler = JSON.parse(JSON.stringify(tiddler));
-                    newTiddler.fields.modified = $tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                    newTiddler.fields.created = $tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                    newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                    // Add all the tiddlers that belong in wiki
-                    tempWiki.addTiddler(new $tw.Tiddler(newTiddler.fields));
-                  })
                   // Use the filter
-                  list = tempWiki.filterTiddlers(bodyData.filter);
+                  list = $tw.Bob.Wikis[bodyData.fromWiki].filterTiddlers(bodyData.filter);
                 }
               }
               let tiddlers = {};
               let info = {};
               list.forEach(function(title) {
-                const tempTid = tempWiki.getTiddler(title);
+                const tempTid = $tw.Bob.Wikis[bodyData.fromWiki].getTiddler(title);
                 info[title] = {};
                 if(bodyData.fieldList) {
                   bodyData.fieldList.split(' ').forEach(function(field) {

@@ -120,6 +120,7 @@ exports.handler = function(request,response,state) {
                 '.oga': 'audio/ogg',
                 '.ogv': 'video/ogg',
                 '.ogx': 'application/ogg',
+                '.pdf': 'application/pdf',
                 '.png': 'image/png',
                 '.svg': 'image/svg+xml',
                 '.weba': 'audio/weba',

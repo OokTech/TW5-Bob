@@ -376,7 +376,7 @@ it will overwrite this file.
           tidObj = JSON.parse(JSON.stringify(tiddler.fields))
         }
         const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
-          return Number(item.replace(/^Server Alert /, ''))
+          return Number(item.replace(/^\$:\/temp\/Server Alert /, ''))
         }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
         const AlertTitle = '$:/temp/Server Alert ' + newNumber;
         tidObj.text = JSON.parse(tidObj.text);

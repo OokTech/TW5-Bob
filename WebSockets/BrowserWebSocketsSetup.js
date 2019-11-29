@@ -203,12 +203,11 @@ socket server, but it can be extended for use with other web socket servers.
         // Do the normal handling
         return event;
       });
+      /*
+      // This hook never gets called for some reason
       $tw.hooks.addHook("th-renaming-tiddler", function (event) {
-        // For some reason this wasn't being handled by the generic 'change'
-        // event. So the hook is here.
-        console.log('renaming tiddler');
-        console.log(event);
       });
+      */
       /*
         Listen out for changes to tiddlers
         This handles tiddlers that are edited directly or made using things
@@ -343,11 +342,88 @@ socket server, but it can be extended for use with other web socket servers.
       /*
         This handles the hook for importing tiddlers.
       */
-      /*
       $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-        return tiddler;
+        if ($tw.settings.saveMediaOnServer === 'yes') {
+          function updateProgress(e) {
+            // TODO make this work in different browsers
+            /*
+            if (e.lengthComputable) {
+              var percentComplete = e.loaded/e.total*100;
+            } else {
+              var percentComplete = -1;
+            }
+            console.log(percentComplete);
+            */
+          }
+          function transferComplete(e) {
+            console.log('Complete!!');
+          }
+          function transferFailed(e) {
+            console.log('Failed!');
+          }
+          function transferCanceled(e) {
+            console.log('Cancelled!')
+          }
+          // Figure out if the thing being imported is something that should be
+          // saved on the server.
+          const mimeMap = $tw.settings.mimeMap || {
+            '.aac': 'audio/aac',
+            '.avi': 'video/x-msvideo',
+            '.csv': 'text/csv',
+            '.doc': 'application/msword',
+            '.epub': 'application/epub+zip',
+            '.gif': 'image/gif',
+            '.html': 'text/html',
+            '.htm': 'text/html',
+            '.ico': 'image/x-icon',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.mp3': 'audio/mpeg',
+            '.mpeg': 'video/mpeg',
+            '.oga': 'audio/ogg',
+            '.ogv': 'video/ogg',
+            '.ogx': 'application/ogg',
+            '.pdf': 'application/pdf',
+            '.png': 'image/png',
+            '.svg': 'image/svg+xml',
+            '.weba': 'audio/weba',
+            '.webm': 'video/webm',
+            '.wav': 'audio/wav'
+          };
+          if (Object.values(mimeMap)[tiddler.fields.type] && !tiddler.fields._canonical_uri) {
+            // Check if this is set up to use HTTP post or websockets to save the
+            // image on the server.
+            var request = new XMLHttpRequest();
+            request.upload.addEventListener('progress', updateProgress);
+            request.upload.addEventListener('load', transferComplete);
+            request.upload.addEventListener('error', transferFailed);
+            request.upload.addEventListener('abort', transferCanceled);
+
+            var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+            var uploadURL = '/api/upload';
+            request.open('POST', uploadURL, true);
+            // cookies are sent with the request so the authentication cookie
+            // should be there if there is one.
+            var thing = {
+              tiddler: tiddler,
+              wiki: $tw.wiki.getTiddlerText('$:/WikiName')
+            }
+            request.setRequestHeader('x-wiki-name',wikiPrefix);
+            request.send(JSON.stringify(thing));
+            // Change the tiddler fields and stuff
+            var fields = {};
+            var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+            wikiPrefix = wikiPrefix === 'RootWiki'?'':'/'+wikiPrefix;
+            var uri = wikiPrefix+'/files/'+tiddler.fields.title;
+            fields.title = tiddler.fields.title;
+            fields.type = tiddler.fields.type;
+            fields._canonical_uri = uri;
+            return new $tw.Tiddler(fields);
+          } else {
+            return tiddler;
+          }
+        }
       });
-      */
       /*
         For the th-saving-tiddler hook send the saveTiddler message along with
         the tiddler object.

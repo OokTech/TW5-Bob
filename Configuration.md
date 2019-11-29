@@ -22,6 +22,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "disableBrowserAlerts": "false",
   "fileURLPrefix": "files",
   "namespacedWikis": "false",
+  "saveMediaOnServer": "yes",
   "suppressBrowser": "false",
   "enableFederation": "no",
   "enableFileServer": "no",
@@ -47,20 +48,28 @@ used. If the json isn't formatted correctly than default values will be used.
     "timeout": 5000
   },
   "mimeMap": {
-    ".ico": "image/x-icon",
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".json": "application/json",
-    ".css": "text/css",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".wav": "audio/wav",
-    ".mp3": "audio/mpeg",
-    ".svg": "image/svg+xml",
-    ".pdf": "application/pdf",
-    ".doc": "application/msword",
-    ".gif": "image/gif"
+    '.aac': 'audio/aac',
+    '.avi': 'video/x-msvideo',
+    '.csv': 'text/csv',
+    '.doc': 'application/msword',
+    '.epub': 'application/epub+zip',
+    '.gif': 'image/gif',
+    '.html': 'text/html',
+    '.htm': 'text/html',
+    '.ico': 'image/x-icon',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.mp3': 'audio/mpeg',
+    '.mpeg': 'video/mpeg',
+    '.oga': 'audio/ogg',
+    '.ogv': 'video/ogg',
+    '.ogx': 'application/ogg',
+    '.pdf': 'application/pdf',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.weba': 'audio/weba',
+    '.webm': 'video/webm',
+    '.wav': 'audio/wav'
   },
   "API": {
     "enableFetch": "no",
@@ -148,6 +157,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `namespacedWikis` this only has an effect if you are using an external
   server with a login. If so this prefixes the wiki path with the currently
   logged in persons name when creating a wiki.
+- `saveMediaOnServer` if this is set to `yes` any files with a type listed in
+  the mime map are uploaded to the server and a `_canonical_uri` tiddler is
+  created for the file instead of importing the file directly into the wiki.
+  - This only takes effect if `enableFileServer` is also set to `yes`.
 - `suppressBrowser` is only used if you are using the single executable
   version. If it is set to `true` than the browser isn't opened automatically
   when the server is started.
@@ -248,8 +261,9 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - The items in this are in the form `prefix: /path/to/folder`, see the file
     server documentation for more.
 - `saver` this holds settings for the single file saver
-  - `host` the host for the saver server
-  - `port` the port that the saver listens on
+  - `host` the host for the saver server. You should never change this.
+  - `port` the port that the saver listens on. Changing this can break the
+    saver, so only change it if you know what you are doing.
   - `key` an optional key, if this is set than the same key has to be entered
     in each of the single file wikis in order for the server to save them.
   - `disable` set this to `yes` to disable the single file saver sever

@@ -373,7 +373,9 @@ This has some functions that are needed by Bob in different places.
         }
       }
       if(!ignore) {
-        // Ignore saveTiddler messages if the tiddler hasn't changed
+        // Ignore saveTiddler messages if there is already a saveTiddler
+        // message in the queue for that tiddler and the tiddler is the same in
+        // both messages.
         if(messageData.type === 'saveTiddler') {
           queue.forEach(function(message, messageIndex) {
             if(message.type === 'saveTiddler' && message.title === messageData.title) {
