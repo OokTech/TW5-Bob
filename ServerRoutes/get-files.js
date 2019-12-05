@@ -75,7 +75,6 @@ exports.handler = function(request,response,state) {
     let offset = 1;
     let secondPathPart = '';
     if ($tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]]) {
-      //console.log(urlPieces[urlPieces.indexOf(filePrefix)+1]);
       secondPathPart = $tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]];
       offset += 1;
     }

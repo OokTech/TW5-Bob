@@ -1,6 +1,27 @@
 title: $:/plugins/OokTech/Bob/ServerTab
 caption: Server
 
+\define toggleFileMonitor()
+<$reveal
+  type='match'
+  text='yes'
+  state='$:/WikiSettings/split##disableFileWatchers'
+>
+  <$action-updatesetting
+    disableFileWatchers='no'
+  />
+</$reveal>
+<$reveal
+  type='nomatch'
+  text='yes'
+  state='$:/WikiSettings/split##disableFileWatchers'
+>
+  <$action-updatesetting
+    disableFileWatchers='yes'
+  />
+</$reveal>
+\end
+
 <$reveal
   type='nomatch'
   state='$:/settings/Bob/Verbose'
@@ -57,9 +78,13 @@ To make Bob available on the local network:
 
 </$reveal>
 
-<$reveal type='match' state='$:/ServerIP!!host' text='0.0.0.0'>
+<$reveal
+  type='match'
+  state='$:/ServerIP!!host'
+  text='0.0.0.0'
+>
 
-To make Bob available only on this computer:
+To make Bob available only on the computer running Bob or BobEXE:
 
 # first click the `Make wikis available only on this computer` button
 # click the `Shutdown Wiki` button
@@ -74,6 +99,30 @@ To make Bob available only on this computer:
 </$button>
 
 </$reveal>
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  Checking this will disable the file watchers. This means that changes made to
+  the .tid files on the file system will not be pushed to the browser. This
+  means that adding or removing tiddlers using something other than the browser
+  will not have any effect on the wiki in the browser until it is unloaded and
+  reloaded or Bob is restarted.
+</$reveal>
+
+<$checkbox
+  actions=<<toggleFileMonitor>>
+  tiddler='$:/WikiSettings/split'
+  index=disableFileWatchers
+  checked='yes'
+  unchecked='no'
+  default='no'
+>
+  Disable File System Monitor
+</$checkbox>
+
 
 WARNING: This button will shutdown the wiki server. None of the wikis will be
 available until it is restarted.

@@ -20,6 +20,7 @@ used. If the json isn't formatted correctly than default values will be used.
   "excludePluginList": [],
   "autoUnloadWikis": "false",
   "disableBrowserAlerts": "false",
+  "disableFileWatchers": "no",
   "fileURLPrefix": "files",
   "namespacedWikis": "false",
   "saveMediaOnServer": "yes",
@@ -147,6 +148,9 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `disableBrowserAlerts` if this is set to `true` than no alerts are sent to
   the browser wikis. This can also be set on a per-wiki basis in the control
   panel.
+- `disableFileWatchers` if this is set to `yes` than the file system monitor
+  component is disabled. This may help with some setups that use network drives
+  to store tiddlers.
 - `fileURLPrefix` is the prefix used to distinguish file links from wikis. This
   has the normal restrictions on names as any URL, so avoid special characters.
   This defaults to `files` and only have an affect if you have also set

@@ -176,7 +176,6 @@ if($tw.node) {
               console.log(err)
               $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, err, {level:1});
             } else {
-              console.log('trying to save')
               // Save the tiddler in memory.
               internalSave(tiddler, prefix);
               $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
@@ -271,7 +270,9 @@ if($tw.node) {
     }
   };
 
-  exports.adaptorClass = MultiWikiAdaptor;
+  if ($tw.node) {
+    exports.adaptorClass = MultiWikiAdaptor;
+  }
 }
 
 })();

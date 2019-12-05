@@ -185,8 +185,10 @@ ServerSide.loadWiki = function (wikiName) {
       // Recursively build the folder tree structure
       $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
-      // Watch the root tiddlers folder for chanegs
-      $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
+      if ($tw.settings.disableFileWatchers !== 'yes') {
+        // Watch the root tiddlers folder for chanegs
+        $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
+      }
 
       // Add tiddlers to the node process
       // Create a wiki object for this wiki
