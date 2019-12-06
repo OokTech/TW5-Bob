@@ -14,6 +14,7 @@ A sync adaptor for syncing changes using websockets with Bob
 
 function BrowserWSAdaptor(options) {
   this.wiki = options.wiki;
+  this.idList = [];
 
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
   // Ensure that the needed objects exist
@@ -360,8 +361,10 @@ BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
 // REQUIRED
 // This does whatever is necessary to actually store a tiddler
 BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
+  const self = this;
   function handleAck(ackId) {
-    if (ackId === id) {
+    if (self.idList.indexOf(id) > -1) {
+      self.idList.splice(self.idList.indexOf(id), 1)
       callback(null, null)
     }
   }
@@ -385,6 +388,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
     token: token
   };
   const id = sendToServer(message);
+  this.idList.push(id)
   $tw.rootWidget.addEventListener('handle-ack', function(e) {
     handleAck(e.detail)
   })
@@ -417,8 +421,10 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
 // REQUIRED
 // This does whatever is necessary to delete a tiddler
 BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
-  function handleAck(e) {
-    if (e === id) {
+  const self = this;
+  function handleAck(id) {
+    if (self.idList.indexOf(id) > -1) {
+      self.idList.splice(self.idList.indexOf(id), 1)
       callback(null, null)
     }
   }
@@ -441,6 +447,7 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
     token: token
   };
   const id = sendToServer(message);
+  this.idList.push(id)
   $tw.rootWidget.addEventListener('handle-ack', function(e) {
     handleAck(e.detail)
   })
@@ -518,8 +525,8 @@ function setupSkinnyTiddlerLoading() {
               if ($tw.connections) {
                 if($tw.connections[0].socket.readyState === 1) {
                   id = sendToServer(message)
-                  $tw.rootWidget.addEventListener('handle-ack', function(e) {
-                    handleAck(e.detail)
+                  $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
+                    handleSkinnyTiddlers(e.detail)
                   })
                 } else {
                   setSendThingTimeout()
