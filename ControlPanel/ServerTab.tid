@@ -1,6 +1,18 @@
 title: $:/plugins/OokTech/Bob/ServerTab
 caption: Server
 
+\define toggleLazyLoadingCheckActions()
+  <$action-updatesetting
+    ws-server='{"rootTiddler":"$:/core/save/lazy-all"}'
+  />
+\end
+
+\define toggleLazyLoadingUncheckActions()
+  <$action-updatesetting
+    ws-server='{"rootTiddler":"$:/core/save/all"}'
+  />
+\end
+
 \define toggleFileMonitor()
 <$reveal
   type='match'
@@ -99,6 +111,35 @@ To make Bob available only on the computer running Bob or BobEXE:
 </$button>
 
 </$reveal>
+
+<$reveal
+  type='nomatch'
+  state='$:/settings/Bob/Verbose'
+  text='false'
+>
+  Checking this will enable lazy loading.
+  Lazy loading only loads the tiddler metadata for tiddlers that haven't been
+  used yet.
+  This can make a wiki load faster if there are a lot of tiddlers that have a
+  lot of text.
+
+  See [ext[https://tiddlywiki.com/#LazyLoading]] for more information.
+
+  Changes to this setting will not take effect until you reload the wiki.
+  You do not have to restart Bob, just reload the browser tab.
+</$reveal>
+
+<$checkbox
+  checkactions=<<toggleLazyLoadingCheckActions>>
+  uncheckactions=<<toggleLazyLoadingUncheckActions>>
+  tiddler='$:/WikiSettings/split/ws-server'
+  index='rootTiddler'
+  checked='$:/core/save/lazy-all'
+  unchecked='$:/core/save/all'
+  default='$:/core/save/all'
+>
+  Enable Lazy Loading
+</$checkbox>
 
 <$reveal
   type='nomatch'

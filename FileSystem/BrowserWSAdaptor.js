@@ -366,7 +366,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
     }
   }
   if (!this.shouldSync(tiddler.fields.title) || !tiddler) {
-    callback(null);
+    callback(null, null);
   }
   const token = localStorage.getItem('ws-token')
   let tempTid = {fields:{}};
@@ -394,7 +394,24 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
 // This does whatever is necessary to load a tiddler.
 // Used for lazy loading
 BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
-  callback(null, null);
+  function handleLoadedTiddler(tiddler) {
+    callback(null, tiddler.fields)
+  }
+  if (title.slice(0,3) === '$:/') {
+    callback(null, null)
+  } else {
+    const token = localStorage.getItem('ws-token')
+    const message = {
+      type:'getFullTiddler',
+      title: title,
+      token: token,
+      wiki: $tw.wikiName
+    }
+    const id = sendToServer(message)
+    $tw.rootWidget.addEventListener('loaded-tiddler', function(e) {
+      handleLoadedTiddler(e.detail)
+    })
+  }
 }
 
 // REQUIRED
@@ -483,26 +500,17 @@ BrowserWSAdaptor.prototype.logout = function (callback) {
 // Loads skinny tiddlers, need specifics
 let thisTimerTemp = undefined
 function setupSkinnyTiddlerLoading() {
-  console.log(1)
   if(!$tw.wiki.getTiddler('$:/WikiSettings/split/ws-server')) {
-    console.log(2)
     clearTimeout(thisTimerTemp)
     thisTimerTemp = setTimeout(function() {
-      console.log(3)
       setupSkinnyTiddlerLoading()
     }, 100)
   } else {
-    console.log(4)
+    clearTimeout(thisTimerTemp)
     if ($tw.wiki.getTiddlerDataCached('$:/WikiSettings/split/ws-server').rootTiddler === '$:/core/save/lazy-all') {
-      console.log(5)
       BrowserWSAdaptor.prototype.getSkinnyTiddlers = function (callback) {
-        function handleAck(e) {
-          console.log('ack', e)
-          if (e === id) {
-            //callback(null,tiddlers);
-            callback(null, {})
-            //$tw.rootWidget.removeEventListener(handleAck)
-          }
+        function handleSkinnyTiddlers(e) {
+          callback(null, e)
         }
         function sendThing() {
           function setSendThingTimeout() {
@@ -524,8 +532,8 @@ function setupSkinnyTiddlerLoading() {
           if ($tw.connections) {
             if($tw.connections[0].socket.readyState === 1) {
               id = sendToServer(message)
-              $tw.rootWidget.addEventListener('handle-ack', function(e) {
-                handleAck(e.detail)
+              $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
+                handleSkinnyTiddlers(e.detail)
               })
             } else {
               setSendThingTimeout()
@@ -534,33 +542,14 @@ function setupSkinnyTiddlerLoading() {
             setSendThingTimeout()
           }
         }
-        console.log('get skinny')
+        const token = localStorage.getItem('ws-token')
         const message = {
           type: 'getSkinnyTiddlers',
-          wiki: $tw.wikiName
+          wiki: $tw.wikiName,
+          token: token
         }
         let id
         sendThing()
-        //const id = sendToServer(message)
-        /*
-        var self = this;
-        $tw.utils.httpRequest({
-          url: this.host + "recipes/" + this.recipe + "/tiddlers.json",
-          callback: function(err,data) {
-            // Check for errors
-            if(err) {
-              return callback(err);
-            }
-            // Process the tiddlers to make sure the revision is a string
-            var tiddlers = JSON.parse(data);
-            for(var t=0; t<tiddlers.length; t++) {
-              tiddlers[t] = self.convertTiddlerFromTiddlyWebFormat(tiddlers[t]);
-            }
-            // Invoke the callback with the skinny tiddlers
-            callback(null,tiddlers);
-          }
-        });
-        */
       }
       $tw.syncer.syncFromServer()
     }

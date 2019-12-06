@@ -433,7 +433,6 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         wikiName: wikiName
       }
     };
-    //const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", "$:/core/save/all", options);
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
     if(text.length < 10*1024*1024) {

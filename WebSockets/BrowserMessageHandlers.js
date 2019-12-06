@@ -92,6 +92,28 @@ it will overwrite this file.
   }
 
   /*
+    When the browser receives skinny tiddlers from the server dispatch the
+    'skinny-tiddlers' event with the received tiddlers.
+    It is handled by the syncadaptor.
+  */
+  $tw.browserMessageHandlers.skinnyTiddlers = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    const skinnyTiddlers = new CustomEvent('skinny-tiddlers', {bubbles: true, detail: data.tiddlers || []})
+    $tw.rootWidget.dispatchEvent(skinnyTiddlers)
+  }
+
+  /*
+    When the browser receive a loaded tiddler from the server dispatch the
+    'loaded-tiddler' event with the received tiddler.
+    It is handled by the syncadaptor.
+  */
+  $tw.browserMessageHandlers.loadTiddler = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const loadedTiddler = new CustomEvent('loaded-tiddler', {bubbles: true, detail: data.tiddler || {}})
+    $tw.rootWidget.dispatchEvent(loadedTiddler)
+  }
+
+  /*
     This is for updating the tiddlers currently being edited. It needs a
     special handler to support multi-wikis.
   */

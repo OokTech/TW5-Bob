@@ -369,6 +369,7 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('update', data)
     const path = require('path');
     const fs = require('fs');
     if(typeof data.updateString === 'object') {
@@ -413,6 +414,7 @@ if($tw.node) {
     in the browser.
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
+    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');

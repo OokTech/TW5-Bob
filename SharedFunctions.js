@@ -118,17 +118,7 @@ This has some functions that are needed by Bob in different places.
     again in 500ms
   */
   function checkMessageQueue() {
-    /*
     // If the queue isn't empty
-    if($tw.Bob.MessageQueue.filter(function(item) {
-      return (typeof item.ctime) === 'undefined'
-    }).length === 0) {
-      if ($tw.browser) {
-        //Turn off dirty indicator
-        $tw.utils.toggleClass(document.body,"tc-dirty",false);
-      }
-    }
-    */
     if($tw.Bob.MessageQueue.length > 0) {
       // Remove messages that have already been sent and have received all
       // their acks and have waited the required amonut of time.
@@ -160,12 +150,6 @@ This has some functions that are needed by Bob in different places.
     } else {
       clearTimeout(messageQueueTimer);
       messageQueueTimer = false;
-      /*
-      if ($tw.browser) {
-        //Turn off dirty indicator
-        $tw.utils.toggleClass(document.body,"tc-dirty",false);
-      }
-      */
     }
   }
 
@@ -278,6 +262,15 @@ This has some functions that are needed by Bob in different places.
     }).filter(function(item) {return item > -1;});
     // Remove the messages that are overruled by the new message.
     const outQueue = queue.filter(function(item, index) {
+      if (duplicateIndicies.indexOf(index) !== -1) {
+        if ($tw.browser) {
+          const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: item.id})
+          $tw.rootWidget.dispatchEvent(receivedAck)
+        }
+        return false
+      } else {
+        return true
+      }
       return duplicateIndicies.indexOf(index) < 0;
     });
     // return the new queue
@@ -429,14 +422,6 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.sendMessage = function(message, connectionIndex, messageData) {
     messageData = messageData || Shared.createMessageData(message)
-    console.log('send message', messageData.id)
-    /*
-    if ($tw.browser && $tw.Bob.MessageQueue.filter(function(item) {
-      return (typeof item.ctime) === 'undefined'
-    }).length > 0) {
-      $tw.utils.toggleClass(document.body,"tc-dirty",true);
-    }
-    */
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
@@ -464,6 +449,10 @@ This has some functions that are needed by Bob in different places.
         $tw.Bob.MessageQueue.push(messageData);
       }
       _sendMessage($tw.connections[connectionIndex], messageData)
+    } else if ($tw.browser) {
+      // If we are not sending the message than we have to emit the 'received-ack' event so that the syncer thinks it is finished.
+      const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})
+      $tw.rootWidget.dispatchEvent(receivedAck)
     }
     clearTimeout(messageQueueTimer);
     messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
@@ -505,7 +494,6 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.handleAck = function (data) {
     if ($tw.browser) {
-      console.log("got an ack", data)
       // Events to let the syncadaptor work in the browser
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: data.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
@@ -726,7 +714,6 @@ This has some functions that are needed by Bob in different places.
   Shared.sendAck = function (data) {
     data = data || {};
     if($tw.browser) {
-      console.log('sending ack for', data.id)
       const token = localStorage.getItem('ws-token')
       $tw.connections[0].socket.send(JSON.stringify({
         type: 'ack',
@@ -737,7 +724,6 @@ This has some functions that are needed by Bob in different places.
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
-          console.log('sending ack for', data.id)
           $tw.connections[data.source_connection].socket.send(JSON.stringify({
             type: 'ack',
             id: data.id

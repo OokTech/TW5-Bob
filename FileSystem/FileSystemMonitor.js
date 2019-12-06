@@ -152,7 +152,6 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                         // Save the new file
                         $tw.syncadaptor.saveTiddler(newTiddler, prefix);
                       });
-                      console.log('itempath', itemPath)
                     } else {
                       // Create the new tiddler
                       const newTiddler = $tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]});
