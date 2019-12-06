@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/BrowserWebSocketsSetup.js
 type: application/javascript
-module-type: startup
+module-type: old-startup
 
 This is the browser component for the web sockets. It works with the node web
 socket server, but it can be extended for use with other web socket servers.
@@ -191,11 +191,6 @@ socket server, but it can be extended for use with other web socket servers.
         // Do the normal handling
         return event;
       });
-      /*
-      // This hook never gets called for some reason
-      $tw.hooks.addHook("th-renaming-tiddler", function (event) {
-      });
-      */
 
       $tw.Bob.Reconnect = function (sync) {
         if($tw.connections[0].socket.readyState !== 1) {
@@ -350,36 +345,6 @@ socket server, but it can be extended for use with other web socket servers.
           }
         }
       });
-      /*
-        For the th-saving-tiddler hook send the saveTiddler message along with
-        the tiddler object.
-      */
-      /*
-      $tw.hooks.addHook("th-saving-tiddler",function(tiddler) {
-        // do the normal saving actions for the event
-        return tiddler;
-      });
-      */
-      /*
-        For the th-deleting-tiddler hook send the deleteTiddler message along
-        with the tiddler object.
-      */
-      /*
-      $tw.hooks.addHook("th-deleting-tiddler",function(tiddler) {
-        // do the normal deleting actions for the event
-        return true;
-      });
-      */
-      /*
-      $tw.hooks.addHook("th-new-tiddler", function(event) {
-        console.log("new tiddler hook: ", event);
-        return event;
-      })
-      $tw.hooks.addHook("th-navigating", function(event) {
-        console.log("navigating event: ",event);
-        return event;
-      })
-      */
     }
     // Only set up the websockets if we aren't in an iframe.
     if (window.location === window.parent.location && false) {
