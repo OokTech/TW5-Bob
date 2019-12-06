@@ -21,13 +21,6 @@ socket server, but it can be extended for use with other web socket servers.
 
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
 
-  // This is needed for IE compatibility
-  if(!String.prototype.startsWith) {
-    String.prototype.startsWith = function(search, pos) {
-      return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
-    };
-  }
-
   exports.startup = function() {
     // Ensure that the needed objects exist
     $tw.Bob = $tw.Bob || {};
@@ -54,7 +47,7 @@ socket server, but it can be extended for use with other web socket servers.
       let ProxyPrefix = ''
       if(proxyPrefixTiddler) {
         ProxyPrefix = proxyPrefixTiddler.fields.text;
-        if(!ProxyPrefix.startsWith('/')) {
+        if(ProxyPrefix.charAt() !== '/') {
           ProxyPrefix = '/' + ProxyPrefix;
         }
       }
@@ -114,11 +107,6 @@ socket server, but it can be extended for use with other web socket servers.
 
     const sendToServer = function (message) {
       const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
-      //if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0 && tiddlerText !== '') {
-      if ($tw.Bob.MessageQueue.length > 0 && tiddlerText !== '') {
-        // Turn on the dirty indicator
-        $tw.utils.toggleClass(document.body,"tc-dirty",true);
-      }
       // If the connection is open, send the message
       if($tw.connections[connectionIndex].socket.readyState === 1) {
         $tw.Bob.Shared.sendMessage(message, 0);
@@ -208,68 +196,6 @@ socket server, but it can be extended for use with other web socket servers.
       $tw.hooks.addHook("th-renaming-tiddler", function (event) {
       });
       */
-      /*
-        Listen out for changes to tiddlers
-        This handles tiddlers that are edited directly or made using things
-        like the setfield widget.
-        This ignores tiddlers that are in the exclude filter
-      */
-      $tw.wiki.addEventListener("change",function(changes) {
-        for (let tiddlerTitle in changes) {
-          // If the changed tiddler is the one that holds the exclude filter
-          // than update the exclude filter.
-          if(tiddlerTitle === '$:/plugins/OokTech/Bob/ExcludeSync') {
-            $tw.Bob.ExcludeFilter = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/ExcludeSync');
-          }
-          const list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
-          if(list.indexOf(tiddlerTitle) === -1) {
-            if(changes[tiddlerTitle].modified) {
-              const token = localStorage.getItem('ws-token')
-              const tiddler = $tw.wiki.getTiddler(tiddlerTitle);
-              if(tiddler) {
-                let tempTid = {fields:{}};
-                Object.keys(tiddler.fields).forEach(function (field) {
-                    if(field !== 'created' && field !== 'modified') {
-                      tempTid.fields[field] = tiddler.fields[field];
-                    } else {
-                      tempTid.fields[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
-                    }
-                  }
-                );
-                const message = {
-                  type: 'saveTiddler',
-                  tiddler: tempTid,
-                  wiki: $tw.wikiName,
-                  token: token
-                };
-                sendToServer(message);
-              }
-            } else if(changes[tiddlerTitle].deleted && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
-              // We have an additional check for tiddlers that start with
-              // $:/state because popups get deleted before the check is done.
-              // Without this than every time there is a popup the dirty
-              // indicator turns on
-              const token = localStorage.getItem('ws-token');
-              console.log(list.indexOf(tiddlerTitle))
-              console.log('delete',tiddlerTitle)
-              const message = {
-                type: 'deleteTiddler',
-                tiddler:{
-                  fields:{
-                    title:tiddlerTitle
-                  }
-                },
-                wiki: $tw.wikiName,
-                token: token
-              };
-              sendToServer(message);
-            }
-          } else {
-            // Stop the dirty indicator from turning on.
-            //$tw.utils.toggleClass(document.body,"tc-dirty",false);
-          }
-        }
-      });
 
       $tw.Bob.Reconnect = function (sync) {
         if($tw.connections[0].socket.readyState !== 1) {
@@ -456,7 +382,7 @@ socket server, but it can be extended for use with other web socket servers.
       */
     }
     // Only set up the websockets if we aren't in an iframe.
-    if (window.location === window.parent.location) {
+    if (window.location === window.parent.location && false) {
       // Send the message to node using the websocket
       $tw.Bob.setup();
     }

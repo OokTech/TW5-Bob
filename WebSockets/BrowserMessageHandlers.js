@@ -249,7 +249,7 @@ it will overwrite this file.
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
-
+      /*
       if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
       //if ($tw.Bob.MessageQueue.length > 0) {
         // Turn on the dirty indicator
@@ -257,6 +257,7 @@ it will overwrite this file.
       } else {
         $tw.utils.toggleClass(document.body,"tc-dirty",false);
       }
+      */
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.
@@ -410,7 +411,6 @@ it will overwrite this file.
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
-      console.log('connections 1',data.connections)
       Object.keys(data.connections).forEach(function(connectionUrl) {
         if (data.connections[connectionUrl].name) {
           const connectionFields = {

@@ -18,6 +18,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** ''Using syncing software with your wiki folders is not recommended, it can cause dulpicate files and data loss, Bob and the syncing software fight each other when changing files.'' This may help reduce conflicts if you are using syncing software for your wiki folders.
 ** This helps prevent bugs that arise from not being able to properly monitor network drives.
 *** This is a limitation of networked drives, it is not specific to Bob. I may write an alternate filesystem monitor that can function with network drives but it will necessarily be slower and have the potential to miss changes made on the file system. This is unavoidable on networked drives.
+* Start working on support for skinny tiddlers
 
 !! Version 1.3.3 Kohlrabi
 

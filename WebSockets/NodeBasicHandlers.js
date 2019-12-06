@@ -31,6 +31,21 @@ if($tw.node) {
   }
 
   /*
+    For a lazily loaded wiki this gets the skinny tiddler list.
+  */
+  $tw.nodeMessageHandlers.getSkinnyTiddlers = function(data) {
+    console.log('get skinny')
+    $tw.Bob.Shared.sendAck(data);
+    // We need at least the name of the wiki
+    if (data.wiki) {
+      const message = {
+        type: 'getSkinnyTiddlers'
+      }
+
+    }
+  }
+
+  /*
     This responds to a ping from the browser. This is used to check and make sure
     that the browser and server are connected.
     It also echos back any data that was sent. This is used by the heartbeat to
