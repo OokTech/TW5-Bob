@@ -171,15 +171,14 @@ if($tw.node) {
         }
         // Make sure that the tiddler has actually changed before saving it
         if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
-          $tw.utils.saveTiddlerToFile(new $tw.Tiddler(tiddler.fields), fileInfo, function(err) {
-            if (err) {
-              $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, err, {level:1});
-            } else {
-              // Save the tiddler in memory.
-              internalSave(tiddler, prefix);
-              $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
-            }
-          });
+          try {
+            $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
+            // Save the tiddler in memory.
+            internalSave(tiddler, prefix);
+            $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+          } catch (e) {
+              $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
+          }
         }
       });
     }
