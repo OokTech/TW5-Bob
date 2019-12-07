@@ -11,6 +11,7 @@ when making changes like this. Make sure to backup your data.
 ** Documentation is under the `Bob Settings` tab in the control panel with the other documentation
 * Setup saving and loading in normal syncadaptors to work better with the core
 ** The dirty indicator is now handled by the core, so it should behave better now
+*** Saving now takes significantly longer. This is because of a delay built into the core, it isn't a bug.
 ** The 'there are unsaved changes' message when you close a tab is also now handled by the core, so it should behave better as well.
 * finished moving all of the functionality of the `ServerImages` plugin into Bob.
 ** This means that the `ServerImages` plugin is no longer necessary.

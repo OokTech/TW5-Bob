@@ -1,7 +1,6 @@
 title: $:/plugins/OokTech/Bob/ServerTab
 caption: Server
 
-<<<<<<< HEAD
 \define checkActions()
 <$action-websocketmessage
   $type='updatesetting'
@@ -12,7 +11,7 @@ caption: Server
 <$action-websocketmessage
   $type='updatesetting'
   suppressBrowser='no'
-=======
+
 \define toggleLazyLoadingCheckActions()
   <$action-updatesetting
     ws-server='{"rootTiddler":"$:/core/save/lazy-all"}'
@@ -44,7 +43,6 @@ caption: Server
     disableFileWatchers='yes'
   />
 </$reveal>
->>>>>>> 73499f644b7c10e618c217c9ce9b969eccc0446b
 \end
 
 <$reveal
