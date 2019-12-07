@@ -104,13 +104,13 @@ caption: Server
   Store specific to wiki
 </$checkbox>
 
-See [[big note of DOOM|$:/plugins/OokTech/Bob/BigNoteOfDoom]] before doing this.
+See [[big note of DOOM|$:/plugins/OokTech/Bob/Documentation/BigNoteOfDoom]] before doing this.
 
 <$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>
 
 To make Bob available on the local network:
 
-# Read the [[big note of DOOM|$:/plugins/OokTech/Bob/BigNoteOfDoom]]
+# Read the [[big note of DOOM|$:/plugins/OokTech/Bob/Documentation/BigNoteOfDoom]]
 # click the `Make wikis available on the local network` button
 # click the `Shutdown Wiki` button
 # Close this tab

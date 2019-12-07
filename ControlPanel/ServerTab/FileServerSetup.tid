@@ -116,7 +116,7 @@ nothing.
   default='yes'
 >
   Save media on server
-</$checkbox> ([[what is this?|$:/plugins/OokTech/Bob/ServerMedia]])
+</$checkbox> ([[what is this?|$:/plugins/OokTech/Bob/Documentation/ServerMedia]])
 
 File Folders:
 
@@ -267,7 +267,7 @@ Bob is not the same as using a single file wiki, it is a server. When you put
 in a path to a file it isn't a path on your file system, it is a url that the
 server uses to determine how to respond.
 
-See [[serving files|$:/plugins/OokTech/Bob/Serving Files]] for more.
+See [[serving files|$:/plugins/OokTech/Bob/Documentation/Serving Files]] for more.
 
 Changing this may break everything and plunge the earth into a 1000 year reign
 of darkness. Or it may work just fine and cause no trouble.

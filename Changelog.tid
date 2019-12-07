@@ -21,7 +21,6 @@ when making changes like this. Make sure to backup your data.
 * Changed `WebsocketAdaptor.js` to `MultiWikiAdaptor.js` because it has nothing to do with websockets, it handles saving and loading when you have multiple wikis.
 * Removed some unused template files
 * Switch to using more asynchronous functions
-** `saveTiddlerToFileSync` to `saveTiddlerToFile` when saving tiddlers
 ** changing multiple functions in the file system monitor to use asynchronous versions
 *** While this prevents some race conditions and reduces the places where writing tiddler changes can be delayed, it introduces another race condition that arises when you rename a tiddler or a file on the file system so that the tiddler file name does not follow the rules used by the wiki. The file system monitor deletes the incorrectly named file and creates a new file with the expected name. The file watcher starts acting before the file is completely deleted so it acts as though the file still exists which leads to an error being thrown. The error is handled but there may be unexpected behaviour is situations where tiddler titles or file names are changed in the file system. Back up your data.
 * Modified the BobSaver so the server only accepts files with the extensions `.html`, `.htm` and `.hta`
