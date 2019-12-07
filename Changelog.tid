@@ -16,7 +16,8 @@ when making changes like this. Make sure to backup your data.
 * finished moving all of the functionality of the `ServerImages` plugin into Bob.
 ** This means that the `ServerImages` plugin is no longer necessary.
 ** Information about the new setup is available in the Bob Documentation called `Server Media`
-** The server media part is enabled by default, it can be disable in the $:/ControlPanel under `Bob Settings` -> `Server` -> `File Server`
+** The server media part is enabled by default if you turn on the file server. It can be disable in the $:/ControlPanel under `Bob Settings` -> `Server` -> `File Server`
+*** The server media component only works if the file server is enabled, if it isn't enabled than the server media component has no effect.
 * Changed `WebsocketAdaptor.js` to `MultiWikiAdaptor.js` because it has nothing to do with websockets, it handles saving and loading when you have multiple wikis.
 * Removed some unused template files
 * Switch to using more asynchronous functions

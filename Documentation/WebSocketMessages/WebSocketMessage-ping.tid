@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-ping
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-ping
 tags: [[Websocket Message]] [[Human Usable]]
 caption: ping
 description: Send a ping to the server. Human usable but not very useful in most cases.

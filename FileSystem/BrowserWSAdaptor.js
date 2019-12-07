@@ -259,7 +259,7 @@ function BrowserWSAdaptor(options) {
       This handles the hook for importing tiddlers.
     */
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-      if ($tw.settings.saveMediaOnServer === 'yes') {
+      if ($tw.settings.saveMediaOnServer === 'yes' && $tw.settings.enableFileServer === 'yes') {
         function updateProgress(e) {
           // TODO make this work in different browsers
           /*

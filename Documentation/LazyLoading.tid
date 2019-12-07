@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/LazyLoading
+title: $:/plugins/OokTech/Bob/Documentation/LazyLoading
 tags: [[Bob Documentation]]
 caption: Lazy Loading
 description: Only loading tiddler metadata until a tiddler is used to improve loading times

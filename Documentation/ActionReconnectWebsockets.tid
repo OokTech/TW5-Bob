@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/ActionReconnectWebsockets
+title: $:/plugins/OokTech/Bob/Documentation/ActionReconnectWebsockets
 tags: ActionWidgets Widgets [[Bob Documentation]]
 caption: ActionReconnectWebsockets
 description: A widget for reconnecting to a websocket server if you have been disconnected.

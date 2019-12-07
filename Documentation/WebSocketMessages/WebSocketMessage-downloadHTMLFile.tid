@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-downloadHTMLFile
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-downloadHTMLFile
 tags: [[Websocket Message]][[Human Usable]]
 caption: downloadHTMLFile
 description: Download an html version of a wiki. (Depreciated)

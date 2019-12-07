@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-duplicateWiki
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-duplicateWiki
 tags: [[Websocket Message]] [[Human Usable]]
 caption: duplicateWiki
 description: A message that creates a duplicate of an existing wiki.

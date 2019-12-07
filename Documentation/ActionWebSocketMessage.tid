@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/ActionWebSocketMessage
+title: $:/plugins/OokTech/Bob/Documentation/ActionWebSocketMessage
 tags: ActionWidgets Widgets [[Bob Documentation]]
 caption: ActionWebSocketMessage
 description: The widget for sending websocket messages.

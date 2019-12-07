@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-browserTiddlerList
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-browserTiddlerList
 tags: [[Websocket Message]]
 caption: browserTiddlerList
 description: A message for the backend, not human usable.

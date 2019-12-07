@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/ActionConvertWiki
+title: $:/plugins/OokTech/Bob/Documentation/ActionConvertWiki
 tags: ActionWidgets Widgets [[Bob Documentation]]
 caption: ActionConvertWiki
 description: An action widget that takes an html file as input and makes a new wiki on the server using it

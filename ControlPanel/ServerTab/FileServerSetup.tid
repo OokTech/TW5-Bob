@@ -103,6 +103,10 @@ username on the computer you are using.
   Enable File Server
 </$checkbox>
 
+Note: Enabling saving media on the server has no effect unless the file server
+is enabled. So if the checkbox above is not checked than this checkbox does
+nothing.
+
 <$checkbox
   actions=<<secondCheckActions>>
   tiddler='$:/WikiSettings/split'

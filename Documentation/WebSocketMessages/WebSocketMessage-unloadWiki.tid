@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-unloadWiki
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-unloadWiki
 tags: [[Websocket Message]] [[Human Usable]]
 caption: unloadWiki
 description: Unload a wiki from memory.

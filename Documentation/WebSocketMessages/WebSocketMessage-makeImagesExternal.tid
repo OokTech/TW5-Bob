@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-makeImagesExternal
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-makeImagesExternal
 tags: [[Websocket Message]] [[Human Usable]]
 caption: makeImagesExternal
 description: Make all images in the wiki external tiddlers using _canonical_uri

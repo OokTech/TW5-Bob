@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-deleteTiddler
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-deleteTiddler
 tags: [[Websocket Message]]
 caption: deleteTiddler
 description: A message for the backend, not human usable.

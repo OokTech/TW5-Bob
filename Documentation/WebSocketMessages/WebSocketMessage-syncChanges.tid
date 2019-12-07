@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-syncChanges
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-syncChanges
 tags: [[Websocket Message]]
 caption: syncChanges
 description: Resync with a server after reconnecting

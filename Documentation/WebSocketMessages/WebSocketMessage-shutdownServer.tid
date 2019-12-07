@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-shutdownServer
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-shutdownServer
 tags: [[Websocket Message]] [[Human Usable]]
 caption: shutdownServer
 description: Shutdown the wiki server.

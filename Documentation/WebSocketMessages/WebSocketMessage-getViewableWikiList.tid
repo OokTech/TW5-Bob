@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-getViewableWikiList
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-getViewableWikiList
 tags: [[Websocket Message]] [[Human Usable]]
 caption: getViewableWikiList
 description: Get a list of all viewable wikis
