@@ -11,7 +11,7 @@ caption: Server
 <$action-websocketmessage
   $type='updatesetting'
   suppressBrowser='no'
-
+\end
 \define toggleLazyLoadingCheckActions()
   <$action-updatesetting
     ws-server='{"rootTiddler":"$:/core/save/lazy-all"}'
