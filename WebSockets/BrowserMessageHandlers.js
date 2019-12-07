@@ -92,6 +92,28 @@ it will overwrite this file.
   }
 
   /*
+    When the browser receives skinny tiddlers from the server dispatch the
+    'skinny-tiddlers' event with the received tiddlers.
+    It is handled by the syncadaptor.
+  */
+  $tw.browserMessageHandlers.skinnyTiddlers = function (data) {
+    $tw.Bob.Shared.sendAck(data);
+    const skinnyTiddlers = new CustomEvent('skinny-tiddlers', {bubbles: true, detail: data.tiddlers || []})
+    $tw.rootWidget.dispatchEvent(skinnyTiddlers)
+  }
+
+  /*
+    When the browser receive a loaded tiddler from the server dispatch the
+    'loaded-tiddler' event with the received tiddler.
+    It is handled by the syncadaptor.
+  */
+  $tw.browserMessageHandlers.loadTiddler = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const loadedTiddler = new CustomEvent('loaded-tiddler', {bubbles: true, detail: data.tiddler || {}})
+    $tw.rootWidget.dispatchEvent(loadedTiddler)
+  }
+
+  /*
     This is for updating the tiddlers currently being edited. It needs a
     special handler to support multi-wikis.
   */
@@ -249,7 +271,7 @@ it will overwrite this file.
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
-
+      /*
       if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
       //if ($tw.Bob.MessageQueue.length > 0) {
         // Turn on the dirty indicator
@@ -257,6 +279,7 @@ it will overwrite this file.
       } else {
         $tw.utils.toggleClass(document.body,"tc-dirty",false);
       }
+      */
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.
@@ -376,7 +399,7 @@ it will overwrite this file.
           tidObj = JSON.parse(JSON.stringify(tiddler.fields))
         }
         const newNumber = Object.keys(JSON.parse(tidObj.text)).map(function(item) {
-          return Number(item.replace(/^Server Alert /, ''))
+          return Number(item.replace(/^\$:\/temp\/Server Alert /, ''))
         }).sort(function(a,b){return a-b}).slice(-1)[0] + 1 || 0;
         const AlertTitle = '$:/temp/Server Alert ' + newNumber;
         tidObj.text = JSON.parse(tidObj.text);
@@ -410,7 +433,6 @@ it will overwrite this file.
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
-      console.log('connections 1',data.connections)
       Object.keys(data.connections).forEach(function(connectionUrl) {
         if (data.connections[connectionUrl].name) {
           const connectionFields = {

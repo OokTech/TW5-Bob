@@ -86,7 +86,7 @@ if($tw.node) {
         // Take the message and put it into the logging tiddler
         // The key is the timestamp, the value is the message
         // Get the current json tiddler
-        
+
         // Add the new message to it
 
         // Save the updated tiddler
@@ -109,7 +109,6 @@ if($tw.node) {
   }
 
   // A convenience function that handles all of the logging types so you don't have to unless you have multiple enabled but only want to log something in one place.
-  // TODO: implement log levels
   $tw.Bob.logger.log = function (/* args */) {
     let params = {}
     const argumentList = [].slice.apply(arguments);

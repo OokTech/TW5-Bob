@@ -1,23 +1,48 @@
 title: $:/plugins/OokTech/Bob/SaverServer
+caption: Saver Server
 
+\define enableDisableSaver()
+<$reveal
+  type='nomatch'
+  state='$:/WikiSettings/split##enableBobSaver'
+  text='no'
+>
+  <$action-sendmessage
+    $type='updatesetting'
+    enableBobSaver='no'
+  />
+</$reveal>
+<$reveal
+  type='match'
+  state='$:/WikiSettings/split##enableBobSaver'
+  text='no'
+>
+  <$action-sendmessage
+    $type='updatesetting'
+    enableBobSaver='yes'
+  />
+</$reveal>
+\end
 
 !! Configuration for the single file saver
+
+The saver is enabled by default, check this box to disable the saver.
+
+<$checkbox
+  actions=<<enableDisableSaver>>
+  tiddler='$:/WikiSettings/split'
+  index='enableBobSaver'
+  checked='yes'
+  unchecked='no'
+>
+  Disable Saver
+</$checkbox>
 
 After changing any of the options below click <$button>
   Save Settings
   <$action-savesettings/>
 </$button>
 Otherwise they will not take effect.
-
-The saver is enabled by default, check this box to disable the saver.
-
-<$checkbox
-  tiddler='$:/WikiSettings/split/saver'
-  checked='yes'
-  unchecked='no'
->
-  Disable Saver
-</$checkbox>
 
 Changing the key takes effect as soon as the settings are saved.
 
@@ -30,9 +55,7 @@ Saver Key: <$edit-text
 
 !! Here there be dragons
 
-
-Changing the port or host requires a server restart before taking effect.
-Changing these will break the saver very easily unless you know exactly what
+Changing this will break the saver very easily unless you know exactly what
 you are doing.
 
 Saver Port: <$edit-text
@@ -40,11 +63,4 @@ Saver Port: <$edit-text
   index='port'
   tag=input
   placeholder='61192'
-/>
-
-Saver Host: <$edit-text
-  tiddler='$:/WikiSettings/split/saver'
-  index='host'
-  tag=input
-  placeholder='127.0.0.1'
 />

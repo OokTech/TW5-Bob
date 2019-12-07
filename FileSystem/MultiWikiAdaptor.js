@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/WebsocketAdaptor.js
+title: $:/plugins/OokTech/Bob/MultiWikiAdaptor.js
 type: application/javascript
 module-type: syncadaptor
 
-A sync adaptor module for synchronising using Websockets
+A sync adaptor module for synchronising multiple wikis
 
 \*/
 (function(){
@@ -30,19 +30,18 @@ if($tw.node) {
   */
   $tw.Bob.ExcludeFilter = $tw.Bob.ExcludeFilter || "[[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/WikiSettings]]";
 
-  function WebsocketAdaptor(options) {
+  function MultiWikiAdaptor(options) {
     this.wiki = options.wiki;
-    this.logger = new $tw.utils.Logger("WebsocketAdaptor",{colour: "blue"});
   }
 
-  WebsocketAdaptor.prototype.name = "WebsocketAdaptor";
+  MultiWikiAdaptor.prototype.name = "MultiWikiAdaptor";
 
-  WebsocketAdaptor.prototype.isReady = function() {
+  MultiWikiAdaptor.prototype.isReady = function() {
     // The file system adaptor is always ready
     return true;
   };
 
-  WebsocketAdaptor.prototype.getTiddlerInfo = function(tiddler) {
+  MultiWikiAdaptor.prototype.getTiddlerInfo = function(tiddler) {
     return {};
   };
 
@@ -56,7 +55,7 @@ if($tw.node) {
 
   It is the responsibility of the filesystem adaptor to update $tw.boot.files for new files that are created.
   */
-  WebsocketAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
+  MultiWikiAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
     prefix = prefix || '';
     if(!callback) {
       callback = function (err, fileInfo) {
@@ -106,7 +105,7 @@ if($tw.node) {
   /*
   Given a list of filters, apply every one in turn to source, and return the first result of the first filter with non-empty result.
   */
-  WebsocketAdaptor.prototype.findFirstFilter = function(filters,source) {
+  MultiWikiAdaptor.prototype.findFirstFilter = function(filters,source) {
     for(let i=0; i<filters.length; i++) {
       const result = this.wiki.filterTiddlers(filters[i],null,source);
       if(result.length > 0) {
@@ -119,7 +118,7 @@ if($tw.node) {
   /*
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
-  WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
+  MultiWikiAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
     let baseFilename;
     let pathNameFilters;
     // Check whether the user has configured a tiddler -> pathname mapping
@@ -150,7 +149,7 @@ if($tw.node) {
   /*
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
-  WebsocketAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
+  MultiWikiAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
     if(typeof prefix === 'function') {
       callback = prefix;
       prefix = null;
@@ -172,10 +171,14 @@ if($tw.node) {
         }
         // Make sure that the tiddler has actually changed before saving it
         if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
-          $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo);
-          // Save the tiddler in memory.
-          internalSave(tiddler, prefix);
-          $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+          try {
+            $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
+            // Save the tiddler in memory.
+            internalSave(tiddler, prefix);
+            $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+          } catch (e) {
+              $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
+          }
         }
       });
     }
@@ -206,7 +209,7 @@ if($tw.node) {
 
   We don't need to implement loading for the file system adaptor, because all the tiddler files will have been loaded during the boot process.
   */
-  WebsocketAdaptor.prototype.loadTiddler = function(title,callback) {
+  MultiWikiAdaptor.prototype.loadTiddler = function(title,callback) {
     if(!callback) {
       callback = function () {
 
@@ -218,7 +221,7 @@ if($tw.node) {
   /*
   Delete a tiddler and invoke the callback with (err)
   */
-  WebsocketAdaptor.prototype.deleteTiddler = function(title, callback, options) {
+  MultiWikiAdaptor.prototype.deleteTiddler = function(title, callback, options) {
     if(typeof callback === 'object') {
       options = callback;
       callback = null;
@@ -265,7 +268,9 @@ if($tw.node) {
     }
   };
 
-  exports.adaptorClass = WebsocketAdaptor;
+  if ($tw.node) {
+    exports.adaptorClass = MultiWikiAdaptor;
+  }
 }
 
 })();

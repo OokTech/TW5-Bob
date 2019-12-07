@@ -75,7 +75,6 @@ exports.handler = function(request,response,state) {
     let offset = 1;
     let secondPathPart = '';
     if ($tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]]) {
-      //console.log(urlPieces[urlPieces.indexOf(filePrefix)+1]);
       secondPathPart = $tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]];
       offset += 1;
     }
@@ -120,6 +119,7 @@ exports.handler = function(request,response,state) {
                 '.oga': 'audio/ogg',
                 '.ogv': 'video/ogg',
                 '.ogx': 'application/ogg',
+                '.pdf': 'application/pdf',
                 '.png': 'image/png',
                 '.svg': 'image/svg+xml',
                 '.weba': 'audio/weba',

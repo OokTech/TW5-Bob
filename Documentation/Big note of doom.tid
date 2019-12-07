@@ -1,0 +1,58 @@
+title: $:/plugins/OokTech/Bob/Documentation/BigNoteOfDoom
+caption: Big Note of DOOM
+
+This warning applies both to the normal Bob wiki server and the saver component
+that allows the BobSaver plugin to save single file wikis.
+
+!! BIG NOTE OF DOOM or what is the local network?
+
+The local network is anyone using the same router as you. This means anyone on
+the same wifi network or using a wired connection on the same router. So when
+you are at starbucks or a library on the wifi anyone else who is on that wifi
+is on the local network.
+
+By default the wikis are only available on `localhost` on the computer you are
+running BobEXE or the node process on.
+
+If you want to make it available to other computers on the local network you
+have to change the settings in the $:/ControlPanel under the `Bob Settings`
+tab.
+
+!!! What this means for wikis
+
+If you have your wikis available to other computers than anyone on the local
+network can access them.
+Most of the time they will be able to edit your wikis also.
+
+If you have the file server turned on to access local media on your computer
+and you have the wikis available on the local network anyone on the network
+will be able to access whatever folders you have set up to serve media.
+
+That isn't to say that you should never allow editing on the local network, if
+you are on your home network or somewhere you trust than allowing editing on
+the local network isn't a problem.
+That is, it isn't a problem as long as you don't trust public WiFi networks,
+that include coffee shops and libraries and airports and hotels or anything
+else that isn't at your home or a friends home. While you may trust the
+establishment you should not trust everyone that has access to the network.
+
+Trusting private corporate networks where you work is up to you. I would
+caution against it.
+
+!!! What this means for the BobSaver component
+
+The BobSaver has a separate configuration from the wiki server.
+You can set up the wiki server to make wikis available on the local network
+without making the BobSaver available on the local network.
+
+It is never a good idea to make the BobSaver available on the local network.
+It is never a good idea to make the BobSaver available on anything other than
+`localhost` or `127.0.0.1` (the two mean the same thing).
+That is why there isn't a way to set it up like there is for the wiki server.
+
+If you do decide to dig into the code and make the BobSaver available on the
+local network anyone who has the key you set can save any files they want
+anywhere on your computer.
+The files must have the extension `.html`, `.htm` or `.hta`, but that just
+makes it harder to use them to damage your computer or steal from you/spy on
+you, it doesn't prevent it.

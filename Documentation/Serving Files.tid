@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Serving Files
+title: $:/plugins/OokTech/Bob/Documentation/Serving Files
 caption: Serving Files or Images
 tags: [[Bob Documentation]]
 description: Set up the server to serve static files from the local file system.

@@ -1,0 +1,64 @@
+title: $:/plugins/OokTech/Bob/Documentation/SaverServer
+caption: Saver Server
+tags: [[Bob Documentation]]
+description: Using Bob to save single file wikis
+
+!! First a bit of a warning to not change the configuration
+
+The saver server is a separate server than the one for the wikis.
+It allows different actions and saving files anywhere on your computer.
+Using the default settings there are no security concerns, only html files can
+be saved and they can only be saved by someone using the computer running Bob
+or BobEXE and no one else even if Bob is configured to allow people to access
+wikis on the local network.
+
+Changing this configuration is not something that you can do by accident.
+
+It is possible to configure the saver server to accept save requests from
+something other than the computer running Bob. This is very strongly
+discouraged. See [[the big note of doom|$:/plugins/OokTech/Bob/BigNoteOfDoom]].
+
+If you want an extra layer of security you can use a saver key.
+This is a similar idea to a wifi password, you set it in the $:/ControlPanel
+in Bob and then you have to enter the same key in the single file wikis you
+wish to save or they will not be able to save.
+''This is not sufficient to make changing the configuration a good idea.''
+
+!! And now on to what it actually is
+
+For this Bob and BobEXE are considered the same thing. All of this applies
+regardless of if you are using BobEXE or you are using Bob as a plugin.
+
+Bob has an integrated server that allows you to use the BobSaver to save single
+file wikis without any further configuration.
+
+The server is enabled by default.
+All you need to do is start Bob and then you can open up any single file wiki
+on your computer and edit it and save it normally.
+There are not restrictions on where in your file system you can save as long as
+you could save files there normally.
+
+It works with both autosaving and manual saving.
+
+!!! Setting the saver key
+
+To set the saver key open the $:/ControlPanel, then the `Bob Settings` tab,
+then the `Saver Server` tab.
+
+Enter the key you wish to use in the `Saver Key:` text box and then click on
+the `Save Settings` button.
+
+Remember that if you set this key every html wiki you wish to save will need to
+have the same key entered.
+
+To enter the key in a single file wiki open the $:/ControlPanel then the
+`Saving` tab then the `BobSaver` tab.
+
+Enter the key is the text entry box labeled `Key:`
+
+!!! Disabling the saver server
+
+To disable the saver server go to the $:/ControlPanel, open the
+`Bob Settings` tab, under that open the `Saver Server` tab and check the box to
+disable the saver server. There are more detailed instructions on the
+`Saver Server` tab.

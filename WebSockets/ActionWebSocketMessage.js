@@ -94,7 +94,6 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // We need a message type at a minimum to send anything
   if(message.type) {
     // Send the message
-    //const messageData = $tw.Bob.Shared.createMessageData(message)
     $tw.Bob.Shared.sendMessage(message, 0)
   }
 

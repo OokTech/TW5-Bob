@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-mediaScan
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-mediaScan
 tags: [[Websocket Message]]
 caption: mediaScan
 description: Scan a folder for media and create _canonical_uri tiddlers for each file found

@@ -1,0 +1,13 @@
+title: $:/plugins/OokTech/Bob/Documentation/LazyLoading
+tags: [[Bob Documentation]]
+caption: Lazy Loading
+description: Only loading tiddler metadata until a tiddler is used to improve loading times
+
+You can turn on lazy loading by going to the $:/ControlPanel, then the
+`Bob Settings` tab then the `Server` tab.
+
+Alternatively you can enable or disable lazy loading by directly editing the
+manual settings.
+To enable lazy loading set the `rootTiddler` key under `ws-server` to
+`$:/core/save/lazy-all` or `$:/core/save/lazy-images`.
+To disable lazy loading either remove the key or set it to `$:/core/save/all`.

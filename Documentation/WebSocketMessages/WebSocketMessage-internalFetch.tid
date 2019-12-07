@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-internalFetch
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-internalFetch
 tags: [[Websocket Message]] [[Human Usable]]
 caption: internalFetch
 description: Fetch tiddlers from another wiki on the same Bob server

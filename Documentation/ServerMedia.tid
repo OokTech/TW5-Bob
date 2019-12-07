@@ -1,0 +1,20 @@
+title: $:/plugins/OokTech/Bob/Documentation/ServerMedia
+caption: Server Media
+tags: [[Bob Documentation]]
+description: Save imported media on the server instead of adding the media to a tiddler
+
+When this is enabled media files that are imported into the wiki will be saved
+to the file system and a tiddler with the appropriate type and a
+`_canonical_uri` field that points to the media file is created instead of
+creating a tiddler that contains a base64 encoded version of the media.
+
+This can be very helpful because otherwise all of the media imported into a
+wiki would have to be loaded before the wiki could fully load, having them
+setup as external files means that they are loaded when they are viewed.
+
+This is enabled by default, to disable this feature open the $:/ControlPanel,
+then the `Bob Settings` tab, then the `File Server` tab and uncheck the
+`Save media on server` checkbox.
+
+After disabling the server, or re-enabling it, you have to click on the
+`Update Settings` button for it to take effect.

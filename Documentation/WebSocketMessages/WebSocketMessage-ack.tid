@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-ack
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-ack
 tags: [[Websocket Message]]
 caption: ack
 description: A message for the backend, not human usable.

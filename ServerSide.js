@@ -185,8 +185,10 @@ ServerSide.loadWiki = function (wikiName) {
       // Recursively build the folder tree structure
       $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
-      // Watch the root tiddlers folder for chanegs
-      $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
+      if ($tw.settings.disableFileWatchers !== 'yes') {
+        // Watch the root tiddlers folder for chanegs
+        $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
+      }
 
       // Add tiddlers to the node process
       // Create a wiki object for this wiki
@@ -431,7 +433,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         wikiName: wikiName
       }
     };
-    const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", "$:/core/save/all", options);
+    const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
     if(text.length < 10*1024*1024) {
       $tw.Bob.Wikis[fullName].cached = text;

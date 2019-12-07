@@ -1,5 +1,42 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.4.0 beta
+
+''Note:'' this version changes some parts of how tiddlers are saved to the file
+system. There shouldn't be any problems but there is always a risk of data loss
+when making changes like this. Make sure to backup your data.
+
+* Implemented lazy loading
+** You can enable/disable lazy loading in the `Bob Settings` tab of the $:/ControlPanel
+** Documentation is under the `Bob Settings` tab in the control panel with the other documentation
+* Setup saving and loading in normal syncadaptors to work better with the core
+** The dirty indicator is now handled by the core, so it should behave better now
+*** Saving now takes significantly longer. This is because of a delay built into the core, it isn't a bug.
+** The 'there are unsaved changes' message when you close a tab is also now handled by the core, so it should behave better as well.
+* finished moving all of the functionality of the `ServerImages` plugin into Bob.
+** This means that the `ServerImages` plugin is no longer necessary.
+** Information about the new setup is available in the Bob Documentation called `Server Media`
+** The server media part is enabled by default if you turn on the file server. It can be disable in the $:/ControlPanel under `Bob Settings` -> `Server` -> `File Server`
+*** The server media component only works if the file server is enabled, if it isn't enabled than the server media component has no effect.
+* Changed `WebsocketAdaptor.js` to `MultiWikiAdaptor.js` because it has nothing to do with websockets, it handles saving and loading when you have multiple wikis.
+* Removed some unused template files
+* Switch to using more asynchronous functions
+** changing multiple functions in the file system monitor to use asynchronous versions
+*** While this prevents some race conditions and reduces the places where writing tiddler changes can be delayed, it introduces another race condition that arises when you rename a tiddler or a file on the file system so that the tiddler file name does not follow the rules used by the wiki. The file system monitor deletes the incorrectly named file and creates a new file with the expected name. The file watcher starts acting before the file is completely deleted so it acts as though the file still exists which leads to an error being thrown. The error is handled but there may be unexpected behaviour is situations where tiddler titles or file names are changed in the file system. Back up your data.
+* Modified the BobSaver so the server only accepts files with the extensions `.html`, `.htm` and `.hta`
+** Changing the host for the BobSaver requires that you agree to not ask for tech support and understand that none will be given by filling out the acceptance part of the configuration
+* Added a checkbox to the server tab to enable or disable saving media on the server and creating a tiddler with a `_canonical_uri` field when importing media into the wiki
+* ''(BobEXE only)'' Added a checkbox to enable or disable automatically opening up a browser when BobEXE starts. This has no effect if you are using the plugin version.
+* Checkboxes that change settings no longer require you to click a button to save the change
+** Text entry boxes still require you to click a button to save the updated settings.
+* Added/updated documentation about the saver server and the media server (the replacement for the `ServerImages` plugin.)
+* ''(BobEXE only)'' Added command line arguments to set the location of the index wiki and the wikis folder.
+* Added an option to disable the file system watcher
+** This may help reduce memory usage further if you don't ever edit tiddlers on the file system
+** ''Using syncing software with your wiki folders is not recommended, it can cause dulpicate files and data loss, Bob and the syncing software fight each other when changing files.'' This may help reduce conflicts if you are using syncing software for your wiki folders.
+** This helps prevent bugs that arise from not being able to properly monitor network drives.
+*** This is a limitation of networked drives, it is not specific to Bob. I may write an alternate filesystem monitor that can function with network drives but it will necessarily be slower and have the potential to miss changes made on the file system. This may be unavoidable on networked drives.
+
 !! Version 1.3.3 Kohlrabi
 
 * Added saver key to the single file saver

@@ -1,0 +1,73 @@
+title: $:/plugins/OokTech/Bob/Documentation/FileSystemMonitor
+tags: [[Bob Documentation]]
+caption: File System Monitor
+description: Watching the file system for modifications to tiddler files
+
+By default Bob watches the tiddler files for each wiki and if any change
+happens it will immediately reflect those changes in the browser.
+This includes adding or removing tiddler files or editing their contents.
+
+!!! Note about file names
+
+One effect of the file system monitor is that any file that is modified gets
+checked to make sure that the file name matches what it would be if the tiddler
+got created in the browser.
+This means if you make a tiddler file and call it `foo.tid` and put this
+content inside it
+
+```
+title: bar
+
+some text
+```
+
+the file `foo.tid` would immediately be deleted and relpaced by a file called
+`bar.tid` to match the tiddler title.
+
+This is expected behaviour, but may take people off guard because it is not
+immediately obvious what happened.
+
+These changes include placing tiddler files in subfolders of the tiddlers
+folder.
+If the rules for creating tiddler files used by tiddlywiki would not place the
+tiddler file in that folder than the file is moved to where tiddlywiki expects
+it to be.
+You can change the rules for where tiddler files are placed by creating or
+editing the `$:/config/FileSystemPaths` tiddler.
+See [ext[the documentation on tiddlywiki.com|https://tiddlywiki.com/#Customising%20Tiddler%20File%20Naming]] for further details.
+
+!! Known problems
+
+!!! Networked Drives
+
+The file system monitor does not work as expected on networked drives.
+The most common time this comes up is on windows shared drives, but it affects
+most remote storage options.
+If you store your wikis on a networked drive that isn't in the computer running
+Bob you should disable the file system monitor (see below for how).
+
+!!! File syncing (Dropbox, syncthing, etc.)
+
+The file system monitor does not play well with most automated file syncing
+options.
+Both the file syncing system and Bob are trying to manage the files at the same
+time and both react to changes in files.
+This can lead to duplicate tiddler files or lost data.
+
+It is very strongly recommended that you do not use file syncing on wikis
+served by Bob.
+
+If you use syncing anyway you should at a minimum disable the file system
+monitor.
+
+!! Disabling the file system monitor
+
+If you want to avoid the problems mentioned above or for some other reason
+would like to not use the file system monitor you can disable it.
+To disable it open the $:/ControlPanel, then open the `Bob Settings` tab, then
+the `Server` tab.
+On the `Server` tab there is a checkbox labelled `Disable File System Monitor`,
+check that box then restart Bob.
+
+Disabling or reenabling the file system monitor requires a restart in order to
+take effect.

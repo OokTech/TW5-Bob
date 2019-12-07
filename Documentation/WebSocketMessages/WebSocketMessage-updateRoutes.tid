@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-updateRoutes
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-updateRoutes
 tags: [[Websocket Message]] [[Human Usable]]
 caption: updateRoutes
 description: Add new wikis to server or update the URL of wikis currently being served.

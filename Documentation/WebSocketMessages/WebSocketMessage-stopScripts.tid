@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-stopScripts
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-stopScripts
 tags: [[Websocket Message]] [[Human Usable]]
 caption: stopScripts
 description: Stop currently running shell scipt queue.

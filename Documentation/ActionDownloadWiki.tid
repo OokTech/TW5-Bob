@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/ActionDownloadWiki
+title: $:/plugins/OokTech/Bob/Documentation/ActionDownloadWiki
 tags: ActionWidgets Widgets [[Bob Documentation]]
 caption: ActionDownloadWiki
 description: An action widget that downloads the current wiki as a single file html wiki without any of the Bob components.

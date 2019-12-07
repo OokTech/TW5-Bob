@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-updateTiddlyWikiInfo
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-updateTiddlyWikiInfo
 tags: [[Websocket Message]] [[Human Usable]]
 caption: updateTiddlyWikiInfo
 description: Update the description, plugins, languages and themes in tiddlywiki.info

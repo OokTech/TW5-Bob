@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-getThemeList
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-getThemeList
 tags: [[Websocket Message]] [[Human Usable]]
 caption: getThemeList
 description: Get a list of themes available on the server.

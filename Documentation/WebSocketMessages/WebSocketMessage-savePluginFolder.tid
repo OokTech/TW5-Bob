@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-savePluginFolder
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-savePluginFolder
 tags: [[Websocket Message]] [[Human Usable]]
 caption: savePluginFolder
 description: Split a plugin into individual .tid files and save it on the server

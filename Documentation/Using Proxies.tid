@@ -1,6 +1,10 @@
-title: $:/plugins/OokTech/Bob/UsingProxies
+title: $:/plugins/OokTech/Bob/Documentation/UsingProxies
 caption: Using Proxies
 tags: [[Bob Documentation]]
+
+''Note:'' The developers do not have a setup to test these.
+They are community supplied so support for proxies needs to mainly come from
+the community.
 
 !! Setting up a proxy
 
@@ -32,5 +36,16 @@ phone.local:8080 {
     proxy /wiki 127.0.0.1:8090 {
     without /wiki
   }
+}
+```
+
+Another example of a caddy file that explicitly forwards websockets and does not use TLS is:
+
+```
+example.com:8081 {
+  tls off
+  proxy /wiki example.com:8080 {
+  websocket
+  without /wiki
 }
 ```

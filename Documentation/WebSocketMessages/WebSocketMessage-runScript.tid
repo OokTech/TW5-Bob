@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-runScript
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-runScript
 tags: [[Websocket Message]] [[Human Usable]]
 caption: runScript
 description: Run a shell command defined in the settings.

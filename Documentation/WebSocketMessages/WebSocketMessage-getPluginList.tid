@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/WebSocketMessage-getPluginList
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-getPluginList
 tags: [[Websocket Message]] [[Human Usable]]
 caption: getPluginList
 description: Get a list of all available plugins from the server
