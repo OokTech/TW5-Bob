@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.4.0
+!! Version 1.4.0 beta
 
 ''Note:'' this version changes some parts of how tiddlers are saved to the file
 system. There shouldn't be any problems but there is always a risk of data loss
