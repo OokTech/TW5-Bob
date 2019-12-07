@@ -31,6 +31,43 @@ if($tw.node) {
   }
 
   /*
+    For a lazily loaded wiki this gets the skinny tiddler list.
+  */
+  $tw.nodeMessageHandlers.getSkinnyTiddlers = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    // We need at least the name of the wiki
+    if (data.wiki) {
+      $tw.ServerSide.loadWiki(data.wiki);
+      // Get the skinny tiddlers
+      const tiddlers = []
+      $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
+        if (title.slice(0,3) !== '$:/') {
+          tiddlers.push($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']}))
+        }
+      })
+      const message = {
+        type: 'skinnyTiddlers',
+        tiddlers: tiddlers
+      }
+      $tw.Bob.Shared.sendMessage(message, data.source_connection)
+    }
+  }
+
+  /*
+    For lazy loading this gets a full tiddler
+  */
+  $tw.nodeMessageHandlers.getFullTiddler = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    $tw.ServerSide.loadWiki(data.wiki);
+    const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
+    const message = {
+      type: 'loadTiddler',
+      tiddler: tiddler || {}
+    }
+    $tw.Bob.Shared.sendMessage(message, data.source_connection)
+  }
+
+  /*
     This responds to a ping from the browser. This is used to check and make sure
     that the browser and server are connected.
     It also echos back any data that was sent. This is used by the heartbeat to

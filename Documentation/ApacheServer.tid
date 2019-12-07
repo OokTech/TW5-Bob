@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/ApacheServer
 tags: [[Bob Documentation]]
-caption: ActionWebSocketMessage
+caption: Using an Apache Server
 description: Setting up Bob on an apache server with SSL
 
 !! Bob behind an Apache SSL-terminating proxy

@@ -269,7 +269,9 @@ if($tw.node) {
     }
   };
 
-  exports.adaptorClass = MultiWikiAdaptor;
+  if ($tw.node) {
+    exports.adaptorClass = MultiWikiAdaptor;
+  }
 }
 
 })();
