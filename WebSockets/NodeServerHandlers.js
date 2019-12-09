@@ -369,17 +369,28 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('update', data)
     const path = require('path');
     const fs = require('fs');
-    if(typeof data.updateString === 'object') {
+    if(typeof data.updateString !== 'undefined') {
       let failed = false;
       let updatesObject = {};
       let error = undefined;
       try {
         if (typeof data.updateString === 'object') {
           Object.keys(data.updateString).forEach(function(key) {
-            updatesObject[key] = (typeof data.updateString[key] === 'object')?data.updateString[key]:JSON.parse(data.updateString[key])
+            if (typeof data.updateString[key] === 'object') {
+              updatesObject[key] = data.updateString[key]
+            } else if (typeof data.updateString[key] === 'string') {
+              if (data.updateString[key].startsWith('{') || data.updateString[key].startsWith('[')) {
+                try {
+                  updatesObject[key] = JSON.parse(data.updateString[key]);
+                } catch (e) {
+                  updatesObject[key] = data.updateString[key];
+                }
+              } else {
+                updatesObject[key] = data.updateString[key];
+              }
+            }
           })
         } else {
           updatesObject = JSON.parse(data.updateString);

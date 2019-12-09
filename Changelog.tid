@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.4.0 beta
+!! Version 1.4.0 beta 2
 
 ''Note:'' this version changes some parts of how tiddlers are saved to the file
 system. There shouldn't be any problems but there is always a risk of data loss
@@ -11,7 +11,8 @@ when making changes like this. Make sure to backup your data.
 ** Documentation is under the `Bob Settings` tab in the control panel with the other documentation
 * Setup saving and loading in normal syncadaptors to work better with the core
 ** The dirty indicator is now handled by the core, so it should behave better now
-*** Saving now takes significantly longer. This is because of a delay built into the core, it isn't a bug.
+*** Saving now takes longer, but 'longer' is about 1 second instead of about 1/10th of a second.
+**** This is because of a delay built into the core, it isn't a bug. In future versions of tiddlywiki this will be configurable.
 ** The 'there are unsaved changes' message when you close a tab is also now handled by the core, so it should behave better as well.
 * finished moving all of the functionality of the `ServerImages` plugin into Bob.
 ** This means that the `ServerImages` plugin is no longer necessary.
@@ -36,6 +37,7 @@ when making changes like this. Make sure to backup your data.
 ** ''Using syncing software with your wiki folders is not recommended, it can cause dulpicate files and data loss, Bob and the syncing software fight each other when changing files.'' This may help reduce conflicts if you are using syncing software for your wiki folders.
 ** This helps prevent bugs that arise from not being able to properly monitor network drives.
 *** This is a limitation of networked drives, it is not specific to Bob. I may write an alternate filesystem monitor that can function with network drives but it will necessarily be slower and have the potential to miss changes made on the file system. This may be unavoidable on networked drives.
+* Fixed some problems with action-updatesetting
 
 !! Version 1.3.3 Kohlrabi
 
