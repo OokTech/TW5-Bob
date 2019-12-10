@@ -345,6 +345,24 @@ function BrowserWSAdaptor(options) {
             wiki: $tw.wiki.getTiddlerText('$:/WikiName')
           }
           request.setRequestHeader('x-wiki-name',wikiPrefix);
+          request.onreadystatechange = function() {
+            if (request.readyState === XMLHttpRequest.DONE) {
+              if (request.status === 200) {
+                // Things should be ok
+              } else {
+                // There is a problem
+                // Make a tiddler that has the tag $:/tags/Alert that has the text of
+                // the alert.
+                const fields = {
+                  component: 'Server Message',
+                  title: "Upload Error",
+                  text: "File failed to upload to server. Try quitting and restarting Bob."+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+                  tags: '$:/tags/Alert'
+                }
+                $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
+              }
+            }
+          }
           request.send(JSON.stringify(thing));
           // Change the tiddler fields and stuff
           var fields = {};
