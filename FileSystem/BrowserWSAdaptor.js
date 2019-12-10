@@ -90,8 +90,7 @@ function BrowserWSAdaptor(options) {
     // wikis, so this tries every second until it succeds at creating them.
     function tryAgain() {
       setTimeout(function() {
-        if (!$tw.wiki.getTiddler("$:/WikiSettings")) {
-          console.log('try again')
+        if (!$tw.wiki.getTiddler("$:/WikiSettings/split")) {
           const data = {
             type: 'setLoggedIn',
             wiki: $tw.wikiName,
