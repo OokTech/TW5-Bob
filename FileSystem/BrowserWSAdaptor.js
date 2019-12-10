@@ -259,8 +259,7 @@ function BrowserWSAdaptor(options) {
       This handles the hook for importing tiddlers.
     */
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-      //if ($tw.settings.saveMediaOnServer === 'yes' && $tw.settings.enableFileServer === 'yes') {
-      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') === 'yes' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
+      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') !== 'no' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
         function updateProgress(e) {
           // TODO make this work in different browsers
           /*

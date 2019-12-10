@@ -56,6 +56,7 @@ function findName(url) {
 
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');

@@ -189,11 +189,15 @@ Enter the prefix and path you want to use, then click `Add Folder` button
 
 <$button>
   Add Folder
-  <$list filter="""[[$:/temp/Bob/AddServedFiles]has[scan]scan[yes]]"""
-    emptyMessage='<$action-updatesetting servingFiles={{{ [[{"]addsuffix{$:/temp/Bob/AddServedFiles!!prefix}addsuffix[":"]addsuffix{$:/temp/Bob/AddServedFiles!!path}addsuffix["}]] }}}/>'
+  <$action-updatesetting
+    servingFiles={{{ [[{"]addsuffix{$:/temp/Bob/AddServedFiles!!prefix}addsuffix[":"]addsuffix{$:/temp/Bob/AddServedFiles!!path}addsuffix["}]] }}}
+  />
+  <$list
+    filter="""[[$:/temp/Bob/AddServedFiles]has[scan]scan[yes]]"""
   >
-    <$action-sendmessage
-      type='mediaScan'
+    SCAN
+    <$action-websocketmessage
+      $type='mediaScan'
       folder={{$:/temp/Bob/AddServedFiles!!path}}
       prefix={{$:/temp/Bob/AddServedFiles!!prefix}}
     />
