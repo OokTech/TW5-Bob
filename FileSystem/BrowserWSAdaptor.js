@@ -259,7 +259,8 @@ function BrowserWSAdaptor(options) {
       This handles the hook for importing tiddlers.
     */
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-      if ($tw.settings.saveMediaOnServer === 'yes' && $tw.settings.enableFileServer === 'yes') {
+      //if ($tw.settings.saveMediaOnServer === 'yes' && $tw.settings.enableFileServer === 'yes') {
+      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') === 'yes' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
         function updateProgress(e) {
           // TODO make this work in different browsers
           /*
@@ -282,7 +283,8 @@ function BrowserWSAdaptor(options) {
         }
         // Figure out if the thing being imported is something that should be
         // saved on the server.
-        const mimeMap = $tw.settings.mimeMap || {
+        //const mimeMap = $tw.settings.mimeMap || {
+        const mimeMap = {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
           '.csv': 'text/csv',
@@ -306,7 +308,7 @@ function BrowserWSAdaptor(options) {
           '.webm': 'video/webm',
           '.wav': 'audio/wav'
         };
-        if (Object.values(mimeMap)[tiddler.fields.type] && !tiddler.fields._canonical_uri) {
+        if (Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
           // Check if this is set up to use HTTP post or websockets to save the
           // image on the server.
           var request = new XMLHttpRequest();
@@ -338,6 +340,8 @@ function BrowserWSAdaptor(options) {
         } else {
           return tiddler;
         }
+      } else {
+        return tiddler;
       }
     });
   }

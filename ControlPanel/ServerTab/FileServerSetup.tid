@@ -1,58 +1,36 @@
 title: $:/plugins/OokTech/Bob/FileServerSetup
 caption: File Server
 
-\define checkActions()
-<$list
-  filter='[[$:/WikiSettings/split]getindex[filePathRoot]]'
-  emptyMessage="""<$action-websocketmessage
-    $type='updatesetting'
-    filePathRoot='./files'
-  />"""
->
-</$list>
-<$reveal
-  type='nomatch'
-  state='$:/WikiSettings/split##enableFileServer'
-  text='yes'
->
-  <$action-websocketmessage
-    $type='updatesetting'
+\define enableFileServerCheckActions()
+  <$list
+    filter='[[$:/WikiSettings/split]getindex[filePathRoot]]'
+    emptyMessage="""<$action-websocketmessage
+      $type='updatesetting'
+      filePathRoot='./files'
+    />"""
+  >
+  </$list>
+  <$action-updatesetting
     enableFileServer='yes'
   />
-</$reveal>
-<$reveal
-  type='match'
-  state='$:/WikiSettings/split##enableFileServer'
-  text='yes'
->
-  <$action-websocketmessage
-    $type='updatesetting'
-    enableFileServer='no'
-  />
-</$reveal>
 \end
 
-\define secondCheckActions()
-<$reveal
-  type='nomatch'
-  state='$:/WikiSettings/split##saveMediaOnServer'
-  text='yes'
->
-  <$action-websocketmessage
-    $type='updatesetting'
+\define enableFileServerUncheckActions()
+  <$action-updatesetting
+    enableFileServer='no'
+  />
+\end
+
+\define saveMediaOnServerCheckActions()
+  <$action-updatesetting
     saveMediaOnServer='yes'
   />
-</$reveal>
-<$reveal
-  type='match'
-  state='$:/WikiSettings/split##saveMediaOnServer'
-  text='yes'
->
-  <$action-websocketmessage
-    $type='updatesetting'
+\end
+
+\define saveMediaOnServerUncheckActions()
+  <$action-updatesetting
     saveMediaOnServer='no'
   />
-</$reveal>
 \end
 
 <$reveal
@@ -94,11 +72,13 @@ username on the computer you are using.
 </$reveal>
 
 <$checkbox
-  actions=<<checkActions>>
+  checkactions=<<enableFileServerCheckActions>>
+  uncheckactions=<<enableFileServerUncheckActions>>
   tiddler='$:/WikiSettings/split'
   index='enableFileServer'
   checked='yes'
   unchecked='no'
+  default='no'
 >
   Enable File Server
 </$checkbox>
@@ -108,7 +88,8 @@ is enabled. So if the checkbox above is not checked than this checkbox does
 nothing.
 
 <$checkbox
-  actions=<<secondCheckActions>>
+  checkactions=<<saveMediaOnServerCheckActions>>
+  uncheckactions=<<saveMediaOnServerUncheckActions>>
   tiddler='$:/WikiSettings/split'
   index='saveMediaOnServer'
   checked='yes'
