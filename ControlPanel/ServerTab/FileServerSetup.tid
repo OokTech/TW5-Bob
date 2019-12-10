@@ -195,7 +195,7 @@ Enter the prefix and path you want to use, then click `Add Folder` button
   <$list
     filter="""[[$:/temp/Bob/AddServedFiles]has[scan]scan[yes]]"""
   >
-    SCAN
+    and scan for media
     <$action-websocketmessage
       $type='mediaScan'
       folder={{$:/temp/Bob/AddServedFiles!!path}}

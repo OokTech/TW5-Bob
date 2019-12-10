@@ -85,6 +85,26 @@ function BrowserWSAdaptor(options) {
       token: token
     };
     $tw.Bob.Shared.sendMessage(data, 0);
+
+    // For some reason the settings tiddlers are not always created in some
+    // wikis, so this tries every second until it succeds at creating them.
+    function tryAgain() {
+      setTimeout(function() {
+        if (!$tw.wiki.getTiddler("$:/WikiSettings")) {
+          console.log('try again')
+          const data = {
+            type: 'setLoggedIn',
+            wiki: $tw.wikiName,
+            heartbeat: true,
+            token: token
+          };
+          $tw.Bob.Shared.sendMessage(data, 0);
+          tryAgain()
+        }
+      },1000)
+    }
+
+    tryAgain()
   }
   /*
     This is a wrapper function, each message from the websocket server has a
