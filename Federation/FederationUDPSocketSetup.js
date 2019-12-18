@@ -32,11 +32,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
     // Create the UDP socket to use
     $tw.Bob.Federation.socket = dgram.createSocket({type:'udp4', reuseAddr: true});
+    $tw.settings.federation.udpPort = $tw.settings.federation.udpPort || '3232';
+    $tw.settings.federation.serverName = $tw.settings.federation.serverName || 'Server of Eternal Mystery';
     $tw.Bob.Federation.socket.bind($tw.settings.federation.udpPort, ()=>{
       console.log('listening on udp port', $tw.settings.federation.udpPort)
       if ($tw.settings.federation.enableMulticast === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '230.0.0.114';
-        $tw.settings.federation.udpPort = $tw.settings.federation.udpPort || '3232';
         console.log('using multicast address ', $tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.setBroadcast(true);
@@ -69,9 +70,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
-      $tw.Bob.logger.log('Received federated message ', event, {level:4});
+      $tw.Bob.logger.log('Received federated message ', message, {level:4});
       try {
         let messageData = JSON.parse(message);
+        console.log(messageData)
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
