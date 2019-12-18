@@ -1,5 +1,219 @@
 title: $:/plugins/OokTech/Bob/ServerMessageHistory
-caption: Server Messages
+caption: Server Messages and Logging
+
+\define consoleLoggingCheck()
+<$action-updatesetting
+  logger='{"useConsoleLogging":"yes"}'
+/>
+\end
+
+\define consoleLoggingUncheck()
+<$action-updatesetting
+  logger='{"useConsoleLogging":"no"}'
+/>
+\end
+
+\define fileLoggingCheck()
+<$action-updatesetting
+  logger='{"useFileLogging":"yes"}'
+/>
+\end
+
+\define fileLoggingUncheck()
+<$action-updatesetting
+  logger='{"useFileLogging":"no"}'
+/>
+\end
+
+\define browserLoggingCheck()
+<$action-updatesetting
+  logger='{"useBrowserLogging":"yes"}'
+/>
+\end
+
+\define browserLoggingUncheck()
+<$action-updatesetting
+  logger='{"useBrowserLogging":"no"}'
+/>
+\end
+
+!! Logger setup
+
+Log levels above 2 are not implemented in many places.
+
+All of the log levels default to 2, so if nothing is checked on the radio
+buttons it is 2.
+
+!!! Console Logging
+
+<$checkbox
+  checkactions=<<consoleLoggingCheck>>
+  uncheckactions=<<consoleLoggingUncheck>>
+  tiddler="$:/WikiSettings/split/logger"
+  index="useConsoleLogging"
+  checked="yes"
+  unchecked="no"
+  default="yes"
+>
+  Enable Console Logging
+</$checkbox>
+
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='consoleLogLevel'
+  value=1
+>
+  1
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='consoleLogLevel'
+  value=2
+>
+  2
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='consoleLogLevel'
+  value=3
+>
+  3
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='consoleLogLevel'
+  value=4
+>
+  4
+</$radio>
+<$button
+>
+  Update Console Logging Level
+  <$action-updatesetting
+    logger= {{{ [[{"consoleLogLevel":]addsuffix{$:/WikiSettings/split/logger##consoleLogLevel}addsuffix[}]] }}}
+  />
+</$radio>
+
+!!! File Logging
+
+<$checkbox
+  checkactions=<<fileLoggingCheck>>
+  uncheckactions=<<fileLoggingUncheck>>
+  tiddler="$:/WikiSettings/split/logger"
+  index=""
+  checked="yes"
+  unchecked="no"
+  default="no"
+>
+  Enable File Logging
+</$checkbox>
+
+File Log Level:
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='fileLogLevel'
+  value=1
+>
+  1
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='fileLogLevel'
+  value=2
+>
+  2
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='fileLogLevel'
+  value=3
+>
+  3
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='fileLogLevel'
+  value=4
+>
+  4
+</$radio>
+<$button>
+  Update File Logging Level
+  <$action-updatesetting
+    logger= {{{ [[{"fileLogLevel":]addsuffix{$:/WikiSettings/split/logger##fileLogLevel}addsuffix[}]] }}}
+  />
+</$button>
+
+Log folder:
+<$edit-text
+  tiddler='$:/WikiSettings/split/logger'
+  index='outputFolder'
+  default='./logs'
+/>
+(update button for log folder)
+
+Log file name (update button for log file name)
+
+!!! Browser Logging
+
+''Browser Logging isn't completely implemented yet, don't expect any of this to
+work''
+
+Things here probably won't do anything.
+
+Browser logging is not the same as the server alerts that pop up after some
+actions.
+The browser alerts let you know the status of actions like creating wikis or
+saving settings.
+Browser logging takes all of the output that you would see in the console and
+makes it visible in the browser.
+
+<$checkbox
+  checkactions=<<browserLoggingCheck>>
+  uncheckactions=<<browserLoggingUncheck>>
+  tiddler="$:/WikiSettings/split/logger"
+  index=""
+  checked="yes"
+  unchecked="no"
+  default="no"
+>
+  Enable File Logging
+</$checkbox>
+
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='browserLogLevel'
+  value=1
+>
+  1
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='browserLogLevel'
+  value=2
+>
+  2
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='browserLogLevel'
+  value=3
+>
+  3
+</$radio>
+<$radio
+  tiddler='$:/WikiSettings/split/logger'
+  index='browserLogLevel'
+  value=4
+>
+  4
+</$radio>
+<$button>
+  Update Browser Logging Level
+  <$action-updatesetting
+    logger= {{{ [[{"browserLogLevel":]addsuffix{$:/WikiSettings/split/logger##browserLogLevel}addsuffix[}]] }}}
+  />
+</$button>
 
 !!Server Messages
 

@@ -6,7 +6,11 @@ These are the currently active connections between your server and remote
 servers.
 
 <$list
-  filter='[prefix[$:/Bob/ActiveConnections/]]'
+  filter='[list[$:/Bob/ActiveConnections]]'
 >
-
+  <$view
+    index=serverName
+  >
+    <<currentTiddler>>
+  </$view>
 </$list>

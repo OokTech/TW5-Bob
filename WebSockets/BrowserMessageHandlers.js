@@ -436,7 +436,7 @@ it will overwrite this file.
       Object.keys(data.connections).forEach(function(connectionUrl) {
         if (data.connections[connectionUrl].name) {
           const connectionFields = {
-            title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
+            title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name,
             tags: '[[Remote Server]]',
             url: connectionUrl,
             staticurl: data.connections[connectionUrl].staticUrl,
@@ -461,7 +461,7 @@ it will overwrite this file.
           })
           data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {
             $tw.wiki.addTiddler(new $tw.Tiddler({
-              title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name + '/wikis/' + thisChatName,
+              title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name + '/chats/' + thisChatName,
               public: 'yes',
               relay: 'no',
               name: thisChatName

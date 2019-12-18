@@ -25,4 +25,4 @@ These are different things you can do for managing wikis.
   Remove missing wikis when updating list
 </$checkbox>
 
-<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugnis/OokTech/Bob/CreateWikis]][[$:/plugins/OokTech/Bob/RenameWikis]][[$:/plugins/OokTech/Bob/DeleteWikis]]" "$:/plugins/OokTech/Bob/Wiki Listing">>
+<<tabs "[[$:/plugins/OokTech/Bob/Wiki Listing]][[$:/plugins/OokTech/Bob/CreateWikis]][[$:/plugins/OokTech/Bob/RenameWikis]][[$:/plugins/OokTech/Bob/DeleteWikis]]" "$:/plugins/OokTech/Bob/Wiki Listing">>

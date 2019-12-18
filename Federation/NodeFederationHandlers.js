@@ -68,6 +68,13 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
+
+  */
+  $tw.Bob.Federation.messageHandlers.multicastSearch = function(data) {
+
+  }
+
+  /*
     Ask a remote server for updated information about the server.
   */
   $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {

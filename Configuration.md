@@ -79,6 +79,7 @@ used. If the json isn't formatted correctly than default values will be used.
   },
   "logger": {
     "useFileLogging":"no",
+    "fileLogLevel": "2",
     "outputFolder": "./logs",
     "outputBaseFileName": "Log",
     "useSeparateErrorFile": "no",
@@ -87,14 +88,17 @@ used. If the json isn't formatted correctly than default values will be used.
     "useBrowserLogging": "no",
     "browserLogLevel": "2",
     "useConsoleLogging": "yes",
-    "consoleLogLevel": "2",
-    "useFileLogging": "no",
-    "fileLogLevel": "2"
+    "consoleLogLevel": "2"
   },
   "federation": {
     "serverName": "Noh Neigh-m",
     "mobile": "no",
-    "enableChat": "no"
+    "enableChat": "no",
+    "udpPort": "3232",
+    "enableMulticast": "yes",
+    "multicastAddress": "230.0.0.114",
+    "broadcast": "yes",
+    "rebroadcastInterval": "5000"
   },
   "advanced": {
     "localMessageQueueTimeout": 500,
@@ -239,6 +243,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `mobile` set this to `yes` if the server isn't going to have the same url
     or ip address all the time.
   - `enableChat` set this to `yes` to enable the federated chat server.
+  - `udpPort` this is the port used by the udp socket used to connect to other
+    servers.
+  - `multicastAddress` this is the multicast ip used for using multicast on the
+    local network to find other servers.
 - `advanced` these are advanced settings that should almost never have to be
   changed. Changing these values can cause undesired or unexpected behaviour.
   - `localMessageQueueTimeout` for local messages, the maximum time the server

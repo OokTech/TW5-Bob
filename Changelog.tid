@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.4.0 beta 2
+!! Version 1.4.0 beta 5
 
 ''Note:'' this version changes some parts of how tiddlers are saved to the file
 system. There shouldn't be any problems but there is always a risk of data loss
@@ -38,6 +38,11 @@ when making changes like this. Make sure to backup your data.
 ** This helps prevent bugs that arise from not being able to properly monitor network drives.
 *** This is a limitation of networked drives, it is not specific to Bob. I may write an alternate filesystem monitor that can function with network drives but it will necessarily be slower and have the potential to miss changes made on the file system. This may be unavoidable on networked drives.
 * Fixed some problems with action-updatesetting
+* Add configuration UI for logging
+* Tweaked some configuration instructions
+* Added udp multicast to find other Bob servers on the local network
+** For federation stuff
+* Started UI for managing interactions with other servers
 
 !! Version 1.3.3 Kohlrabi
 
