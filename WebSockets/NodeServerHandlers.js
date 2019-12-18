@@ -1183,13 +1183,6 @@ if($tw.node) {
                   }
                   const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
                   const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
-                  // We have to have an empty file to make the .meta file work.
-                  // For some reason.
-                  // But we don't want to overwrite the file if it exists.
-                  if (data.overwrite === 'yes' || !fs.existsSync(tiddlerPath)) {
-                    fs.writeFile(tiddlerPath,'',function() {
-                    })
-                  }
                   // Check if the file exists and only overwrite it if the
                   // overwrite flag is set.
                   // Update this to check for files by the _canonical_uri field

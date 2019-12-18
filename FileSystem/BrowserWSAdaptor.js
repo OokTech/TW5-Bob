@@ -85,6 +85,25 @@ function BrowserWSAdaptor(options) {
       token: token
     };
     $tw.Bob.Shared.sendMessage(data, 0);
+
+    // For some reason the settings tiddlers are not always created in some
+    // wikis, so this tries every second until it succeds at creating them.
+    function tryAgain() {
+      setTimeout(function() {
+        if (!$tw.wiki.getTiddler("$:/WikiSettings/split")) {
+          const data = {
+            type: 'setLoggedIn',
+            wiki: $tw.wikiName,
+            heartbeat: true,
+            token: token
+          };
+          $tw.Bob.Shared.sendMessage(data, 0);
+          tryAgain()
+        }
+      },1000)
+    }
+
+    tryAgain()
   }
   /*
     This is a wrapper function, each message from the websocket server has a
@@ -259,8 +278,7 @@ function BrowserWSAdaptor(options) {
       This handles the hook for importing tiddlers.
     */
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-      //if ($tw.settings.saveMediaOnServer === 'yes' && $tw.settings.enableFileServer === 'yes') {
-      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') === 'yes' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
+      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') !== 'no' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
         function updateProgress(e) {
           // TODO make this work in different browsers
           /*
@@ -327,6 +345,24 @@ function BrowserWSAdaptor(options) {
             wiki: $tw.wiki.getTiddlerText('$:/WikiName')
           }
           request.setRequestHeader('x-wiki-name',wikiPrefix);
+          request.onreadystatechange = function() {
+            if (request.readyState === XMLHttpRequest.DONE) {
+              if (request.status === 200) {
+                // Things should be ok
+              } else {
+                // There is a problem
+                // Make a tiddler that has the tag $:/tags/Alert that has the text of
+                // the alert.
+                const fields = {
+                  component: 'Server Message',
+                  title: "Upload Error",
+                  text: "File failed to upload to server. Try quitting and restarting Bob."+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+                  tags: '$:/tags/Alert'
+                }
+                $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
+              }
+            }
+          }
           request.send(JSON.stringify(thing));
           // Change the tiddler fields and stuff
           var fields = {};
