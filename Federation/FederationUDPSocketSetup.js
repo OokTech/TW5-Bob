@@ -18,6 +18,7 @@ exports.after = ["render"];
 exports.synchronous = true;
 
 if($tw.node && $tw.settings.enableFederation === 'yes') {
+  const dgram = require('dgram');
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
     $tw.settings.federation = $tw.settings.federation || {};
@@ -59,7 +60,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
       }
     })
-    $tw.Bob.Federation.socket.on('message', $tw.Bob.Federation.handleMessage);
+    $tw.Bob.Federation.socket.on('message', ()=>{$tw.Bob.Federation.handleMessage()});
 
     const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
