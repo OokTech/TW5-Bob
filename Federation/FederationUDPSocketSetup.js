@@ -36,6 +36,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       console.log('listening on udp port', $tw.settings.federation.udpPort)
       if ($tw.settings.federation.enableMulticast === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '230.0.0.114';
+        $tw.settings.federation.udpPort = $tw.settings.federation.udpPort || '3232';
         console.log('using multicast address ', $tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.setBroadcast(true);
