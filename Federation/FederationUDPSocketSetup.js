@@ -35,9 +35,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.socket.bind($tw.settings.federation.udpPort, ()=>{
       console.log('listening on udp port', $tw.settings.federation.udpPort)
       if ($tw.settings.federation.enableMulticast === 'yes') {
-        $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '3232';
+        $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '230.0.0.114';
         console.log('using multicast address ', $tw.settings.federation.multicastAddress);
-        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddres);
+        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
 
@@ -60,7 +60,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
       }
     })
-    $tw.Bob.Federation.socket.on('message', ()=>{$tw.Bob.Federation.handleMessage()});
+    $tw.Bob.Federation.socket.on('message', (message)=>{
+      console.log('got udp socket message')
+      $tw.Bob.Federation.handleMessage(message);
+    });
 
     const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
