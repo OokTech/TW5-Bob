@@ -227,24 +227,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           console.log('send info request')
           $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info.address + ':' + messageData._source_info.port)
         }
-        /*
-        $tw.Bob.Federation.connections[serverKey] = {
-          serverName: messageData.serverName,
-          address: rinfo.address,
-          port: rinfo.port,
-          pubKey: messageData.pubKey,
-          staticUrl: messageData.staticUrl || 'no',
-          canLogin: messageData.canLogin || 'no',
-          availableWikis: messageData.availableWikis || [],
-          availableChats: messageData.availableChats || []
-        };
-        updateConnectionsInfo();
-        */
       } else {
         // Check to make sure we have the up-to-date address and port
-        if ($tw.Bob.Federation.connections[serverKey].address !== rinfo.address || $tw.Bob.Federation.connections[serverKey].port !== rinfo.port) {
-          $tw.Bob.Federation.connections[serverKey].address = rinfo.address;
-          $tw.Bob.Federation.connections[serverKey].port = rinfo.port;
+        if ($tw.Bob.Federation.connections[serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[serverKey].port !== messageData._source_info.port) {
+          $tw.Bob.Federation.connections[serverKey].address = messageData._source_info.address;
+          $tw.Bob.Federation.connections[serverKey].port = messageData._source_info.port;
           updateConnectionsInfo();
         }
       }
