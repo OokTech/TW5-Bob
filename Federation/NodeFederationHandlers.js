@@ -92,6 +92,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
   function addServerInfo(data) {
     data = data || {};
+    $tw.Bob.Federation.remoteConnections[data._source_info.serverKey] = $tw.Bob.Federation.remoteConnections[data._source_info.serverKey] || {};
     data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.serverKey].name = data.info.name;
