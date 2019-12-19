@@ -102,6 +102,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
+      if (!rinfo || !message) {
+        return;
+      }
       $tw.Bob.logger.log('Received federated message ', message, {level:4});
       try {
         let messageData = JSON.parse(message);
@@ -109,11 +112,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           messageData = JSON.parse(messageData);
         }
         messageData._source_info = rinfo;
+        messageData._source_info.serverKey = getServerKey(messageData);
+        if (!messageData._source_info.serverKey) {
+          return;
+        }
         handleConnection(messageData);
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[messageData.type] === 'function') {
           // Check authorisation
-          const authorised = $tw.Bob.Federation.authenticateMessage(messageData, rinfo);
+          const authorised = $tw.Bob.Federation.authenticateMessage(messageData);
           messageData.wiki = checkNonce(messageData)
           // TODO fix this dirty hack. We need a better way to list which
           // messages don't require a nonce.
@@ -209,29 +216,35 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     /*
       This returns the server key used as the unique identifier for a server
     */
-    function getServerKey(messageData, rinfo) {
-      return messageData.serverName || rinfo.address + ':' + rinfo.port;
+    function getServerKey(messageData) {
+      if (messageData._source_info) {
+        return messageData.serverName || messageData._source_info.address + ':' + messageData._source_info.port;
+      } else if (messageData._target_info) {
+        return messageData.serverName || messageData._target_info.address + ':' + messageData._source_info.port;
+      } else {
+        // This should never happen
+        return false;
+      }
     }
 
     /*
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection(messageData) {
-      const serverKey = getServerKey(messageData);
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
-      if (Object.keys($tw.Bob.Federation.connections).indexOf(serverKey) === -1) {
-        $tw.Bob.logger.log("New Remote Connection", serverKey, {level: 2});
-        if (typeof $tw.Bob.Federation.connections[serverKey] === 'undefined') {
+      if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
+        $tw.Bob.logger.log("New Remote Connection", messageData._source_info.serverKey, {level: 2});
+        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined') {
           // Request server info for the new one
           console.log('send info request')
-          $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info.address + ':' + messageData._source_info.port)
+          $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info)
         }
       } else {
         // Check to make sure we have the up-to-date address and port
-        if ($tw.Bob.Federation.connections[serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[serverKey].port !== messageData._source_info.port) {
-          $tw.Bob.Federation.connections[serverKey].address = messageData._source_info.address;
-          $tw.Bob.Federation.connections[serverKey].port = messageData._source_info.port;
+        if ($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
+          $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
+          $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           updateConnectionsInfo();
         }
       }
