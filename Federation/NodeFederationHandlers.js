@@ -68,16 +68,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
-
-  */
-  $tw.Bob.Federation.messageHandlers.multicastSearch = function(data) {
-
-  }
-
-  /*
     Ask a remote server for updated information about the server.
   */
   $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {
+    console.log('received info request')
     // Reply with the server info listed above
     const reply = {
       type: 'sendServerInfo',
@@ -86,12 +80,13 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         canLogin: $tw.settings.Federation.canLogin || 'no',
         availableWikis: $tw.ServerSide.getViewableWikiList(data),
         availableChats: getAvailableChats(data),
-        port: $tw.settings['ws-server'].port,
+        port: $tw.settings.federation.udpPort,
         publicKey: 'c minor',
         staticUrl: 'no'
       },
       nonce: data.rnonce
     };
+    console.log('request server info', data)
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
   }
 
@@ -100,12 +95,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
       $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin || 'no';
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis || [];
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats || [];
       $tw.Bob.Federation.remoteConnections[data._source_info.url].port = data.info.port;
       $tw.Bob.Federation.remoteConnections[data._source_info.url].publicKey = data.info.publicKey;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].staticUrl = data.info.staticUrl;
+      $tw.Bob.Federation.remoteConnections[data._source_info.url].staticUrl = data.info.staticUrl || 'no';
     }
     $tw.Bob.Federation.updateConnections();
   }
@@ -114,6 +109,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     Add or update local information about a remote server when it is received
   */
   $tw.Bob.Federation.messageHandlers.sendServerInfo = function(data) {
+    console.log('received server info')
     addServerInfo(data)
   }
 
