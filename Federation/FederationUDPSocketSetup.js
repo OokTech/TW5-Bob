@@ -29,7 +29,35 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.authenticateMessage = function (message) {
       return true;
     }
-    $tw.Bob.Federation.updateConnections()
+    /*
+      Update the list of connections and send the updated list to the browsers
+      TODO figure out what sort of limits we need to make on who can see what
+      connections
+      TODO figure out how we are going to put reasonable names on these things
+      because this is designed to work when the ip or url of a connection
+      changes
+    */
+    $tw.Bob.Federation.updateConnections = function () {
+      $tw.Bob.logger.log('Update federated connections', {level:3});
+      $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
+      const connections = {};
+      Object.keys($tw.Bob.Federation.connections).forEach(function(connectionKey) {
+        connections[connectionKey] = {
+          name: $tw.Bob.Federation.connections[connectionKey].name,
+          canLogin: $tw.Bob.Federation.connections[connectionKey].canLogin,
+          availableWikis: $tw.Bob.Federation.connections[connectionKey].availableWikis || [],
+          availableChats: $tw.Bob.Federation.connections[connectionKey].availableChats || [],
+          port: $tw.Bob.Federation.connections[connectionKey].port,
+          publicKey:  $tw.Bob.Federation.connections[connectionKey].publicKey,
+          staticUrl:$tw.Bob.Federation.connections[connectionKey].staticUrl
+        };
+      })
+      const message = {
+        type: 'updateConnections',
+        connections: connections
+      };
+      $tw.Bob.SendToBrowsers(message);
+    }
 
     // Create the UDP socket to use
     $tw.Bob.Federation.socket = dgram.createSocket({type:'udp4', reuseAddr: true});
@@ -43,6 +71,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
+        $tw.Bob.Federation.updateConnections()
 
         // Broadcast a message informing other nodes that this one is on the
         // local net pubKey and signed will be used later, the public key and a
@@ -208,36 +237,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           updateConnectionsInfo();
         }
       }
-    }
-
-    /*
-      Update the list of connections and send the updated list to the browsers
-      TODO figure out what sort of limits we need to make on who can see what
-      connections
-      TODO figure out how we are going to put reasonable names on these things
-      because this is designed to work when the ip or url of a connection
-      changes
-    */
-    $tw.Bob.Federation.updateConnections = function () {
-      $tw.Bob.logger.log('Update federated connections', {level:3});
-      $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
-      const connections = {};
-      Object.keys($tw.Bob.Federation.connections).forEach(function(connectionKey) {
-        connections[connectionKey] = {
-          name: $tw.Bob.Federation.connections[connectionKey].name,
-          canLogin: $tw.Bob.Federation.connections[connectionKey].canLogin,
-          availableWikis: $tw.Bob.Federation.connections[connectionKey].availableWikis || [],
-          availableChats: $tw.Bob.Federation.connections[connectionKey].availableChats || [],
-          port: $tw.Bob.Federation.connections[connectionKey].port,
-          publicKey:  $tw.Bob.Federation.connections[connectionKey].publicKey,
-          staticUrl:$tw.Bob.Federation.connections[connectionKey].staticUrl
-        };
-      })
-      const message = {
-        type: 'updateConnections',
-        connections: connections
-      };
-      $tw.Bob.SendToBrowsers(message);
     }
 
     finishSetup();
