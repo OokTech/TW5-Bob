@@ -29,6 +29,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.authenticateMessage = function (message) {
       return true;
     }
+    $tw.Bob.Federation.updateConnections()
 
     // Create the UDP socket to use
     $tw.Bob.Federation.socket = dgram.createSocket({type:'udp4', reuseAddr: true});
@@ -62,9 +63,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
       }
     })
-    $tw.Bob.Federation.socket.on('message', (message)=>{
+    $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
       console.log('got udp socket message')
-      $tw.Bob.Federation.handleMessage(message);
+      $tw.Bob.Federation.handleMessage(message, rinfo);
     });
 
     const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
@@ -141,7 +142,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       try {
         const connections = fs.readFileSync(connectionsFilePath);
-        return connections;
+        return connections.toString('utf8');
       } catch (e) {
         return {};
       }
@@ -159,7 +160,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // Create the settings folder
         fs.mkdirSync(userSettingsFolder);
       }
-      const connections = JSON.stringify($tw.settings, "", 2);
+      const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
       fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
         if(err) {
           const message = {
@@ -170,6 +171,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           $tw.Bob.logger.error(err, {level:1});
         } else {
           $tw.Bob.logger.log('Updated connections file', {level:1})
+          $tw.Bob.Federation.updateConnections()
         }
       });
     }
@@ -185,12 +187,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection(messageData, rinfo) {
-      $tw.Bob.logger.log("New Remote Connection", {level: 2});
       const serverKey = getServerKey(messageData, rinfo);
-      let update = false;
+      console.log($tw.Bob.Federation.connections)
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
       if (Object.keys($tw.Bob.Federation.connections).indexOf(serverKey) === -1) {
+        $tw.Bob.logger.log("New Remote Connection", serverKey, {level: 2});
         $tw.Bob.Federation.connections[serverKey] = {
           serverName: messageData.serverName,
           address: rinfo.address,
