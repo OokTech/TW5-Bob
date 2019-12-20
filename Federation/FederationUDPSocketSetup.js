@@ -40,20 +40,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.updateConnections = function () {
       $tw.Bob.logger.log('Update federated connections', {level:3});
       $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
-      /*
-      const connections = {};
-      Object.keys($tw.Bob.Federation.connections).forEach(function(connectionKey) {
-        connections[connectionKey] = {
-          name: $tw.Bob.Federation.connections[connectionKey].name,
-          canLogin: $tw.Bob.Federation.connections[connectionKey].canLogin,
-          availableWikis: $tw.Bob.Federation.connections[connectionKey].availableWikis || [],
-          availableChats: $tw.Bob.Federation.connections[connectionKey].availableChats || [],
-          port: $tw.Bob.Federation.connections[connectionKey].port,
-          publicKey:  $tw.Bob.Federation.connections[connectionKey].publicKey,
-          staticUrl:$tw.Bob.Federation.connections[connectionKey].staticUrl
-        };
-      })
-      */
+      console.log($tw.Bob.Federation.connections)
       const message = {
         type: 'updateConnections',
         connections: $tw.Bob.Federation.connections
@@ -95,11 +82,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
     })
     $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
-      console.log('got udp socket message')
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
 
-    const nonNonce = ['wiki-multicast', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
+    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
       if (!rinfo || !message) {
@@ -231,6 +217,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection(messageData) {
+      /*
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
       if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
@@ -241,8 +228,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           // Request server info for the new one
-          console.log('send info request')
           $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info)
+          updateConnectionsInfo();
         }
       } else {
         // Check to make sure we have the up-to-date address and port
@@ -252,6 +239,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           updateConnectionsInfo();
         }
       }
+      */
     }
 
     finishSetup();

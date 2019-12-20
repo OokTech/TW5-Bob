@@ -207,17 +207,13 @@ This has some functions that are needed by Bob in different places.
       This modifies messageQueue as a side effect
     */
     function sendMessage(messageData) {
-      console.log('send message', messageData)
       if (!messageData) {
-        console.log('no message data')
         return;
       }
       if (!messageData._target_info) {
-        console.log('no target info in message data', messageData)
         return;
       }
       if(messageIsEligible(messageData, messageQueue)) {
-        console.log('eligable message')
         $tw.Bob.Timers = $tw.Bob.Timers || {};
         // Remove any messages made redundant by this message
         messageQueue = removeRedundantMessages(messageData, messageQueue);
@@ -236,13 +232,12 @@ This has some functions that are needed by Bob in different places.
           messageData.ack[messageData._target_info.serverKey] = false;
           messageQueue.push(messageData);
         }
-        console.log('send it')
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message))
         $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
           if (err) {
             console.log(err)
           } else {
-            console.log('is sent')
+            // console.log('sending worked')
           }
         })
       }
