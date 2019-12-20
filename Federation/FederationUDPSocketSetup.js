@@ -172,34 +172,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
 
     /*
-      Save the connections.json file in the settings folder
-    */
-    function updateConnectionsInfo() {
-      const fs = require('fs');
-      const path = require('path');
-      const connectionsFilePath = path.join($tw.boot.wikiPath, 'settings', 'connections.json');
-      const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings');
-      if(!fs.existsSync(userSettingsFolder)) {
-        // Create the settings folder
-        fs.mkdirSync(userSettingsFolder);
-      }
-      const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
-      fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
-        if(err) {
-          const message = {
-            alert: 'Error saving connections:' + err,
-            connections: [data.source_connection]
-          };
-          $tw.ServerSide.sendBrowserAlert(message);
-          $tw.Bob.logger.error(err, {level:1});
-        } else {
-          $tw.Bob.logger.log('Updated connections file', {level:1})
-          $tw.Bob.Federation.updateConnections()
-        }
-      });
-    }
-
-    /*
       This returns the server key used as the unique identifier for a server
     */
     function getServerKey(messageData) {

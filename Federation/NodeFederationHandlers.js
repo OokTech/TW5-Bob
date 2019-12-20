@@ -68,14 +68,44 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
+    Save the connections.json file in the settings folder
+  */
+  function updateConnectionsInfo() {
+    const fs = require('fs');
+    const path = require('path');
+    const connectionsFilePath = path.join($tw.boot.wikiPath, 'settings', 'connections.json');
+    const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings');
+    if(!fs.existsSync(userSettingsFolder)) {
+      // Create the settings folder
+      fs.mkdirSync(userSettingsFolder);
+    }
+    const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
+    fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
+      if(err) {
+        const message = {
+          alert: 'Error saving connections:' + err,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.error(err, {level:1});
+      } else {
+        $tw.Bob.logger.log('Updated connections file', {level:1})
+        $tw.Bob.Federation.updateConnections()
+      }
+    });
+  }
+
+  /*
     Respond when a multicast search message is received
   */
   $tw.Bob.Federation.messageHandlers.multicastSearch = function(data) {
     // This checks to see if we have the node the broadcast is from listed with
     // the same rinfo stuff as the broadcast, if so we can ignore it, if not
     // than we request info
+    console.log(data)
     if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
       $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
+      updateConnectionsInfo();
     }
   }
 
@@ -104,8 +134,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   function addServerInfo(data) {
-    console.log('ADDING SERVER INFO')
-    console.log(data)
     data = data || {};
     $tw.Bob.Federation.connections[data._source_info.serverKey] = $tw.Bob.Federation.connections[data._source_info.serverKey] || {};
     data.info = (data.message)?(data.message.info || data.info):data.info;
@@ -115,9 +143,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = data.info.availableWikis || [];
       $tw.Bob.Federation.connections[data._source_info.serverKey].availableChats = data.info.availableChats || [];
       $tw.Bob.Federation.connections[data._source_info.serverKey].port = data.info.port;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].address = data._source_info.address;
       $tw.Bob.Federation.connections[data._source_info.serverKey].publicKey = data.info.publicKey;
       $tw.Bob.Federation.connections[data._source_info.serverKey].staticUrl = data.info.staticUrl || 'no';
     }
+    updateConnectionsInfo();
     $tw.Bob.Federation.updateConnections();
   }
 
