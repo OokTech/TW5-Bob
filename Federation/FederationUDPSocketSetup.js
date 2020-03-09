@@ -83,9 +83,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
     })
     $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
-      console.log('received message here 13432')
+      console.log('received message here:', message.toString())
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
+    $tw.Bob.Federation.socket.on('error', (err) => {console.log(err)})
 
     const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
