@@ -102,7 +102,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // This checks to see if we have the node the broadcast is from listed with
     // the same rinfo stuff as the broadcast, if so we can ignore it, if not
     // than we request info
-    console.log(data)
     if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
       $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
       updateConnectionsInfo();
@@ -113,7 +112,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     Ask a remote server for updated information about the server.
   */
   $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {
-    console.log('received info request')
     // Reply with the server info listed above
     const reply = {
       type: 'sendServerInfo',
@@ -129,7 +127,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       },
       nonce: data.rnonce
     };
-    console.log('received request server info', data)
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
   }
 
@@ -155,8 +152,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     Add or update local information about a remote server when it is received
   */
   $tw.Bob.Federation.messageHandlers.sendServerInfo = function(data) {
-    console.log('received server info')
-    addServerInfo(data)
+    addServerInfo(data);
   }
 
   /*
@@ -238,7 +234,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('sendTiddlers')
-    console.log(data)
     if (typeof data.tiddlers === 'object') {
       Object.values(data.tiddlers).forEach(function(tidFields) {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))

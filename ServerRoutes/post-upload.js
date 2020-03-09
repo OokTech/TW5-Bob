@@ -48,6 +48,7 @@ exports.handler = function(request,response,state) {
             console.log(error);
           } else {
             console.log("C'est fini!");
+            // Send browser message letting the person know that the file has been uploaded.
             return true;
           }
         });

@@ -435,9 +435,9 @@ it will overwrite this file.
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       Object.keys(data.connections).forEach(function(connectionUrl) {
-        if (data.connections[connectionUrl].serverName) {
+        if (data.connections[connectionUrl].name) {
           const connectionFields = {
-            title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].serverName,
+            title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name,
             tags: '[[Remote Server]]',
             url: connectionUrl,
             staticurl: data.connections[connectionUrl].staticUrl,

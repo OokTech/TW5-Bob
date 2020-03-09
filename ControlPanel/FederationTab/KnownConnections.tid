@@ -31,24 +31,20 @@ Each server gets a JSON tiddler named in the form
     <tr>
       <th>
         <$view
-          index='serverName'
+          field='name'
         />
       </th>
       <td>
         <$view
-          index='canLogin'
+          field='canlogin'
         />
       </td>
       <td>
-        <$view
-          index='availableWikis'
-        />
+        <$count filter='[enlist{!!availablewikis}]'/> wikis available
       </td>
       <td>
-        <$view
-          index='availableChats'
-        />
+        <$count filter='[enlist{!!availablechats}]'/> chats available
       </td>
-    <tr>
+    </tr>
   </$list>
 </table>

@@ -349,6 +349,8 @@ function BrowserWSAdaptor(options) {
             if (request.readyState === XMLHttpRequest.DONE) {
               if (request.status === 200) {
                 // Things should be ok
+                // The server should send a browser message saying that the
+                // upload was successful.
               } else {
                 // There is a problem
                 // Make a tiddler that has the tag $:/tags/Alert that has the text of
