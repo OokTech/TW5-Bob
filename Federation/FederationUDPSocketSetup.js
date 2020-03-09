@@ -74,6 +74,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           }
           const messageBuffer = Buffer.from(JSON.stringify(message))
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, $tw.settings.federation.udpPort, $tw.settings.federation.multicastAddress, function(err) {
+            console.log('success?')
             if (err) {
               console.log(err)
             }
@@ -82,6 +83,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
     })
     $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
+      console.log('received message here 13432')
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
 
@@ -146,7 +148,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     function finishSetup () {
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
+        console.log('Should be broadcasting')
         if ($tw.settings.federation.broadcast === 'yes') {
+          console.log('search')
           $tw.Bob.Federation.multicastSearch()
         }
       }, $tw.settings.federation.rebroadcastInterval);
