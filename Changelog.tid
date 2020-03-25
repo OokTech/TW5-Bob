@@ -44,6 +44,7 @@ when making changes like this. Make sure to backup your data.
 ** For federation stuff
 * Started UI for managing interactions with other servers
 * Fixed problems with saving images to the server and some settings checkboxes that didn't work
+* Fixed a problem with the syncer that could cause it to try and save files it shouldn't.
 
 !! Version 1.3.3 Kohlrabi
 

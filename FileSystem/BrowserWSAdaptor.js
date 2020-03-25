@@ -394,6 +394,8 @@ function BrowserWSAdaptor(options) {
 // The name of the syncer
 BrowserWSAdaptor.prototype.name = "browserwsadaptor"
 
+BrowserWSAdaptor.prototype.supportsLazyLoading = true
+
 // REQUIRED
 // Tiddler info, can be left like this but must be present
 BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
@@ -405,35 +407,36 @@ BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
 BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
   const self = this;
   function handleAck(ackId) {
-    if (self.idList.indexOf(id) > -1) {
-      self.idList.splice(self.idList.indexOf(id), 1)
+    if (self.idList.indexOf(ackId) > -1) {
+      self.idList.splice(self.idList.indexOf(ackId), 1)
       callback(null, null)
     }
   }
   if (!this.shouldSync(tiddler.fields.title) || !tiddler) {
     callback(null, null);
-  }
-  const token = localStorage.getItem('ws-token')
-  let tempTid = {fields:{}};
-  Object.keys(tiddler.fields).forEach(function (field) {
-      if(field !== 'created' && field !== 'modified') {
-        tempTid.fields[field] = tiddler.fields[field];
-      } else {
-        tempTid.fields[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
+  } else {
+    const token = localStorage.getItem('ws-token')
+    let tempTid = {fields:{}};
+    Object.keys(tiddler.fields).forEach(function (field) {
+        if(field !== 'created' && field !== 'modified') {
+          tempTid.fields[field] = tiddler.fields[field];
+        } else {
+          tempTid.fields[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
+        }
       }
-    }
-  );
-  const message = {
-    type: 'saveTiddler',
-    tiddler: tempTid,
-    wiki: $tw.wikiName,
-    token: token
-  };
-  const id = sendToServer(message);
-  this.idList.push(id)
-  $tw.rootWidget.addEventListener('handle-ack', function(e) {
-    handleAck(e.detail)
-  })
+    );
+    const message = {
+      type: 'saveTiddler',
+      tiddler: tempTid,
+      wiki: $tw.wikiName,
+      token: token
+    };
+    const id = sendToServer(message);
+    this.idList.push(id)
+    $tw.rootWidget.addEventListener('handle-ack', function(e) {
+      handleAck(e.detail)
+    })
+  }
 }
 
 // REQUIRED
@@ -472,27 +475,28 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
   }
   if (!this.shouldSync(title)) {
     callback(null);
+  } else {
+    // We have an additional check for tiddlers that start with
+    // $:/state because popups get deleted before the check is done.
+    // Without this than every time there is a popup the dirty
+    // indicator turns on
+    const token = localStorage.getItem('ws-token');
+    const message = {
+      type: 'deleteTiddler',
+      tiddler:{
+        fields:{
+          title:title
+        }
+      },
+      wiki: $tw.wikiName,
+      token: token
+    };
+    const id = sendToServer(message);
+    this.idList.push(id)
+    $tw.rootWidget.addEventListener('handle-ack', function(e) {
+      handleAck(e.detail)
+    })
   }
-  // We have an additional check for tiddlers that start with
-  // $:/state because popups get deleted before the check is done.
-  // Without this than every time there is a popup the dirty
-  // indicator turns on
-  const token = localStorage.getItem('ws-token');
-  const message = {
-    type: 'deleteTiddler',
-    tiddler:{
-      fields:{
-        title:title
-      }
-    },
-    wiki: $tw.wikiName,
-    token: token
-  };
-  const id = sendToServer(message);
-  this.idList.push(id)
-  $tw.rootWidget.addEventListener('handle-ack', function(e) {
-    handleAck(e.detail)
-  })
 }
 
 BrowserWSAdaptor.prototype.shouldSync = function(tiddlerTitle) {
@@ -515,15 +519,19 @@ BrowserWSAdaptor.prototype.shouldSync = function(tiddlerTitle) {
 }
 
 /*
+BrowserWSAdaptor.prototype.getUpdatedTiddlers = function() {
+
+}
+*/
+
 // OPTIONAL
-// Returns true if the syncer is ready, otherwise false
+// Returns true if the syncer` is ready, otherwise false
 // This can be updated at any time, it gets checked when a syncing task is
 // being run so its value can change over time.
 BrowserWSAdaptor.prototype.isReady = function() {
-  console.log('is ready')
   return true
 }
-
+/*
 // OPTIONAL
 // This checks the login state
 // it can be used to give an async way to check the status and update the

@@ -56,10 +56,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.Bob.Federation.updateConnections()
       console.log('listening on udp port', $tw.settings.federation.udpPort)
       if ($tw.settings.federation.enableMulticast === 'yes') {
-        $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '230.0.0.114';
+        $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.2.114';
         console.log('using multicast address ', $tw.settings.federation.multicastAddress);
-        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress);
-        $tw.Bob.Federation.socket.setBroadcast(true);
+        $tw.Bob.Federation.socket.setTTL(2);
+        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
+        //$tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
 
         // Broadcast a message informing other nodes that this one is on the
@@ -74,7 +75,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           }
           const messageBuffer = Buffer.from(JSON.stringify(message))
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, $tw.settings.federation.udpPort, $tw.settings.federation.multicastAddress, function(err) {
-            console.log('success?')
             if (err) {
               console.log(err)
             }
@@ -86,7 +86,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       console.log('received message here:', message.toString())
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
-    $tw.Bob.Federation.socket.on('error', (err) => {console.log(err)})
+    $tw.Bob.Federation.socket.on('error', (err) => {
+      console.log(err)
+    });
 
     const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
 
@@ -149,9 +151,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     function finishSetup () {
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
-        console.log('Should be broadcasting')
         if ($tw.settings.federation.broadcast === 'yes') {
-          console.log('search')
           $tw.Bob.Federation.multicastSearch()
         }
       }, $tw.settings.federation.rebroadcastInterval);
