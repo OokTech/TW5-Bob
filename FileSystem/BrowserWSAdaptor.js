@@ -407,8 +407,9 @@ BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
 BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
   const self = this;
   function handleAck(ackId) {
-    if (self.idList.indexOf(ackId) > -1) {
-      self.idList.splice(self.idList.indexOf(ackId), 1)
+    const ind = self.idList.indexOf(ackId);
+    if (ind > -1) {
+      self.idList.splice(ind, 1)
       callback(null, null)
     }
   }
@@ -467,9 +468,10 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
 // This does whatever is necessary to delete a tiddler
 BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
   const self = this;
-  function handleAck(id) {
-    if (self.idList.indexOf(id) > -1) {
-      self.idList.splice(self.idList.indexOf(id), 1)
+  function handleAck(ackId) {
+    const ind = self.idList.indexOf(ackId)
+    if (ind > -1) {
+      self.idList.splice(ind, 1)
       callback(null, null)
     }
   }

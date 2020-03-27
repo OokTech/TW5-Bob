@@ -157,9 +157,7 @@ if($tw.node) {
     const tiddler = {fields: fields}
     const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-
     $tw.CreateSettingsTiddlers(data);
-
   }
 
   /*
@@ -497,7 +495,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that there is a wiki name given.
     if(data.wikiName) {
-      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1})
+      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1});
       $tw.stopFileWatchers(data.wikiName);
       // Make sure that the wiki is loaded
       if($tw.Bob.Wikis[data.wikiName]) {

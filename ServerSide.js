@@ -46,6 +46,8 @@ const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
+
+
 ServerSide.getBasePath = function() {
   let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
   $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
@@ -235,6 +237,7 @@ ServerSide.loadWiki = function (wikiName) {
       $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
     }
   }
+  $tw.Bob.emitter.emit('wiki-loaded', wikiName);
   return wikiFolder;
 }
 

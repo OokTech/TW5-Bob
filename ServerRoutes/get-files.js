@@ -60,18 +60,33 @@ exports.handler = function(request,response,state) {
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');
-    const wikiName = findName(request.url.replace(/^\//, ''));
+    const URL = require('url');
+    const strippedURL = request.url.replace($tw.settings['ws-server'].pathprefix,'').replace(/^\/*/, '');
+    const wikiName = findName(strippedURL);
+    // Check to see if the wiki matches the referrer url, if not respond with a 403 if the setting is set
+    let referer = {path: ""}
+    try {
+      referer = URL.parse(request.headers.referer);
+    } catch(e) {
+
+    }
     const filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
+    if($tw.settings.perWikiFiles === 'yes' && !request.url.startsWith(path.join(referer.path,filePrefix)) && (!strippedURL.startsWith(filePrefix) && wikiName !== filePrefix)) {
+      // return 403
+      response.writeHead(403);
+      response.end();
+      return;
+    }
     let urlPieces = request.url.split('/');
     // Check to make sure that the wiki name actually matches the URL
     // Without this you could put in foo/bar/baz and get files from
     // foo/bar if there was a wiki tehre and not on foo/bar/baz and then
     // it would break when someone made a wiki on foo/bar/baz
-    let ok = false;
-    if(wikiName !== '' && wikiName !== 'RootWiki') {
-      ok = (request.url.replace(/^\//, '').split('/')[wikiName.split('/').length] === filePrefix);
-    } else {
-      ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
+    // If there isn't a wiki name before the file prefix the files are
+    // available to all wikis.
+    let ok = (strippedURL.split('/')[0] === filePrefix);
+    if(!ok && wikiName !== '' && wikiName !== 'RootWiki') {
+      ok = (strippedURL.split('/')[wikiName.split('/').length] === filePrefix);
     }
     let offset = 1;
     let secondPathPart = '';
@@ -85,7 +100,7 @@ exports.handler = function(request,response,state) {
     if(authorised && ok) {
       const basePath = $tw.ServerSide.getBasePath();
       let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
-      if(wikiName !== '') {
+      if(typeof wikiName === 'string') {
         pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
       }
       const pathname = path.resolve(pathRoot, secondPathPart, filePath);
