@@ -1131,6 +1131,9 @@ if($tw.node) {
       if (data.folder && data.wiki) {
         // Make sure the folder exists
         let mediaURIList = [];
+        if(typeof $tw.settings.filePathRoot !== 'string') {
+          $tw.settings.filePathRoot = './files';
+        }
         const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
         if($tw.utils.isDirectory(mediaDir)) {
           fs.readdir(mediaDir, function(err, files) {

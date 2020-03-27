@@ -99,6 +99,9 @@ exports.handler = function(request,response,state) {
     const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
     if(authorised && ok) {
       const basePath = $tw.ServerSide.getBasePath();
+      if(typeof $tw.settings.filePathRoot !== 'string') {
+        $tw.settings.filePathRoot = './files';
+      }
       let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
       if(typeof wikiName === 'string') {
         pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
