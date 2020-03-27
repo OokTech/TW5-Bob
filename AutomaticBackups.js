@@ -42,7 +42,6 @@ if($tw.node) {
   */
   $tw.settings.backups = $tw.settings.backups || {};
   if($tw.settings.backups.enable === 'yes') {
-    console.log($tw.settings.backups)
     $tw.settings.backups.backupFolder = $tw.settings.backups.backupFolder || './backups';
     $tw.settings.backups.backupInterval = $tw.settings.backups.backupInterval || 600000;
     if($tw.settings.backups.saveOnLoad === 'yes') {
@@ -64,7 +63,7 @@ if($tw.node) {
       $tw.utils.createDirectory(folder);
       fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName), function(err) {
         if(err) {
-          console.log('error saving backup', err);
+          $tw.Bob.logger.error('error saving backup:', err);
         }
         $tw.Bob.Wikis[wikiName].timer = false;
         if($tw.settings.backups.maxBackups > 0) {
@@ -77,7 +76,7 @@ if($tw.node) {
               for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
                 fs.unlink(path.join(folder,backupsList[i]),function(err){
                   if(err) {
-                    console.log(err)
+                    $tw.Bob.logger.error('error removing old backup:',err)
                   }
                 });
               }
