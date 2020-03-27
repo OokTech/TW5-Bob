@@ -40,25 +40,26 @@ if($tw.node) {
     when a wiki is edited and there isn't already a timer, start a timer, when
     the timer runs out save the wiki.
   */
-  settings.backups = settings.backups || {};
-  if(settings.backups.enable === 'yes') {
-    settings.backups.backupFolder = settings.backups.backupFolder || './backups';
-    settings.backups.backupInterval = settings.backups.backupInterval || 600000;
-    if(settings.backups.saveOnLoad === 'yes') {
-      $tw.Bob.emitter.on('wiki-loaded', function(wikiName) {
+  $tw.settings.backups = $tw.settings.backups || {};
+  if($tw.settings.backups.enable === 'yes') {
+    console.log($tw.settings.backups)
+    $tw.settings.backups.backupFolder = $tw.settings.backups.backupFolder || './backups';
+    $tw.settings.backups.backupInterval = $tw.settings.backups.backupInterval || 600000;
+    if($tw.settings.backups.saveOnLoad === 'yes') {
+      $tw.hooks.addHook('wiki-loaded', function(wikiName) {
         saveWikiBackup(wikiName);
       });
     }
-    if(settinsg.backups.saveOnModified) {
-      $tw.Bob.emitter.on('tiddler-saved', function(wikiName) {
-        if($tw.Bob.Wikis[wikiName].timer !== false || typeof $tw.Bob.Wikis[wikiName].timer !== 'undefined') {
-          setTimeout(saveWikiBackup, settings.backups.backupInterval, wikiName);
+    if($tw.settings.backups.saveOnModified) {
+      $tw.hooks.addHook('wiki-modified', function(wikiName) {
+        if($tw.Bob.Wikis[wikiName].timer === false || typeof $tw.Bob.Wikis[wikiName].timer === 'undefined') {
+          setTimeout(saveWikiBackup, $tw.settings.backups.backupInterval, wikiName);
         }
       });
     }
 
     function saveWikiBackup(wikiName) {
-      const folder = path.resolve($tw.Bob.getBasePath(), settings.backups.backupFolder, wikiName);
+      const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
       const filePath = path.join(folder, 'backup-' + $tw.utils.stringifyDate(new Date()));
       $tw.utils.createDirectory(folder);
       fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName), function(err) {
@@ -66,14 +67,14 @@ if($tw.node) {
           console.log('error saving backup', err);
         }
         $tw.Bob.Wikis[wikiName].timer = false;
-        if(settings.backups.maxBackups > 0) {
+        if($tw.settings.backups.maxBackups > 0) {
           // make sure there are at most maxBackups wikis saved in the folder.
           fs.readdir(folder, function(err, filelist) {
             const backupsList = filelist.filter(function(item) {
               return item.startsWith('backup-')
             }).sort()
-            if(backupsList.legth > settings.backups.maxBackups) {
-              for (i = 0; i < backupsList.length - settings.backups.maxBackups; i++) {
+            if(backupsList.length > $tw.settings.backups.maxBackups) {
+              for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
                 fs.unlink(path.join(folder,backupsList[i]),function(err){
                   if(err) {
                     console.log(err)

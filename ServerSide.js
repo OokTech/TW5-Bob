@@ -223,6 +223,7 @@ ServerSide.loadWiki = function (wikiName) {
       $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
         return '$:/themes/' + name;
       });
+      $tw.hooks.invokeHook('wiki-loaded', wikiName);
     }
     const fields = {
       title: '$:/WikiName',
@@ -237,7 +238,6 @@ ServerSide.loadWiki = function (wikiName) {
       $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
     }
   }
-  $tw.Bob.emitter.emit('wiki-loaded', wikiName);
   return wikiFolder;
 }
 
