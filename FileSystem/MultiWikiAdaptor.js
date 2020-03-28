@@ -252,7 +252,7 @@ if($tw.node) {
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
-        $tw.hooks.invokeHook('wiki-modified', data.wiki);
+        $tw.hooks.invokeHook('wiki-modified', prefix);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {

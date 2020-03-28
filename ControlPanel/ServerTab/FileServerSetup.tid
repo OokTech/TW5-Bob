@@ -99,63 +99,6 @@ nothing.
   Save media on server
 </$checkbox> ([[what is this?|$:/plugins/OokTech/Bob/Documentation/ServerMedia]])
 
-File Folders:
-
-<table
-  style='width:100%;'
->
-  <tr>
-    <th>
-    </th>
-    <th>
-      Prefix
-    </th>
-    <th>
-      Path
-    </th>
-  </tr>
-  <$list
-    filter='[[$:/WikiSettings/split/servingFiles]indexes[]]'
-  >
-    <tr>
-      <td>
-        <$button
-          class='tc-btn-invisible'
-        >
-          {{$:/core/images/delete-button}}
-          <$action-setfield
-            $tiddler='$:/WikiSettings/split/servingFiles'
-            $index=<<currentTiddler>>
-          />
-        </$button>
-      </td>
-      <td>
-        <$view
-          tiddler='$:/WikiSettings/split'
-          index='fileURLPrefix'
-        />/<$view
-          field='title'
-        />
-      </td>
-      <td>
-        <$view
-          tiddler='$:/WikiSettings/split/servingFiles'
-          index=<<currentTiddler>>
-        />
-      </td>
-    </tr>
-  </$list>
-</table>
-
-''Note:'' Changes take effect without having to restart the server, but if you
-have a _canonical_uri tiddler open and changing the settings here would change
-what is displayed than the tiddler must be closed and re-opened before you will
-see the media.
-
-''Note 2:'' You don't need to do anything special after adding a new folder, but
-after removing one you have to click the `Update Settings` button below or the
-change will not take effect or be saved.
-
 !! Serve files from a new folder
 
 Enter the prefix and path you want to use, then click `Add Folder` button
@@ -217,6 +160,63 @@ Enter the prefix and path you want to use, then click `Add Folder` button
 >
   Also Scan Folder
 </$checkbox>
+
+File Folders:
+
+<table
+  style='width:100%;'
+>
+  <tr>
+    <th>
+    </th>
+    <th>
+      Prefix
+    </th>
+    <th>
+      Path
+    </th>
+  </tr>
+  <$list
+    filter='[[$:/WikiSettings/split/servingFiles]indexes[]]'
+  >
+    <tr>
+      <td>
+        <$button
+          class='tc-btn-invisible'
+        >
+          {{$:/core/images/delete-button}}
+          <$action-setfield
+            $tiddler='$:/WikiSettings/split/servingFiles'
+            $index=<<currentTiddler>>
+          />
+        </$button>
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split'
+          index='fileURLPrefix'
+        />/<$view
+          field='title'
+        />
+      </td>
+      <td>
+        <$view
+          tiddler='$:/WikiSettings/split/servingFiles'
+          index=<<currentTiddler>>
+        />
+      </td>
+    </tr>
+  </$list>
+</table>
+
+''Note:'' Changes take effect without having to restart the server, but if you
+have a _canonical_uri tiddler open and changing the settings here would change
+what is displayed than the tiddler must be closed and re-opened before you will
+see the media.
+
+''Note 2:'' You don't need to do anything special after adding a new folder, but
+after removing one you have to click the `Update Settings` button below or the
+change will not take effect or be saved.
 
 After enabling or disabling the file server by checking or unchecking the box
 above you must shutdown the server and then restart it before using the file

@@ -48,8 +48,10 @@ when making changes like this. Make sure to backup your data.
 * Setting the `pathprefix` does what it should now.
 ** A brief explaination of the difference between `pathprefix` and `proxyprefix` is added to `Configuration.md`
 * Added the `perWikiFiles` setting which makes files served with a specific wiki (by default in the `files` folder next to the wikis `tiddlers` folder) are only accessible by that wiki. Files served under `filePathRoot` are accessible to every wiki.
+** globally accessible files are served with the `/files/` prefix, other wikis have their wiki specific files served with the `/wikiName/files/` prefix. For the RootWiki you have to reference wiki specific files with `/RootWiki/files/` as the prefix, for other wikis the `wikiName` part of the prefix is the same as the url path.
 * On the back-end added a hook for wiki loaded and wiki modified to the server
 * Added autobackups
+* fixed a bug that would sometimes prevent wikis from connecting to the server if the RootWiki wasn't already loaded.
 
 !! Version 1.3.3 Kohlrabi
 

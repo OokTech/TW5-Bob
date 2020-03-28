@@ -91,6 +91,7 @@ if($tw.node) {
     // browser currently has to initialise everything.
     $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     const message = {type: 'listTiddlers'}
+    console.log($tw.connections)
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
     if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.Bob.Federation.updateConnections();

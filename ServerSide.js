@@ -391,7 +391,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
     $tw.Bob.Wikis[fullName].themes = $tw.Bob.Wikis[fullName].themes || [];
     $tw.Bob.Wikis[fullName].tiddlers = $tw.Bob.Wikis[fullName].tiddlers || [];
-    if(servePlugin) {
+    if(servePlugin !== 'no') {
       // By default the normal file system plugins removed and the
       // multi-user plugin added instead so that they all work the same.
       // The wikis aren't actually modified, this is just hov they are
@@ -436,6 +436,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         wikiName: wikiName
       }
     };
+    $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
     if(text.length < 10*1024*1024) {

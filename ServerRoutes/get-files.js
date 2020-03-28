@@ -5,6 +5,8 @@ module-type: serverroute
 
 GET /^\/files\/<<filename>>/
 
+GET /^\/<<wikiname>>\/files\/<<filename>>/
+
 Returns a wiki
 
 \*/
@@ -48,7 +50,7 @@ function findName(url) {
       }
     }
   }
-  if (name === '') {
+  if (name === '' && pieces[0] === 'RootWiki') {
     name = 'RootWiki'
   }
   return name
@@ -63,7 +65,7 @@ exports.handler = function(request,response,state) {
     const URL = require('url');
     const strippedURL = request.url.replace($tw.settings['ws-server'].pathprefix,'').replace(/^\/*/, '');
     const wikiName = findName(strippedURL);
-    // Check to see if the wiki matches the referrer url, if not respond with a 403 if the setting is set
+    // Check to see if the wiki matches the referer url, if not respond with a 403 if the setting is set
     let referer = {path: ""}
     try {
       referer = URL.parse(request.headers.referer);
@@ -71,7 +73,13 @@ exports.handler = function(request,response,state) {
 
     }
     const filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
-    if($tw.settings.perWikiFiles === 'yes' && !request.url.startsWith(path.join(referer.path,filePrefix)) && (!strippedURL.startsWith(filePrefix) && wikiName !== filePrefix)) {
+    console.log('request url', request.url)
+    console.log('referer path', referer.path)
+    console.log('wikiname', wikiName)
+    console.log('prefix', filePrefix)
+    if($tw.settings.perWikiFiles === 'yes'
+      && !(request.url.startsWith(path.join(referer.path,filePrefix)) || ((wikiName === 'RootWiki' || wikiName === '') && request.url.startsWith(path.join(referer.path, 'RootWiki', filePrefix))))
+      && !(strippedURL.startsWith(filePrefix) && (wikiName === filePrefix || wikiName === ''))) {
       // return 403
       response.writeHead(403);
       response.end();
@@ -85,8 +93,13 @@ exports.handler = function(request,response,state) {
     // If there isn't a wiki name before the file prefix the files are
     // available to all wikis.
     let ok = (strippedURL.split('/')[0] === filePrefix);
-    if(!ok && wikiName !== '' && wikiName !== 'RootWiki') {
+    console.log('ok', ok)
+    if(!ok && wikiName === '') {
+      ok = request.url.startsWith(path.join(referer.path, 'RootWiki', filePrefix));
+    } else if(!ok && wikiName !== '') {
+      console.log(wikiName, strippedURL)
       ok = (strippedURL.split('/')[wikiName.split('/').length] === filePrefix);
+      console.log(ok)
     }
     let offset = 1;
     let secondPathPart = '';
@@ -103,7 +116,7 @@ exports.handler = function(request,response,state) {
         $tw.settings.filePathRoot = './files';
       }
       let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
-      if(typeof wikiName === 'string') {
+      if(typeof wikiName === 'string' && wikiName !== '') {
         pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
       }
       const pathname = path.resolve(pathRoot, secondPathPart, filePath);
