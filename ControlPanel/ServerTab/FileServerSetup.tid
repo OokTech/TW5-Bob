@@ -282,7 +282,7 @@ File Folders:
         <td>
           <$view
             tiddler='$:/WikiSettings/split/servingFiles'
-            index=<<currentTiddler>>
+            index=<<servePath>>
           />
         </td>
       </tr>

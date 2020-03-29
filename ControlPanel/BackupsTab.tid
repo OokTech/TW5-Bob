@@ -15,14 +15,14 @@ removed.
 By default the limit is 10 per wiki.
 
 <$checkbox
->
-  Enable backups
   tiddler="$:/WikiSettings/split/backups"
   index=enable
   checked=yes
   unchecked=no
   checkactions='<$action-updatesetting backups="""{"enable": "yes"}"""/>'
   uncheckactions='<$action-updatesetting backups="""{"enable": "no"}"""/>'
+>
+  Enable backups
 </$checkbox>
 
 !! Advanced

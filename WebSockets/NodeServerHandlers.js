@@ -370,7 +370,6 @@ if($tw.node) {
     const path = require('path');
     const fs = require('fs');
     if(typeof data.updateString !== 'undefined') {
-      console.log(data.updateString)
       let failed = false;
       let updatesObject = {};
       let error = undefined;
@@ -424,7 +423,6 @@ if($tw.node) {
     in the browser.
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
-    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
@@ -1076,7 +1074,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.listFiles = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('data.folder',data.folder)
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
@@ -1087,9 +1084,6 @@ if($tw.node) {
     const wikiName = $tw.ServerSide.findName(data.folder);
     const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
     const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
-    console.log('data.folder', data.folder)
-    console.log('wikiName', wikiName)
-    console.log('thePath', thePath)
     let fileFolder
     if(thePath === '' && wikiName === '') {
       // Globally available files in filePathRoot
