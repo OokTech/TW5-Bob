@@ -16,7 +16,12 @@ Only file types in the `mimeMap` are listed, you can filter the filetypes
 further by giving a space separated list of file extensions as the `mediaTypes`
 attribute.
 
+The filelist will be put in a tiddler, by default it is called `$:/state/fileList/files/`
+
 !!Usage
+
+Note: if you set the tiddler property to an existing tiddler the existing
+tiddler will be overwritten.
 
 |!Name |!Description |!Default |
 |!folder |The url path to the folder you want listed. The `filePathRoot` is `files`, other locations are what is shown in the list in the file server tab. |`files` |

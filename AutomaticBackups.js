@@ -58,6 +58,11 @@ if($tw.node) {
     }
 
     function saveWikiBackup(wikiName) {
+      console.log(1)
+      console.log($tw.ServerSide.getBasePath())
+      console.log($tw.settings.backups.backupFolder)
+      console.log(wikiName)
+      console.log(2)
       const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
       const filePath = path.join(folder, 'backup-' + $tw.utils.stringifyDate(new Date()));
       $tw.utils.createDirectory(folder);

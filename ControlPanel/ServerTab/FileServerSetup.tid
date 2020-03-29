@@ -99,6 +99,61 @@ nothing.
   Save media on server
 </$checkbox> ([[what is this?|$:/plugins/OokTech/Bob/Documentation/ServerMedia]])
 
+!! Media in the FilePathRoot
+
+<$button>
+  List media in the filePathRoot folder
+  <$action-websocketmessage
+    type='listFiles'
+    folder='/files'
+  />
+</$button>
+<$button>
+  <$reveal
+    type='match'
+    state='$:/state/showFiles/files!!show'
+    text='yes'
+  >
+    Hide List
+    <$action-setfield
+      $tiddler='$:/state/showFiles/files'
+      show=no
+    />
+  </$reveal>
+  <$reveal
+    type='nomatch'
+    state='$:/state/showFiles/files!!show'
+    text='yes'
+  >
+    Show List
+    <$action-setfield
+      $tiddler='$:/state/showFiles/files'
+      show=yes
+    />
+  </$reveal>
+</$button>
+<br>
+<$reveal
+  type='match'
+  state='$:/state/showFiles/files!!show'
+  text='yes'
+>
+  <$list
+    filter='[enlist{$:/state/fileList/files!!list}]'
+  >
+    <$button>
+      <<currentTiddler>>
+      <$action-setfield
+        $tiddler=<<currentTiddler>>
+        _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<currentTiddler>] }}}
+      />
+      <$action-navigate
+        $to=<<currentTiddler>>
+      />
+    </$button>
+  </$list>
+</$reveal>
+
 !! Serve files from a new folder
 
 Enter the prefix and path you want to use, then click `Add Folder` button
@@ -167,7 +222,13 @@ File Folders:
   style='width:100%;'
 >
   <tr>
-    <th>
+    <th
+      style='width:2em;'
+    >
+    </th>
+    <th
+      style='width:2em;'
+    >
     </th>
     <th>
       Prefix
@@ -178,34 +239,119 @@ File Folders:
   </tr>
   <$list
     filter='[[$:/WikiSettings/split/servingFiles]indexes[]]'
+    variable=servePath
   >
-    <tr>
-      <td>
-        <$button
-          class='tc-btn-invisible'
-        >
-          {{$:/core/images/delete-button}}
-          <$action-setfield
-            $tiddler='$:/WikiSettings/split/servingFiles'
-            $index=<<currentTiddler>>
+    <$set
+      name=theState
+      filter='[[$:/state/servedPaths/]addsuffix[files/]addsuffix<servePath>]'
+    >
+      <tr>
+        <td>
+          <$button
+            class='tc-btn-invisible'
+          >
+            {{$:/core/images/delete-button}}
+            <$action-setfield
+              $tiddler='$:/WikiSettings/split/servingFiles'
+              $index=<<currentTiddler>>
+            />
+          </$button>
+        </td>
+        <td>
+          <$button
+            class='tc-btn-invisible'
+          >
+            <$list
+              filter='[<theState>get[show]prefix[yes]]'
+              emptyMessage="""{{$:/core/images/preview-closed}}<$action-setfield $tiddler=<<theState>> show=yes/>"""
+            >
+              {{$:/core/images/preview-open}}
+              <$action-setfield
+                $tiddler=<<theState>>
+                show=no
+              />
+            </$list>
+          </$button>
+        </td>
+        <td>
+          <$view
+            tiddler='$:/WikiSettings/split'
+            index='fileURLPrefix'
+          />/<<servePath>>
+        </td>
+        <td>
+          <$view
+            tiddler='$:/WikiSettings/split/servingFiles'
+            index=<<currentTiddler>>
           />
-        </$button>
-      </td>
-      <td>
-        <$view
-          tiddler='$:/WikiSettings/split'
-          index='fileURLPrefix'
-        />/<$view
-          field='title'
-        />
-      </td>
-      <td>
-        <$view
-          tiddler='$:/WikiSettings/split/servingFiles'
-          index=<<currentTiddler>>
-        />
-      </td>
-    </tr>
+        </td>
+      </tr>
+      <$set
+        name=revealThing
+        filter='[<theState>addsuffix[!!show]]'
+      >
+        <$reveal
+          type='match'
+          state=<<revealThing>>
+          text=yes
+          tag=tr
+        >
+          <$list
+            filter='[{$:/WikiSettings/split##fileURLPrefix}addsuffix[/]addsuffix<servePath>]'
+            variable=path
+          >
+            <td
+              colspan=4
+              style='text-align:center;'
+            >
+              <$button>
+                Show files in <<path>>
+                <$action-websocketmessage
+                  type='listFiles'
+                  folder=<<path>>
+                />
+              </$button>
+            </td>
+          </$list>
+        </$reveal>
+        <$list
+          filter='[<theState>get[show]prefix[yes]]'
+          variable=unused
+        >
+          <$set
+            name=someTid
+            filter='[[$:/state/fileList/]addsuffix{$:/WikiSettings/split##fileURLPrefix}addsuffix[/]addsuffix<servePath>]'
+          >
+            <$set
+              name=theList
+              filter='[<someTid>get[list]]'
+            >
+              <$list
+                filter='[enlist<theList>]'
+              >
+                <tr>
+                  <td
+                    colspan=4
+                  >
+                    <$button>
+                      <<currentTiddler>>
+
+                      <$action-setfield
+                        $tiddler=<<currentTiddler>>
+                        _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<servePath>addsuffix[/]addsuffix<currentTiddler>] }}}
+                      />
+                      <$action-navigate
+                        $to=<<currentTiddler>>
+                      />
+                    </$button>
+                  </td>
+                </tr>
+              </$list>
+            </$set>
+          </$set>
+        </$list>
+      </$set>
+    </$set>
   </$list>
 </table>
 
@@ -236,7 +382,7 @@ Then click this button:
   <$action-websocketmessage $type=shutdownServer/>
 </$button>
 
-Then refresh the page, this is not what the 'reconnect' button is for, refresh
+Then restart Bob, this is not what the 'reconnect' button is for, refresh
 the entire page.
 
 ! Advanced (Here there be Dragons)

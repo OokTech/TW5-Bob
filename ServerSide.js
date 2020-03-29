@@ -698,6 +698,33 @@ ServerSide.getViewableWikiList = function (data) {
   return viewableWikis;
 }
 
+ServerSide.findName = function(url) {
+  url = url.startsWith('/') ? url.slice(1,url.length-1) : url;
+  const pieces = url.split('/')
+  let name = ''
+  let settingsObj = $tw.settings.wikis[pieces[0]]
+  if(settingsObj) {
+    name = pieces[0]
+  }
+  for (let i = 1; i < pieces.length; i++) {
+    if(settingsObj) {
+      if(typeof settingsObj[pieces[i]] === 'object') {
+        name = name + '/' + pieces[i]
+        settingsObj = settingsObj[pieces[i]]
+      } else if(typeof settingsObj[pieces[i]] === 'string') {
+        name = name + '/' + pieces[i]
+        break
+      } else {
+        break
+      }
+    }
+  }
+  if (name === '' && pieces[0] === 'RootWiki') {
+    name = 'RootWiki'
+  }
+  return name
+}
+
 module.exports = ServerSide
 
 })();

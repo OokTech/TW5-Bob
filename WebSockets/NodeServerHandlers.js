@@ -370,6 +370,7 @@ if($tw.node) {
     const path = require('path');
     const fs = require('fs');
     if(typeof data.updateString !== 'undefined') {
+      console.log(data.updateString)
       let failed = false;
       let updatesObject = {};
       let error = undefined;
@@ -1075,23 +1076,41 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.listFiles = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('data.folder',data.folder)
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
 
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     data.folder = data.folder || $tw.settings.fileURLPrefix;
-    const repRegex = new RegExp(`\/?${data.folder}\/?`)
+    data.folder = data.folder.startsWith('/') ? data.folder : '/' + data.folder;
+    const wikiName = $tw.ServerSide.findName(data.folder);
+    const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
     const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
+    console.log('data.folder', data.folder)
+    console.log('wikiName', wikiName)
+    console.log('thePath', thePath)
     let fileFolder
-    if(thePath === '') {
+    if(thePath === '' && wikiName === '') {
+      // Globally available files in filePathRoot
       fileFolder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot);
       // send to browser
       next(fileFolder, '');
-    } else if ($tw.settings.servingFiles[thePath]) {
+    } else if (wikiName === '' && $tw.settings.servingFiles[thePath]) {
+      // Explicitly listed folders that are globally available
       fileFolder = $tw.settings.servingFiles[thePath];
       // send to browser
       next(fileFolder, thePath);
+    } else if (wikiName !== '') {
+      // Wiki specific files, need to check to make sure that if perwikiFiles is set this only works from the target wiki.
+      if($tw.settings.perWikiFiles !== 'yes' || wikiName === data.wiki) {
+        const wikiPath = $tw.ServerSide.existsListed(wikiName);
+        if(!wikiPath) {
+          return;
+        }
+        fileFolder = path.join(wikiPath, 'files');
+        next(fileFolder, thePath, wikiName);
+      }
     } else {
       const testPaths = [path.resolve($tw.ServerSide.getBasePath)].concat( Object.values($tw.settings.servingFiles));
       let ind = 0
@@ -1111,8 +1130,9 @@ if($tw.node) {
         })
       }
     }
-    function next(folder, urlPath) {
-      data.tiddler = data.tiddler || '$:/state/fileList/' + $tw.settings.fileURLPrefix + urlPath;
+    function next(folder, urlPath, wikiName) {
+      wikiName = wikiName || '';
+      data.tiddler = data.tiddler || path.join('$:/state/fileList/', wikiName, $tw.settings.fileURLPrefix, urlPath);
       data.field = data.field || 'list';
       // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
       const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
@@ -1160,9 +1180,9 @@ if($tw.node) {
             })
           }
           // Reply with the list
-          let prefix = path.join($tw.settings.fileURLPrefix, urlPath);
-          prefix = prefix.startsWith('/') ? prefix : prefix + '/'
-          prefix = prefix.endsWith('/') ? prefix : prefix + '/'
+          let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+          prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+          prefix = prefix.endsWith('/') ? prefix : prefix + '/';
           const fields = {
             title: data.tiddler,
             pathprefix: prefix,
