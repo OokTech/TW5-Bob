@@ -1,3 +1,5 @@
+title: $:/plugins/OokTech/Bob/DefaultSettings
+
 {
   "editionsPath": "./Editions",
   "pluginsPath": "./Plugins",

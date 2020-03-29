@@ -30,7 +30,9 @@ if($tw.node) {
   */
   const startup = function () {
     // The user settings path
+    console.log($tw)
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    $tw.settings = JSON.parse($tw.wiki.getTiddler('$:/plugins/OokTech/Bob/DefaultSettings').fields.text);
     $tw.loadSettings($tw.settings, userSettingsPath);
     updateSettingsWikiPaths($tw.settings.wikis);
   }
