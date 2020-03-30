@@ -5,6 +5,8 @@ module-type: serverroute
 
 GET /^\/files\/<<filename>>/
 
+GET /^\/<<wikiname>>\/files\/<<filename>>/
+
 Returns a wiki
 
 \*/
@@ -28,49 +30,43 @@ if(typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix
 
 exports.path = pathRegExp;
 
-function findName(url) {
-  const pieces = url.split('/')
-  let name = ''
-  let settingsObj = $tw.settings.wikis[pieces[0]]
-  if(settingsObj) {
-    name = pieces[0]
-  }
-  for (let i = 1; i < pieces.length; i++) {
-    if(settingsObj) {
-      if(typeof settingsObj[pieces[i]] === 'object') {
-        name = name + '/' + pieces[i]
-        settingsObj = settingsObj[pieces[i]]
-      } else if(typeof settingsObj[pieces[i]] === 'string') {
-        name = name + '/' + pieces[i]
-        break
-      } else {
-        break
-      }
-    }
-  }
-  if (name === '') {
-    name = 'RootWiki'
-  }
-  return name
-}
-
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');
-    const wikiName = findName(request.url.replace(/^\//, ''));
+    const URL = require('url');
+    const strippedURL = request.url.replace($tw.settings['ws-server'].pathprefix,'').replace(/^\/*/, '');
+    const wikiName = $tw.ServerSide.findName(strippedURL);
+    // Check to see if the wiki matches the referer url, if not respond with a 403 if the setting is set
+    let referer = {path: ""}
+    try {
+      referer = URL.parse(request.headers.referer);
+    } catch(e) {
+
+    }
     const filePrefix = $tw.settings.fileURLPrefix?$tw.settings.fileURLPrefix:'files';
+    if($tw.settings.perWikiFiles === 'yes'
+      && !(request.url.startsWith(path.join(referer.path,filePrefix)) || ((wikiName === 'RootWiki' || wikiName === '') && request.url.startsWith(path.join(referer.path, 'RootWiki', filePrefix))))
+      && !(strippedURL.startsWith(filePrefix) && (wikiName === filePrefix || wikiName === ''))) {
+      // return 403
+      response.writeHead(403);
+      response.end();
+      return;
+    }
     let urlPieces = request.url.split('/');
     // Check to make sure that the wiki name actually matches the URL
     // Without this you could put in foo/bar/baz and get files from
     // foo/bar if there was a wiki tehre and not on foo/bar/baz and then
     // it would break when someone made a wiki on foo/bar/baz
-    let ok = false;
-    if(wikiName !== '' && wikiName !== 'RootWiki') {
-      ok = (request.url.replace(/^\//, '').split('/')[wikiName.split('/').length] === filePrefix);
-    } else {
-      ok = (request.url.replace(/^\//, '').split('/')[0] === filePrefix);
+    // If there isn't a wiki name before the file prefix the files are
+    // available to all wikis.
+    let ok = (strippedURL.split('/')[0] === filePrefix);
+    if(!ok && wikiName === '') {
+      ok = request.url.startsWith(path.join(referer.path, 'RootWiki', filePrefix));
+    } else if(!ok && wikiName !== '') {
+      ok = (strippedURL.split('/')[wikiName.split('/').length] === filePrefix);
     }
     let offset = 1;
     let secondPathPart = '';
@@ -83,8 +79,11 @@ exports.handler = function(request,response,state) {
     const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
     if(authorised && ok) {
       const basePath = $tw.ServerSide.getBasePath();
+      if(typeof $tw.settings.filePathRoot !== 'string') {
+        $tw.settings.filePathRoot = './files';
+      }
       let pathRoot = path.resolve(basePath,$tw.settings.filePathRoot);
-      if(wikiName !== '') {
+      if(typeof wikiName === 'string' && wikiName !== '') {
         pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
       }
       const pathname = path.resolve(pathRoot, secondPathPart, filePath);
@@ -127,6 +126,7 @@ exports.handler = function(request,response,state) {
                 '.wav': 'audio/wav'
               };
               if(mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+                console.log('pathname', pathname)
                 response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
                 response.end(data);
               } else {

@@ -37,7 +37,7 @@ if($tw.node) {
     return false;
   }
 
-  const url = require("url"),
+  const URL = require("url"),
     path = require("path"),
     http = require("http")
 
@@ -84,9 +84,14 @@ if($tw.node) {
   }
 
   SimpleServer.prototype.findMatchingRoute = function(request,state) {
-    const pathprefix = this.get("pathprefix") || "";
+    let pathprefix = this.get("pathprefix") || "";
+    pathprefix = pathprefix.startsWith("/") ? pathprefix : "/" + pathprefix;
     let pathname = decodeURIComponent(state.urlInfo.pathname);
+    if(!pathname.startsWith(pathprefix)) {
+      return null;
+    }
     pathname = pathname.replace(pathprefix,'');
+    pathname = pathname.startsWith('/') ? pathname : '/' + pathname;
     for(let t=0; t<this.routes.length; t++) {
       const potentialRoute = this.routes[t];
       let match;
@@ -124,7 +129,7 @@ if($tw.node) {
     let state = {};
     state.wiki = self.wiki;
     state.server = self;
-    state.urlInfo = url.parse(request.url);
+    state.urlInfo = URL.parse(request.url);
     // Find the route that matches this path
     const route = self.findMatchingRoute(request,state);
     // Check for the username and password if we've got one

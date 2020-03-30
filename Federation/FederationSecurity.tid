@@ -12,7 +12,62 @@ title: $:/plugins/OokTech/Bob/Federation/FederationSecurity
 * requestTiddlers
 -> sendTiddlers
 
-requestRemoteSync
+!!! requestServerInfo
+
+send: Nothing
+
+receive: server info
+
+Request details about the remote server, response is `sendInfo`
+
+!!! requestHash
+
+send:
+
+* wikiName
+* filter
+
+receive:
+
+* one hash for all of returned tiddlers
+** normalise all of the tiddlers, get their hashes, get the hash of all of the hashes with the tiddlers sorted
+
+!!! requestHashes
+
+send:
+
+* wikiName
+* filter
+
+receive:
+
+* hashes for each of the tiddlers returned by the filter
+
+Request a set of tiddler hashes from the remote server. Use them to determine
+if there have been changes to the tiddlers.
+
+!!! requestTiddlers
+
+send:
+
+* wikiName
+* filter
+
+receive:
+
+* tiddlers in json format
+
+request a set of tiddlers from the remote server.
+
+!!! requestRemoteSync
+
+Request remote sync asks the other server to sync changes from your server.
+
+# -> requestRemoteSync
+# <- requestHashes
+# -> sendHashes
+# <- requestTiddlers
+# -> sendTiddlers
 
 an rnonce is sent with each *, it is put into the response as a nonce.
 

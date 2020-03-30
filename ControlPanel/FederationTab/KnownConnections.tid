@@ -2,10 +2,49 @@ title: $:/plugins/OokTech/Bob/FederationTab/KnownServers
 caption: Known Servers
 tags: FederationTab
 
+Manage connections
+
 These are the remote servers you currently have information about.
 
-<$list
-  filter='[prefix[$:/Bob/KnownServers/]]'
->
+Each server gets a JSON tiddler named in the form
 
-</$list>
+`$:/Bob/KnownServers/ServerKey`
+
+<table>
+  <tr>
+    <th>
+      Name
+    </th>
+    <th>
+      Login?
+    </th>
+    <th>
+      Wikis
+    </th>
+    <th>
+      Chats
+    </th>
+  </tr>
+  <$list
+    filter='[prefix[$:/Bob/KnownServers/]]'
+  >
+    <tr>
+      <th>
+        <$view
+          field='name'
+        />
+      </th>
+      <td>
+        <$view
+          field='canlogin'
+        />
+      </td>
+      <td>
+        <$count filter='[enlist{!!availablewikis}]'/> wikis available
+      </td>
+      <td>
+        <$count filter='[enlist{!!availablechats}]'/> chats available
+      </td>
+    </tr>
+  </$list>
+</table>

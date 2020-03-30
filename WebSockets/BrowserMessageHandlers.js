@@ -271,15 +271,6 @@ it will overwrite this file.
         $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
         $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
       }
-      /*
-      if ($tw.Bob.MessageQueue.filter(function(item){return (typeof item.ctime) === 'undefined'}).length > 0) {
-      //if ($tw.Bob.MessageQueue.length > 0) {
-        // Turn on the dirty indicator
-        $tw.utils.toggleClass(document.body,"tc-dirty",true);
-      } else {
-        $tw.utils.toggleClass(document.body,"tc-dirty",false);
-      }
-      */
       // Clear the time to live timeout.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.
@@ -427,6 +418,7 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.updateConnections = function (data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('update connections', data)
     if (data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',
@@ -436,7 +428,7 @@ it will overwrite this file.
       Object.keys(data.connections).forEach(function(connectionUrl) {
         if (data.connections[connectionUrl].name) {
           const connectionFields = {
-            title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name,
+            title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name,
             tags: '[[Remote Server]]',
             url: connectionUrl,
             staticurl: data.connections[connectionUrl].staticUrl,
@@ -461,7 +453,7 @@ it will overwrite this file.
           })
           data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {
             $tw.wiki.addTiddler(new $tw.Tiddler({
-              title: '$:/Federation/RemoteServer/' + data.connections[connectionUrl].name + '/wikis/' + thisChatName,
+              title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name + '/chats/' + thisChatName,
               public: 'yes',
               relay: 'no',
               name: thisChatName

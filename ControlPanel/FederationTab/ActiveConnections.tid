@@ -5,8 +5,29 @@ tags: FederationTab
 These are the currently active connections between your server and remote
 servers.
 
-<$list
-  filter='[prefix[$:/Bob/ActiveConnections/]]'
->
-
-</$list>
+<table>
+  <tr>
+    <th>
+      Node Name
+    </th>
+    <th>
+      IP:PORT
+    </th>
+  </tr>
+  <$list
+    filter='[list[$:/Bob/ActiveConnections]]'
+  >
+    <tr>
+      <td>
+        <$view
+          index=serverName
+        >
+          <<currentTiddler>>
+        </$view>
+      </td>
+      <td>
+        //something//
+      </td>
+    </tr>
+  </$list>
+</table>

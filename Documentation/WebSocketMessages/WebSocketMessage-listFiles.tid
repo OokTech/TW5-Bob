@@ -1,0 +1,36 @@
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-listFiles
+tags: [[Websocket Message]] [[Human Usable]]
+caption: listFiles
+description: A message that gives a list of files in a folder
+
+This message is used to get a list of files available in a folder.
+Only files that that are available using the file server are listed.
+
+Folders that can have their files listed are:
+
+- The file set as the `filePathRoot`
+- Child folders of the `filePathRoot`
+- Any folder listed in the file server tab.
+
+Only file types in the `mimeMap` are listed, you can filter the filetypes
+further by giving a space separated list of file extensions as the `mediaTypes`
+attribute.
+
+The filelist will be put in a tiddler, by default it is called `$:/state/fileList/files/`
+
+!!Usage
+
+Note: if you set the tiddler property to an existing tiddler the existing
+tiddler will be overwritten.
+
+|!Name |!Description |!Default |
+|!folder |The url path to the folder you want listed. The `filePathRoot` is `files`, other locations are what is shown in the list in the file server tab. |`files` |
+|!tiddler |The tiddler to store the list of files in. |`$:/state/fileList/<<folderName>>` |
+|!field |The field to store the file list in. |`list` |
+|!mediaTypes |(optional) a space separated list of file extensions to use to filter the returned files. |None |
+
+Example: Get the filelist for the folder listed as the `filePathRoot` and store the list in the `list` field of the tiddler `$:/state/fileList/./`.
+
+```
+<$action-websocketmessage $type='listFiles' folder='files'/>
+```

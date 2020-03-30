@@ -1,0 +1,21 @@
+title: $:/plugins/OokTech/Bob/Documentation/AutomaticBackup
+tags: [[Bob Documentation]]
+caption: Automatic Backups
+description: Setting up automatic wiki backups
+
+You can enable automatic backups for wikis in the settings.
+
+Backups can be triggered by two events:
+
+* Loading a wiki
+* Modifying a wiki
+
+Here loading a wiki is not loading it in the browser, it is loading it on the
+server. This happens the first time the wiki is loaded in a browser after the
+server starts, or the first time a wiki is loaded after being manually unloaded.
+
+Backups based on modifying a wiki do not happen right away, an interval is set
+and when an edit is made to a wiki if a timer isn't already running a timer
+starts. When the timer runs out a backup is made.
+
+I need to put more here and make a reasonable UI for it.

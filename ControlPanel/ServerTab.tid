@@ -2,15 +2,15 @@ title: $:/plugins/OokTech/Bob/ServerTab
 caption: Server
 
 \define checkActions()
-<$action-websocketmessage
-  $type='updatesetting'
-  suppressBrowser='yes'
+  <$action-updatesetting
+    suppressBrowser=true
+  />
 \end
 
 \define uncheckActions()
-<$action-websocketmessage
-  $type='updatesetting'
-  suppressBrowser='no'
+<$action-updatesetting
+  suppressBrowser=false
+/>
 \end
 \define toggleLazyLoadingCheckActions()
   <$action-updatesetting
@@ -24,25 +24,16 @@ caption: Server
   />
 \end
 
-\define toggleFileMonitor()
-<$reveal
-  type='match'
-  text='yes'
-  state='$:/WikiSettings/split##disableFileWatchers'
->
-  <$action-updatesetting
-    disableFileWatchers='no'
-  />
-</$reveal>
-<$reveal
-  type='nomatch'
-  text='yes'
-  state='$:/WikiSettings/split##disableFileWatchers'
->
+\define checkFileMonitor()
   <$action-updatesetting
     disableFileWatchers='yes'
   />
-</$reveal>
+\end
+
+\define uncheckFileMonitor()
+  <$action-updatesetting
+    disableFileWatchers='no'
+  />
 \end
 
 <$reveal
@@ -73,6 +64,7 @@ caption: Server
   index='suppressBrowser'
   checked='no'
   unchecked='yes'
+  default='yes'
 >
   Automatically open browser when ~BobEXE starts
 </$checkbox>
@@ -189,9 +181,10 @@ To make Bob available only on the computer running Bob or BobEXE:
 </$reveal>
 
 <$checkbox
-  actions=<<toggleFileMonitor>>
+  checkactions=<<checkFileMonitor>>
+  uncheckactions=<<uncheckFileMonitor>>
   tiddler='$:/WikiSettings/split'
-  index=disableFileWatchers
+  index='disableFileWatchers'
   checked='yes'
   unchecked='no'
   default='no'

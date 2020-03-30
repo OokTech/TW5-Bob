@@ -7,7 +7,7 @@ caption: Saver Server
   state='$:/WikiSettings/split##enableBobSaver'
   text='no'
 >
-  <$action-sendmessage
+  <$action-websocketmessage
     $type='updatesetting'
     enableBobSaver='no'
   />
@@ -17,7 +17,7 @@ caption: Saver Server
   state='$:/WikiSettings/split##enableBobSaver'
   text='no'
 >
-  <$action-sendmessage
+  <$action-websocketmessage
     $type='updatesetting'
     enableBobSaver='yes'
   />

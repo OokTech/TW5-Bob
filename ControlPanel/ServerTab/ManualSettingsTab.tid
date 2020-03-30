@@ -1,6 +1,15 @@
 title: $:/plugins/OokTech/Bob/ManualSettingsTab
 caption: Manual Settings
 
+''IMPORTANT:'' there are a lot of settings here. Almost all of them have
+interfaces in other parts of the control panel that are much safer to use
+because they ensure that everything is formatted correctly so it doesn't get
+broken, and they have instructions specific to what they change.
+
+Changing things here may break parts of Bob, and may have unexpected results.
+If you decide to edit a part of this that has an interface elsewhere do not
+expect support if things break.
+
 Click on a value to edit it. After clicking on a value the trashcan icon will
 delete that field.
 To add a new value click on the
@@ -12,6 +21,9 @@ also give a value. When you are done click
 save it, or click
 <$button class='tc-btn-invisible'>{{$:/core/images/cancel-button}}</$button> to
 discard the new property.
+
+After modifying the settings here you have to click `Update Settings` below or
+they will not be saved.
 
 <$checkbox
   tiddler='$:/state/Bob/EditManualSettings'
