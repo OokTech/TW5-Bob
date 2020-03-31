@@ -111,6 +111,7 @@ if($tw.node) {
   // A convenience function that handles all of the logging types so you don't have to unless you have multiple enabled but only want to log something in one place.
   $tw.Bob.logger.log = function (/* args */) {
     let params = {}
+    $tw.settings.logger = $tw.settings.logger || {};
     const argumentList = [].slice.apply(arguments);
     if (arguments.length > 1) {
       if (typeof arguments[arguments.length-1] === 'object') {
@@ -142,6 +143,7 @@ if($tw.node) {
 
   $tw.Bob.logger.error = function (/* args */) {
     let params = {}
+    $tw.settings.logger = $tw.settings.logger || {};
     const argumentList = [].slice.apply(arguments);
     if (arguments.length > 1) {
       if (typeof arguments[arguments.length-1] === 'object') {

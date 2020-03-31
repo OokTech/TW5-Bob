@@ -62,6 +62,7 @@ ActionDownloadWiki.prototype.execute = function() {
   this.includeFilter = this.getAttribute('includeFilter',undefined)
   this.ignoreDefaultExclude = this.getAttribute('ignoreDefaultExclude', false)
   this.defaultName = this.getAttribute('defaultName', 'index.html')
+  this.core = this.getAttribute('core', '$:/core')
 };
 
 /*
@@ -95,7 +96,7 @@ ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
   let options = {};
   let tempWiki = new $tw.Wiki();
   // Load the boot tiddlers
-  tempWiki.addTiddler($tw.wiki.getTiddler('$:/core'))
+  tempWiki.addTiddler($tw.wiki.getTiddler(this.core))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/boot.css'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/boot.js'))
   tempWiki.addTiddler($tw.wiki.getTiddler('$:/boot/bootprefix.js'))
@@ -110,7 +111,7 @@ ActionDownloadWiki.prototype.invokeAction = function(triggeringWidget,event) {
     tempWiki.addTiddler($tw.wiki.getTiddler(title))
   })
 
-  tempWiki.registerPluginTiddlers("plugin", ["$:/core"]);
+  tempWiki.registerPluginTiddlers("plugin", [this.core]);
   // Unpack plugin tiddlers
   tempWiki.readPluginInfo();
   tempWiki.unpackPluginTiddlers();

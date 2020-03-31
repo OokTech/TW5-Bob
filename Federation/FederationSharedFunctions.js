@@ -26,50 +26,10 @@ This has some functions that are needed by Bob in different places.
 
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
-    $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
+    $tw.Bob.Federation.connections = $tw.Bob.Federation.connections || {};
     $tw.Bob.Federation.nonce = $tw.Bob.Federation.nonce || [];
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.settings.advanced = $tw.settings.advanced || {};
-
-
-    /*
-      messageQueue [messageData]
-      messageData {
-        message: message,
-        time: original sending timestamp,
-        ctime: the time when all active connections have given an ack (for pruning old messages)
-        id: messageId,
-        ack: ackObject,
-        type: messageType
-      }
-      ackObject {
-        index: ackReceived,
-        index2: ackReceived2
-      }
-
-      message - the json object that is actually sent as the message.
-      time - the time the messageData is created
-      id - the message id (should be unique per-session)
-      ack - an object that holds each connection that the message is sent to and
-        if an ack has been received or not yet
-      title - for messages that refer to a tiddler this is the tiddler title,
-        otherwise it is undefined.
-      type - the message type
-
-      for the ackObject the index is the connection index and ackReceived is a
-      boolean indicating if the ack has been received yet or not.
-    */
-    function createMessageData(message) {
-      message.id = makeId();
-      let messageData = {
-        message: message,
-        id: id,
-        time: Date.now(),
-        type: message.type,
-        ack: {}
-      };
-      return messageData;
-    }
 
     /*
       This function checks the message queue to see if anything should be done.
@@ -108,15 +68,11 @@ This has some functions that are needed by Bob in different places.
         oldMessages.forEach(function (messageData) {
           // If we are in the browser there is only one connection, but
           // everything here is the same.
-          Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(index) {
-            // Here make sure that the connection is live and hasn't already
-            // sent an ack for the current message.
-            if($tw.Bob.Federation.remoteConnections[index].socket !== undefined) {
-              if(!messageData.ack[index] && $tw.Bob.Federation.remoteConnections[index].socket.readyState === 1) {
-                // If we haven't received an ack from this connection yet than
-                // resend the message
-                sendMessage(messageData, index)
-              }
+          Object.keys($tw.Bob.Federation.connections).forEach(function(index) {
+            if(!messageData.ack[index]) {
+              // If we haven't received an ack from this connection yet than
+              // resend the message
+              sendMessage(messageData)
             }
           });
         });
@@ -198,24 +154,18 @@ This has some functions that are needed by Bob in different places.
       This checks:
 
       - if the message data and connectionIndex are defined
-      - if the remote connection info exists
-      - if the socket for the remote connection exists and is open
 
       TODO figure out what else to put here
     */
-    function messageIsEligible(messageData, connectionIndex, queue) {
-      if (!messageData || (!connectionIndex && connectionIndex !== 0)) {
+    function messageIsEligible(messageData, queue) {
+      if (!messageData || !queue) {
         return false;
       }
-      if(!$tw.Bob.Federation.remoteConnections[connectionIndex]) {
+      /*
+      if(!$tw.Bob.Federation.connections[messageData]) {
         return false;
       }
-      if(!$tw.Bob.Federation.remoteConnections[connectionIndex].socket) {
-        return false;
-      }
-      if($tw.Bob.Federation.remoteConnections[connectionIndex].socket.readyState !== 1) {
-        return false;
-      }
+      */
       // Make sure that the queue exists. This may be over paranoid
       queue = queue || [];
 
@@ -256,14 +206,15 @@ This has some functions that are needed by Bob in different places.
 
       This modifies messageQueue as a side effect
     */
-    function sendMessage(messageData, connectionIndex) {
-      if (!messageData || (!connectionIndex && connectionIndex !== 0)) {
+    function sendMessage(messageData) {
+      if (!messageData) {
         return;
       }
-      if(messageIsEligible(messageData, connectionIndex, messageQueue)) {
+      if (!messageData._target_info) {
+        return;
+      }
+      if(messageIsEligible(messageData, messageQueue)) {
         $tw.Bob.Timers = $tw.Bob.Timers || {};
-        connectionIndex = connectionIndex || 0;
-
         // Remove any messages made redundant by this message
         messageQueue = removeRedundantMessages(messageData, messageQueue);
         // Check to see if the token has changed
@@ -274,14 +225,21 @@ This has some functions that are needed by Bob in different places.
           return enqueuedMessageData.id === messageData.id;
         });
         if(enqueuedIndex !== -1) {
-          messageQueue[enqueuedIndex].ack[connectionIndex] = false;
+          messageQueue[enqueuedIndex].ack[messageData._target_info.serverKey] = false;
         } else {
           // If the message isn't in the queue set the ack status for the
           // current connectionIndex and enqueue the message
-          messageData.ack[connectionIndex] = false;
+          messageData.ack[messageData._target_info.serverKey] = false;
           messageQueue.push(messageData);
         }
-        $tw.Bob.Federation.remoteConnections[connectionIndex].socket.send(JSON.stringify(messageData.message));
+        const messageBuffer = Buffer.from(JSON.stringify(messageData.message))
+        $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
+          if (err) {
+            console.log(err)
+          } else {
+            // console.log('sending worked')
+          }
+        })
       }
       clearTimeout(messageQueueTimer);
       //messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 1500);
@@ -395,14 +353,21 @@ This has some functions that are needed by Bob in different places.
       data = data || {};
       if($tw.browser) {
         const token = localStorage.getItem('ws-token')
-        $tw.Bob.Federation.remoteConnections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
+        $tw.Bob.Federation.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
       } else {
         if(data.id) {
           if(data.source_connection !== undefined && data.source_connection !== -1) {
-            $tw.Bob.Federation.remoteConnections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+            $tw.Bob.Federation.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
           }
         }
       }
+    }
+
+    /*
+      This returns the server key used as the unique identifier for a server
+    */
+    function getServerKey(targetInfo) {
+      return targetInfo.serverName || targetInfo.address + ':' + targetInfo.port;
     }
 
     /*
@@ -411,7 +376,7 @@ This has some functions that are needed by Bob in different places.
       TODO get access token part
       TODO make the nonce not terrible
     */
-    function createRemoteMessageData(message, wiki) {
+    function createRemoteMessageData(message, wiki, targetInfo) {
       if(typeof message === 'string') {
         try{
           message = JSON.parse(message);
@@ -429,6 +394,7 @@ This has some functions that are needed by Bob in different places.
       // has no effect on anything other than making the numbers increase a bit
       // faster.
       const id = makeId();
+      targetInfo.serverKey = getServerKey(targetInfo)
       const token = false;
       message.id = id;
       message.rnonce = nonce;
@@ -438,7 +404,8 @@ This has some functions that are needed by Bob in different places.
         time: Date.now(),
         type: message.type,
         ack: {},
-        token: token
+        token: token,
+        _target_info: targetInfo
       };
       const server = (typeof wiki === 'undefined')?true:false;
       $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server, type: message.type})
@@ -449,13 +416,13 @@ This has some functions that are needed by Bob in different places.
       This sends a message to a remote server. This is used for syncing for now,
       in the future it may be used for other things.
     */
-    $tw.Bob.Federation.sendToRemoteServer = function(message, serverKey, wiki) {
-      const messageData = createRemoteMessageData(message, wiki);
-      if (messageData && (serverKey || serverKey === 0)) {
+    $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki) {
+      const messageData = createRemoteMessageData(message, wiki, serverInfo);
+      if (messageData) {
         //console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
-        sendMessage(messageData, serverKey);
+        sendMessage(messageData);
       } else {
         // log something here console.log
       }
@@ -469,8 +436,8 @@ This has some functions that are needed by Bob in different places.
       //console.log(message)
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
-      //console.log(Object.keys($tw.Bob.Federation.remoteConnections))
-      Object.keys($tw.Bob.Federation.remoteConnections).forEach(function(serverKey) {
+      //console.log(Object.keys($tw.Bob.Federation.connections))
+      Object.keys($tw.Bob.Federation.connections).forEach(function(serverKey) {
         $tw.Bob.Federation.sendToRemoteServer(message, serverKey);
       })
     }

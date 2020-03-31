@@ -30,7 +30,9 @@ if($tw.node) {
   */
   const startup = function () {
     // The user settings path
+    console.log($tw)
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    $tw.settings = JSON.parse($tw.wiki.getTiddler('$:/plugins/OokTech/Bob/DefaultSettings').fields.text);
     $tw.loadSettings($tw.settings, userSettingsPath);
     updateSettingsWikiPaths($tw.settings.wikis);
   }
@@ -204,7 +206,7 @@ if($tw.node) {
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split", data);
-    let wikiInfo
+    let wikiInfo = undefined
     try {
       // Save the lists of plugins, languages and themes in tiddlywiki.info
       const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');

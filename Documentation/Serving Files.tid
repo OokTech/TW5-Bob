@@ -13,20 +13,26 @@ your home network.
 
 ---
 
+Bob, like any other node.js version of tiddlywiki, does not handle external
+files the same way that single file wikis do.
+This means that you can't just reference files by their location on your
+harddrive the way you can with the single file wikis.
+To access files on your harddrive while using Bob you have to enable the file
+server component of Bob.
+
 !! Using the interface
 
 Everything can be done using the graphical interface in the control panel.
 
-To get to the interface go to the $:/ControlPanel -> `Bob Settings` tab -> `Server` tab -> `File Server` tab
+To get to the interface go to the $:/ControlPanel -> `Bob Settings` tab ->
+`Server` tab -> `File Server` tab
 
 !!! Enabling the server
 
 To enable the file server check the `Enable File Server` box.
 
-In order for this to take effect you have to click the `Update Settings` button
-near the bottom of the tiddler.
-
-Then click the `Shutdown Wiki` button and restart Bob.
+This should enable the server, but due to browser caching you may still have to
+reload the wiki page before images will appear.
 
 !!! Default Setup
 
@@ -41,13 +47,17 @@ file called `FileName.jpg` it is:
 
 For a wiki called `This/Wiki` the uri would be:
 
-`/files/This/Wiki/FileName.jpg`
+`/This/Wiki/files/FileName.jpg`
 
-!!! The Server Images Plugin
+!!! Saving media files on the server
 
-If the ServerImages plugin is installed and enabled when you import an image or
-other media file it is uploaded to the `files` of the wiki it is imported into
-and a `_canonical_uri` tiddler pointing to the image file is created.
+If the file server in enabled than by default any media files that are imported
+into the wiki will be saved on the server and a `_canonical_uri` tiddler gets
+created in the wiki instead of saving the media it the wiki itself.
+
+This can help a lot with file size and loading times if you have a lot of media
+in your wikis.
+It also greatly reduces the memory used by the server.
 
 !!! Advanced Setup
 
@@ -64,20 +74,7 @@ above, the url prefix is `/files/media`
 
 So the file would be available using at the url `/files/media/FileName.jpg`
 
-!! Enabling the file server the hard way
-
-Bob, like the node.js version of tiddlywiki, does not handle external files the
-same way that the html wikis do.
-This means that you can't just reference files by their location on your
-harddrive the way you can with the single file wikis.
-To access files on your harddrive you have to enable the file server component
-of Bob. To do this open the $:/ControlPanel, then the tab `Bob Settings` and
-under that the tab `File Server` and check the `Enable File Server` checkbox.
-
-After the box is checked you have to restart the wiki server before it will
-work.
-
-!!! Setting up the file server
+! Advanced configuration
 
 After enabling the file server it is easiest to just use the default settings.
 Unless you have some compelling reason to change than it is recommended that
@@ -108,11 +105,15 @@ called `files` inside the wiki folder, next to the `tiddlers` folder.
 These defaults give the same paths to files as a single file wiki in the same
 place.
 
----
+!! Globally vs locally available files
 
-! Below here things may be inaccurate
+This distinction is only relevant if you check the `per wiki files` box in the
+file server setup.
+If that isn't checked files in wiki-specific folders will be available to all
+wikis and to anything outside tiddlywiki that can access the server, see the
+big note of doom at the top.
 
-!! Globally available files
+!!! Globally available
 
 These files are available to any wiki being served.
 
@@ -133,12 +134,15 @@ like this:
 
 `[img[/files/Plants/aloe.jpg]]`
 
+Folders served using the `Serve files from a new folder` section of the file
+server setup are all globally available.
+
 ''Note about paths:'' For security you can't use any paths that would go above
 the base file path. So, using the example above, if you tried to access an
 image in `/home/inmysocks` by using the uri `./files/../foo.jpg` it would not
 work.
 
-!! Files for specific wikis
+!!! Files for specific wikis
 
 These files are for specific wikis and, if you have set up access controls, are
 only available to that wiki.

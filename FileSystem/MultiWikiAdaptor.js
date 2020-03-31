@@ -176,6 +176,7 @@ if($tw.node) {
             // Save the tiddler in memory.
             internalSave(tiddler, prefix);
             $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+            $tw.hooks.invokeHook('wiki-modified', prefix);
           } catch (e) {
               $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
           }
@@ -251,6 +252,7 @@ if($tw.node) {
         const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
         // Send the message to each connected browser
         $tw.Bob.SendToBrowsers(message);
+        $tw.hooks.invokeHook('wiki-modified', prefix);
         // Delete the metafile if present
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {

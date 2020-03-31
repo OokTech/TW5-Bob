@@ -1,0 +1,113 @@
+title: $:/plugins/OokTech/Bob/DefaultSettings
+
+{
+  "editionsPath": "./Editions",
+  "pluginsPath": "./Plugins",
+  "themesPath": "./Themes",
+  "wikisPath": "./Wikis",
+  "wikiPathBase": "cwd",
+  "includePluginList": [],
+  "excludePluginList": [],
+  "autoUnloadWikis": "false",
+  "disableBrowserAlerts": "false",
+  "disableFileWatchers": "no",
+  "fileURLPrefix": "files",
+  "namespacedWikis": "false",
+  "saveMediaOnServer": "yes",
+  "suppressBrowser": "false",
+  "enableFederation": "no",
+  "enableFileServer": "no",
+  "filePathRoot": "./files",
+  "perWikiFiles": "no",
+  "enableBobSaver": "yes",
+  "scripts": {
+    "NewWiki": "tiddlywiki #wikiName --init #editionName"
+  },
+  "wikis": {
+  },
+  "ws-server": {
+    "port": 8080,
+    "host": "127.0.0.1",
+    "autoIncrementPort": "false",
+    "servePlugin": "true",
+    "pathprefix": "",
+    "proxyprefix": ""
+  },
+  "heartbeat": {
+    "interval": 1000,
+    "timeout": 5000
+  },
+  "mimeMap": {
+    ".aac": "audio/aac",
+    ".avi": "video/x-msvideo",
+    ".csv": "text/csv",
+    ".doc": "application/msword",
+    ".epub": "application/epub+zip",
+    ".gif": "image/gif",
+    ".html": "text/html",
+    ".htm": "text/html",
+    ".ico": "image/x-icon",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".mp3": "audio/mpeg",
+    ".mpeg": "video/mpeg",
+    ".oga": "audio/ogg",
+    ".ogv": "video/ogg",
+    ".ogx": "application/ogg",
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".weba": "audio/weba",
+    ".webm": "video/webm",
+    ".wav": "audio/wav"
+  },
+  "API": {
+    "enableFetch": "no",
+    "enablePush": "no",
+    "pluginLibrary": "no"
+  },
+  "logger": {
+    "useFileLogging":"no",
+    "fileLogLevel": "2",
+    "outputFolder": "./logs",
+    "outputBaseFileName": "Log",
+    "useSeparateErrorFile": "no",
+    "outputErrorFileName": "Error",
+    "ignoreErrors": "yes",
+    "useBrowserLogging": "no",
+    "browserLogLevel": "2",
+    "useConsoleLogging": "yes",
+    "consoleLogLevel": "2"
+  },
+  "federation": {
+    "serverName": "Noh Neigh-m",
+    "mobile": "no",
+    "enableChat": "no",
+    "udpPort": "3232",
+    "enableMulticast": "yes",
+    "multicastAddress": "230.0.0.114",
+    "broadcast": "yes",
+    "rebroadcastInterval": "30000"
+  },
+  "advanced": {
+    "localMessageQueueTimeout": 500,
+    "federatedMessageQueueTimeout": 1500,
+    "saveTiddlerDelay": 200
+  },
+  "servingFiles": {
+  },
+  "saver": {
+    "host": "localhost",
+    "port": "61192",
+    "key": "",
+    "disable": "no"
+  },
+  "backups": {
+    "enable": "no",
+    "backupFolder": "./backups",
+    "backupInterval": 600000,
+    "saveOnLoad": "yes",
+    "saveOnModified": "yes",
+    "maxBackups": 10
+  }
+}

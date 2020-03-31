@@ -27,6 +27,8 @@ used. If the json isn't formatted correctly than default values will be used.
   "suppressBrowser": "false",
   "enableFederation": "no",
   "enableFileServer": "no",
+  "filePathRoot": "",
+  "perWikiFiles": "no",
   "enableBobSaver": "yes",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
@@ -42,7 +44,9 @@ used. If the json isn't formatted correctly than default values will be used.
     "port": 8080,
     "host": "127.0.0.1",
     "autoIncrementPort": "false",
-    "servePlugin": "true"
+    "servePlugin": "true",
+    "pathprefix": "",
+    "proxyprefix": ""
   },
   "heartbeat": {
     "interval": 1000,
@@ -79,6 +83,7 @@ used. If the json isn't formatted correctly than default values will be used.
   },
   "logger": {
     "useFileLogging":"no",
+    "fileLogLevel": "2",
     "outputFolder": "./logs",
     "outputBaseFileName": "Log",
     "useSeparateErrorFile": "no",
@@ -87,14 +92,17 @@ used. If the json isn't formatted correctly than default values will be used.
     "useBrowserLogging": "no",
     "browserLogLevel": "2",
     "useConsoleLogging": "yes",
-    "consoleLogLevel": "2",
-    "useFileLogging": "no",
-    "fileLogLevel": "2"
+    "consoleLogLevel": "2"
   },
   "federation": {
     "serverName": "Noh Neigh-m",
     "mobile": "no",
-    "enableChat": "no"
+    "enableChat": "no",
+    "udpPort": "3232",
+    "enableMulticast": "yes",
+    "multicastAddress": "230.0.0.114",
+    "broadcast": "yes",
+    "rebroadcastInterval": "5000"
   },
   "advanced": {
     "localMessageQueueTimeout": 500,
@@ -109,6 +117,14 @@ used. If the json isn't formatted correctly than default values will be used.
     "port": "61192",
     "key": "",
     "disable": "no"
+  },
+  "backups": {
+    "enable": "no",
+    "backupFolder": "./backups",
+    "backupInterval": 600000,
+    "saveOnLoad": "yes",
+    "saveOnModified": "yes",
+    "maxBackups": 10
   }
 }
 ```
@@ -116,7 +132,17 @@ used. If the json isn't formatted correctly than default values will be used.
 ''Note:'' All paths can be either absolute or relative. Relative paths are
 relative to the path listed in `wikiPathBase`, if none is listed they are
 relative to the folder with tiddlywiki.js in it if you are using the plugin
-version or the folder with the executable file if you are using the BobEXE version.
+version or the folder with the executable file if you are using the BobEXE
+version.
+
+''Note - `pathprefix` vs `proxyprefix`:'' The difference between `pathprefix`
+and `proxyprefix` is a bit difficult. The `pathprefix` is handled by the local
+server, so if you have wikis hosted on `/wikis/` and something else is handling
+routes that start with anything else you put `/wikis/` as the path prefix. If
+you are using a proxy which proxies incoming traffic from `/wikis/` to `/` than
+you use `proxyprefix`. So `pathprefix` is for prefixes that are handled by the
+server, `proxyprefix` is for paths that are changed before it gets to the
+server.
 
 ''Note for windows:'' All the example paths here are how they would appear on
 linux or osx. On windows the paths would look like
@@ -171,6 +197,8 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `enableFederation` setting this to `yes` enables federation with remote
   servers.
 - `enableFileServer` setting this to `yes` enables the static file server.
+- `filePathRoot` this is the base path for files that are globally available.
+- `perWikiFiles` setting this to `yes` means that files specific to a wiki (that is files in the wikis `files` folder next to the wikis `tiddlers` folder) are only available in that wiki, so no hotlinking.
 - `enableBobSaver` setting this to `no` disables the Bob saver for single file
   wikis. By default this is enabled.
 - `scripts` a list of scripts that you can call from inside the wiki using the
@@ -188,7 +216,7 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `rootTiddler` changing this will probably break everything
   - `renderType` changing this will probably break everything
   - `serveType` changing this will probably break everything
-  - `pathPrefix` a prefix for the path that wikis are served on.
+  - `pathprefix` a prefix for the path that wikis are served on.
   - `autoIncrementPort` if not set to `false` than the server
     will try using the given port (`8080` by default) and if it is in use it
     will try the next port up and continue until it finds an open port to use.
@@ -239,6 +267,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `mobile` set this to `yes` if the server isn't going to have the same url
     or ip address all the time.
   - `enableChat` set this to `yes` to enable the federated chat server.
+  - `udpPort` this is the port used by the udp socket used to connect to other
+    servers.
+  - `multicastAddress` this is the multicast ip used for using multicast on the
+    local network to find other servers.
 - `advanced` these are advanced settings that should almost never have to be
   changed. Changing these values can cause undesired or unexpected behaviour.
   - `localMessageQueueTimeout` for local messages, the maximum time the server
@@ -274,6 +306,13 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `key` an optional key, if this is set than the same key has to be entered
     in each of the single file wikis in order for the server to save them.
   - `disable` set this to `yes` to disable the single file saver sever
+- `backups` this holds settings for automatic backups
+  - `enable` if this is set to `yes` automatic backups are enabled
+  - `backupFolder` the folder to store the backups in.
+  - `backupInterval` how long to wait after a change to make a backup in ms. Default is `600000`, which is 10 minutes,
+  - `saveOnLoad` if this is set to `yes` a backup will be saved when a wiki is loaded.
+  - `saveOnModified`if this is set to `yes` a backups will be triggered by edits to the wiki (see the documentation for important notes about this)
+  - `maxBackups` is the maximum number of backups to keep for any wiki. If there are more than this the oldest are removed until there are at most this number of backups.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no

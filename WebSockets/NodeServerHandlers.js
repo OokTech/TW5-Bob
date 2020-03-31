@@ -157,9 +157,7 @@ if($tw.node) {
     const tiddler = {fields: fields}
     const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-
     $tw.CreateSettingsTiddlers(data);
-
   }
 
   /*
@@ -369,17 +367,28 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('update', data)
     const path = require('path');
     const fs = require('fs');
-    if(typeof data.updateString === 'object') {
+    if(typeof data.updateString !== 'undefined') {
       let failed = false;
       let updatesObject = {};
       let error = undefined;
       try {
         if (typeof data.updateString === 'object') {
           Object.keys(data.updateString).forEach(function(key) {
-            updatesObject[key] = (typeof data.updateString[key] === 'object')?data.updateString[key]:JSON.parse(data.updateString[key])
+            if (typeof data.updateString[key] === 'object') {
+              updatesObject[key] = data.updateString[key]
+            } else if (typeof data.updateString[key] === 'string') {
+              if (data.updateString[key].startsWith('{') || data.updateString[key].startsWith('[')) {
+                try {
+                  updatesObject[key] = JSON.parse(data.updateString[key]);
+                } catch (e) {
+                  updatesObject[key] = data.updateString[key];
+                }
+              } else {
+                updatesObject[key] = data.updateString[key];
+              }
+            }
           })
         } else {
           updatesObject = JSON.parse(data.updateString);
@@ -414,7 +423,6 @@ if($tw.node) {
     in the browser.
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
-    console.log(data)
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
@@ -486,7 +494,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that there is a wiki name given.
     if(data.wikiName) {
-      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1})
+      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1});
       $tw.stopFileWatchers(data.wikiName);
       // Make sure that the wiki is loaded
       if($tw.Bob.Wikis[data.wikiName]) {
@@ -1049,6 +1057,146 @@ if($tw.node) {
   }
 
   /*
+    This handlers takes a folder as input and if the folder is one of the
+    folders with media being served it will return a list of files available in
+    the folder.
+
+    TODO make this return the path to use in a _canonical_uri
+
+    data = {
+      folder: './',
+      mediaTypes: .mp3 .mp3 .doc,
+      tiddler: $:/state/fileList,
+      field: list
+    }
+
+    TODO figure out the authorisation level for this one
+  */
+  $tw.nodeMessageHandlers.listFiles = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
+    const fs = require('fs');
+    const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+
+    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+    data.folder = data.folder || $tw.settings.fileURLPrefix;
+    data.folder = data.folder.startsWith('/') ? data.folder : '/' + data.folder;
+    const wikiName = $tw.ServerSide.findName(data.folder);
+    const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
+    const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
+    let fileFolder
+    if(thePath === '' && wikiName === '') {
+      // Globally available files in filePathRoot
+      fileFolder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot);
+      // send to browser
+      next(fileFolder, '');
+    } else if (wikiName === '' && $tw.settings.servingFiles[thePath]) {
+      // Explicitly listed folders that are globally available
+      fileFolder = $tw.settings.servingFiles[thePath];
+      // send to browser
+      next(fileFolder, thePath);
+    } else if (wikiName !== '') {
+      // Wiki specific files, need to check to make sure that if perwikiFiles is set this only works from the target wiki.
+      if($tw.settings.perWikiFiles !== 'yes' || wikiName === data.wiki) {
+        const wikiPath = $tw.ServerSide.existsListed(wikiName);
+        if(!wikiPath) {
+          return;
+        }
+        fileFolder = path.join(wikiPath, 'files');
+        next(fileFolder, thePath, wikiName);
+      }
+    } else {
+      const testPaths = [path.resolve($tw.ServerSide.getBasePath)].concat( Object.values($tw.settings.servingFiles));
+      let ind = 0
+      nextTest(0, testPaths)
+      function nextTest(index, pathsToTest) {
+        // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
+        let test = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, pathsToTest[index]);
+        fs.access(test, fs.constants.F_OK, function(err) {
+          if(err) {
+            if(index < pathToTest.length - 1) {
+              nextTest(index + 1, pathsToTest);
+            }
+          } else {
+            // send the list to the browser
+            next(test, pathsToTest[index]);
+          }
+        })
+      }
+    }
+    function next(folder, urlPath, wikiName) {
+      wikiName = wikiName || '';
+      data.tiddler = data.tiddler || path.join('$:/state/fileList/', wikiName, $tw.settings.fileURLPrefix, urlPath);
+      data.field = data.field || 'list';
+      // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
+      const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
+          return path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, item)
+        });
+      const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, folder);
+      let match = false;
+      if (authorised) {
+        const mimeMap = $tw.settings.mimeMap || {
+          '.aac': 'audio/aac',
+          '.avi': 'video/x-msvideo',
+          '.csv': 'text/csv',
+          '.doc': 'application/msword',
+          '.epub': 'application/epub+zip',
+          '.gif': 'image/gif',
+          '.html': 'text/html',
+          '.htm': 'text/html',
+          '.ico': 'image/x-icon',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.mp3': 'audio/mpeg',
+          '.mpeg': 'video/mpeg',
+          '.oga': 'audio/ogg',
+          '.ogv': 'video/ogg',
+          '.ogx': 'application/ogg',
+          '.png': 'image/png',
+          '.svg': 'image/svg+xml',
+          '.weba': 'audio/weba',
+          '.webm': 'video/webm',
+          '.wav': 'audio/wav'
+        };
+        const extList = data.mediaTypes || false;
+        fs.readdir(resolvedPath, function(err, items) {
+          // filter the list to only include listed mimetypes.
+          let filteredItems = items.filter(function(item) {
+            const splitItem = item.split('.');
+            const ext = splitItem[splitItem.length-1];
+            return typeof mimeMap['.' + ext] === 'string';
+          })
+          if(extList) {
+            filteredItems = filteredItems.filter(function(item) {
+              const splitItem = item.split('.');
+              const ext = splitItem[splitItem.length-1];
+              return typeof extList.indexOf('.' + ext) !== -1;
+            })
+          }
+          // Reply with the list
+          let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+          prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+          prefix = prefix.endsWith('/') ? prefix : prefix + '/';
+          const fields = {
+            title: data.tiddler,
+            pathprefix: prefix,
+            folder: data.folder,
+          }
+          fields[data.field] = $tw.utils.stringifyList(filteredItems);
+          const message = {
+            type: "saveTiddler",
+            tiddler: {
+              fields: fields
+            },
+            wiki: data.wiki
+          }
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+        });
+      }
+    }
+  }
+
+  /*
     This handler takes a folder as input and scans the folder for media
     and creates _canonical_uri tiddlers for each file found.,
     an optional extension list can be passed to restrict the media types scanned for.
@@ -1122,6 +1270,9 @@ if($tw.node) {
       if (data.folder && data.wiki) {
         // Make sure the folder exists
         let mediaURIList = [];
+        if(typeof $tw.settings.filePathRoot !== 'string') {
+          $tw.settings.filePathRoot = './files';
+        }
         const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
         if($tw.utils.isDirectory(mediaDir)) {
           fs.readdir(mediaDir, function(err, files) {
@@ -1172,13 +1323,6 @@ if($tw.node) {
                   }
                   const thisTiddler = new $tw.Tiddler($tw.Bob.Wikis[data.wiki].wiki.getCreationFields(), fields);
                   const tiddlerPath = path.join($tw.Bob.Wikis[data.wiki].wikiTiddlersPath, file);
-                  // We have to have an empty file to make the .meta file work.
-                  // For some reason.
-                  // But we don't want to overwrite the file if it exists.
-                  if (data.overwrite === 'yes' || !fs.existsSync(tiddlerPath)) {
-                    fs.writeFile(tiddlerPath,'',function() {
-                    })
-                  }
                   // Check if the file exists and only overwrite it if the
                   // overwrite flag is set.
                   // Update this to check for files by the _canonical_uri field

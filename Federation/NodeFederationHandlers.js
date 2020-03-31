@@ -68,38 +68,83 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
+    Save the connections.json file in the settings folder
+  */
+  function updateConnectionsInfo() {
+    const fs = require('fs');
+    const path = require('path');
+    const connectionsFilePath = path.join($tw.boot.wikiPath, 'settings', 'connections.json');
+    const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings');
+    if(!fs.existsSync(userSettingsFolder)) {
+      // Create the settings folder
+      fs.mkdirSync(userSettingsFolder);
+    }
+    const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
+    fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
+      if(err) {
+        const message = {
+          alert: 'Error saving connections:' + err,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.error(err, {level:1});
+      } else {
+        $tw.Bob.logger.log('Updated connections file', {level:1})
+        $tw.Bob.Federation.updateConnections()
+      }
+    });
+  }
+
+  /*
+    Respond when a multicast search message is received
+  */
+  $tw.Bob.Federation.messageHandlers.multicastSearch = function(data) {
+    // This checks to see if we have the node the broadcast is from listed with
+    // the same rinfo stuff as the broadcast, if so we can ignore it, if not
+    // than we request info
+    if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
+      $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
+      updateConnectionsInfo();
+    }
+  }
+
+  /*
     Ask a remote server for updated information about the server.
   */
   $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {
     // Reply with the server info listed above
     const reply = {
       type: 'sendServerInfo',
+      serverName: $tw.settings.federation.serverName,
       info: {
-        name: $tw.settings.Federation.serverName || 'Sever Name',
-        canLogin: $tw.settings.Federation.canLogin || 'no',
+        name: $tw.settings.federation.serverName || 'Sever Name',
+        canLogin: $tw.settings.federation.canLogin || 'no',
         availableWikis: $tw.ServerSide.getViewableWikiList(data),
         availableChats: getAvailableChats(data),
-        port: $tw.settings['ws-server'].port,
+        port: $tw.settings.federation.udpPort,
         publicKey: 'c minor',
         staticUrl: 'no'
       },
       nonce: data.rnonce
     };
-    $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info.url);
+    $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
   }
 
   function addServerInfo(data) {
     data = data || {};
+    $tw.Bob.Federation.connections[data._source_info.serverKey] = $tw.Bob.Federation.connections[data._source_info.serverKey] || {};
     data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].name = data.info.name;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].canLogin = data.info.canLogin;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableWikis = data.info.availableWikis;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].availableChats = data.info.availableChats;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].port = data.info.port;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].publicKey = data.info.publicKey;
-      $tw.Bob.Federation.remoteConnections[data._source_info.url].staticUrl = data.info.staticUrl;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].canLogin = data.info.canLogin || 'no';
+      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = data.info.availableWikis || [];
+      $tw.Bob.Federation.connections[data._source_info.serverKey].availableChats = data.info.availableChats || [];
+      $tw.Bob.Federation.connections[data._source_info.serverKey].port = data.info.port;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].address = data._source_info.address;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].publicKey = data.info.publicKey;
+      $tw.Bob.Federation.connections[data._source_info.serverKey].staticUrl = data.info.staticUrl || 'no';
     }
+    updateConnectionsInfo();
     $tw.Bob.Federation.updateConnections();
   }
 
@@ -107,7 +152,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     Add or update local information about a remote server when it is received
   */
   $tw.Bob.Federation.messageHandlers.sendServerInfo = function(data) {
-    addServerInfo(data)
+    addServerInfo(data);
   }
 
   /*
@@ -135,7 +180,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         fromWiki: data.fromWiki
       }
-      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
 
@@ -168,7 +213,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
           wikiName: data.fromWiki
         }
-        $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+        $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
       }
     }
   }
@@ -189,7 +234,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('sendTiddlers')
-    console.log(data)
     if (typeof data.tiddlers === 'object') {
       Object.values(data.tiddlers).forEach(function(tidFields) {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
@@ -219,10 +263,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
 
-    $tw.Bob.Federation.remoteConnections[data._source_info.url] = $tw.Bob.Federation.remoteConnections[data._source_info.url] || {};
+    $tw.Bob.Federation.connections[data._source_info.url] = $tw.Bob.Federation.connections[data._source_info.url] || {};
 
-    $tw.Bob.Federation.remoteConnections[data._source_info.url].socket = $tw.Bob.Federation.remoteConnections[data._source_info.url].socket || {};
-    //$tw.Bob.Federation.remoteConnections[data._source_info.url].conflictType = data.conflictType || 'manual';
+    $tw.Bob.Federation.connections[data._source_info.url].socket = $tw.Bob.Federation.connections[data._source_info.url].socket || {};
+    //$tw.Bob.Federation.connections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
     if(data._source_info && data.rnonce) {
       console.log(1)
@@ -240,14 +284,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         tiddlers: tidObj,
         nonce: data.rnonce
       }
-      if ($tw.Bob.Federation.remoteConnections[data._source_info.url]) {
+      if ($tw.Bob.Federation.connections[data._source_info.url]) {
         console.log(2)
-        if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket) {
+        if ($tw.Bob.Federation.connections[data._source_info.url].socket) {
           console.log(3)
-          if ($tw.Bob.Federation.remoteConnections[data._source_info.url].socket.readyState === 1) {
+          if ($tw.Bob.Federation.connections[data._source_info.url].socket.readyState === 1) {
             console.log(4)
             // Send the message
-            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
           }
         }
       }
@@ -272,7 +316,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // By this point the authentication has been done, so check to make sure
     // that the wikis are listed for syncing.
     Object.keys(data.wikis).forEach(function(wikiName) {
-      const serverName = $tw.Bob.Federation.remoteConnections[data._source_info.url].name;
+      const serverName = $tw.Bob.Federation.connections[data._source_info.url].name;
       // Get the tiddler name that has the information for the wiki
       const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/Federation/RemoteServer/' + serverName + '/wikis/' + wikiName);
       if (wikiInfoTid) {
@@ -284,7 +328,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             wikiName: wikiName,
             filter: data.wikis.wikiName
           }
-          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info.url);
+          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         }
       }
     })
@@ -347,7 +391,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // We need at least the remote url or we can't act.
     if(data.remoteUrl) {
       // Try to connect to the remote server
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl] = $tw.Bob.Federation.remoteConnections[data.remoteUrl] || {}
+      $tw.Bob.Federation.connections[data.remoteUrl] = $tw.Bob.Federation.connections[data.remoteUrl] || {}
 
       data.syncFilter = data.syncFilter || '[!is[system]]'
       data.syncType = data.syncType || 'bidirectional'
@@ -355,14 +399,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket = $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket || {}
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].pendingAction = 'sync'
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].syncFilter = data.syncFilter
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].syncType = data.syncType
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].conflictType = data.conflictType
-      $tw.Bob.Federation.remoteConnections[data.remoteUrl].remoteWikis = data.remoteWikis
+      $tw.Bob.Federation.connections[data.remoteUrl].socket = $tw.Bob.Federation.connections[data.remoteUrl].socket || {}
+      $tw.Bob.Federation.connections[data.remoteUrl].pendingAction = 'sync'
+      $tw.Bob.Federation.connections[data.remoteUrl].syncFilter = data.syncFilter
+      $tw.Bob.Federation.connections[data.remoteUrl].syncType = data.syncType
+      $tw.Bob.Federation.connections[data.remoteUrl].conflictType = data.conflictType
+      $tw.Bob.Federation.connections[data.remoteUrl].remoteWikis = data.remoteWikis
 
-      if($tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.readyState !== 1) {
+      if($tw.Bob.Federation.connections[data.remoteUrl].socket.readyState !== 1) {
         // Get the url for the remote websocket
         const URL = require('url');
         const remoteUrl = new URL(data.remoteUrl);
@@ -371,16 +415,16 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // connect web socket
         const socket = new WebSocket(websocketProtocol + remoteUrl.host + remoteUrl.pathname);
         // Save the socket for future use
-        $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket = socket;
+        $tw.Bob.Federation.connections[data.remoteUrl].socket = socket;
         socket.on('open', function() {
-          startRemoteSync($tw.Bob.Federation.remoteConnections[data.remoteUrl]);
+          startRemoteSync($tw.Bob.Federation.connections[data.remoteUrl]);
         })
-        $tw.Bob.Federation.remoteConnections[data.remoteUrl].socket.on('message', function (message) {
+        $tw.Bob.Federation.connections[data.remoteUrl].socket.on('message', function (message) {
           const messageData = JSON.parse(message);
-          handleRemoteReply($tw.Bob.Federation.remoteConnections[data.remoteUrl], messageData);
+          handleRemoteReply($tw.Bob.Federation.connections[data.remoteUrl], messageData);
         })
       } else {
-        startRemoteSync($tw.Bob.Federation.remoteConnections[data.remoteUrl], data)
+        startRemoteSync($tw.Bob.Federation.connections[data.remoteUrl], data)
       }
     }
   }
@@ -405,7 +449,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     remoteServerObject.send(JSON.stringify(message))
   }
   function handleRemoteReply(remoteServerObject, data) {
-    if($tw.Bob.Federation.remoteConnections[data.remoteUrl].pendingAction == 'none') {
+    if($tw.Bob.Federation.connections[data.remoteUrl].pendingAction == 'none') {
       return
     }
     // This receives the tiddlers that the remote server has and teh local

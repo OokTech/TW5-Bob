@@ -46,6 +46,8 @@ const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
+
+
 ServerSide.getBasePath = function() {
   let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
   $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
@@ -221,6 +223,7 @@ ServerSide.loadWiki = function (wikiName) {
       $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
         return '$:/themes/' + name;
       });
+      $tw.hooks.invokeHook('wiki-loaded', wikiName);
     }
     const fields = {
       title: '$:/WikiName',
@@ -388,7 +391,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     $tw.Bob.Wikis[fullName].plugins = $tw.Bob.Wikis[fullName].plugins || [];
     $tw.Bob.Wikis[fullName].themes = $tw.Bob.Wikis[fullName].themes || [];
     $tw.Bob.Wikis[fullName].tiddlers = $tw.Bob.Wikis[fullName].tiddlers || [];
-    if(servePlugin) {
+    if(servePlugin !== 'no') {
       // By default the normal file system plugins removed and the
       // multi-user plugin added instead so that they all work the same.
       // The wikis aren't actually modified, this is just hov they are
@@ -433,6 +436,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
         wikiName: wikiName
       }
     };
+    $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
     if(text.length < 10*1024*1024) {
@@ -692,6 +696,33 @@ ServerSide.getViewableWikiList = function (data) {
     }
   });
   return viewableWikis;
+}
+
+ServerSide.findName = function(url) {
+  url = url.startsWith('/') ? url.slice(1,url.length-1) : url;
+  const pieces = url.split('/')
+  let name = ''
+  let settingsObj = $tw.settings.wikis[pieces[0]]
+  if(settingsObj) {
+    name = pieces[0]
+  }
+  for (let i = 1; i < pieces.length; i++) {
+    if(settingsObj) {
+      if(typeof settingsObj[pieces[i]] === 'object') {
+        name = name + '/' + pieces[i]
+        settingsObj = settingsObj[pieces[i]]
+      } else if(typeof settingsObj[pieces[i]] === 'string') {
+        name = name + '/' + pieces[i]
+        break
+      } else {
+        break
+      }
+    }
+  }
+  if (name === '' && pieces[0] === 'RootWiki') {
+    name = 'RootWiki'
+  }
+  return name
 }
 
 module.exports = ServerSide

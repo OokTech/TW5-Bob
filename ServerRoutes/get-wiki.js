@@ -34,7 +34,7 @@ module.exports = function (fullName) {
           // If servePlugin is not false than we strip out the filesystem
           // and tiddlyweb plugins if they are there and add in the
           // Bob plugin.
-          const servePlugin = !$tw.settings['ws-server'].servePlugin || $tw.settings['ws-server'].servePlugin !== false;
+          const servePlugin = !$tw.settings['ws-server'].servePlugin === 'yes' || $tw.settings['ws-server'].servePlugin !== 'no';
           // Get the full text of the html wiki to send as the response.
           text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
         } else {
