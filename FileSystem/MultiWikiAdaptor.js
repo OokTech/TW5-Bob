@@ -242,6 +242,7 @@ if($tw.node) {
       // Delete the file
       fs.unlink(fileInfo.filepath,function(err) {
         if(err) {
+          $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
           return callback(err);
         }
         $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
@@ -257,8 +258,10 @@ if($tw.node) {
         if(fileInfo.hasMetaFile) {
           fs.unlink(fileInfo.filepath + ".meta",function(err) {
             if(err) {
+              $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
               return callback(err);
             }
+            $tw.Bob.logger.log('deleting meta file ', fileInfo.filepath + '.meta', {level:3});
             return $tw.utils.deleteEmptyDirs(path.dirname(fileInfo.filepath),callback);
           });
         } else {

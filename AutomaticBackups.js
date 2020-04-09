@@ -61,7 +61,7 @@ if($tw.node) {
       const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
       const filePath = path.join(folder, 'backup-' + $tw.utils.stringifyDate(new Date()) + '.html');
       $tw.utils.createDirectory(folder);
-      fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName), function(err) {
+      fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName, 'no'), function(err) {
         if(err) {
           $tw.Bob.logger.error('error saving backup:', err);
         }

@@ -126,7 +126,6 @@ exports.handler = function(request,response,state) {
                 '.wav': 'audio/wav'
               };
               if(mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
-                console.log('pathname', pathname)
                 response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
                 response.end(data);
               } else {

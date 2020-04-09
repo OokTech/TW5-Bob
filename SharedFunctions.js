@@ -450,7 +450,7 @@ This has some functions that are needed by Bob in different places.
       }
       _sendMessage($tw.connections[connectionIndex], messageData)
     } else if ($tw.browser) {
-      // If we are not sending the message than we have to emit the 'received-ack' event so that the syncer thinks it is finished.
+      // If we are not sending the message then we have to emit the 'received-ack' event so that the syncer thinks it is finished.
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
     }

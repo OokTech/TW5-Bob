@@ -1,11 +1,5 @@
 # Roadmap
 
-- Make Bob use the dirty indicator
-  - When the message queue isn't empty the wiki is dirty (mostly? It maybe only save and delete messages that matter)
-  - When the wiki is dirty for more than a second or so it is probably
-    disconnected, the save button should download the compact version of the
-    message queue.
-  - When everything is reconnected it should let you import the compact message queue so you don't lose work.
 - When create Bob wikis from existing single file wikis:
   - (maybe) determine if the plugins used in the single file are available
     locally as node plugins and preferentially use the node plugins
