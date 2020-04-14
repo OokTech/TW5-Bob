@@ -49,8 +49,8 @@ $tw.Bob.Files = $tw.Bob.Files || {};
 
 
 ServerSide.getBasePath = function() {
-  let basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
-  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || basePath;
+  let basePath = '';//process.pkg?path.dirname(process.argv[0]):process.cwd();
+  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';//basePath;
   if($tw.settings.wikiPathBase === 'homedir') {
     basePath = os.homedir();
   } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
