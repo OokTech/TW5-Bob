@@ -161,7 +161,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `wikisPath` the name of the default wikis folder to use. If relative it is
   relative to `wikiPathBase`.
 - `wikiPathBase` relative paths for everything other than serving files are
-  relative to this path. It defaults to the current working directory.
+  relative to this path. If you want a portable setup this must be set to
+  `cwd`, if you set it as `./` the paths are relative to the users home
+  directory. It defaults to the current working directory. If this is set to a 
+  relative path it is relative to the user home directory.
 - `includePluginList` is an array of plugin names that will be included in
   every wiki served. You do not have to include Bob in this list.
 - `excludePluginList` is an array of plugin names that will not be included in
