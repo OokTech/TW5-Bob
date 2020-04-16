@@ -3,6 +3,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.5.1 hy
 
 * Fixed a problem that would set the base path to the current folder as an absolute path instead of to `cwd` if no base path was given.
+* Fixed the backup format so the wikis open up correctly as single file wikis
+* (BobEXE) Updated to TiddlyWiki 5.1.22
 
 !! Version 1.5.0 Apat
 
