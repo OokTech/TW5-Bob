@@ -3,6 +3,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.5.2
 
 * Made a change to saving settings that may prevent a rare bug
+* The file server now tries to determine the mimetype of served files
 
 !! Version 1.5.1 hy
 

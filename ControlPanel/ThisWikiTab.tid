@@ -24,4 +24,15 @@ caption: This Wiki
   />
 </$button>
 
+<$checkbox
+  tiddler='$:/WikiSettings/split'
+  index='persistentUsernames'
+  actions="<$action-updatesetting persistentUsernames={{$:/WikiSettings/split##persistentUsernames}}/>"
+  checked="yes"
+  unchecked="no"
+  default="no"
+>
+  Use Persistent Usernames
+</$checkbox>
+
 <<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]]" "$:/plugins/OokTech/Bob/SelectPlugins">>

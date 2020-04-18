@@ -20,23 +20,6 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
-
-  $tw.Bob.getCookie = function(cookie, cname) {
-    cookie = cookie || ""
-    const name = cname + "=";
-    const ca = cookie.split(';');
-    for(let i = 0; i <ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if(c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return false;
-  }
-
   const URL = require("url"),
     path = require("path"),
     http = require("http")

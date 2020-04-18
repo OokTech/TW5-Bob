@@ -327,7 +327,7 @@ File Folders:
               filter='[<someTid>get[list]]'
             >
               <$list
-                filter='[enlist<theList>]'
+                filter='[list<someTid>]'
               >
                 <tr>
                   <td
@@ -335,11 +335,13 @@ File Folders:
                   >
                     <$button>
                       <<currentTiddler>>
-
-                      <$action-setfield
-                        $tiddler=<<currentTiddler>>
-                        _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<servePath>addsuffix[/]addsuffix<currentTiddler>] }}}
-                      />
+                      <$set name=ext filter="[<currentTiddler>split[.]!is[blank]last[]addprefix[.]]">
+                        <$action-setfield
+                          $tiddler=<<currentTiddler>>
+                          _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<servePath>addsuffix[/]addsuffix<currentTiddler>] }}}
+                          type={{{ [[$:/WikiSettings/split/mimeMap]getindex<ext>] }}}
+                        />
+                      </$set>
                       <$action-navigate
                         $to=<<currentTiddler>>
                       />

@@ -20,6 +20,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
   "filePathRoot": "./files",
   "perWikiFiles": "no",
   "enableBobSaver": "yes",
+  "persistentUsernames": "no",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -40,6 +41,8 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
   "mimeMap": {
     ".aac": "audio/aac",
     ".avi": "video/x-msvideo",
+    ".bmp": "image/bmp",
+    ".css": "text/css",
     ".csv": "text/csv",
     ".doc": "application/msword",
     ".epub": "application/epub+zip",
@@ -50,16 +53,30 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".mp3": "audio/mpeg",
+    ".mp4": "video/mp4",
     ".mpeg": "video/mpeg",
+    ".odp": "application/vnd.oasis.opendocument.presentation",
+    ".ods": "application/vnd.oasis.opendocument.spreadsheet",
+    ".odt": "application/vnd.oasis.opendocument.text",
     ".oga": "audio/ogg",
     ".ogv": "video/ogg",
     ".ogx": "application/ogg",
+    ".otf": "font/otf",
     ".pdf": "application/pdf",
+    ".ppt": "application/vnd.ms-powerpoint",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".ttf": "font/ttf",
+    ".txt": "text/plain",
+    ".wav": "audio/wav",
     ".weba": "audio/weba",
     ".webm": "video/webm",
-    ".wav": "audio/wav"
+    ".webp": "image/webp",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".xml": "text/xml"
   },
   "API": {
     "enableFetch": "no",

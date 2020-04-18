@@ -1,0 +1,34 @@
+title: $:/plugins/OokTech/Bob/SetName
+tags: $:/tags/SideBarSegment
+list-after: $:/core/ui/SideBarSegments/site-subtitle
+
+<$list
+  filter='[[$:/WikiSettings/split]getindex[persistentUsernames]match[yes]]'
+  variable=unused
+>
+  <$list
+    filter='[[$:/status/UserName]!has[text]][[$:/state/AddUserName]field:text[yes]] +[limit[1]]'
+    emptyMessage="""Current User: {{$:/status/UserName}} <$button class='tc-btn-invisible'>{{$:/core/images/edit-button}}<$action-setfield $tiddler='$:/state/AddUserName' text='yes'/></$button>"""
+  >
+    <$edit-text
+      tiddler='$:/status/UserName'
+      tag='input'
+      placeholder='username'
+      class='tc-edit-texteditor'
+      default=''
+    />
+    <$button
+      class='tc-btn-invisible'
+    >
+      {{$:/core/images/save-button}}
+      <$action-setfield
+        $tiddler='$:/state/AddUserName'
+        text='no'
+      />
+      <$action-setcookie
+        name="userName"
+        value={{$:/status/UserName}}
+      />
+    </$button>
+  </$list>
+</$list>
