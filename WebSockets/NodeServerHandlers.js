@@ -428,13 +428,15 @@ if($tw.node) {
     const fs = require('fs');
     let settings = JSON.stringify($tw.settings, "", 2);
     if(data.fromServer !== true && data.settingsString) {
-      //var prefix = data.wiki;
       // Get first tiddler to start out
       settings = data.settingsString;
 
       // Update the $tw.settings object
       // First clear the settings
-      $tw.settings = {};
+      // Don't clear the settings, there is some rare bug that makes the
+      // settings string empty or invalid json and it results in an empty
+      // settings file.
+      //$tw.settings = {};
       // Put the updated version in.
       $tw.updateSettings($tw.settings, JSON.parse(settings));
     }
@@ -444,8 +446,6 @@ if($tw.node) {
       text: settings,
       type: 'application/json'
     };
-    // Add the tiddler
-    //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
     $tw.Bob.SendToBrowsers({
       type: 'saveTiddler',
