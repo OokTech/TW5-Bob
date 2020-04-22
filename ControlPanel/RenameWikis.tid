@@ -39,13 +39,13 @@ Select Wiki:
       <<currentTiddler>>
     </option>
   </$list>
-</$select>
+</$select> <<helpButton $:/plugins/OokTech/Bob/AboutRenameWikiSelect>>
 
 New Name:
 <$edit-text
   tiddler='$:/state/RenameWiki'
   field='new_name'
-/>
+/> <<helpButton $:/plugins/OokTech/Bob/AboutRenameWikiNewName>>
 
 <$button
   actions=<<updateNameActions>>

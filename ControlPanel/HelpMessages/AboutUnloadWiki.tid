@@ -1,0 +1,7 @@
+title: $:/plugins/OokTech/Bob/AboutUnloadWiki
+
+This button will unload the current wiki. This means that it will be
+disconnected from the server and any changes you make will not be saved.
+
+In order to reconnect you have to reload the wiki page, the `reconnect` button
+will not work, this is not what it is made for.

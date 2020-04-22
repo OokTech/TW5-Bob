@@ -1,23 +1,15 @@
 title: $:/plugins/OokTech/Bob/CreateWikis
 caption: Create Wikis
 
-<$reveal
-  type='nomatch'
-  state='$:/settings/Bob/Verbose'
-  text='false'
->
-
 You can create new wikis here. Select the edition and then enter a name.
 
 Wiki names should be able to contain any unicode characters, although there may
 be errors in some browsers which do not support unicode urls.
-
 So 💩 is a valid wiki name.
 
-See [[creating new wikis|$:/plugins/OokTech/Bob/Documentation/Creating New Wikis]] for more
-information about making wikis.
-
-</$reveal>
+See
+[[creating new wikis|$:/plugins/OokTech/Bob/Documentation/Creating New Wikis]]
+for more information about making wikis.
 
 Create a wiki from
 
@@ -27,7 +19,7 @@ Create a wiki from
   value='edition'
 >
   an edition
-</$radio>
+</$radio> <<helpButton $:/plugins/OokTech/Bob/AboutCreateFromEdition>>
 <br>
 <$radio
   tiddler='$:/temp/NewWiki'
@@ -35,7 +27,7 @@ Create a wiki from
   value='file'
 >
   an html file
-</$radio>
+</$radio> <<helpButton $:/plugins/OokTech/Bob/AboutCreateFromHTML>>
 <br>
 <$radio
   tiddler='$:/temp/NewWiki'
@@ -43,7 +35,7 @@ Create a wiki from
   value='tiddlers'
 >
   existing tiddlers
-</$radio>
+</$radio> <<helpButton $:/plugins/OokTech/Bob/AboutCreateFromTiddlers>>
 <br>
 <$radio
   tiddler='$:/temp/NewWiki'
@@ -51,7 +43,7 @@ Create a wiki from
   value='node'
 >
   a node wiki
-</$radio>
+</$radio> <<helpButton $:/plugins/OokTech/Bob/AboutCreateFromNode>>
 <br>
 <$radio
   tiddler='$:/temp/NewWiki'
@@ -59,7 +51,7 @@ Create a wiki from
   value='duplicate'
 >
   duplicate an existing wiki
-</$radio>
+</$radio> <<helpButton $:/plugins/OokTech/Bob/AboutDuplicateWiki>>
 
 <$list
   filter='[[$:/temp/NewWiki]!has[method]][[$:/temp/NewWiki]method[edition]]+[limit[1]]'

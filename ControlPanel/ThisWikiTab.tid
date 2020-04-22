@@ -1,20 +1,8 @@
 title: $:/plugins/OokTech/Bob/ThisWikiTab
 caption: This Wiki
 
-<$reveal
-  type='nomatch'
-  state='$:/settings/Bob/Verbose'
-  text='false'
->
+!!! Options that are specific to this wiki. They don't affect any other wikis.
 
-  These are options that are specific to this wiki. They don't affect any other
-  wikis.
-
-  This button will unload the current wiki. This means that it will be
-  disconnected from the server and any changes you make will not be saved.
-
-  In order to reconnect you have to reload the wiki page.
-</$reveal>
 
 <$button>
   Unload Wiki
@@ -22,7 +10,7 @@ caption: This Wiki
     $type='unloadWiki'
     wikiName={{$:/WikiName}}
   />
-</$button>
+</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutUnloadWiki">>
 
 <$checkbox
   tiddler='$:/WikiSettings/split'
@@ -33,6 +21,13 @@ caption: This Wiki
   default="no"
 >
   Use Persistent Usernames
-</$checkbox>
+</$checkbox> <<helpButton "$:/plugins/Bob/AboutPersistentUsernames">>
+
+You can set which plugins and themes are installed on this wiki here.
+Installing plugins this way is not the same as dragging and dropping plugins
+into the wiki, this can not remove plugins you have added that way, you have to
+delete the plugin tiddlers. Deleting the plugin tiddlers for plugins installed
+using this interface will not remove them, they have to be removed using this
+interface.
 
 <<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]]" "$:/plugins/OokTech/Bob/SelectPlugins">>

@@ -175,7 +175,7 @@ if($tw.node) {
           "decoded": data.decoded,
           "fromServer": true
         };
-        $tw.nodeMessageHandlers.createNewWiki(params);
+        $tw.nodeMessageHandlers.createNewWiki(params, nextPart);
         // Get the folder for the wiki tiddlers
         wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
         // Make sure tiddlers folder exists
@@ -185,37 +185,47 @@ if($tw.node) {
         } catch (e) {
           $tw.Bob.logger.log('Tiddlers Folder Exists:', wikiTiddlersPath, {level:2});
         }
+      } else {
+        nextPart();
+      }
+      function nextPart() {
         // Load the empty wiki
         $tw.ServerSide.loadWiki(wikiName)
-      }
-      // Add all the received tiddlers to the loaded wiki
-      let count = 0;
-      $tw.utils.each(data.tiddlers,function(tiddler) {
-        // Save each tiddler using the syncadaptor
-        // We don't save the components that are part of the empty edition
-        // because we start with that
-        if(tiddler.title !== '$:/core' && tiddler.title !== '$:/themes/tiddlywiki/snowwhite' && tiddler.title !== '$:/themes/tiddlywiki/vanilla') {
-          $tw.syncadaptor.saveTiddler({fields: tiddler}, wikiName);
+        // Add all the received tiddlers to the loaded wiki
+        let count = 0;
+        $tw.utils.each(data.tiddlers,function(tiddler) {
+          // Save each tiddler using the syncadaptor
+          // We don't save the components that are part of the empty edition
+          // because we start with that
+          if(tiddler.title !== '$:/core' && tiddler.title !== '$:/themes/tiddlywiki/snowwhite' && tiddler.title !== '$:/themes/tiddlywiki/vanilla') {
+            $tw.syncadaptor.saveTiddler({fields: tiddler}, wikiName);
+          }
+          count++;
+        });
+        // If there are external tiddlers to add try and add them
+        let tempWiki = new $tw.Wiki();
+        GatherTiddlers(tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.decoded);
+        tempWiki.allTitles().forEach(function(tidTitle) {
+          $tw.syncadaptor.saveTiddler(tempWiki.getTiddler(tidTitle), wikiName);
+          count++;
+        })
+        if(!count) {
+          $tw.Bob.logger.log("No tiddlers found in the input file", {level:1});
+        } else {
+          $tw.Bob.logger.log("Wiki created",{level:1});
+          const message = {
+            alert: 'Created wiki ' + wikiName,
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+          $tw.Bob.logger.log('Created wiki ', wikiName, {level: 2})
         }
-        count++;
-      });
-      // If there are external tiddlers to add try and add them
-      let tempWiki = new $tw.Wiki();
-      GatherTiddlers(tempWiki, data.externalTiddlers, data.transformFilters, data.transformFilter, data.decoded);
-      tempWiki.allTitles().forEach(function(tidTitle) {
-        $tw.syncadaptor.saveTiddler(tempWiki.getTiddler(tidTitle), wikiName);
-        count++;
-      })
-      if(!count) {
-        $tw.Bob.logger.log("No tiddlers found in the input file", {level:1});
-      } else {
-        $tw.Bob.logger.log("Wiki created",{level:1});
-        const message = {
-          alert: 'Created wiki ' + wikiName,
-          connections: [data.source_connection]
-        };
-        $tw.ServerSide.sendBrowserAlert(message);
-        $tw.Bob.logger.log('Created wiki ', wikiName, {level: 2})
+        setTimeout(function() {
+          $tw.Bob.Wikis[wikiName].modified = true;
+          data.update = 'true';
+          data.saveSettings = 'true';
+          $tw.nodeMessageHandlers.findAvailableWikis(data);
+        }, 1000);
       }
     } else {
       $tw.Bob.logger.log('No tiddlers given!', {level:1});
@@ -328,7 +338,7 @@ if($tw.node) {
   }
 
   // This is just a copy of the init command modified to work in this context
-  $tw.nodeMessageHandlers.createNewWiki = function (data) {
+  $tw.nodeMessageHandlers.createNewWiki = function (data, cb) {
     $tw.Bob.Shared.sendAck(data);
     if(data.wiki === 'RootWiki' || true) {
       const fs = require("fs"),
@@ -435,6 +445,9 @@ if($tw.node) {
         data.update = 'true';
         data.saveSettings = 'true';
         $tw.nodeMessageHandlers.findAvailableWikis(data);
+        if(typeof cb === 'function') {
+          cb()
+        }
       }, 1000);
 
       const message = {
