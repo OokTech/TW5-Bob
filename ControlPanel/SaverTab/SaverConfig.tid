@@ -24,7 +24,16 @@ caption: Saver Server
 </$reveal>
 \end
 
-!! Configuration for the single file saver
+!! Configuration for the single html file saver
+
+This is configuration for using Bob with the BobSaver. BobSaver is a plugin
+for single file wikis that lets Bob act as the saving mechanism. When you have
+BobSaver installed in your wiki you can open the file normally anywhere on your
+computer and it can save and autosave as long as the BobSaver plugin is
+enabled.
+
+No configuration is required, but the single file wikis do have to have the
+BobSaver plugin installed.
 
 The saver is enabled by default, check this box to disable the saver.
 
@@ -44,6 +53,12 @@ After changing any of the options below click <$button>
 </$button>
 Otherwise they will not take effect.
 
+This is not required, leave it blank if you don't want to use a key.
+If you want to you can set the key here, it is a password that you set here and
+enter on your single file wikis in the BobSaver configuration (on your single
+file wiki go to the $:/ControlPanel then the `Saving` tab then the `Bob Saver`
+tab to enter the key)
+
 Changing the key takes effect as soon as the settings are saved.
 
 Saver Key: <$edit-text
@@ -56,7 +71,7 @@ Saver Key: <$edit-text
 !! Here there be dragons
 
 Changing this will break the saver very easily unless you know exactly what
-you are doing.
+you are doing. You shouldn't change this.
 
 Saver Port: <$edit-text
   tiddler='$:/WikiSettings/split/saver'

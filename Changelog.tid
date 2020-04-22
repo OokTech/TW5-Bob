@@ -1,6 +1,42 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.4.0 beta 5
+!! Version 1.5.2 Scruffy, the Janitor
+
+* Made a change to saving settings that may prevent a rare bug
+* The file server now tries to determine the mimetype of served files
+* Many updates to the control panel tab layout and documentation
+* Making a wiki from an html file should work again
+* the action-updatesetting widget got an update so it can properly remove settings
+* Big reorganisation of the $:/ControlPanel tab for Bob, added a lot of context help
+* Fixed a problem automatic backups caused with serving Bob to child wikis
+* Fixed adding exising node wikis to the Bob server
+
+!! Version 1.5.1 hy
+
+* Fixed a problem that would set the base path to the current folder as an absolute path instead of to `cwd` if no base path was given.
+* Fixed the backup format so the wikis open up correctly as single file wikis
+* (BobEXE) Updated to TiddlyWiki 5.1.22
+
+!! Version 1.5.0 Apat
+
+* Fixed some problems with action-updatesetting
+* Add configuration UI for logging
+* Tweaked some configuration instructions
+* Added udp multicast to find other Bob servers on the local network
+** For federation stuff
+* Started UI for managing interactions with other servers
+* Fixed problems with saving images to the server and some settings checkboxes that didn't work
+* Fixed a problem with the syncer that could cause it to try and save files it shouldn't.
+* Setting the `pathprefix` does what it should now.
+** A brief explaination of the difference between `pathprefix` and `proxyprefix` is added to `Configuration.md`
+* Added the `perWikiFiles` setting which makes files served with a specific wiki (by default in the `files` folder next to the wikis `tiddlers` folder) are only accessible by that wiki. Files served under `filePathRoot` are accessible to every wiki.
+** globally accessible files are served with the `/files/` prefix, other wikis have their wiki specific files served with the `/wikiName/files/` prefix. For the RootWiki you have to reference wiki specific files with `/RootWiki/files/` as the prefix, for other wikis the `wikiName` part of the prefix is the same as the url path.
+* On the back-end added a hook for wiki loaded and wiki modified to the server
+* Added autobackups
+* fixed a bug that would sometimes prevent wikis from connecting to the server if the RootWiki wasn't already loaded.
+* Added a default settings file that contains a value for every setting.
+
+!! Version 1.4.0
 
 ''Note:'' this version changes some parts of how tiddlers are saved to the file
 system. There shouldn't be any problems but there is always a risk of data loss
@@ -37,21 +73,6 @@ when making changes like this. Make sure to backup your data.
 ** ''Using syncing software with your wiki folders is not recommended, it can cause dulpicate files and data loss, Bob and the syncing software fight each other when changing files.'' This may help reduce conflicts if you are using syncing software for your wiki folders.
 ** This helps prevent bugs that arise from not being able to properly monitor network drives.
 *** This is a limitation of networked drives, it is not specific to Bob. I may write an alternate filesystem monitor that can function with network drives but it will necessarily be slower and have the potential to miss changes made on the file system. This may be unavoidable on networked drives.
-* Fixed some problems with action-updatesetting
-* Add configuration UI for logging
-* Tweaked some configuration instructions
-* Added udp multicast to find other Bob servers on the local network
-** For federation stuff
-* Started UI for managing interactions with other servers
-* Fixed problems with saving images to the server and some settings checkboxes that didn't work
-* Fixed a problem with the syncer that could cause it to try and save files it shouldn't.
-* Setting the `pathprefix` does what it should now.
-** A brief explaination of the difference between `pathprefix` and `proxyprefix` is added to `Configuration.md`
-* Added the `perWikiFiles` setting which makes files served with a specific wiki (by default in the `files` folder next to the wikis `tiddlers` folder) are only accessible by that wiki. Files served under `filePathRoot` are accessible to every wiki.
-** globally accessible files are served with the `/files/` prefix, other wikis have their wiki specific files served with the `/wikiName/files/` prefix. For the RootWiki you have to reference wiki specific files with `/RootWiki/files/` as the prefix, for other wikis the `wikiName` part of the prefix is the same as the url path.
-* On the back-end added a hook for wiki loaded and wiki modified to the server
-* Added autobackups
-* fixed a bug that would sometimes prevent wikis from connecting to the server if the RootWiki wasn't already loaded.
 
 !! Version 1.3.3 Kohlrabi
 

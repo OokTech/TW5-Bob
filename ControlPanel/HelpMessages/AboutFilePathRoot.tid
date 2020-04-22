@@ -1,0 +1,16 @@
+title: $:/plugins/OokTech/Bob/AboutFilePathRoot
+
+The `Files Folder` is the folder on your computer where you place files to make
+them available to wikis. By default it is a folder called `files` in the same
+folder as the executable (if you are using BobEXE) or where you run the script
+from (if you are using the plugin version). If you don't have a specific reason
+to change this than you shouldn't change it.
+
+One reasonable alternative option is your documents folder:
+
+* On Windows this is normally `C:\Users\USERNAME\Documents`
+* On many Linux distributions this is normally `/home/USERNAME/Documents`
+* On OSX this is `/Users/USERNAME/Documents`
+
+make sure to change `USERNAME` in the above examples to match your actual
+username on the computer you are using.

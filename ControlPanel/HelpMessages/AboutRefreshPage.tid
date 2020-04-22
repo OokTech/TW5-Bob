@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/Bob/AboutRefreshPage
+
+This link just reloads the current page, the same as if you clicked the reload
+button in your browser. This is not the same as the `reconnect` button in the
+red banner at the top.

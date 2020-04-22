@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutSaveBackupOnEdit
+
+If this is checked editing the wiki will trigger a backup timer. See the note
+for the `Save interval for backups` for more.

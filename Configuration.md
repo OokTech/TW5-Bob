@@ -27,9 +27,10 @@ used. If the json isn't formatted correctly than default values will be used.
   "suppressBrowser": "false",
   "enableFederation": "no",
   "enableFileServer": "no",
-  "filePathRoot": "",
+  "filePathRoot": "./files",
   "perWikiFiles": "no",
   "enableBobSaver": "yes",
+  "persistentUsernames": "no",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },
@@ -53,28 +54,44 @@ used. If the json isn't formatted correctly than default values will be used.
     "timeout": 5000
   },
   "mimeMap": {
-    '.aac': 'audio/aac',
-    '.avi': 'video/x-msvideo',
-    '.csv': 'text/csv',
-    '.doc': 'application/msword',
-    '.epub': 'application/epub+zip',
-    '.gif': 'image/gif',
-    '.html': 'text/html',
-    '.htm': 'text/html',
-    '.ico': 'image/x-icon',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.mp3': 'audio/mpeg',
-    '.mpeg': 'video/mpeg',
-    '.oga': 'audio/ogg',
-    '.ogv': 'video/ogg',
-    '.ogx': 'application/ogg',
-    '.pdf': 'application/pdf',
-    '.png': 'image/png',
-    '.svg': 'image/svg+xml',
-    '.weba': 'audio/weba',
-    '.webm': 'video/webm',
-    '.wav': 'audio/wav'
+    ".aac": "audio/aac",
+    ".avi": "video/x-msvideo",
+    ".bmp": "image/bmp",
+    ".css": "text/css",
+    ".csv": "text/csv",
+    ".doc": "application/msword",
+    ".epub": "application/epub+zip",
+    ".gif": "image/gif",
+    ".html": "text/html",
+    ".htm": "text/html",
+    ".ico": "image/x-icon",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".mp3": "audio/mpeg",
+    ".mp4": "video/mp4",
+    ".mpeg": "video/mpeg",
+    ".odp": "application/vnd.oasis.opendocument.presentation",
+    ".ods": "application/vnd.oasis.opendocument.spreadsheet",
+    ".odt": "application/vnd.oasis.opendocument.text",
+    ".oga": "audio/ogg",
+    ".ogv": "video/ogg",
+    ".ogx": "application/ogg",
+    ".otf": "font/otf",
+    ".pdf": "application/pdf",
+    ".ppt": "application/vnd.ms-powerpoint",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".ttf": "font/ttf",
+    ".txt": "text/plain",
+    ".wav": "audio/wav",
+    ".weba": "audio/weba",
+    ".webm": "video/webm",
+    ".webp": "image/webp",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".xml": "text/xml"
   },
   "API": {
     "enableFetch": "no",
@@ -161,7 +178,10 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `wikisPath` the name of the default wikis folder to use. If relative it is
   relative to `wikiPathBase`.
 - `wikiPathBase` relative paths for everything other than serving files are
-  relative to this path. It defaults to the current working directory.
+  relative to this path. If you want a portable setup this must be set to
+  `cwd`, if you set it as `./` the paths are relative to the users home
+  directory. It defaults to the current working directory. If this is set to a
+  relative path it is relative to the user home directory.
 - `includePluginList` is an array of plugin names that will be included in
   every wiki served. You do not have to include Bob in this list.
 - `excludePluginList` is an array of plugin names that will not be included in
@@ -198,9 +218,15 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   servers.
 - `enableFileServer` setting this to `yes` enables the static file server.
 - `filePathRoot` this is the base path for files that are globally available.
-- `perWikiFiles` setting this to `yes` means that files specific to a wiki (that is files in the wikis `files` folder next to the wikis `tiddlers` folder) are only available in that wiki, so no hotlinking.
+- `perWikiFiles` setting this to `yes` means that files specific to a wiki
+  (that is files in the wikis `files` folder next to the wikis `tiddlers`
+  folder) are only available in that wiki, so no hotlinking.
 - `enableBobSaver` setting this to `no` disables the Bob saver for single file
   wikis. By default this is enabled.
+- `persistentUsernames` setting this to `yes` stores the user name entered for
+  the wiki in a cookie so it is saved the next time you open the wiki using the
+  same browser. As long as cookies aren't cleared and the cookie doesn't expire
+  first.
 - `scripts` a list of scripts that you can call from inside the wiki using the
   `runScript` websocket message.
 - `wikis` a list of child wikis to serve. The path to the wikis is determined
@@ -309,10 +335,15 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
 - `backups` this holds settings for automatic backups
   - `enable` if this is set to `yes` automatic backups are enabled
   - `backupFolder` the folder to store the backups in.
-  - `backupInterval` how long to wait after a change to make a backup in ms. Default is `600000`, which is 10 minutes,
-  - `saveOnLoad` if this is set to `yes` a backup will be saved when a wiki is loaded.
-  - `saveOnModified`if this is set to `yes` a backups will be triggered by edits to the wiki (see the documentation for important notes about this)
-  - `maxBackups` is the maximum number of backups to keep for any wiki. If there are more than this the oldest are removed until there are at most this number of backups.
+  - `backupInterval` how long to wait after a change to make a backup in ms.
+    Default is `600000`, which is 10 minutes,
+  - `saveOnLoad` if this is set to `yes` a backup will be saved when a wiki is
+    loaded.
+  - `saveOnModified`if this is set to `yes` a backups will be triggered by
+    edits to the wiki (see the documentation for important notes about this)
+  - `maxBackups` is the maximum number of backups to keep for any wiki. If
+    there are more than this the oldest are removed until there are at most
+    this number of backups.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no

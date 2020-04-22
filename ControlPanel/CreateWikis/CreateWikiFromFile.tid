@@ -10,16 +10,16 @@ Give the wiki a name:
 />
 
 <$button>
-  Make Wiki
+  Make Wiki {{$:/temp/NewWiki!!wiki_name}}
   <$action-convertwiki
     fileInput='#fileInput'
     wikiName={{$:/temp/NewWiki!!wiki_name}}
   />
+  <!--
   <$action-setfield
     $tiddler='$:/temp/NewWiki'
     wiki_name=''
   />
-  <!--
   <$action-websocketmessage
     $type='findAvailableWikis'
     update='true'

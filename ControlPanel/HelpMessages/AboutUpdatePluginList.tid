@@ -1,0 +1,6 @@
+title: $:/plugins/OokTech/Bob/AboutUpdatePluginList
+
+You have to click this button to populate the list of plugins available on the
+Bob server.
+This is like a local plugin library, the plugins listed here are saved and are
+available without any connection to the internet or other plugin library.

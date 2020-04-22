@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/Bob/AboutRenameWikiNewName
+
+This is the new name for the wiki. You can also change the wikis location using
+this, for example if you had a wiki `foo` and you set the name to `foo/bar` the
+wiki would be moved into the appropriate folder on the file system.

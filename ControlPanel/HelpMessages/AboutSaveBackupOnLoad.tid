@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutSaveBackupOnLoad
+
+If this is checked a backup is saved when you load a wiki for the first time
+after starting Bob.

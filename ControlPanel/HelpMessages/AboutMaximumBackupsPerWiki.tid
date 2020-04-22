@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/Bob/AboutMaximumBackupsPerWiki
+
+This sets the maximum number of backups that will be saved for each wiki. Once
+the number of backups reaches this value the oldest backup will be removed each
+time a new one is saved.
