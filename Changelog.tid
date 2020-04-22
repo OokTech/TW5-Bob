@@ -1,9 +1,15 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.5.2
+!! Version 1.5.2 Scruffy, the Janitor
 
 * Made a change to saving settings that may prevent a rare bug
 * The file server now tries to determine the mimetype of served files
+* Many updates to the control panel tab layout and documentation
+* Making a wiki from an html file should work again
+* the action-updatesetting widget got an update so it can properly remove settings
+* Big reorganisation of the $:/ControlPanel tab for Bob, added a lot of context help
+* Fixed a problem automatic backups caused with serving Bob to child wikis
+* Fixed adding exising node wikis to the Bob server
 
 !! Version 1.5.1 hy
 

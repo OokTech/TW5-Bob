@@ -46,8 +46,25 @@ const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
+/*
+  Return the resolved filePathRoot
+*/
+ServerSide.getFilePathRoot= function() {
+  let basePath = '';
+  $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+  if($tw.settings.filePathRoot === 'cwd') {
+    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+  } else if($tw.settings.filePathRoot === 'homedir') {
+    basePath = os.homedir();
+  } else {
+    basePath = path.resolve($tw.settings.filePathRoot);
+  }
+  return basePath;
+}
 
-
+/*
+  Return the resolved basePath
+*/
 ServerSide.getBasePath = function() {
   let basePath = '';//process.pkg?path.dirname(process.argv[0]):process.cwd();
   $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';//basePath;
@@ -158,7 +175,7 @@ ServerSide.existsListed = function (wikiName) {
 /*
   This function loads a wiki that has a route listed.
 */
-ServerSide.loadWiki = function (wikiName) {
+ServerSide.loadWiki = function (wikiName, cb) {
   const wikiFolder = ServerSide.existsListed(wikiName);
   /*
   // A hacky way to make the root wiki work on termux
@@ -236,6 +253,9 @@ ServerSide.loadWiki = function (wikiName) {
         text: $tw.settings['ws-server'].pathprefix
       };
       $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
+    }
+    if(typeof cb === 'function') {
+      cb()
     }
   }
   return wikiFolder;
@@ -384,7 +404,7 @@ function loadWikiTiddlers(wikiPath,options) {
   return wikiInfo;
 };
 
-ServerSide.prepareWiki = function (fullName, servePlugin) {
+ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
   // Only rebuild the wiki if there have been changes since the last time it
   // was built, otherwise use the cached version.
   if(typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
@@ -439,7 +459,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
-    if(text.length < 10*1024*1024) {
+    if(text.length < 10*1024*1024 && cache !== 'no') {
       $tw.Bob.Wikis[fullName].cached = text;
       $tw.Bob.Wikis[fullName].modified = false;
     } else {
@@ -650,10 +670,8 @@ ServerSide.sendBrowserAlert = function(input) {
           const authenticationsSet = new Set(authenticationsList);
           intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
         }
-        //console.log('intersection', intersection)
         intersection.forEach(function(index) {
           message.wiki = $tw.connections.wiki
-          //console.log(message)
           $tw.Bob.SendToBrowser($tw.connections[index], message);
         });
       } else {

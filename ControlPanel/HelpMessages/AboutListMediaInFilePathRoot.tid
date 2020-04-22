@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/AboutListMediaInFilePathRoot
+
+First click the `Fetch list of media in the filePathRoot folder` to get a list
+of the media available, then click `Show List` to see a listing of all of the
+media that you can display in the wiki.
+Clicking on a file name will create a tiddler that displays the media file, it
+can then be transcluded into other tiddlers to display the media like a normal
+image tiddler.

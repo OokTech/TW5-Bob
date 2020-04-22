@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutWikiFromTiddlersSource
+
+This is the source wiki for tiddlers. The filter will be run in this wiki and
+any tiddlers returned will be included in the newly created wiki.

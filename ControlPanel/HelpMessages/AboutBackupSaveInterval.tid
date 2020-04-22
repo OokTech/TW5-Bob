@@ -1,0 +1,12 @@
+title: $:/plugins/OokTech/Bob/AboutBackupSaveInterval
+
+If `Trigger backup when wiki is modified` is checked the wiki will be saved
+after this much time has passed after an edit.
+The value is in ms, 1000ms = 1 second.
+
+The timer isn't reset by edits, so by default the wiki is saved 10 minutes
+after the first edit you make, regardless of any edits you make in the 10
+minute interval.
+
+After the wiki is saved it waits until there is another edit before starting
+another countdown to save a new backup.

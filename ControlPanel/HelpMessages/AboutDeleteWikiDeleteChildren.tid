@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/AboutDeleteWikiDeleteChildren
+
+If you check this box all wikis that are children of the deleted wiki will also
+be deleted.
+So if the wiki is `bar` any wikis that start with `bar/` will also be deleted.
+
+If you select this all of the backups for the deleted wikis will also be
+deleted.

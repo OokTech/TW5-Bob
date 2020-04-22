@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutWikiFromTiddlersTransfrom
+
+This is a transfrom filter, the title of each tiddler from this wiki will be
+transformed by this filter before it is added to the newly created wiki.

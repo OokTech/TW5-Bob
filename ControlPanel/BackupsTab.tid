@@ -4,15 +4,10 @@ caption: Backups
 \define settingAction(name, value) <$action-updatesetting backups="""{<<__name__>>: <<__value__>>}"""/>
 
 Bob can automatically save backups of wikis.
-The backups are saved as single file html wikis.
+The backups are saved as single file html wikis without Bob, they can be opened
+and used like a normal single file wiki.
 
 This is a global setting and applies to all the wikis that Bob serves.
-
-To avoid taking up too much space there is a limit to how many backup files
-will be saved for each wiki.
-If this limit is reached fora wiki when a new backup is saved the oldest one is
-removed.
-By default the limit is 10 per wiki.
 
 <$checkbox
   tiddler="$:/WikiSettings/split/backups"
@@ -23,7 +18,7 @@ By default the limit is 10 per wiki.
   uncheckactions='<$action-updatesetting backups="""{"enable": "no"}"""/>'
 >
   Enable backups
-</$checkbox>
+</$checkbox> <<helpButton "$:/plugins/OokTech/Bob/AboutEnableBackups">>
 
 !! Advanced
 
@@ -44,7 +39,7 @@ before submitting a bug report about anything in this section.
   uncheckactions="""<$action-updatesetting backups='{"saveOnLoad": "no"}'/>"""
 >
   Save backup when wiki is loaded
-</$checkbox>
+</$checkbox> <<helpButton "$:/plugins/OokTech/Bob/AboutSaveBackupOnLoad">>
 
 <$checkbox
   tiddler="$:/WikiSettings/split/backups"
@@ -55,7 +50,7 @@ before submitting a bug report about anything in this section.
   uncheckactions='<$action-updatesetting backups="""{"saveOnModified": "no"}"""/>'
 >
   Trigger backup when wiki is modified
-</$checkbox>
+</$checkbox>  <<helpButton "$:/plugins/OokTech/Bob/AboutSaveBackupOnEdit">>
 
 Save interval for backups: <$edit-text
     tiddler='$:/state/Bob/BackupSettings'
@@ -69,7 +64,7 @@ Save interval for backups: <$edit-text
     name=backupInterval
     value={{$:/state/Bob/BackupSetting!!backup_interval}}
   />
-</$button>
+</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutBackupSaveInterval">>
 
 Backups folder: <$edit-text
     tiddler='$:/state/Bob/BackupSettings'
@@ -83,7 +78,7 @@ Backups folder: <$edit-text
     name=backupsFolder
     value={{$:/state/Bob/BackupSetting!!backups_folder}}
   />
-</$button>
+</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutBackupsFolder">>
 
 Maximum Backups per wiki: <$edit-text
     tiddler='$:/state/Bob/BackupSettings'
@@ -97,4 +92,4 @@ Maximum Backups per wiki: <$edit-text
     name=maxBackups
     value={{$:/state/Bob/BackupSetting!!max_backups}}
   />
-</$button>
+</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutMaximumBackupsPerWiki">>

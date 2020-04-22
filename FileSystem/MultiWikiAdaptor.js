@@ -150,6 +150,7 @@ if($tw.node) {
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
   MultiWikiAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
+    const self = this;
     if(typeof prefix === 'function') {
       callback = prefix;
       prefix = null;
@@ -161,27 +162,31 @@ if($tw.node) {
     }
     prefix = prefix || 'RootWiki';
     if (!$tw.Bob.Wikis[prefix]) {
-      $tw.ServerSide.loadWiki(prefix)
+      $tw.ServerSide.loadWiki(prefix, finish);
+    } else {
+      finish();
     }
-    if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
-      this.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
-       function(err,fileInfo) {
-        if(err) {
-          return callback(err);
-        }
-        // Make sure that the tiddler has actually changed before saving it
-        if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
-          try {
-            $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
-            // Save the tiddler in memory.
-            internalSave(tiddler, prefix);
-            $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
-            $tw.hooks.invokeHook('wiki-modified', prefix);
-          } catch (e) {
-              $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
+    function finish() {
+      if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
+        self.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
+         function(err,fileInfo) {
+          if(err) {
+            return callback(err);
           }
-        }
-      });
+          // Make sure that the tiddler has actually changed before saving it
+          if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
+            try {
+              $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
+              // Save the tiddler in memory.
+              internalSave(tiddler, prefix);
+              $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+              $tw.hooks.invokeHook('wiki-modified', prefix);
+            } catch (e) {
+                $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
+            }
+          }
+        });
+      }
     }
   };
 

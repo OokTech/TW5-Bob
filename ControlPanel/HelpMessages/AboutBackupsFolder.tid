@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutBackupsFolder
+
+This is the folder where wikis backups are stored. If a relative path is used
+it is relative to the `wikiPathBase` in the settings.

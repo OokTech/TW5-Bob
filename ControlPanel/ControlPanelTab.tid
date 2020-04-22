@@ -1,12 +1,49 @@
 title: $:/plugins/OokTech/Bob/ControlPanelTab
 tags: $:/tags/ControlPanel
-caption: Bob Settings
+caption: Bob
 
 Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>not </$reveal>available on local network):
+<pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}</pre>
 
-<pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}
-</pre>
+Click the ^^(?)^^ next to options for more information.
 
+<$linkcatcher
+  to='$:/state/Bob/ShowSettingTab'
+>
+
+* [[Setup This Wiki|$:/plugins/OokTech/Bob/ThisWikiTab]] - manage plugins and themes for this wiki
+* [[Backups|$:/plugins/OokTech/Bob/BackupsTab]] - enable and setup automatic backups
+* [[Wiki Management|$:/plugins/OokTech/Bob/ManageWikis]] - create, delete and rename wikis
+* [[Saver Server|$:/plugins/OokTech/Bob/SaverServer]] - enable and configure the saver for single file wikis
+* [[File Server|$:/plugins/OokTech/Bob/FileServerSetup]] - setup file server so that you can access local media files
+* [[Server Settings|$:/plugins/OokTech/Bob/ServerTab]] - logging and manual settings
+* [[Written Documentation|$:/plugins/OokTech/Bob/Documentation/Bob Documentation]] - more details
+* [[About OokTech/Support Development|$:/plugins/OokTech/Bob/OokTechInfo]] - About the people who make Bob
+
+</$linkcatcher>
+
+---
+
+<$list
+  filter='[{$:/state/Bob/ShowSettingTab}]'
+>
+
+  <h2>
+    <$view
+      field='caption'
+    >
+      <$view
+        field='title'
+      >
+      </$view>
+    </$view>
+  </h2>
+
+  <$transclude/>
+
+</$list>
+
+<!--
 <$reveal type='nomatch' state='$:/settings/Bob/Verbose' text='false'>
 
   If you are comfortable with Bob and don't need long labels you can set this to `Compact Help` and remove many of the help labels to make the interface more compact.
@@ -91,3 +128,4 @@ Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0
 >
   <<tabs "[[$:/plugins/OokTech/Bob/ManageWikis]][[$:/plugins/OokTech/Bob/ThisWikiTab]][[$:/plugins/OokTech/Bob/ServerTab]][[$:/plugins/OokTech/Bob/FederationTab]][[$:/plugins/OokTech/Bob/SaverServer]][[$:/plugins/OokTech/Bob/BackupsTab]][[$:/plugins/OokTech/Bob/Documentation/Bob Documentation]][[$:/plugins/OokTech/Bob/OokTechInfo]]" "$:/plugins/OokTech/Bob/ManageWikis">>
 </$list>
+-->

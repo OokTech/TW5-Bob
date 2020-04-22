@@ -1,0 +1,7 @@
+title: $:/plugins/OokTech/Bob/AboutEnableBackups
+
+If this is checked Bob will automatically save backups of your wikis.
+By default it saves a copy when you first load a wiki after starting Bob and
+then every 10 minutes if you are editing a wiki.
+
+You can change this behaviour in the `Advanced` section.
