@@ -58,16 +58,24 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
   const token = localStorage.getItem('ws-token');
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   let update = {};
+  let remove = false;
   $tw.utils.each(this.attributes,function(name,attribute) {
-    try {
-      update[attribute] = JSON.parse(name);
-    } catch {
-      update[attribute] = name;
+    if(attribute.startsWith("$")) {
+      if(attribute === "$remove") {
+        remove = name;
+      }
+    } else {
+      try {
+        update[attribute] = JSON.parse(name);
+      } catch {
+        update[attribute] = name;
+      }
     }
   });
   const message = {
     "type": "updateSetting",
     "updateString": update,
+    "remove": remove,
     "token": token,
     "wiki": wikiName
   };

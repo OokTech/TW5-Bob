@@ -28,6 +28,25 @@ This has some functions that are needed by Bob in different places.
   let messageQueueTimer = false;
 
   /*
+    This is used to parse cookie strings, both on the server and in the browser.
+  */
+  $tw.Bob.getCookie = function(cookie, cname) {
+    cookie = cookie || ""
+    const name = cname + "=";
+    const ca = cookie.split(';');
+    for(let i = 0; i <ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if(c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return false;
+  }
+
+  /*
     This function takes two tiddler objects and returns a boolean value
     indicating if they are the same or not.
   */
@@ -450,7 +469,7 @@ This has some functions that are needed by Bob in different places.
       }
       _sendMessage($tw.connections[connectionIndex], messageData)
     } else if ($tw.browser) {
-      // If we are not sending the message than we have to emit the 'received-ack' event so that the syncer thinks it is finished.
+      // If we are not sending the message then we have to emit the 'received-ack' event so that the syncer thinks it is finished.
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
     }

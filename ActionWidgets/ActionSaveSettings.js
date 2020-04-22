@@ -61,7 +61,7 @@ ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
   const token = localStorage.getItem('ws-token');
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   const message = {
-    "type": "saveSettings",
+    "type": "updateSetting",
     "settingsString": settings,
     "token": token,
     "wiki": wikiName

@@ -27,6 +27,14 @@ function BrowserWSAdaptor(options) {
 
   // Do all actions on startup.
   $tw.Bob.setup = function(reconnect) {
+    $tw.setcookie = function(cookieName, cookieValue) {
+      if (cookieName && cookieValue) {
+        document.cookie = cookieName + "=" + cookieValue;
+      } else if (cookieName) {
+        // Clear the cookie if no value given.
+        document.cookie = cookieName + "= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
+      }
+    }
     // Add a message that the wiki isn't connected yet
     const text = "<div  style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
     const warningTiddler = {
@@ -90,7 +98,8 @@ function BrowserWSAdaptor(options) {
     // wikis, so this tries every second until it succeds at creating them.
     function tryAgain() {
       setTimeout(function() {
-        if (!$tw.wiki.getTiddler("$:/WikiSettings/split")) {
+        const tid = $tw.wiki.getTiddler("$:/WikiSettings/split")
+        if (!tid) {
           const data = {
             type: 'setLoggedIn',
             wiki: $tw.wikiName,
@@ -99,6 +108,18 @@ function BrowserWSAdaptor(options) {
           };
           $tw.Bob.Shared.sendMessage(data, 0);
           tryAgain()
+        } else {
+          try {
+            const temp = JSON.parse(tid.fields.text);
+            if(temp.persistentUsernames === "yes") {
+              const savedName = $tw.Bob.getCookie(document.cookie, "userName");
+              if(savedName) {
+                $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/status/UserName", text: savedName}));
+              }
+            }
+          } catch (e) {
+            // Bleh
+          }
         }
       },1000)
     }

@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/Bob/AboutSavePluginSelection
+
+This will save the current plugin selection and unload this wiki.
+After clicking this button you must reload the page, either with the browser
+reload button or by clicking the `Refresh Page` link.

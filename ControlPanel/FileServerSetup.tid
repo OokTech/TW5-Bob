@@ -33,12 +33,6 @@ caption: File Server
   />
 \end
 
-<$reveal
-  type='nomatch'
-  state='$:/settings/Bob/Verbose'
-  text='false'
->
-
 These are options for how to turn on and configure the file server included in
 Bob.
 
@@ -54,23 +48,6 @@ and make Bob available to the local network away from your home network.
 
 ---
 
-The `Files Folder` is the folder on your computer where you place files to make
-them available to wikis. By default it is a folder called `Files` in the same
-folder as the executable (if you are using BobEXE) or where you run the script
-from (if you are using the plugin version). If you don't have a specific reason
-to change this than you shouldn't change it.
-
-One reasonable alternative option is your documents folder:
-
-* On Windows this is normally `C:\Users\USERNAME\Documents`
-* On many Linux distributions this is normally `/home/USERNAME/Documents`
-* On OSX this is `/Users/USERNAME/Documents`
-
-make sure to change `USERNAME` in the above examples to match your actual
-username on the computer you are using.
-
-</$reveal>
-
 <$checkbox
   checkactions=<<enableFileServerCheckActions>>
   uncheckactions=<<enableFileServerUncheckActions>>
@@ -82,6 +59,87 @@ username on the computer you are using.
 >
   Enable File Server
 </$checkbox>
+
+Files Folder: <<helpButton $:/plugins/OokTech/Bob/AboutFilePathRoot>>
+
+<$radio
+  tiddler='$:/WikiSettings/split'
+  index='filePathRoot'
+  value='./files'
+>
+  `./files` (Default Setting)
+</$radio>
+<br>
+<$radio
+  tiddler='$:/WikiSettings/split'
+  index='filePathRoot'
+  value='cwd'
+>
+  Current Working Directory
+</$radio>
+<br>
+<$radio
+  tiddler='$:/WikiSettings/split'
+  index='filePathRoot'
+  value='homedir'
+>
+  Home Folder
+</$radio>
+
+Current Default Folder:
+<$reveal
+  type='nomatch'
+  state='$:/state/SetFilePathRoot'
+  text='show'
+>
+  <$view
+    tiddler='$:/WikiSettings/split'
+    index='filePathRoot'
+  />
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Manualy set the file path root'
+  >
+    <$action-setfield $tiddler="$:/temp/SetFilePathRoot" path={{$:/WikiSettings/split##filePathRoot}}/>
+    <$action-setfield $tiddler='$:/state/SetFilePathRoot' text='show'/>
+    {{$:/core/images/edit-button}}
+  </$button>
+</$reveal>
+<$reveal
+  type='match'
+  state='$:/state/SetFilePathRoot'
+  text='show'
+>
+  <$edit-text
+    tiddler='$:/temp/SetFilePathRoot'
+    field='path'
+    tag='input'
+  />
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Save file path root'
+  >
+    {{$:/core/images/save-button}}
+    <$action-updatesetting
+      filePathRoot={{$:/temp/SetFilePathRoot}}
+    />
+    <$action-setfield $tiddler='$:/state/SetFilePathRoot' text='hide'/>
+  </$button>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Cancel'
+  >
+    {{$:/core/images/cancel-button}}
+    <$action-setfield $tiddler='$:/state/SetFilePathRoot' text='hide'/>
+  </$button>
+</$reveal>
+
+<$button>
+  Save File Path Root
+  <$action-updatesetting
+    filePathRoot={{$:/WikiSettings/split##filePathRoot}}
+  />
+</$button>
 
 Note: Enabling saving media on the server has no effect unless the file server
 is enabled. So if the checkbox above is not checked than this checkbox does
@@ -99,10 +157,10 @@ nothing.
   Save media on server
 </$checkbox> ([[what is this?|$:/plugins/OokTech/Bob/Documentation/ServerMedia]])
 
-!! Media in the FilePathRoot
+!! Media in the FilePathRoot <<helpButton $:/plugins/OokTech/Bob/AboutListMediaInFilePathRoot>>
 
 <$button>
-  List media in the filePathRoot folder
+  Fetch list of media in the filePathRoot folder
   <$action-websocketmessage
     type='listFiles'
     folder='/files'
@@ -154,7 +212,7 @@ nothing.
   </$list>
 </$reveal>
 
-!! Serve files from a new folder
+!! Serve files from additional folders <<helpbutton $:/plugins/OokTech/Bob/AboutServeMediaFromAdditionalFolders>>
 
 Enter the prefix and path you want to use, then click `Add Folder` button
 
@@ -216,7 +274,9 @@ Enter the prefix and path you want to use, then click `Add Folder` button
   Also Scan Folder
 </$checkbox>
 
-File Folders:
+!! File Folders:
+
+These are the additional folders that are currently serving media.
 
 <table
   style='width:100%;'
@@ -251,9 +311,8 @@ File Folders:
             class='tc-btn-invisible'
           >
             {{$:/core/images/delete-button}}
-            <$action-setfield
-              $tiddler='$:/WikiSettings/split/servingFiles'
-              $index=<<currentTiddler>>
+            <$action-updatesetting
+              $remove={{{ [[servingFiles.]addsuffix<servePath>] }}}
             />
           </$button>
         </td>
@@ -327,7 +386,7 @@ File Folders:
               filter='[<someTid>get[list]]'
             >
               <$list
-                filter='[enlist<theList>]'
+                filter='[list<someTid>]'
               >
                 <tr>
                   <td
@@ -335,11 +394,13 @@ File Folders:
                   >
                     <$button>
                       <<currentTiddler>>
-
-                      <$action-setfield
-                        $tiddler=<<currentTiddler>>
-                        _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<servePath>addsuffix[/]addsuffix<currentTiddler>] }}}
-                      />
+                      <$set name=ext filter="[<currentTiddler>split[.]!is[blank]last[]addprefix[.]]">
+                        <$action-setfield
+                          $tiddler=<<currentTiddler>>
+                          _canonical_uri={{{ [[$:/WikiSettings/split]getindex[fileURLPrefix]addsuffix[/]addsuffix<servePath>addsuffix[/]addsuffix<currentTiddler>] }}}
+                          type={{{ [[$:/WikiSettings/split/mimeMap]getindex<ext>] }}}
+                        />
+                      </$set>
                       <$action-navigate
                         $to=<<currentTiddler>>
                       />

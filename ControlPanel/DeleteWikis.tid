@@ -39,7 +39,7 @@ Select Wiki:
       <<currentTiddler>>
     </option>
   </$list>
-</$select>
+</$select> <<helpButton $:/plugins/OokTech/Bob/AboutDeleteWikiSelect>>
 
 <$checkbox
   tiddler='$:/state/DeleteWiki'
@@ -48,7 +48,7 @@ Select Wiki:
   unchecked='no'
 >
   Delete Children
-</$checkbox>
+</$checkbox> <<helpButton $:/plugins/OokTech/Bob/AboutDeleteWikiSelect>>
 
 <$button
   actions=<<updateNameActions>>

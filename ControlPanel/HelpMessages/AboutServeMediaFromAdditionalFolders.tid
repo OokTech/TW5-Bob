@@ -1,0 +1,11 @@
+title: $:/plugins/OokTech/Bob/AboutServeMediaFromAdditionalFolders
+
+In addition to the default folder above, you can serve media from other
+folders. To set up a folder first give the prefix you want to use to identify
+that folder in the prefix text box, then enter the path to the folder in the
+path text box.
+If you want to automatically make a tiddler for each media file in the folder
+you can check the `Also Scan Folder` check box.
+This will create a tiddler for each of the media files in the folder.
+You can then click `Add Folder` and the folder will be added as a possible
+source of served media.

@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutWikiFromTiddlersFilter
+
+This filter is applied to the tiddlers in the source wiki, tiddlers returned by
+this filter are included in the new wiki.

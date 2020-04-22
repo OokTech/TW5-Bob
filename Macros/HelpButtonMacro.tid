@@ -1,0 +1,47 @@
+title: $:/plugins/OokTech/Bob/HelpButtonMacro
+tags: $:/tags/Macro
+
+\define helpButton(tid)
+<$button
+  popup="""$:/temp/popup/$tid$"""
+  class='tc-btn-invisible'
+>^^(?)^^</$button>
+<$reveal
+  type='popup'
+  state="""$:/temp/popup/$tid$"""
+>
+    <div
+      style='padding: 10px;border: 1px solid grey;
+    	background-color: white;
+    	padding: 7px 0 7px 0;
+    	margin: 4px 0 0 0;
+    	text-shadow: none;
+    	line-height: 1.4;
+      min-width:50vw;
+      padding:10px;
+      max-width:90vw;'
+    >
+      {{$tid$}}
+    </div>
+</$reveal>
+\end
+
+!! The helpButton macro
+
+This is used in Bob to provide context help.
+It makes the little buttons that look like this:<<helpButton>>
+
+!! Inputs
+
+|!Input |!Description |!Default |
+|!tid |The tiddler to transclude as the help message. |No Default |
+
+!! Usage
+
+```
+Documentation Exists<<helpButton "$:/plugins/OokTech/Bob/Documentation/Bob Documentation">>
+```
+
+renders as
+
+Documentation Exists<<helpButton "$:/plugins/OokTech/Bob/Documentation/Bob Documentation">>

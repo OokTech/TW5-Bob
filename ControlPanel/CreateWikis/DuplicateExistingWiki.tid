@@ -22,7 +22,7 @@ caption: Create a copy of an existing wiki
   If the name given for the new wiki is already in use than a number will be
   appended to the end to make the name unique.
 </$reveal>
-
+<br>
 Select Wiki:
 <$select
   tiddler='$:/state/DuplicateWiki'

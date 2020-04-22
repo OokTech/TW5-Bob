@@ -369,7 +369,41 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
+    if(typeof data.remove !== 'undefined') {
+      // Remove settings
+      const pieces = data.remove.split('.');
+      if(pieces) {
+        if(pieces.length === 1) {
+          if($tw.settings[pieces[0]]) {
+            delete $tw.settings[pieces[0]]
+          }
+        } else if($tw.settings[pieces[0]]) {
+          let current = $tw.settings;
+          for(let i = 0; i < pieces.length ; i++) {
+            if(i == pieces.length - 1) {
+              // If we are at the end and it exists delete the setting
+              if(current[pieces[i]]) {
+                delete current[pieces[i]];
+              }
+            } else if(current[pieces[i]]) {
+              // If the next step exists move up one
+              current = current[pieces[i]];
+            } else {
+              // The setting doesn't exist/is already gone
+              break;
+            }
+          }
+        }
+      }
+      $tw.CreateSettingsTiddlers(data);
+      const message = {
+        alert: 'Updated 1 wiki settings.'
+      };
+      $tw.ServerSide.sendBrowserAlert(message);
+      $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
+    }
     if(typeof data.updateString !== 'undefined') {
+      // Add/Update settings values
       let failed = false;
       let updatesObject = {};
       let error = undefined;
@@ -428,13 +462,15 @@ if($tw.node) {
     const fs = require('fs');
     let settings = JSON.stringify($tw.settings, "", 2);
     if(data.fromServer !== true && data.settingsString) {
-      //var prefix = data.wiki;
       // Get first tiddler to start out
       settings = data.settingsString;
 
       // Update the $tw.settings object
       // First clear the settings
-      $tw.settings = {};
+      // Don't clear the settings, there is some rare bug that makes the
+      // settings string empty or invalid json and it results in an empty
+      // settings file.
+      //$tw.settings = {};
       // Put the updated version in.
       $tw.updateSettings($tw.settings, JSON.parse(settings));
     }
@@ -444,8 +480,6 @@ if($tw.node) {
       text: settings,
       type: 'application/json'
     };
-    // Add the tiddler
-    //$tw.Bob.Wikis[data.wiki].wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
     $tw.Bob.SendToBrowsers({
       type: 'saveTiddler',
@@ -811,7 +845,8 @@ if($tw.node) {
       if(data.storeIn !== 'wiki') {
         midPath = path.join($tw.settings.wikisPath, data.wiki);
       } else {
-        midPath = $tw.settings.filePathRoot;
+        //midPath = $tw.settings.filePathRoot;
+        midPath = $tw.ServerSide.getFilePathRoot();
       }
       let filesPath;
       if(data.storeIn !== 'wiki') {
@@ -1087,7 +1122,9 @@ if($tw.node) {
     let fileFolder
     if(thePath === '' && wikiName === '') {
       // Globally available files in filePathRoot
-      fileFolder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot);
+      const filePathRoot = $tw.ServerSide.getFilePathRoot();
+      //fileFolder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot);
+      fileFolder = path.resolve($tw.ServerSide.getBasePath(), filePathRoot);
       // send to browser
       next(fileFolder, '');
     } else if (wikiName === '' && $tw.settings.servingFiles[thePath]) {
@@ -1111,7 +1148,9 @@ if($tw.node) {
       nextTest(0, testPaths)
       function nextTest(index, pathsToTest) {
         // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
-        let test = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, pathsToTest[index]);
+        //let test = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, pathsToTest[index]);
+        const filePathRoot = $tw.ServerSide.getFilePathRoot();
+        let test = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, pathsToTest[index]);
         fs.access(test, fs.constants.F_OK, function(err) {
           if(err) {
             if(index < pathToTest.length - 1) {
@@ -1129,10 +1168,11 @@ if($tw.node) {
       data.tiddler = data.tiddler || path.join('$:/state/fileList/', wikiName, $tw.settings.fileURLPrefix, urlPath);
       data.field = data.field || 'list';
       // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
+      const filePathRoot = $tw.ServerSide.getFilePathRoot();
       const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
-          return path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, item)
+          return path.resolve($tw.ServerSide.getBasePath(), filePathRoot, item)
         });
-      const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, folder);
+      const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, folder);
       let match = false;
       if (authorised) {
         const mimeMap = $tw.settings.mimeMap || {
@@ -1232,7 +1272,8 @@ if($tw.node) {
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
-    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+    const filePathRoot = $tw.ServerSide.getFilePathRoot();
+    //$tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if (authorised) {
       $tw.settings.servingFiles[data.prefix] = data.folder;
@@ -1270,10 +1311,12 @@ if($tw.node) {
       if (data.folder && data.wiki) {
         // Make sure the folder exists
         let mediaURIList = [];
+        /*
         if(typeof $tw.settings.filePathRoot !== 'string') {
           $tw.settings.filePathRoot = './files';
         }
-        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, data.folder)
+        */
+        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, data.folder)
         if($tw.utils.isDirectory(mediaDir)) {
           fs.readdir(mediaDir, function(err, files) {
             if (err) {

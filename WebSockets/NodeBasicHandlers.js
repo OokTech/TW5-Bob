@@ -107,7 +107,6 @@ if($tw.node) {
         // Ignore draft tiddlers
         if(!data.tiddler.fields['draft.of']) {
           const prefix = data.wiki || '';
-          //var internalTitle = '{'+data.wiki+'}'+data.tiddler.fields.title;
           // Set the saved tiddler as no longer being edited. It isn't always
           // being edited but checking eacd time is more complex than just
           // always setting it this way and doesn't benifit us.
@@ -171,6 +170,7 @@ if($tw.node) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
         $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
       }
+      $tw.Bob.logger.log('Deleted tiddler', data.tiddler.fields.title)
     }
   }
 
