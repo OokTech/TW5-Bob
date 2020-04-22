@@ -22,6 +22,12 @@ Path to wiki folder:
   <$list
     filter='[[$:/temp/NewWiki]has[wiki_name]has[wiki_folder_path]]'
   >
+    <$action-websocketmessage
+      $type='createNewWiki'
+      wikiName={{$:/temp/NewWiki!!wiki_name}}
+      nodeWikiPath={{$:/temp/NewWiki!!wiki_folder_path}}
+    />
+    <!--
     <$action-setfield
       $tiddler='$:/WikiSettings/split/wikis'
       $index={{$:/temp/NewWiki!!wiki_name}}
@@ -31,15 +37,16 @@ Path to wiki folder:
     <$action-websocketmessage
       $type=updateRoutes
     />
-    <$action-setfield
-      $tiddler='$:/temp/NewWiki'
-      wiki_name=''
-      wiki_folder_path=''
-    />
     <$action-websocketmessage
       $type='findAvailableWikis'
       update='true'
       saveSettings='true'
+    />
+    -->
+    <$action-setfield
+      $tiddler='$:/temp/NewWiki'
+      wiki_name=''
+      wiki_folder_path=''
     />
   </$list>
 </$button>

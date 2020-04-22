@@ -404,7 +404,7 @@ function loadWikiTiddlers(wikiPath,options) {
   return wikiInfo;
 };
 
-ServerSide.prepareWiki = function (fullName, servePlugin) {
+ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
   // Only rebuild the wiki if there have been changes since the last time it
   // was built, otherwise use the cached version.
   if(typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
@@ -459,7 +459,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin) {
     $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
     const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
     // Only cache the wiki if it isn't too big.
-    if(text.length < 10*1024*1024) {
+    if(text.length < 10*1024*1024 && cache !== 'no') {
       $tw.Bob.Wikis[fullName].cached = text;
       $tw.Bob.Wikis[fullName].modified = false;
     } else {

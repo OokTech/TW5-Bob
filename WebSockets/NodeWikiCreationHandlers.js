@@ -337,6 +337,24 @@ if($tw.node) {
     }
   }
 
+  function addListing(wikiName, wikiPath, overwrite) {
+    const pieces = wikiName.split('/');
+    let current = $tw.settings.wikis
+    for(let i = 0; i < pieces.length; i++) {
+      current[pieces[i]] = current[pieces[i]] || {};
+      current = current[pieces[i]];
+    }
+    if(!current.__path || overwrite) {
+      current.__path = wikiPath;
+    }
+  }
+
+  /*
+    This is the generic command for making a new wiki in Bob, it also covers
+    just listing a non-bob wiki.
+
+    Anything that adds a wiki to the listing uses this.
+  */
   // This is just a copy of the init command modified to work in this context
   $tw.nodeMessageHandlers.createNewWiki = function (data, cb) {
     $tw.Bob.Shared.sendAck(data);
@@ -344,57 +362,85 @@ if($tw.node) {
       const fs = require("fs"),
         path = require("path");
 
-      // Paths are relative to the root wiki path
-      $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
-      data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
-      // If no basepath is given than the default is to place the folder in the
-      // default wikis folder
-      const basePath = data.basePath || $tw.ServerSide.getBasePath();
-      // This is the path given by the person making the wiki, it needs to be
-      // relative to the basePath
-      // data.wikisFolder is an optional sub-folder to use. If it is set to
-      // Wikis than wikis created will be in the basepath/Wikis/relativePath
-      // folder I need better names here.
-      $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
+      let name = GetWikiName(data.wikiName || data.newWiki);
 
-      // Make sure we have a unique name by appending a number to the wiki name
-      // if it exists.
-      let name = GetWikiName(data.wikiName)
-      let relativePath = name;
-      // This only does something for the secure wiki server
-      if($tw.settings.namespacedWikis === 'true') {
-        data.decoded = data.decoded || {};
-        data.decoded.name = data.decoded.name || 'imaginaryPerson';
-        name = data.decoded.name + '/' + name;
-        name = GetWikiName(name);
-        relativePath = name;
-        $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
-      }
-      const fullPath = path.join(basePath, data.wikisFolder, relativePath)
-      //var tiddlersPath = path.join(fullPath, 'tiddlers')
-      // For now we only support creating wikis with one edition, multi edition
-      // things like in the normal init command can come later.
-      const editionName = data.edition?data.edition:"empty";
-      const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
-      if(process.pkg) {
-        let editionPath = $tw.findLibraryItem(editionName,searchPaths);
-        if(!$tw.utils.isDirectory(editionPath)) {
-          editionPath = undefined
-          const pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
-          if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
-            editionPath = pluginPath;
-          }
-          if(editionPath) {
-            try {
-              $tw.ServerSide.specialCopy(editionPath, fullPath);
-              $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-            } catch (e) {
-              $tw.Bob.logger.error('error copying edition', e, {level:1});
+      if(data.nodeWikiPath) {
+        // This is just adding an existing node wiki to the listing
+        addListing(name, data.nodeWikiPath);
+        data.fromServer = true;
+        $tw.nodeMessageHandlers.saveSettings(data);
+      } else if(data.tiddlers || data.externalTiddlers) {
+        // Create a wiki using tiddlers sent from the browser, this is what is
+        // used to create wikis from existing html files.
+      } else if(data.fromWiki && data.newWiki) {
+        // Duplicate a wiki
+      } else {
+
+        // Paths are relative to the root wiki path
+        $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
+        data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
+        // If no basepath is given than the default is to place the folder in the
+        // default wikis folder
+        const basePath = data.basePath || $tw.ServerSide.getBasePath();
+        // This is the path given by the person making the wiki, it needs to be
+        // relative to the basePath
+        // data.wikisFolder is an optional sub-folder to use. If it is set to
+        // Wikis than wikis created will be in the basepath/Wikis/relativePath
+        // folder I need better names here.
+        $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
+
+        // Make sure we have a unique name by appending a number to the wiki name
+        // if it exists.
+        //let name = GetWikiName(data.wikiName)
+        let relativePath = name;
+        // This only does something for the secure wiki server
+        if($tw.settings.namespacedWikis === 'true') {
+          data.decoded = data.decoded || {};
+          data.decoded.name = data.decoded.name || 'imaginaryPerson';
+          name = data.decoded.name + '/' + name;
+          name = GetWikiName(name);
+          relativePath = name;
+          $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
+        }
+        const fullPath = path.join(basePath, data.wikisFolder, relativePath)
+        //var tiddlersPath = path.join(fullPath, 'tiddlers')
+        // For now we only support creating wikis with one edition, multi edition
+        // things like in the normal init command can come later.
+        const editionName = data.edition?data.edition:"empty";
+        const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
+        if(process.pkg) {
+          let editionPath = $tw.findLibraryItem(editionName,searchPaths);
+          if(!$tw.utils.isDirectory(editionPath)) {
+            editionPath = undefined
+            const pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
+            if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
+              editionPath = pluginPath;
             }
-          } else {
-            $tw.Bob.logger.error("Edition not found", {level:1});
+            if(editionPath) {
+              try {
+                $tw.ServerSide.specialCopy(editionPath, fullPath);
+                $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
+              } catch (e) {
+                $tw.Bob.logger.error('error copying edition', e, {level:1});
+              }
+            } else {
+              $tw.Bob.logger.error("Edition not found", {level:1});
+            }
+          } else if($tw.utils.isDirectory(editionPath)) {
+            // Copy the edition content
+            const err = $tw.utils.copyDirectory(editionPath,fullPath);
+            if(!err) {
+              $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
+            } else {
+              $tw.Bob.logger.error(err, {level:1});
+            }
           }
-        } else if($tw.utils.isDirectory(editionPath)) {
+        } else {
+          // Check the edition exists
+          const editionPath = $tw.findLibraryItem(editionName,searchPaths);
+          if(!$tw.utils.isDirectory(editionPath)) {
+            $tw.Bob.logger.error("Edition '" + editionName + "' not found", {level:1});
+          }
           // Copy the edition content
           const err = $tw.utils.copyDirectory(editionPath,fullPath);
           if(!err) {
@@ -403,41 +449,28 @@ if($tw.node) {
             $tw.Bob.logger.error(err, {level:1});
           }
         }
-      } else {
-        // Check the edition exists
-        const editionPath = $tw.findLibraryItem(editionName,searchPaths);
-        if(!$tw.utils.isDirectory(editionPath)) {
-          $tw.Bob.logger.error("Edition '" + editionName + "' not found", {level:1});
+        // Tweak the tiddlywiki.info to remove any included wikis
+        const packagePath = path.join(fullPath, "tiddlywiki.info");
+        let packageJson = {};
+        try {
+          packageJson = JSON.parse(fs.readFileSync(packagePath));
+        } catch (e) {
+          $tw.Bob.logger.error('failed to load tiddlywiki.info file', e, {level:1});
         }
-        // Copy the edition content
-        const err = $tw.utils.copyDirectory(editionPath,fullPath);
-        if(!err) {
-          $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-        } else {
-          $tw.Bob.logger.error(err, {level:1});
+        delete packageJson.includeWikis;
+        try {
+          fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+        } catch (e) {
+          $tw.Bob.logger.error('failed to write settings', e, {level:1})
         }
-      }
-      // Tweak the tiddlywiki.info to remove any included wikis
-      const packagePath = path.join(fullPath, "tiddlywiki.info");
-      let packageJson = {};
-      try {
-        packageJson = JSON.parse(fs.readFileSync(packagePath));
-      } catch (e) {
-        $tw.Bob.logger.error('failed to load tiddlywiki.info file', e, {level:1});
-      }
-      delete packageJson.includeWikis;
-      try {
-        fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
-      } catch (e) {
-        $tw.Bob.logger.error('failed to write settings', e, {level:1})
-      }
 
-      // This is here as a hook for an external server. It is defined by the
-      // external server and shouldn't be defined here or it will break
-      // If you are not using an external server than this does nothing
-      if($tw.ExternalServer) {
-        if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
-          $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
+        // This is here as a hook for an external server. It is defined by the
+        // external server and shouldn't be defined here or it will break
+        // If you are not using an external server than this does nothing
+        if($tw.ExternalServer) {
+          if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+            $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
+          }
         }
       }
 
