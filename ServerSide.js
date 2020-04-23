@@ -53,7 +53,7 @@ ServerSide.getFilePathRoot= function() {
   let basePath = '';
   $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
   if($tw.settings.filePathRoot === 'cwd') {
-    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else if($tw.settings.filePathRoot === 'homedir') {
     basePath = os.homedir();
   } else {
@@ -66,12 +66,12 @@ ServerSide.getFilePathRoot= function() {
   Return the resolved basePath
 */
 ServerSide.getBasePath = function() {
-  let basePath = '';//process.pkg?path.dirname(process.argv[0]):process.cwd();
-  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';//basePath;
+  let basePath = '';
+  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
   if($tw.settings.wikiPathBase === 'homedir') {
     basePath = os.homedir();
   } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else {
     basePath = path.resolve($tw.settings.wikiPathBase);
   }
@@ -177,13 +177,6 @@ ServerSide.existsListed = function (wikiName) {
 */
 ServerSide.loadWiki = function (wikiName, cb) {
   const wikiFolder = ServerSide.existsListed(wikiName);
-  /*
-  // A hacky way to make the root wiki work on termux
-  // This shouldn't be required anymore
-  if(wikiName === 'RootWiki') {
-    wikiFolder = path.resolve($tw.boot.wikiPath);
-  }
-  */
   // Add tiddlers to the node process
   if(wikiFolder) {
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
@@ -524,7 +517,7 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
     cb = copyChildren;
     copyChildren = false;
   } else if(typeof copyChildren === 'string') {
-    copyChildren = (copyChildren==='true')?true:false;
+    copyChildren = (copyChildren==='true' || copyChildren === 'yes')?true:false;
   } else if(copyChildren !== true) {
     copyChildren = false;
   }
@@ -548,6 +541,8 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
   }
   if(typeof cb === 'function') {
     cb(err, source, destination, copyChildren)
+  } else {
+    return err;
   }
 }
 

@@ -369,7 +369,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
-    if(typeof data.remove !== 'undefined') {
+    if(data.remove && typeof data.remove === 'string') {
       // Remove settings
       const pieces = data.remove.split('.');
       if(pieces) {
@@ -1148,7 +1148,6 @@ if($tw.node) {
       nextTest(0, testPaths)
       function nextTest(index, pathsToTest) {
         // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
-        //let test = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, pathsToTest[index]);
         const filePathRoot = $tw.ServerSide.getFilePathRoot();
         let test = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, pathsToTest[index]);
         fs.access(test, fs.constants.F_OK, function(err) {
@@ -1200,37 +1199,42 @@ if($tw.node) {
         };
         const extList = data.mediaTypes || false;
         fs.readdir(resolvedPath, function(err, items) {
-          // filter the list to only include listed mimetypes.
-          let filteredItems = items.filter(function(item) {
-            const splitItem = item.split('.');
-            const ext = splitItem[splitItem.length-1];
-            return typeof mimeMap['.' + ext] === 'string';
-          })
-          if(extList) {
-            filteredItems = filteredItems.filter(function(item) {
+          if(err || !items) {
+            $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
+          } else {
+            // filter the list to only include listed mimetypes.
+            let filteredItems = items.filter(function(item) {
               const splitItem = item.split('.');
               const ext = splitItem[splitItem.length-1];
-              return typeof extList.indexOf('.' + ext) !== -1;
+              return typeof mimeMap['.' + ext] === 'string';
             })
+            if(extList) {
+              filteredItems = filteredItems.filter(function(item) {
+                const splitItem = item.split('.');
+                const ext = splitItem[splitItem.length-1];
+                return typeof extList.indexOf('.' + ext) !== -1;
+              })
+            }
+            // Reply with the list
+            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
+            const fields = {
+              title: data.tiddler,
+              pathprefix: prefix,
+              folder: data.folder,
+            }
+            fields[data.field] = $tw.utils.stringifyList(filteredItems);
+            const message = {
+              type: "saveTiddler",
+              tiddler: {
+                fields: fields
+              },
+              wiki: data.wiki
+            }
+            $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+            $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
           }
-          // Reply with the list
-          let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
-          prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
-          prefix = prefix.endsWith('/') ? prefix : prefix + '/';
-          const fields = {
-            title: data.tiddler,
-            pathprefix: prefix,
-            folder: data.folder,
-          }
-          fields[data.field] = $tw.utils.stringifyList(filteredItems);
-          const message = {
-            type: "saveTiddler",
-            tiddler: {
-              fields: fields
-            },
-            wiki: data.wiki
-          }
-          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
         });
       }
     }

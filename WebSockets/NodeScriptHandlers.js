@@ -71,6 +71,7 @@ if($tw.node) {
   }
   $tw.nodeMessageHandlers.runScript = function (data) {
     $tw.Bob.Shared.sendAck(data);
+    const path = require('path');
     if(data.name) {
       if($tw.settings.scripts) {
         if($tw.settings.scripts[data.name]) {
@@ -79,7 +80,8 @@ if($tw.node) {
             const command = splitThing.shift(),
             args = splitThing || [],
             options = {
-              cwd: process.cwd(),
+              //cwd: path.dirname(process.argv[0]),//process.cwd(),
+              cwd: path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd(),
               detached: false,
               stdio: "inherit"
             };
