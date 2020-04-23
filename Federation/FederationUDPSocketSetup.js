@@ -60,10 +60,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.0.114';
         console.log('using multicast address ', $tw.settings.federation.multicastAddress);
         $tw.Bob.Federation.socket.setTTL(128);
-        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
         $tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
         $tw.Bob.Federation.socket.setMulticastInterface('0.0.0.0');
+        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
 
         // Broadcast a message informing other nodes that this one is on the
         // local net pubKey and signed will be used later, the public key and a

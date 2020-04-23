@@ -36,7 +36,7 @@ function BrowserWSAdaptor(options) {
       }
     }
     // Add a message that the wiki isn't connected yet
-    const text = "<div  style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
+    const text = "<div style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
     const warningTiddler = {
       title: '$:/plugins/OokTech/Bob/Server Warning',
       text: text,
@@ -323,7 +323,7 @@ function BrowserWSAdaptor(options) {
         // Figure out if the thing being imported is something that should be
         // saved on the server.
         //const mimeMap = $tw.settings.mimeMap || {
-        const mimeMap = {
+        const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
           '.csv': 'text/csv',
@@ -350,18 +350,18 @@ function BrowserWSAdaptor(options) {
         if (Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
           // Check if this is set up to use HTTP post or websockets to save the
           // image on the server.
-          var request = new XMLHttpRequest();
+          const request = new XMLHttpRequest();
           request.upload.addEventListener('progress', updateProgress);
           request.upload.addEventListener('load', transferComplete);
           request.upload.addEventListener('error', transferFailed);
           request.upload.addEventListener('abort', transferCanceled);
 
-          var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          var uploadURL = '/api/upload';
+          let wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+          const uploadURL = '/api/upload';
           request.open('POST', uploadURL, true);
           // cookies are sent with the request so the authentication cookie
           // should be there if there is one.
-          var thing = {
+          const thing = {
             tiddler: tiddler,
             wiki: $tw.wiki.getTiddlerText('$:/WikiName')
           }
@@ -388,10 +388,11 @@ function BrowserWSAdaptor(options) {
           }
           request.send(JSON.stringify(thing));
           // Change the tiddler fields and stuff
-          var fields = {};
-          var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          wikiPrefix = wikiPrefix === 'RootWiki'?'':'/'+wikiPrefix;
-          var uri = wikiPrefix+'/files/'+tiddler.fields.title;
+          const fields = {};
+          wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+          wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
+          $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+          const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
           fields.title = tiddler.fields.title;
           fields.type = tiddler.fields.type;
           fields._canonical_uri = uri;

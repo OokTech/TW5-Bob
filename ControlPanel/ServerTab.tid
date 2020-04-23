@@ -62,8 +62,8 @@ caption: Server
   uncheckactions=<<uncheckActions>>
   tiddler='$:/WikiSettings/split'
   index='suppressBrowser'
-  checked='no'
-  unchecked='yes'
+  checked='yes'
+  unchecked='no'
   default='yes'
 >
   Automatically open browser when ~BobEXE starts

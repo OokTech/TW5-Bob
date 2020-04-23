@@ -1,5 +1,9 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.5.3
+
+* Fixed uploading media to the RootWiki so it has the correct _canonical_uri
+
 !! Version 1.5.2 Scruffy, the Janitor
 
 * Made a change to saving settings that may prevent a rare bug
@@ -9,7 +13,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 * the action-updatesetting widget got an update so it can properly remove settings
 * Big reorganisation of the $:/ControlPanel tab for Bob, added a lot of context help
 * Fixed a problem automatic backups caused with serving Bob to child wikis
-* Fixed adding exising node wikis to the Bob server
+* Fixed adding existing node wikis to the Bob server
+* Added an option that lets you set a persistent username in a wiki.
 
 !! Version 1.5.1 hy
 
