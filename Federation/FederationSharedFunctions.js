@@ -207,14 +207,14 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          const totalChunks = Math.ceil(messageBuffer.length/1000);
+          const totalChunks = Math.ceil(messageBuffer.length/500);
           console.log('total chunks', totalChunks)
           console.log(messageData.type)
           for (let i = 0; i < totalChunks; i++) {
             // Split message buffer into pieces and seand them individually
             const newMessage = {
               type: 'chunk',
-              data: messageBuffer.subarray(i*1000, (i+1)*1000 - 1),
+              data: messageBuffer.subarray(i*500, (i+1)*500 - 1),
               cnounce: messageData.rnounce,
               ind: i,
               total: totalChunks
