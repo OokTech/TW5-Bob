@@ -318,12 +318,12 @@ This has some functions that are needed by Bob in different places.
       message
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
+    let send = false;
     if($tw.node && messageData.message.wiki) {
       $tw.ServerSide.loadWiki(messageData.message.wiki, nextBit());
     } else {
       nextBit();
     }
-    let send = false;
     function nextBit() {
       // Make sure that the connectionIndex and queue exist. This may be over
       // paranoid
@@ -410,6 +410,7 @@ This has some functions that are needed by Bob in different places.
           send = true;
         }
       }
+      return send;
     }
     return send;
   }
