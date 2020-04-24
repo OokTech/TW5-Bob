@@ -385,15 +385,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chunk = function(data) {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
-    $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = data.data;
+    $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = Buffer.from(data.data);
     console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length, '/', data.total)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
       console.log('maybe have them all?')
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
-        outArray[data.total - 1 - i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
+        outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
-      const rebuilt = Buffer.from(outArray.join(''));
+      const rebuilt = Buffer.concat(outArray);
       console.log(rebuilt)
       console.log(rebuilt.toString())
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
