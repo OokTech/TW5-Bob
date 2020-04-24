@@ -202,6 +202,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         fromWiki: data.fromWiki
       }
+      console.lod('sending hashes')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
@@ -266,11 +267,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
-    console.log(data)
+    console.log('sendTiddlers')
     if (typeof data.tiddlers === 'object') {
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
-          console.log(tidFields)
+          console.log(Object.keys(tidFields))
           //$tw.Bob.Wikis[data.wikiName].wiki.addTiddler(new $tw.Tiddler(tidFields))
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
@@ -320,6 +321,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         wikiName: data.wikiName
       }
+      console.log('sendTiddlers')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
