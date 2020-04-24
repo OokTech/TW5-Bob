@@ -248,14 +248,15 @@ This has some functions that are needed by Bob in different places.
             const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
             sendMessage(newMessageData);
           }
+        } else {
+          $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
+            if (err) {
+              console.log(err);
+            } else {
+              // console.log('sending worked')
+            }
+          })
         }
-        $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
-          if (err) {
-            console.log(err);
-          } else {
-            // console.log('sending worked')
-          }
-        })
       }
       clearTimeout(messageQueueTimer);
       //messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 1500);
