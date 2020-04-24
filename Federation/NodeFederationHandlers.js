@@ -122,7 +122,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     active.
   */
   $tw.Bob.Federation.messageHandlers.pong = function(data) {
-    
+
   }
 
   /*
@@ -146,11 +146,13 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     };
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
     // If you don't have the server info request it from the remote server
-    const message = {
-      type: 'requestServerInfo',
-      port: $tw.settings.federation.udpPort
-    };
-    $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+    if(!$tw.Bob.Federation.connections[data._source_info.serverKey]) {
+      const message = {
+        type: 'requestServerInfo',
+        port: $tw.settings.federation.udpPort
+      };
+      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+    }
   }
 
   function addServerInfo(data) {
