@@ -394,7 +394,6 @@ This has some functions that are needed by Bob in different places.
       // has no effect on anything other than making the numbers increase a bit
       // faster.
       const id = makeId();
-      targetInfo.serverKey = getServerKey(targetInfo)
       const token = false;
       message.id = id;
       message.rnonce = nonce;
