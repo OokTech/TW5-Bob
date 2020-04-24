@@ -144,19 +144,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       },
       nonce: data.rnonce
     };
-    console.log('send server info?')
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
-    // If you don't have the server info request it from the remote server
-    /*
-    if(!$tw.Bob.Federation.connections[data._source_info.serverKey]) {
-      console.log('why not?', data._source_info)
-      const message = {
-        type: 'requestServerInfo',
-        port: $tw.settings.federation.udpPort
-      };
-      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-    }
-    */
   }
 
   function addServerInfo(data) {
@@ -287,7 +275,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
-          $tw.syncadaptor.saveTiddler(tidFields, data.wikiName);
+          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
         })
       })
     }
@@ -376,13 +364,40 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
     $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = Buffer.from(data.data);
+    clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
+    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length+'/'+data.total)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
+      clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
       const rebuilt = Buffer.concat(outArray);
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
+    } else {
+      $tw.Bob.Federation.messageChunks[data.cnounce].timer = setTimeout(requestResend,500, data))
+    }
+  }
+
+  function requestResend(data) {
+    const receivedArray = Object.keys(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]);
+    const message = {
+      type: 'requestResend',
+      received: receivedArray,
+      mid: data.cnounce
+    };
+    // Send the message
+    $tw.Bob.Federation.sendToRemoteServer(message, data._source_info)
+  }
+
+  $tw.Bob.Federation.messageHandlers.requestResend = function(data) {
+    // Make sure we have it saved
+    if($tw.Bob.Federation.chunkHistory[data.mid]) {
+      $tw.Bob.Federation.sendToRemoteServer(
+        $tw.Bob.Federation.chunkHistory[data.mid].message,
+        $tw.Bob.Federation.chunkHistory[data.mid].serverInfo,
+        $tw.Bob.Federation.chunkHistory[data.mid].wiki,
+        data.received);
     }
   }
 

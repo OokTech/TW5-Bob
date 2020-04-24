@@ -205,19 +205,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          const totalChunks = Math.ceil(messageBuffer.length/500);
-          for (let i = 0; i < totalChunks; i++) {
-            // Split message buffer into pieces and seand them individually
-            const newMessage = {
-              type: 'chunk',
-              data: messageBuffer.subarray(i*500, (i+1)*500 - 1),
-              cnounce: messageData.id,
-              ind: i,
-              total: totalChunks
-            }
-            const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
-            messageQueue.push(newMessageData);
-          }
+          handleChunks(messageData);
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
@@ -226,6 +214,28 @@ This has some functions that are needed by Bob in different places.
 
             }
           })
+        }
+      }
+    }
+
+    function handleChunks(messageData) {
+      $tw.Bob.Federation.chunkHistory[messageData.id].message = messageData.message;
+      $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
+      $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
+      exclude = exclude || []
+      const totalChunks = Math.ceil(messageBuffer.length/500);
+      for (let i = 0; i < totalChunks; i++) {
+        if(messageData.exclude.indexOf[i] === -1) {
+          // Split message buffer into pieces and seand them individually
+          const newMessage = {
+            type: 'chunk',
+            data: messageBuffer.subarray(i*500, (i+1)*500 - 1),
+            cnounce: messageData.id,
+            ind: i,
+            total: totalChunks
+          }
+          const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, [], messageData.id);
+          messageQueue.push(newMessageData);
         }
       }
     }
@@ -361,7 +371,7 @@ This has some functions that are needed by Bob in different places.
       TODO get access token part
       TODO make the nonce not terrible
     */
-    function createRemoteMessageData(message, wiki, targetInfo) {
+    function createRemoteMessageData(message, wiki, targetInfo, exclude, oldId) {
       if(typeof message === 'string') {
         try{
           message = JSON.parse(message);
@@ -378,7 +388,7 @@ This has some functions that are needed by Bob in different places.
       // The messages ids are shared with sending things to browsers, but this
       // has no effect on anything other than making the numbers increase a bit
       // faster.
-      const id = makeId();
+      const id = oldId || makeId();
       const token = false;
       message.id = id;
       message.rnonce = nonce;
@@ -391,7 +401,9 @@ This has some functions that are needed by Bob in different places.
         ack: {},
         token: token,
         _target_info: targetInfo,
-        serverName: $tw.settings.federation.serverName
+        serverName: $tw.settings.federation.serverName,
+        exclude: exclude,
+        wiki: wiki
       };
       const server = (typeof wiki === 'undefined')?true:false;
       $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server, type: message.type})
@@ -402,8 +414,8 @@ This has some functions that are needed by Bob in different places.
       This sends a message to a remote server. This is used for syncing for now,
       in the future it may be used for other things.
     */
-    $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki) {
-      const messageData = createRemoteMessageData(message, wiki, serverInfo);
+    $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
+      const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
       if (messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
