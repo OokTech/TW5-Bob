@@ -283,10 +283,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           console.log(tidFields)
-          $tw.Bob.Wikis[data.wikiName].wiki.addTiddler(new $tw.Tiddler(tidFields))
+          //$tw.Bob.Wikis[data.wikiName].wiki.addTiddler(new $tw.Tiddler(tidFields))
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
+          $tw.syncadaptor.saveTiddler(tidFields, data.wikiName);
         })
       })
     }
@@ -332,17 +333,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         wikiName: data.wikiName
       }
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-      /*
-      if ($tw.Bob.Federation.connections[data._source_info.url]) {
-        if ($tw.Bob.Federation.connections[data._source_info.url].socket) {
-          if ($tw.Bob.Federation.connections[data._source_info.url].socket.readyState === 1) {
-            // Send the message
-            console.log('requestTiddlers', Object.keys(tidObj))
-            $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-          }
-        }
-      }
-      */
     }
   }
 
@@ -386,16 +376,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
     $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = Buffer.from(data.data);
-    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length, '/', data.total)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
-      console.log('maybe have them all?')
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
       const rebuilt = Buffer.concat(outArray);
-      console.log(rebuilt)
-      console.log(rebuilt.toString())
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     }
   }
