@@ -231,9 +231,7 @@ This has some functions that are needed by Bob in different places.
             }
           })
         }
-        checkMessageQueue();
       }
-      clearTimeout(messageQueueTimer);
     }
 
     /*
@@ -413,7 +411,6 @@ This has some functions that are needed by Bob in different places.
       if (messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
-        //sendMessage(messageData);
         messageQueue.push(messageData);
         checkMessageQueue();
       } else {
