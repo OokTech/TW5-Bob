@@ -377,7 +377,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chunk = function(data) {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
-    $tw.Bob.Federation.messageChunks[data.cnounce][ind] = data.data;
+    $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = data.data;
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
