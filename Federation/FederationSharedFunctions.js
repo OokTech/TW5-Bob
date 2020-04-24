@@ -50,7 +50,6 @@ This has some functions that are needed by Bob in different places.
       again in 500ms
     */
     function checkMessageQueue() {
-      console.log('check message queue', messageQueue)
       // If the queue isn't empty
       if(messageQueue.length > 0) {
         // Remove messages that have already been sent and have received all
@@ -193,7 +192,6 @@ This has some functions that are needed by Bob in different places.
       This modifies messageQueue as a side effect
     */
     function sendMessage(messageData) {
-      console.log('sendMessage?', messageData)
       if (!messageData) {
         return;
       }
@@ -409,13 +407,11 @@ This has some functions that are needed by Bob in different places.
       in the future it may be used for other things.
     */
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki) {
-      console.log('send to remote server', message)
       const messageData = createRemoteMessageData(message, wiki, serverInfo);
       if (messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         //sendMessage(messageData);
-        console.log('pushed message')
         messageQueue.push(messageData);
         checkMessageQueue();
       } else {
