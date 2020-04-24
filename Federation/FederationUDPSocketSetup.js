@@ -105,7 +105,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
         console.log('federated message: ', messageData.type)
         messageData._source_info = rinfo;
-        messageData._source_info.serverKey = getServerKey(messageData);
+        messageData._source_info.serverKey = messageData.serverName//getServerKey(messageData);
         if (!messageData._source_info.serverKey) {
           console.log('rejected??', messageData._source_info)
           return;
@@ -183,6 +183,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This returns the server key used as the unique identifier for a server
     */
     function getServerKey(messageData) {
+      if(messageData.serverName) {
+        return messageData.serverName
+      }
       if (messageData._source_info) {
         return messageData.serverName || messageData._source_info.address + ':' + messageData._source_info.port;
       } else if (messageData._target_info) {

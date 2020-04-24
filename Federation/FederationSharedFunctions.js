@@ -398,6 +398,7 @@ This has some functions that are needed by Bob in different places.
       const token = false;
       message.id = id;
       message.rnonce = nonce;
+      message.serverName = $tw.settings.federation.serverName;
       let messageData = {
         message: message,
         id: id,
