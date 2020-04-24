@@ -103,9 +103,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
-        console.log('federated message: ', messageData.type)
+        if(messageData.type !== 'multicastSearch') {
+          console.log('federated message: ', messageData.type)
+        }
         messageData._source_info = rinfo;
-        messageData._source_info.serverKey = messageData.serverName//getServerKey(messageData);
+        messageData._source_info.serverKey = getServerKey(messageData);
         if (!messageData._source_info.serverKey) {
           console.log('rejected??', messageData._source_info)
           return;
@@ -115,10 +117,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if(typeof $tw.Bob.Federation.messageHandlers[messageData.type] === 'function') {
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(messageData);
-          messageData.wiki = checkNonce(messageData)
+          messageData.wiki = checkNonce(messageData);
           // TODO fix this dirty hack. We need a better way to list which
           // messages don't require a nonce.
           if(authorised && (messageData.wiki || nonNonce.indexOf(messageData.type) !== -1)) {
+            console.log('Authorised')
             messageData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[messageData.type](messageData);
           }
@@ -183,6 +186,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This returns the server key used as the unique identifier for a server
     */
     function getServerKey(messageData) {
+      return messageData.serverName
+      /*
       if(messageData.serverName) {
         return messageData.serverName
       }
@@ -194,6 +199,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // This should never happen
         return false;
       }
+      */
     }
 
     /*
