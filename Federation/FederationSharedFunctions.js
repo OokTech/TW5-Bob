@@ -224,7 +224,6 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.Federation.chunkHistory[messageData.id].message = messageData.message;
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
-      exclude = exclude || []
       const totalChunks = Math.ceil(messageBuffer.length/500);
       for (let i = 0; i < totalChunks; i++) {
         if(messageData.exclude.indexOf[i] === -1) {
