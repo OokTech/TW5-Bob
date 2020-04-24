@@ -232,10 +232,25 @@ This has some functions that are needed by Bob in different places.
           messageData.ack[messageData._target_info.serverKey] = false;
           messageQueue.push(messageData);
         }
-        const messageBuffer = Buffer.from(JSON.stringify(messageData.message))
+        const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
+        if(messageBuffer.length > 1500) {
+          const totalChunks = Mach.ceil(messageBuffer.length/1000);
+          for (let i = 0; i < totalChunks; i++) {
+            // Split message buffer into pieces and seand them individually
+            const newMessage = {
+              type: 'chunk',
+              data: bufferChunk,
+              cnounce: messageData.rnounce,
+              ind: i,
+              total: totalChunks
+            }
+            const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
+            sendMessage(newMessageData);
+          }
+        }
         $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
           if (err) {
-            console.log(err)
+            console.log(err);
           } else {
             // console.log('sending worked')
           }

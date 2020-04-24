@@ -309,7 +309,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     //$tw.Bob.Federation.connections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
     if(data._source_info && data.rnonce) {
-      console.log('requestTiddlers 1')
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
       const tidObj = {};
@@ -319,14 +318,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           tidObj[tidTitle] = tempTid.fields;
         }
       })
-      console.log('requestTiddlers 2')
       const message = {
         type: 'sendTiddlers',
         tiddlers: tidObj,
         nonce: data.rnonce
       }
-      console.log('requestTiddlers 3')
-      console.log('requestTiddlers', Object.keys(tidObj))
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
       /*
       if ($tw.Bob.Federation.connections[data._source_info.url]) {
@@ -376,6 +372,20 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
       }
     })
+  }
+
+  $tw.Bob.Federation.messageHandlers.chunk = function(data) {
+    $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
+    $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
+    $tw.Bob.Federation.messageChunks[data.cnounce][ind] = data.data;
+    if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
+      const outArray = Array(data.total);
+      for (let i = 0; i < data.total; i++) {
+        outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
+      }
+      const rebuilt = outArray.join('');
+      $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
+    }
   }
 
   /*
