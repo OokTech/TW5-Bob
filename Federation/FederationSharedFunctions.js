@@ -50,20 +50,24 @@ This has some functions that are needed by Bob in different places.
       again in 500ms
     */
     function checkMessageQueue() {
+      console.log('message queue', messageQueue)
       // If the queue isn't empty
       if(messageQueue.length > 0) {
+        console.log('HERE')
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
         messageQueue = pruneMessageQueue(messageQueue);
         // Check if there are any messages that are more than 500ms old and have
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
-        if(messageQueue[0]) {
-          sendMessage(messageQueue.pop());
+        if(messageQueue.length > 0) {
+          const theMessage = messageQueue.pop();
+          console.log(theMessage, messageQueue)
+          sendMessage(messageQueue[0]);
+          messageQueue = messageQueue.slice(messageQueue[1])
         }
-        if(messageQueueTimer) {
-          clearTimeout(messageQueueTimer);
-        }
+        console.log('messageQueue 2', messageQueue)
+        clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       } else {
         clearTimeout(messageQueueTimer);
@@ -206,6 +210,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         // If the message is already in the queue (as determined by the message
         // id), than just add the new target to the ackObject
+        /*
         const enqueuedIndex = Object.keys(messageQueue).findIndex(function(enqueuedMessageData) {
           return enqueuedMessageData.id === messageData.id;
         });
@@ -217,6 +222,7 @@ This has some functions that are needed by Bob in different places.
           messageData.ack[messageData._target_info.serverKey] = false;
           messageQueue.push(messageData);
         }
+        */
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
           const totalChunks = Math.ceil(messageBuffer.length/1000);
@@ -235,6 +241,7 @@ This has some functions that are needed by Bob in different places.
             checkMessageQueue();
           }
         } else {
+          console.log('SENDING THE FUCKER')
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
               console.log(err);
@@ -424,7 +431,7 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki) {
       const messageData = createRemoteMessageData(message, wiki, serverInfo);
       if (messageData) {
-        //console.log('message data:',messageData)
+        console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         //sendMessage(messageData);
