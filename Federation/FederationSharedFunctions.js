@@ -216,7 +216,7 @@ This has some functions that are needed by Bob in different places.
             const newMessage = {
               type: 'chunk',
               data: messageBuffer.subarray(i*500, (i+1)*500 - 1),
-              cnounce: messageData.rnounce,
+              cnounce: messageData.id,
               ind: i,
               total: totalChunks
             }
