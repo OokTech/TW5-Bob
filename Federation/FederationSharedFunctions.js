@@ -205,7 +205,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          handleChunks(messageData);
+          handleChunks(messageData, messageBuffer);
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
@@ -218,7 +218,7 @@ This has some functions that are needed by Bob in different places.
       }
     }
 
-    function handleChunks(messageData) {
+    function handleChunks(messageData, messageBuffer) {
       $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
       $tw.Bob.Federation.chunkHistory[messageData.id] = $tw.Bob.Federation.chunkHistory[messageData.id] || {};
       $tw.Bob.Federation.chunkHistory[messageData.id].message = messageData.message;
