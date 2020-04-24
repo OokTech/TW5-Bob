@@ -375,12 +375,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const rebuilt = Buffer.concat(outArray);
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
-      $tw.Bob.Federation.messageChunks[data.cnounce].timer = setTimeout(requestResend,500, data))
+      $tw.Bob.Federation.messageChunks[data.cnounce].timer = setTimeout(requestResend,500, data);
     }
   }
 
   function requestResend(data) {
-    const receivedArray = Object.keys(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]);
+    const receivedArray = Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]);
     const message = {
       type: 'requestResend',
       received: receivedArray,
