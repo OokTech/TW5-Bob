@@ -192,6 +192,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('requestHashes')
     if (data.filter && data.fromWiki) {
+      const test = $tw.ServerSide.loadWiki(data.fromWiki)
+      if(!test) {
+        console.log('no wiki?', data);
+        return
+      }
       // get list of tiddlers
       const titleList = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
       // get tiddler hashes
@@ -218,7 +223,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('sendHashes')
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
-      const test = $tw.Bob.ServerSide.loadWiki(data.fromWiki);
+      const test = $tw.ServerSide.loadWiki(data.fromWiki);
       if(!test) {
         console.log("it doesn't eist?")
         return;
