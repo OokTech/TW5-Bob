@@ -54,33 +54,13 @@ This has some functions that are needed by Bob in different places.
       if(messageQueue.length > 0) {
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
-        messageQueue = pruneMessageQueue(messageQueue);
+        //messageQueue = pruneMessageQueue(messageQueue);
         // Check if there are any messages that are more than 500ms old and have
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
         if(messageQueue[0]) {
           sendMessage(messageQueue.pop());
         }
-        /*
-        const oldMessages = messageQueue.filter(function(messageData) {
-          if(Date.now() - messageData.time > $tw.settings.advanced.federatedMessageQueueTimeout || 500) {
-            return true;
-          } else {
-            return false;
-          }
-        });
-        oldMessages.forEach(function (messageData) {
-          // If we are in the browser there is only one connection, but
-          // everything here is the same.
-          Object.keys($tw.Bob.Federation.connections).forEach(function(index) {
-            if(!messageData.ack[index]) {
-              // If we haven't received an ack from this connection yet than
-              // resend the message
-              sendMessage(messageData)
-            }
-          });
-        });
-        */
         if(messageQueueTimer) {
           clearTimeout(messageQueueTimer);
         }
@@ -252,15 +232,6 @@ This has some functions that are needed by Bob in different places.
             }
             const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
             messageQueue.push(newMessageData);
-            //sendMessage(newMessageData);
-            //const newMessageBuffer = Buffer.from(JSON.stringify(newMessageData.message));
-            //$tw.Bob.Federation.socket.send(newMessageBuffer, 0, newMessageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
-            //  if (err) {
-            //    console.log(err);
-            //  } else {
-            //    // console.log('sending worked')
-            //  }
-            //})
             checkMessageQueue();
           }
         } else {
