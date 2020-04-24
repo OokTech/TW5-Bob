@@ -99,9 +99,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       $tw.Bob.logger.log('Received federated message ', message, {level:4});
       try {
-        console.log(1)
         let messageData = JSON.parse(message);
-        console.log(2, messageData)
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
@@ -124,6 +122,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           // messages don't require a nonce.
           if(authorised && (messageData.wiki || nonNonce.indexOf(messageData.type) !== -1)) {
             messageData.decoded = authorised;
+            console.log('message handlers', messageData.type)
             $tw.Bob.Federation.messageHandlers[messageData.type](messageData);
           }
         } else {
