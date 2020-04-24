@@ -218,6 +218,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('sendHashes')
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
+      const test = $tw.Bob.ServerSide.loadWiki(data.fromWiki);
+      if(!test) {
+        console.log("it doesn't eist?")
+        return;
+      }
       Object.keys(data.hashes).forEach(function(tidTitle) {
         // check if the tiddler exists locally
         const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
@@ -259,7 +264,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
-    console.log('sendTiddlers')
     if (typeof data.tiddlers === 'object') {
       Object.values(data.tiddlers).forEach(function(tidFields) {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
@@ -283,8 +287,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
-    console.log('requestTiddlers')
-    console.log(data)
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
@@ -295,7 +297,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     //$tw.Bob.Federation.connections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
     if(data._source_info && data.rnonce) {
-      console.log(1)
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
       const tidObj = {};
@@ -311,11 +312,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce
       }
       if ($tw.Bob.Federation.connections[data._source_info.url]) {
-        console.log(2)
         if ($tw.Bob.Federation.connections[data._source_info.url].socket) {
-          console.log(3)
           if ($tw.Bob.Federation.connections[data._source_info.url].socket.readyState === 1) {
-            console.log(4)
             // Send the message
             $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
           }

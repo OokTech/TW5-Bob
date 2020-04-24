@@ -113,21 +113,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           console.log('rejected??', messageData._source_info)
           return;
         }
-        console.log(1, messageData)
         handleConnection(messageData);
-        console.log(2, messageData)
         // Make sure we have a handler for the message type
         if(typeof $tw.Bob.Federation.messageHandlers[messageData.type] === 'function') {
-          console.log(3)
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(messageData);
-          console.log(4)
           messageData.wiki = checkNonce(messageData);
-          console.log(5)
           // TODO fix this dirty hack. We need a better way to list which
           // messages don't require a nonce.
           if(authorised && (messageData.wiki || nonNonce.indexOf(messageData.type) !== -1)) {
-            console.log('Authorised', messageData.type)
             messageData.decoded = authorised;
             $tw.Bob.Federation.messageHandlers[messageData.type](messageData);
           }
