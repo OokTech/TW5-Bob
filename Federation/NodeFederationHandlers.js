@@ -226,30 +226,37 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const test = $tw.ServerSide.loadWiki(data.fromWiki);
       if(!test) {
         console.log("it doesn't eist?")
-        return;
+        const wikiData = {
+          wikiName: data.fromWiki,
+        }
+        $tw.nodeMessageHandlers.createNewWiki(wikiData, nextBit());
+      } else {
+        nextBit();
       }
-      Object.keys(data.hashes).forEach(function(tidTitle) {
-        // check if the tiddler exists locally
-        const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
-        if (thisTid) {
-          // If the tiddler exists than check if the hashes match
-          if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
-            // If the hashes don't match add it to the list
+      function nextBit() {
+        Object.keys(data.hashes).forEach(function(tidTitle) {
+          // check if the tiddler exists locally
+          const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
+          if (thisTid) {
+            // If the tiddler exists than check if the hashes match
+            if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
+              // If the hashes don't match add it to the list
+              tiddlersToRequest.push(tidTitle);
+            }
+          } else {
+            // If the tiddler doesn't exist than add it to the list
             tiddlersToRequest.push(tidTitle);
           }
-        } else {
-          // If the tiddler doesn't exist than add it to the list
-          tiddlersToRequest.push(tidTitle);
+        })
+        if (tiddlersToRequest.length > 0) {
+          // If there are any tiddlers to request than send the request
+          const message = {
+            type: 'requestTiddlers',
+            filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
+            wikiName: data.fromWiki
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         }
-      })
-      if (tiddlersToRequest.length > 0) {
-        // If there are any tiddlers to request than send the request
-        const message = {
-          type: 'requestTiddlers',
-          filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
-          wikiName: data.fromWiki
-        }
-        $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
       }
     }
   }
