@@ -202,7 +202,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         fromWiki: data.fromWiki
       }
-      console.lod('sending hashes')
+      console.log('sending hashes')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
