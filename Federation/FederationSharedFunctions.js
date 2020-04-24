@@ -64,7 +64,6 @@ This has some functions that are needed by Bob in different places.
           const theMessage = messageQueue.pop();
           console.log(messageQueue.length)
           sendMessage(theMessage);
-          //messageQueue = messageQueue.slice(messageQueue[1])
         }
         checkMessageQueue();
       } else {
@@ -210,6 +209,7 @@ This has some functions that are needed by Bob in different places.
         if(messageBuffer.length > 2000) {
           const totalChunks = Math.ceil(messageBuffer.length/1000);
           console.log('total chunks', totalChunks)
+          console.log(messageData.type)
           for (let i = 0; i < totalChunks; i++) {
             // Split message buffer into pieces and seand them individually
             const newMessage = {
