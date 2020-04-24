@@ -392,6 +392,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
   $tw.Bob.Federation.messageHandlers.requestResend = function(data) {
     // Make sure we have it saved
+    $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
     if($tw.Bob.Federation.chunkHistory[data.mid]) {
       $tw.Bob.Federation.sendToRemoteServer(
         $tw.Bob.Federation.chunkHistory[data.mid].message,

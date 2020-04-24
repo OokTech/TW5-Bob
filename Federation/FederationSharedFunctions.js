@@ -219,6 +219,7 @@ This has some functions that are needed by Bob in different places.
     }
 
     function handleChunks(messageData) {
+      $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
       $tw.Bob.Federation.chunkHistory[messageData.id].message = messageData.message;
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
