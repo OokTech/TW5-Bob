@@ -109,6 +109,23 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
+    Pings are for checking to see if a server is still alive, and for
+    connecting to known servers without broadcasting
+  */
+  $tw.Bob.Federation.messageHandlers.ping = function(data) {
+    // respond with a pong
+    // ask for updated info if it has been long enough, or they aren't iisted
+  }
+
+  /*
+    A pong is the response to a ping, it indicates that the other server is
+    active.
+  */
+  $tw.Bob.Federation.messageHandlers.pong = function(data) {
+    
+  }
+
+  /*
     Ask a remote server for updated information about the server.
   */
   $tw.Bob.Federation.messageHandlers.requestServerInfo = function(data) {
@@ -128,6 +145,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       nonce: data.rnonce
     };
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
+    // If you don't have the server info request it from the remote server
+    const message = {
+      type: 'requestServerInfo',
+      port: $tw.settings.federation.udpPort
+    };
+    $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
   }
 
   function addServerInfo(data) {

@@ -85,14 +85,13 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
     })
     $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
-      console.log('received message here:', message.toString())
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
     $tw.Bob.Federation.socket.on('error', (err) => {
       console.log(err)
     });
 
-    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
+    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping'];
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
       if (!rinfo || !message) {
@@ -104,9 +103,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
+        console.log('federated message: ', messageData.type)
         messageData._source_info = rinfo;
         messageData._source_info.serverKey = getServerKey(messageData);
         if (!messageData._source_info.serverKey) {
+          console.log('rejected??', messageData._source_info)
           return;
         }
         handleConnection(messageData);

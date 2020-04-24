@@ -425,6 +425,7 @@ This has some functions that are needed by Bob in different places.
         sendMessage(messageData);
       } else {
         // log something here console.log
+        console.log('no message data?')
       }
     }
 

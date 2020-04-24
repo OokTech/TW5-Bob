@@ -90,6 +90,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('sendRemoteMessage', data)
     if (data.$server && data.$message) {
       const newData = {
         type: data.$message
@@ -99,7 +100,13 @@ if($tw.node) {
           newData[key] = data[key]
         }
       })
-      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server, data.wiki)
+      // TODO here we need to get the server info from the server name in data.$server
+      // We need to get the target server port and address using data.$server and then use that to send.
+      const serverInfo = {
+        port: $tw.Bob.Federation.connections[data.$server].port,
+        address: $tw.Bob.Federation.connections[data.$server].address
+      }
+      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), serverInfo, data.wiki)
     }
   }
 
