@@ -403,7 +403,7 @@ This has some functions that are needed by Bob in different places.
         token: token,
         _target_info: targetInfo,
         serverName: $tw.settings.federation.serverName,
-        exclude: exclude,
+        exclude: exclude || [],
         wiki: wiki
       };
       const server = (typeof wiki === 'undefined')?true:false;
