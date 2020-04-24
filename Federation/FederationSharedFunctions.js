@@ -55,15 +55,17 @@ This has some functions that are needed by Bob in different places.
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
         messageQueue = pruneMessageQueue(messageQueue);
+        clearTimeout(messageQueueTimer);
         // Check if there are any messages that are more than 500ms old and have
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
         if(messageQueue.length > 0) {
+          console.log(messageQueue.length)
           const theMessage = messageQueue.pop();
+          console.log(messageQueue.length)
           sendMessage(theMessage);
           //messageQueue = messageQueue.slice(messageQueue[1])
         }
-        clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       } else {
         clearTimeout(messageQueueTimer);
