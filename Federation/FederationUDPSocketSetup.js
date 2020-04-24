@@ -123,7 +123,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk'];
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
-      console.log('federated message?')
       if (!rinfo || !message) {
         return;
       }
@@ -152,7 +151,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           // messages don't require a nonce.
           if(authorised && (messageData.wiki || nonNonce.indexOf(messageData.type) !== -1)) {
             messageData.decoded = authorised;
-            console.log('message handlers', messageData.type)
             $tw.Bob.Federation.messageHandlers[messageData.type](messageData);
           }
         } else {
