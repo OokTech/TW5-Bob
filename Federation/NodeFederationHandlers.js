@@ -280,11 +280,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log(data)
     if (typeof data.tiddlers === 'object') {
-      Object.values(data.tiddlers).forEach(function(tidFields) {
-        //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
-        // Send each tiddler recieved to the browser using the conflict message
-        // and then let the browser handle it.
-        $tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
+      $tw.ServerSide.loadWiki(data.wikiName, function() {
+        Object.values(data.tiddlers).forEach(function(tidFields) {
+          console.log(tidFields)
+          $tw.Bob.Wikis[data.wikiName].wiki.addTiddler(new $tw.Tiddler(tidFields))
+          // Send each tiddler recieved to the browser using the conflict message
+          // and then let the browser handle it.
+          //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
+        })
       })
     }
   }
@@ -390,8 +393,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       for (let i = 0; i < data.total; i++) {
         outArray[data.total - 1 - i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
-      const rebuilt = outArray.join('');
-      console.log(outArray)
+      const rebuilt = Buffer.from(outArray.join(''));
+      console.log(rebuilt)
+      console.log(rebuilt.toString())
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     }
   }

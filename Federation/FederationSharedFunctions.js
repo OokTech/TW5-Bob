@@ -65,7 +65,7 @@ This has some functions that are needed by Bob in different places.
           console.log(messageQueue.length)
           sendMessage(theMessage);
         }
-        setTimeout(checkMessageQueue, 1);
+        setTimeout(checkMessageQueue, 2);
         //checkMessageQueue();
       } else {
         clearTimeout(messageQueueTimer);
@@ -208,7 +208,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          const totalChunks = Math.floor(messageBuffer.length/500);
+          const totalChunks = Math.floor(messageBuffer.length/500) - 1;
           for (let i = 0; i < totalChunks; i++) {
             // Split message buffer into pieces and seand them individually
             const newMessage = {
