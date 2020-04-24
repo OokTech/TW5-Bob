@@ -381,7 +381,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
     $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = data.data;
+    console.log('chunk ind', data.ind)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
+      console.log('maybe have them all?')
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
