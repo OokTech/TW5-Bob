@@ -99,7 +99,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       $tw.Bob.logger.log('Received federated message ', message, {level:4});
       try {
+        console.log(1)
         let messageData = JSON.parse(message);
+        console.log(2, messageData)
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }

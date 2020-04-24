@@ -58,6 +58,10 @@ This has some functions that are needed by Bob in different places.
         // Check if there are any messages that are more than 500ms old and have
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
+        if(messageQueue[0]) {
+          sendMessage(messageQueue.pop());
+        }
+        /*
         const oldMessages = messageQueue.filter(function(messageData) {
           if(Date.now() - messageData.time > $tw.settings.advanced.federatedMessageQueueTimeout || 500) {
             return true;
@@ -76,6 +80,7 @@ This has some functions that are needed by Bob in different places.
             }
           });
         });
+        */
         if(messageQueueTimer) {
           clearTimeout(messageQueueTimer);
         }
@@ -246,15 +251,17 @@ This has some functions that are needed by Bob in different places.
               total: totalChunks
             }
             const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
+            messageQueue.push(newMessageData);
             //sendMessage(newMessageData);
-            const newMessageBuffer = Buffer.from(JSON.stringify(newMessageData.message));
-            $tw.Bob.Federation.socket.send(newMessageBuffer, 0, newMessageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
-              if (err) {
-                console.log(err);
-              } else {
-                // console.log('sending worked')
-              }
-            })
+            //const newMessageBuffer = Buffer.from(JSON.stringify(newMessageData.message));
+            //$tw.Bob.Federation.socket.send(newMessageBuffer, 0, newMessageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
+            //  if (err) {
+            //    console.log(err);
+            //  } else {
+            //    // console.log('sending worked')
+            //  }
+            //})
+            checkMessageQueue();
           }
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
@@ -262,6 +269,7 @@ This has some functions that are needed by Bob in different places.
               console.log(err);
             } else {
               // console.log('sending worked')
+              checkMessageQueue();
             }
           })
         }
@@ -448,7 +456,9 @@ This has some functions that are needed by Bob in different places.
         //console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
-        sendMessage(messageData);
+        //sendMessage(messageData);
+        messageQueue.push(messageData);
+        checkMessageQueue();
       } else {
         // log something here console.log
         console.log('no message data?')
