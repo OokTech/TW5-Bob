@@ -144,6 +144,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       },
       nonce: data.rnonce
     };
+    console.log('send server info?')
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
     // If you don't have the server info request it from the remote server
     /*

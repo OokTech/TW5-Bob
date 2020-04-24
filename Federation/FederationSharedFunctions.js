@@ -50,6 +50,7 @@ This has some functions that are needed by Bob in different places.
       again in 500ms
     */
     function checkMessageQueue() {
+      console.log('check message queue', messageQueue)
       // If the queue isn't empty
       if(messageQueue.length > 0) {
         // Remove messages that have already been sent and have received all
@@ -60,15 +61,13 @@ This has some functions that are needed by Bob in different places.
         // These are assumed to have been lost and need to be resent
         if(messageQueue.length > 0) {
           const theMessage = messageQueue.pop();
-          console.log(theMessage, messageQueue)
-          sendMessage(messageQueue[0]);
-          messageQueue = messageQueue.slice(messageQueue[1])
+          sendMessage(theMessage);
+          //messageQueue = messageQueue.slice(messageQueue[1])
         }
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       } else {
         clearTimeout(messageQueueTimer);
-        //messageQueueTimer = false;
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       }
     }
@@ -194,6 +193,7 @@ This has some functions that are needed by Bob in different places.
       This modifies messageQueue as a side effect
     */
     function sendMessage(messageData) {
+      console.log('sendMessage?', messageData)
       if (!messageData) {
         return;
       }
@@ -409,12 +409,13 @@ This has some functions that are needed by Bob in different places.
       in the future it may be used for other things.
     */
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki) {
+      console.log('send to remote server', message)
       const messageData = createRemoteMessageData(message, wiki, serverInfo);
       if (messageData) {
-        console.log('message data:',messageData)
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         //sendMessage(messageData);
+        console.log('pushed message')
         messageQueue.push(messageData);
         checkMessageQueue();
       } else {
