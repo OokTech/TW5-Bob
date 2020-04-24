@@ -65,7 +65,7 @@ This has some functions that are needed by Bob in different places.
           console.log(messageQueue.length)
           sendMessage(theMessage);
         }
-        setTimeout(checkMessageQueue, 2);
+        setTimeout(checkMessageQueue, 5);
         //checkMessageQueue();
       } else {
         clearTimeout(messageQueueTimer);
