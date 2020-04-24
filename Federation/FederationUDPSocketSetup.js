@@ -26,6 +26,34 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.connections = $tw.Bob.Federation.connections || loadConnections();
     $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
 
+    /*
+      Save the connections.json file in the settings folder
+    */
+    function updateConnectionsInfo() {
+      const fs = require('fs');
+      const path = require('path');
+      const connectionsFilePath = path.join($tw.boot.wikiPath, 'settings', 'connections.json');
+      const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings');
+      if(!fs.existsSync(userSettingsFolder)) {
+        // Create the settings folder
+        fs.mkdirSync(userSettingsFolder);
+      }
+      const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
+      fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
+        if(err) {
+          const message = {
+            alert: 'Error saving connections:' + err,
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+          $tw.Bob.logger.error(err, {level:1});
+        } else {
+          $tw.Bob.logger.log('Updated connections file', {level:1})
+          $tw.Bob.Federation.updateConnections()
+        }
+      });
+    }
+
     $tw.Bob.Federation.authenticateMessage = function (message) {
       return true;
     }
@@ -217,14 +245,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           // Request server info for the new one
           $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info)
-          //updateConnectionsInfo();
+          updateConnectionsInfo();
         }
       } else {
         // Check to make sure we have the up-to-date address and port
         if ($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
-          //updateConnectionsInfo();
+          updateConnectionsInfo();
         }
       }
     }

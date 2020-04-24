@@ -50,10 +50,8 @@ This has some functions that are needed by Bob in different places.
       again in 500ms
     */
     function checkMessageQueue() {
-      console.log('message queue', messageQueue)
       // If the queue isn't empty
       if(messageQueue.length > 0) {
-        console.log('HERE')
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
         messageQueue = pruneMessageQueue(messageQueue);
@@ -66,12 +64,12 @@ This has some functions that are needed by Bob in different places.
           sendMessage(messageQueue[0]);
           messageQueue = messageQueue.slice(messageQueue[1])
         }
-        console.log('messageQueue 2', messageQueue)
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       } else {
         clearTimeout(messageQueueTimer);
-        messageQueueTimer = false;
+        //messageQueueTimer = false;
+        messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       }
     }
 
@@ -208,21 +206,6 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeRedundantMessages(messageData, messageQueue);
         // Check to see if the token has changed
         messageQueue = removeOldTokenMessages(messageQueue);
-        // If the message is already in the queue (as determined by the message
-        // id), than just add the new target to the ackObject
-        /*
-        const enqueuedIndex = Object.keys(messageQueue).findIndex(function(enqueuedMessageData) {
-          return enqueuedMessageData.id === messageData.id;
-        });
-        if(enqueuedIndex !== -1) {
-          messageQueue[enqueuedIndex].ack[messageData._target_info.serverKey] = false;
-        } else {
-          // If the message isn't in the queue set the ack status for the
-          // current connectionIndex and enqueue the message
-          messageData.ack[messageData._target_info.serverKey] = false;
-          messageQueue.push(messageData);
-        }
-        */
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
           const totalChunks = Math.ceil(messageBuffer.length/1000);
@@ -241,19 +224,16 @@ This has some functions that are needed by Bob in different places.
             checkMessageQueue();
           }
         } else {
-          console.log('SENDING THE FUCKER')
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
               console.log(err);
             } else {
-              // console.log('sending worked')
               checkMessageQueue();
             }
           })
         }
       }
       clearTimeout(messageQueueTimer);
-      //messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 1500);
     }
 
     /*
@@ -447,11 +427,8 @@ This has some functions that are needed by Bob in different places.
       TODO figure out how to best specify which servers to send the message to
     */
     $tw.Bob.Federation.sendToRemoteServers = function(message) {
-      //console.log('sendToRemoteServers')
-      //console.log(message)
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
-      //console.log(Object.keys($tw.Bob.Federation.connections))
       Object.keys($tw.Bob.Federation.connections).forEach(function(serverKey) {
         $tw.Bob.Federation.sendToRemoteServer(message, serverKey);
       })
