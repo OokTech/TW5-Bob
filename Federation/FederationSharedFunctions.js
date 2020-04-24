@@ -65,7 +65,8 @@ This has some functions that are needed by Bob in different places.
           console.log(messageQueue.length)
           sendMessage(theMessage);
         }
-        checkMessageQueue();
+        setTimeout(checkMessageQueue, 1);
+        //checkMessageQueue();
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
