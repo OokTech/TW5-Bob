@@ -278,6 +278,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
+    console.log(data)
     if (typeof data.tiddlers === 'object') {
       Object.values(data.tiddlers).forEach(function(tidFields) {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
@@ -324,7 +325,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {
         type: 'sendTiddlers',
         tiddlers: tidObj,
-        nonce: data.rnonce
+        nonce: data.rnonce,
+        wikiName: data.wikiName
       }
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
       /*
@@ -381,15 +383,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
     $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = data.data;
-    console.log(data.cnounce)
-    console.log($tw.Bob.Federation.messageChunks[data.cnounce].length, '/', data.total)
+    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length, '/', data.total)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
       console.log('maybe have them all?')
       const outArray = Array(data.total);
       for (let i = 0; i < data.total; i++) {
-        outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
+        outArray[data.total - 1 - i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
       const rebuilt = outArray.join('');
+      console.log(outArray)
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     }
   }
