@@ -212,7 +212,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     local wiki and requests any that are missing.
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
-    console.log('sendHashes')
+    console.log('sendHashes', data.hashes)
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
       const test = $tw.ServerSide.loadWiki(data.fromWiki);
@@ -246,6 +246,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
             wikiName: data.fromWiki
           }
+          console.log('tiddlers to request', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         }
       }

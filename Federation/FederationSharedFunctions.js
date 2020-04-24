@@ -224,12 +224,15 @@ This has some functions that are needed by Bob in different places.
     }
 
     function handleChunks(messageData, messageBuffer) {
+      console.log('handle chunks 1')
       $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
       $tw.Bob.Federation.chunkHistory[messageData.id] = $tw.Bob.Federation.chunkHistory[messageData.id] || {};
       $tw.Bob.Federation.chunkHistory[messageData.id].message = messageData.message;
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
+      console.log('handle chunks 2')
       const totalChunks = Math.ceil(messageBuffer.length/500);
+      console.log('handle chunks 3')
       for (let i = 0; i < totalChunks; i++) {
         if(messageData.exclude.indexOf[i] === -1) {
           // Split message buffer into pieces and seand them individually
@@ -244,6 +247,7 @@ This has some functions that are needed by Bob in different places.
           messageQueue.push(newMessageData);
         }
       }
+      console.log('handle chunks 4')
     }
 
     /*
