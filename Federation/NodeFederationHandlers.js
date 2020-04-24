@@ -324,7 +324,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         wikiName: data.wikiName
       }
-      console.log('send send Tiddlers message', tiddlerTitles)
+      console.log('send send Tiddlers message', message)
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }

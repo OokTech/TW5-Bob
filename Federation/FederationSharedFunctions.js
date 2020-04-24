@@ -55,7 +55,7 @@ This has some functions that are needed by Bob in different places.
         console.log('queue check 1')
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
-        messageQueue = pruneMessageQueue(messageQueue);
+        //messageQueue = pruneMessageQueue(messageQueue);
         console.log('queue check 2')
         clearTimeout(messageQueueTimer);
         console.log('queue check 3')
@@ -68,11 +68,12 @@ This has some functions that are needed by Bob in different places.
           sendMessage(theMessage);
           console.log('queue check 5')
         }
-        setTimeout(checkMessageQueue, 10);
+        messageQueueTimer = setTimeout(checkMessageQueue, 10);
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
       }
+      console.log('queue length', messageQueue.length)
     }
 
     /*
@@ -234,7 +235,8 @@ This has some functions that are needed by Bob in different places.
       const totalChunks = Math.ceil(messageBuffer.length/500);
       console.log('handle chunks 3')
       for (let i = 0; i < totalChunks; i++) {
-        if(messageData.exclude.indexOf[i] === -1) {
+        if(messageData.exclude.indexOf(i) === -1) {
+          console.log('chunk', i)
           // Split message buffer into pieces and seand them individually
           const newMessage = {
             type: 'chunk',
@@ -245,6 +247,7 @@ This has some functions that are needed by Bob in different places.
           }
           const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, [], messageData.id);
           messageQueue.push(newMessageData);
+          console.log(messageQueue.length)
         }
       }
       console.log('handle chunks 4')
