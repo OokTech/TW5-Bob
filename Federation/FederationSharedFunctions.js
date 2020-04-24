@@ -66,7 +66,7 @@ This has some functions that are needed by Bob in different places.
           sendMessage(theMessage);
           //messageQueue = messageQueue.slice(messageQueue[1])
         }
-        messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
+        checkMessageQueue();
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
