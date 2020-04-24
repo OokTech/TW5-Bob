@@ -181,7 +181,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
-    console.log('requestHashes')
+    console.log('receive requestHashes')
     if (data.filter && data.fromWiki) {
       const test = $tw.ServerSide.loadWiki(data.fromWiki)
       if(!test) {
@@ -202,7 +202,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         fromWiki: data.fromWiki
       }
-      console.log('sending hashes')
+      console.log('sending send hashes')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
@@ -212,7 +212,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     local wiki and requests any that are missing.
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
-    console.log('sendHashes', data.hashes)
+    console.log('receive sendHashes', data.hashes)
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
       const test = $tw.ServerSide.loadWiki(data.fromWiki);
@@ -246,7 +246,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
             wikiName: data.fromWiki
           }
-          console.log('tiddlers to request', tiddlersToRequest)
+          console.log('sending request tiddlers', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         }
       }
@@ -268,8 +268,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
-    console.log('sendTiddlers')
+    console.log('receive sendTiddlers')
+    console.log('data', data)
     if (typeof data.tiddlers === 'object') {
+      console.log('send tid 1', data.tiddlers)
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           console.log(Object.keys(tidFields))
@@ -296,7 +298,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
-    console.log('requestTiddlers')
+    console.log('receive requestTiddlers')
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
@@ -322,7 +324,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         wikiName: data.wikiName
       }
-      console.log('sendTiddlers')
+      console.log('send send Tiddlers message', tiddlerTitles)
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
