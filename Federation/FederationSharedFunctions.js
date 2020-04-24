@@ -54,7 +54,7 @@ This has some functions that are needed by Bob in different places.
       if(messageQueue.length > 0) {
         // Remove messages that have already been sent and have received all
         // their acks and have waited the required amonut of time.
-        //messageQueue = pruneMessageQueue(messageQueue);
+        messageQueue = pruneMessageQueue(messageQueue);
         // Check if there are any messages that are more than 500ms old and have
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
