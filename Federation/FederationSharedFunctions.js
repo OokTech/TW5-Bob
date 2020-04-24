@@ -234,7 +234,7 @@ This has some functions that are needed by Bob in different places.
         }
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 1500) {
-          const totalChunks = Mach.ceil(messageBuffer.length/1000);
+          const totalChunks = Math.ceil(messageBuffer.length/1000);
           for (let i = 0; i < totalChunks; i++) {
             // Split message buffer into pieces and seand them individually
             const newMessage = {
