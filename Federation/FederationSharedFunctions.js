@@ -405,7 +405,8 @@ This has some functions that are needed by Bob in different places.
         type: message.type,
         ack: {},
         token: token,
-        _target_info: targetInfo
+        _target_info: targetInfo,
+        serverName: $tw.settings.federation.serverName
       };
       const server = (typeof wiki === 'undefined')?true:false;
       $tw.Bob.Federation.nonce.push({nonce: nonce, wiki: wiki, server: server, type: message.type})

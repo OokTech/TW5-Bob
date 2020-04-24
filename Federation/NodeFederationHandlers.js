@@ -147,6 +147,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.sendToRemoteServer(reply, data._source_info);
     // If you don't have the server info request it from the remote server
     if(!$tw.Bob.Federation.connections[data._source_info.serverKey]) {
+      console.log('why not?', data._source_info)
       const message = {
         type: 'requestServerInfo',
         port: $tw.settings.federation.udpPort
