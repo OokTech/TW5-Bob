@@ -326,6 +326,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce
       }
       console.log('requestTiddlers 3')
+      console.log('requestTiddlers', Object.keys(tidObj))
+      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+      /*
       if ($tw.Bob.Federation.connections[data._source_info.url]) {
         if ($tw.Bob.Federation.connections[data._source_info.url].socket) {
           if ($tw.Bob.Federation.connections[data._source_info.url].socket.readyState === 1) {
@@ -335,6 +338,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           }
         }
       }
+      */
     }
   }
 
