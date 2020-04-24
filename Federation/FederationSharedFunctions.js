@@ -207,7 +207,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          const totalChunks = Math.ceil(messageBuffer.length/500);
+          const totalChunks = Math.floor(messageBuffer.length/500);
           console.log('total chunks', totalChunks)
           console.log(messageData.type)
           for (let i = 0; i < totalChunks; i++) {
