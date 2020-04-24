@@ -319,92 +319,96 @@ This has some functions that are needed by Bob in different places.
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     if($tw.node && messageData.message.wiki) {
-      $tw.ServerSide.loadWiki(messageData.message.wiki);
+      $tw.ServerSide.loadWiki(messageData.message.wiki, nextBit());
+    } else {
+      nextBit();
     }
-    // Make sure that the connectionIndex and queue exist. This may be over
-    // paranoid
-    connectionIndex = connectionIndex || 0;
-    queue = queue || [];
-    // Start out saying that a message shouldn't be sent
     let send = false;
-    // Make sure that the tags field is an array so it fits what is expected
-    if(messageData.type === 'saveTiddler') {
-      messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
-    }
-    // Only send things if the message is meant for the wiki or if the browser
-    // is sending a message to the server. No wiki listed in the message means
-    // it is a general message from the browser to all wikis.
-    if(messageData.message.wiki === $tw.connections[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
-      let ignore = false;
-      // Ignore saveTiddler, deleteTiddler and editingTiddler messages for
-      // tiddlers that are listed by the sync exclude filter.
-      // We do not ignore cancelEditingTiddler messages because they are sent
-      // with draft tiddler titles which would be ignored, but that prevents
-      // the lock from being removed from the non-draft tiddler.
-      let list = [];
-      if(['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
-        if($tw.node) {
-          list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
-        } else {
-          list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
-        }
-        if(list.indexOf(messageData.title) !== -1) {
-          ignore = true;
-        }
+    function nextBit() {
+      // Make sure that the connectionIndex and queue exist. This may be over
+      // paranoid
+      connectionIndex = connectionIndex || 0;
+      queue = queue || [];
+      // Start out saying that a message shouldn't be sent
+      // Make sure that the tags field is an array so it fits what is expected
+      if(messageData.type === 'saveTiddler') {
+        messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
       }
-      if(!ignore) {
-        // If the new message is one of these types for a tiddler and the
-        // timestamp of the queued message is newer than the current message
-        // ignore the new message
-        const nonMultipleMessageTypes = ['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler', 'setViewableWikis', 'listTiddlers', 'setLoggedIn', 'updateEditingTiddlers'];
-        if(nonMultipleMessageTypes.indexOf(messageData.type) !== -1) {
-          // Look at each queued message
-          queue.forEach(function(queuedMessageData){
-            // If the queued message has one of these types
-            if(nonMultipleMessageTypes.indexOf(queuedMessageData.type) !== -1) {
-              // if the queued message is newer than the current message ignore
-              // the current message
-              if(queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
-                ignore = true;
+      // Only send things if the message is meant for the wiki or if the browser
+      // is sending a message to the server. No wiki listed in the message means
+      // it is a general message from the browser to all wikis.
+      if(messageData.message.wiki === $tw.connections[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
+        let ignore = false;
+        // Ignore saveTiddler, deleteTiddler and editingTiddler messages for
+        // tiddlers that are listed by the sync exclude filter.
+        // We do not ignore cancelEditingTiddler messages because they are sent
+        // with draft tiddler titles which would be ignored, but that prevents
+        // the lock from being removed from the non-draft tiddler.
+        let list = [];
+        if(['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
+          if($tw.node) {
+            list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          } else {
+            list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+          }
+          if(list.indexOf(messageData.title) !== -1) {
+            ignore = true;
+          }
+        }
+        if(!ignore) {
+          // If the new message is one of these types for a tiddler and the
+          // timestamp of the queued message is newer than the current message
+          // ignore the new message
+          const nonMultipleMessageTypes = ['deleteTiddler', 'saveTiddler', 'editingTiddler', 'cancelEditingTiddler', 'setViewableWikis', 'listTiddlers', 'setLoggedIn', 'updateEditingTiddlers'];
+          if(nonMultipleMessageTypes.indexOf(messageData.type) !== -1) {
+            // Look at each queued message
+            queue.forEach(function(queuedMessageData){
+              // If the queued message has one of these types
+              if(nonMultipleMessageTypes.indexOf(queuedMessageData.type) !== -1) {
+                // if the queued message is newer than the current message ignore
+                // the current message
+                if(queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
+                  ignore = true;
+                }
               }
-            }
-          })
+            })
+          }
         }
-      }
-      if(!ignore) {
-        // If the new message is one of these types for a tiddler and the
-        // timestamp of the queued message is newer than the current message
-        // ignore the new message
-        if(['editingTiddler', 'cancelEditingTiddler'].indexOf(messageData.type) !== -1) {
-          // Look at each queued message
-          queue.forEach(function(queuedMessageData){
-            // If the queued message has one of these types
-            if(['editingTiddler', 'cancelEditingTiddler'].indexOf(queuedMessageData.type) !== -1) {
-              // if the queued message is newer than the current message ignore
-              // the current message
-              if(queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
-                ignore = true;
+        if(!ignore) {
+          // If the new message is one of these types for a tiddler and the
+          // timestamp of the queued message is newer than the current message
+          // ignore the new message
+          if(['editingTiddler', 'cancelEditingTiddler'].indexOf(messageData.type) !== -1) {
+            // Look at each queued message
+            queue.forEach(function(queuedMessageData){
+              // If the queued message has one of these types
+              if(['editingTiddler', 'cancelEditingTiddler'].indexOf(queuedMessageData.type) !== -1) {
+                // if the queued message is newer than the current message ignore
+                // the current message
+                if(queuedMessageData.title === messageData.title && queuedMessageData.timestamp > messageData.timestamp) {
+                  ignore = true;
+                }
               }
-            }
-          })
+            })
+          }
         }
-      }
-      if(!ignore) {
-        // Ignore saveTiddler messages if there is already a saveTiddler
-        // message in the queue for that tiddler and the tiddler is the same in
-        // both messages.
-        if(messageData.type === 'saveTiddler') {
-          queue.forEach(function(message, messageIndex) {
-            if(message.type === 'saveTiddler' && message.title === messageData.title) {
-              if(!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, queue[messageIndex].message.tiddler)) {
-                ignore = true;
+        if(!ignore) {
+          // Ignore saveTiddler messages if there is already a saveTiddler
+          // message in the queue for that tiddler and the tiddler is the same in
+          // both messages.
+          if(messageData.type === 'saveTiddler') {
+            queue.forEach(function(message, messageIndex) {
+              if(message.type === 'saveTiddler' && message.title === messageData.title) {
+                if(!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, queue[messageIndex].message.tiddler)) {
+                  ignore = true;
+                }
               }
-            }
-          })
+            })
+          }
         }
-      }
-      if(!ignore) {
-        send = true;
+        if(!ignore) {
+          send = true;
+        }
       }
     }
     return send;
