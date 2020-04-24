@@ -60,13 +60,10 @@ This has some functions that are needed by Bob in different places.
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
         if(messageQueue.length > 0) {
-          console.log(messageQueue.length)
           const theMessage = messageQueue.pop();
-          console.log(messageQueue.length)
           sendMessage(theMessage);
         }
-        setTimeout(checkMessageQueue, 5);
-        //checkMessageQueue();
+        setTimeout(checkMessageQueue, 10);
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
@@ -208,7 +205,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          const totalChunks = Math.floor(messageBuffer.length/500);
+          const totalChunks = Math.ceil(messageBuffer.length/500);
           for (let i = 0; i < totalChunks; i++) {
             // Split message buffer into pieces and seand them individually
             const newMessage = {
