@@ -217,14 +217,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           // Request server info for the new one
           $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info)
-          updateConnectionsInfo();
+          //updateConnectionsInfo();
         }
       } else {
         // Check to make sure we have the up-to-date address and port
         if ($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
-          updateConnectionsInfo();
+          //updateConnectionsInfo();
         }
       }
     }
