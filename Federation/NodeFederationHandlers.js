@@ -103,7 +103,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // the same rinfo stuff as the broadcast, if so we can ignore it, if not
     // than we request info
     if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
-      $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
+      //$tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
       updateConnectionsInfo();
     }
   }
