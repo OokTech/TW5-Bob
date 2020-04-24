@@ -206,7 +206,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection(messageData) {
-      /*
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
       if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
@@ -228,7 +227,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           updateConnectionsInfo();
         }
       }
-      */
     }
 
     finishSetup();
