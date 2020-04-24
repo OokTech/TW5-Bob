@@ -246,7 +246,14 @@ This has some functions that are needed by Bob in different places.
               total: totalChunks
             }
             const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info);
-            sendMessage(newMessageData);
+            //sendMessage(newMessageData);
+            $tw.Bob.Federation.socket.send(newMessageData, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
+              if (err) {
+                console.log(err);
+              } else {
+                // console.log('sending worked')
+              }
+            })
           }
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
