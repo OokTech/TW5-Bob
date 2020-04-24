@@ -225,11 +225,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const tiddlersToRequest = [];
       const test = $tw.ServerSide.loadWiki(data.fromWiki);
       if(!test) {
-        console.log("it doesn't eist?")
         const wikiData = {
           wikiName: data.fromWiki,
         }
-        $tw.nodeMessageHandlers.createNewWiki(wikiData, nextBit());
+        $tw.nodeMessageHandlers.createNewWiki(wikiData, nextBit);
       } else {
         nextBit();
       }
@@ -281,7 +280,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         //$tw.Bob.Wikis[thisWiki].wiki.addTiddler(new $tw.Tiddler(tidFields))
         // Send each tiddler recieved to the browser using the conflict message
         // and then let the browser handle it.
-        $tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki})
+        $tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
       })
     }
   }
@@ -299,6 +298,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
+    console.log('requestTiddlers')
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
     //data.conflictType = data.conflictType || 'newestWins';
@@ -309,6 +309,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     //$tw.Bob.Federation.connections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
     if(data._source_info && data.rnonce) {
+      console.log('requestTiddlers 1')
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
       const tidObj = {};
@@ -318,15 +319,18 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           tidObj[tidTitle] = tempTid.fields;
         }
       })
+      console.log('requestTiddlers 2')
       const message = {
         type: 'sendTiddlers',
         tiddlers: tidObj,
         nonce: data.rnonce
       }
+      console.log('requestTiddlers 3')
       if ($tw.Bob.Federation.connections[data._source_info.url]) {
         if ($tw.Bob.Federation.connections[data._source_info.url].socket) {
           if ($tw.Bob.Federation.connections[data._source_info.url].socket.readyState === 1) {
             // Send the message
+            console.log('requestTiddlers', Object.keys(tidObj))
             $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
           }
         }

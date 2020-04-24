@@ -248,7 +248,7 @@ ServerSide.loadWiki = function (wikiName, cb) {
       $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
     }
     if(typeof cb === 'function') {
-      cb()
+      setTimeout(cb, 1000)
     }
   }
   return wikiFolder;

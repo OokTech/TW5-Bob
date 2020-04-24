@@ -347,7 +347,12 @@ This has some functions that are needed by Bob in different places.
         let list = [];
         if(['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
           if($tw.node) {
-            list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+            if(!messageData.message.wiki) {
+              // TODO fix this terrible workaround
+              list = []
+            } else {
+              list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+            }
           } else {
             list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
           }

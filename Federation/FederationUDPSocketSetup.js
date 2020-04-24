@@ -103,7 +103,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
-        console.log(0, messageData)
         if(messageData.type !== 'multicastSearch') {
           console.log('federated message: ', messageData.type)
         }
