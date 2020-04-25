@@ -240,8 +240,8 @@ This has some functions that are needed by Bob in different places.
           }
           const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);
           messageQueue.push(newMessageData);
-          i = i + 1;
         }
+        i = i + 1;
       }
     }
 
