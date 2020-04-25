@@ -648,6 +648,9 @@ This has some functions that are needed by Bob in different places.
             newTid[field] = tiddler.fields[field]
           }
         })
+        if(typeof newTid.text === 'undefined' || !newTid.text) {
+          newTid.text = '';
+        }
       }
     }
     return {fields: newTid}

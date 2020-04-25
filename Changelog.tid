@@ -3,6 +3,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.5.3
 
 * Fixed uploading media to the RootWiki so it has the correct _canonical_uri
+* improved the normalise tiddler function so tiddlers with no text fields are handled consistently
 
 !! Version 1.5.2 Scruffy, the Janitor
 
