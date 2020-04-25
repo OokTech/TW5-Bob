@@ -366,22 +366,22 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
 
   $tw.Bob.Federation.messageHandlers.chunk = function(data) {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
-    $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
-    if($tw.Bob.Federation.messageChunks[data.cnounce][data.ind]) {
+    $tw.Bob.Federation.messageChunks[data.c] = $tw.Bob.Federation.messageChunks[data.c] || {};
+    if($tw.Bob.Federation.messageChunks[data.c][data.i]) {
       console.log('weirdness')
     }
-    $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = Buffer.from(data.data);
-    clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
+    $tw.Bob.Federation.messageChunks[data.c][data.i] = Buffer.from(data.d);
+    clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
     console.log('chunk 1')
-    console.log(data.ind)
-    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length+'/'+data.total)
-    if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
+    console.log(data.i)
+    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length+'/'+data.tot)
+    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot) {
       console.log('chunk 2')
-      clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
-      const outArray = Array(data.total + 1);
+      clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
+      const outArray = Array(data.tot + 1);
       console.log('chunk 3')
-      for (let i = 0; i < data.total + 1; i++) {
-        outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
+      for (let i = 0; i < data.tot + 1; i++) {
+        outArray[i] = $tw.Bob.Federation.messageChunks[data.c][i];
       }
       console.log(outArray.length)
       console.log(outArray.filter((x) => typeof x !== 'undefined').length)
@@ -391,16 +391,16 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
       console.log('chunk 6')
-      $tw.Bob.Federation.messageChunks[data.cnounce].timer = setTimeout(requestResend,500, data);
+      $tw.Bob.Federation.messageChunks[data.c].timer = setTimeout(requestResend,500, data);
     }
   }
 
   function requestResend(data) {
-    const receivedArray = Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]);
+    const receivedArray = Object.keys($tw.Bob.Federation.messageChunks[data.c]);
     const message = {
       type: 'requestResend',
       received: receivedArray,
-      mid: data.cnounce
+      mid: data.c
     };
     // Send the message
     $tw.Bob.Federation.sendToRemoteServer(message, data._source_info)
