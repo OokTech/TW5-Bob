@@ -171,7 +171,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       if (typeof theWiki === 'undefined' && typeof server === 'undefined') {
         return false;
       }
-      return true//theWiki || server;
+      return theWiki || server;
     }
 
     /*

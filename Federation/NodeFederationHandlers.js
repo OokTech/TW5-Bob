@@ -272,12 +272,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('receive sendTiddlers')
-    console.log('data', data)
     if (typeof data.tiddlers === 'object') {
-      console.log('send tid 1', data.tiddlers)
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
-          console.log(Object.keys(tidFields))
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
@@ -313,9 +310,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if(data._source_info && data.rnonce) {
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
-      console.log('sending these tiddlers: ', tiddlerTitles)
-      console.log('end of tiddler list for sending')
-      console.log('received data stuff', data.wikiName)
       tiddlerTitles.forEach(function(tidTitle) {
         const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle);
         const tidObj = {};
@@ -389,7 +383,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks[data.c] = $tw.Bob.Federation.messageChunks[data.c] || {};
     $tw.Bob.Federation.messageChunks[data.c][data.i] = Buffer.from(data.d);
     clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
-    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length + '/' + data.tot);
+    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length % 100 === 0) {
+      console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length + '/' + data.tot);
+    }
     if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot + 1) {
       clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
       const outArray = Array(data.tot);
