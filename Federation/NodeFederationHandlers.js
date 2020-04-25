@@ -321,7 +321,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       tiddlerTitles.forEach(function(tidTitle) {
         const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle);
         const tidObj = {};
-        tidObj[encodeURIComponent(tidTitle)] = tempTid.fields;
+        tidObj[encodeURIComponent(tidTitle)] = $tw.ServerSide.normalizeTiddler(tempTid).fields;//tempTid.fields;
         const message = {
           type: 'sendTiddlers',
           tiddlers: tidObj,
