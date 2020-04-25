@@ -234,7 +234,7 @@ This has some functions that are needed by Bob in different places.
             d: messageBuffer.subarray(i*500, (i+1)*500),
             c: messageData.id,
             i: i,
-            tot: totalChunks
+            tot: totalChunks+1
           }
           const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);
           messageQueue.push(newMessageData);

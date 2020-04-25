@@ -377,7 +377,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks[data.c][data.i] = Buffer.from(data.d);
     clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
     console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length + '/' + data.tot);
-    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot + 1) {
+    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot) {
       clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
       const outArray = Array(data.tot);
       for (let i = 0; i <= data.tot; i++) {
