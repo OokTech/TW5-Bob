@@ -66,7 +66,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       changes
     */
     $tw.Bob.Federation.updateConnections = function () {
-      console.log('update connections in browser??')
       $tw.Bob.logger.log('Update federated connections', {level:3});
       $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
       console.log($tw.Bob.Federation.connections)

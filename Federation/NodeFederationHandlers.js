@@ -243,6 +243,16 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             tiddlersToRequest.push(tidTitle);
           }
         })
+        tiddlersToRequest.forEach(function(tidTitle) {
+          const message = {
+            type: 'requestTiddlers',
+            filter: '[[' + tidTitle + ']]',
+            wikiName: data.fromWiki
+          }
+          console.log('sending request tiddlers', tiddlersToRequest)
+          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+        })
+        /*
         if (tiddlersToRequest.length > 0) {
           // If there are any tiddlers to request than send the request
           const message = {
@@ -253,6 +263,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           console.log('sending request tiddlers', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         }
+        */
       }
     }
   }
@@ -317,6 +328,19 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       console.log('sending these tiddlers: ', tiddlerTitles)
       console.log('end of tiddler list for sending')
       console.log('received data stuff', data.wikiName)
+      tiddlerTitles.forEach(function(tidTitle) {
+        const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle);
+        const tidObj = {};
+        tidObj[encodeURIComponent(tidTitle)] = tempTid.fields;
+        const message = {
+          type: 'sendTiddlers',
+          tiddlers: tidObj,
+          nonce: data.rnonce,
+          wikiName: data.wikiName
+        }
+        $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+      })
+      /*
       const tidObj = {};
       tiddlerTitles.forEach(function(tidTitle) {
         const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle)
@@ -332,6 +356,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       console.log('send send Tiddlers message', message)
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+      */
     }
   }
 
