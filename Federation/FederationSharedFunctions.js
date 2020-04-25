@@ -226,7 +226,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
       const totalChunks = Math.ceil(messageBuffer.length/500);
-      for (let i = 0; i < totalChunks+1; i++) {
+      for (let i = 0; i < totalChunks; i++) {
         if(messageData.exclude.indexOf(i) === -1) {
           // Split message buffer into pieces and seand them individually
           const newMessage = {
@@ -234,7 +234,7 @@ This has some functions that are needed by Bob in different places.
             d: messageBuffer.subarray(i*500, (i+1)*500),
             c: messageData.id,
             i: i,
-            tot: totalChunks+1
+            tot: totalChunks
           }
           const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);
           messageQueue.push(newMessageData);
