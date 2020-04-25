@@ -235,7 +235,7 @@ This has some functions that are needed by Bob in different places.
             i: i,
             tot: totalChunks
           }
-          const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);//, messageData.id);
+          const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);
           messageQueue.push(newMessageData);
         }
       }

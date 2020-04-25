@@ -227,6 +227,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       function nextBit() {
         Object.keys(data.hashes).forEach(function(rawTitle) {
           const tidTitle = decodeURIComponent(rawTitle);
+          if(tidTitle.indexOf("]]") !== -1) {
+            return;
+          }
           // check if the tiddler exists locally
           const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
           if (thisTid) {
