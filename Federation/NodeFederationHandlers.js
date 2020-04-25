@@ -193,6 +193,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // get tiddler hashes
       const outputHashes = {};
       titleList.forEach(function(thisTitle) {
+        console.log('tid to hash', $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle))
         outputHashes[encodeURIComponent(thisTitle)] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle));
       })
       // send them back
@@ -231,11 +232,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             return;
           }
           // check if the tiddler exists locally
-          //const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
           const thisTid = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
           if (thisTid) {
             // If the tiddler exists than check if the hashes match
-            if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
+            console.log(rawTitle)
+            console.log(data.hashes[rawTitle])
+            console.log(thisTid)
+            console.log($tw.Bob.Shared.getTiddlerHash(thisTid))
+            if (data.hashes[rawTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
               // If the hashes don't match add it to the list
               tiddlersToRequest.push(tidTitle);
             } else {
@@ -246,13 +250,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             tiddlersToRequest.push(tidTitle);
           }
         })
+        console.log('requesting ', tiddlersToRequest.length, ' tiddlers')
         tiddlersToRequest.forEach(function(tidTitle) {
           const message = {
             type: 'requestTiddlers',
             filter: '[[' + tidTitle + ']]',
             wikiName: data.fromWiki
           }
-          console.log('sending request tiddlers', tiddlersToRequest)
+          //console.log('sending request tiddlers', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         })
       }
