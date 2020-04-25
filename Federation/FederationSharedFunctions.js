@@ -240,6 +240,9 @@ This has some functions that are needed by Bob in different places.
             tot: totalChunks
           }
           const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, [], messageData.id);
+          if(Buffer.from(JSON.stringify(newMessageData.message)) > 2500) {
+            console.log('wat', newMessageData)
+          }
           messageQueue.push(newMessageData);
         }
       }
