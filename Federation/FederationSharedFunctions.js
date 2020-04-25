@@ -204,7 +204,7 @@ This has some functions that are needed by Bob in different places.
         // Check to see if the token has changed
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
-        if(messageBuffer.length > 2000) {
+        if(messageBuffer.length > 2500) {
           handleChunks(messageData, messageBuffer);
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
@@ -226,7 +226,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
       console.log('handle chunks 2')
-      const totalChunks = Math.ceil(messageBuffer.length/1000);
+      const totalChunks = Math.ceil(messageBuffer.length/1500);
       console.log('handle chunks 3')
       for (let i = 0; i < totalChunks; i++) {
         if(messageData.exclude.indexOf(i) === -1) {
@@ -234,7 +234,7 @@ This has some functions that are needed by Bob in different places.
           // Split message buffer into pieces and seand them individually
           const newMessage = {
             type: 'chunk',
-            data: messageBuffer.subarray(i*1000, (i+1)*1000 - 1),
+            data: messageBuffer.subarray(i*1500, (i+1)*1500 - 1),
             cnounce: messageData.id,
             ind: i,
             total: totalChunks
