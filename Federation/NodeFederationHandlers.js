@@ -275,7 +275,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           console.log(Object.keys(tidFields))
-          //$tw.Bob.Wikis[data.wikiName].wiki.addTiddler(new $tw.Tiddler(tidFields))
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
@@ -368,18 +367,30 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chunk = function(data) {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.cnounce] = $tw.Bob.Federation.messageChunks[data.cnounce] || {};
+    if($tw.Bob.Federation.messageChunks[data.cnounce][data.ind]) {
+      console.log('weirdness')
+    }
     $tw.Bob.Federation.messageChunks[data.cnounce][data.ind] = Buffer.from(data.data);
     clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
+    console.log('chunk 1')
+    console.log(data.ind)
     console.log(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length+'/'+data.total)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.cnounce]).length === data.total) {
+      console.log('chunk 2')
       clearTimeout($tw.Bob.Federation.messageChunks[data.cnounce].timer);
-      const outArray = Array(data.total);
-      for (let i = 0; i < data.total; i++) {
+      const outArray = Array(data.total + 1);
+      console.log('chunk 3')
+      for (let i = 0; i < data.total + 1; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.cnounce][i];
       }
-      const rebuilt = Buffer.concat(outArray);
+      console.log(outArray.length)
+      console.log(outArray.filter((x) => typeof x !== 'undefined').length)
+      console.log('chunk 4')
+      const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
+      console.log('chunk 5')
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
+      console.log('chunk 6')
       $tw.Bob.Federation.messageChunks[data.cnounce].timer = setTimeout(requestResend,500, data);
     }
   }
