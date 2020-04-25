@@ -91,11 +91,6 @@ if($tw.node) {
     This handles saveTiddler messages sent from the browser.
 
     TODO: Determine if we always want to ignore draft tiddlers.
-
-    Waiting lists are per-connection so use regular titles.
-    Editing lists are global so need prefixes
-    Saving uses normal titles
-    $tw.boot uses prefixed titles
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
     // Acknowledge the message.

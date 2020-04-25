@@ -731,7 +731,7 @@ This has some functions that are needed by Bob in different places.
   };
   Shared.getTiddlerHash = function(tiddler) {
     const tiddlerString = stableStringify(Shared.normalizeTiddler(tiddler))
-    console.log(tiddlerString)
+    //console.log(tiddlerString)
     let hash = 0;
     if(tiddlerString.length === 0) {
         return hash;
