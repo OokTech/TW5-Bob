@@ -226,7 +226,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.Federation.chunkHistory[messageData.id].serverInfo = messageData._target_info;
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
       console.log('handle chunks 2')
-      const totalChunks = Math.ceil(messageBuffer.length/1500);
+      const totalChunks = Math.ceil(messageBuffer.length/1000);
       console.log('handle chunks 3')
       for (let i = 0; i < totalChunks; i++) {
         if(messageData.exclude.indexOf(i) === -1) {
