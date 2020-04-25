@@ -252,18 +252,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           console.log('sending request tiddlers', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         })
-        /*
-        if (tiddlersToRequest.length > 0) {
-          // If there are any tiddlers to request than send the request
-          const message = {
-            type: 'requestTiddlers',
-            filter: tiddlersToRequest.map(function(title){return "[["+title+"]]"}).join(''),
-            wikiName: data.fromWiki
-          }
-          console.log('sending request tiddlers', tiddlersToRequest)
-          $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-        }
-        */
       }
     }
   }

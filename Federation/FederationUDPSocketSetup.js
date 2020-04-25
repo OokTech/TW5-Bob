@@ -131,13 +131,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
-        if(messageData.type !== 'multicastSearch' && messageData.type !== 'chunk') {
-          console.log('federated message: ', messageData.type)
-        }
         messageData._source_info = rinfo;
         messageData._source_info.serverKey = getServerKey(messageData);
         if (!messageData._source_info.serverKey) {
-          console.log('rejected??', messageData._source_info)
           return;
         }
         handleConnection(messageData);
@@ -175,7 +171,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       if (typeof theWiki === 'undefined' && typeof server === 'undefined') {
         return false;
       }
-      return theWiki || server;
+      return true//theWiki || server;
     }
 
     /*
