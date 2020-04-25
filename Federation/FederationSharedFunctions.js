@@ -60,7 +60,6 @@ This has some functions that are needed by Bob in different places.
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
         if(messageQueue.length > 0) {
-          //const theMessage = messageQueue.pop();
           const theMessage = messageQueue.shift();
           sendMessage(theMessage);
         }
@@ -206,7 +205,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue = removeOldTokenMessages(messageQueue);
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
-          handleChunks(messageData, messageBuffer);
+          chunkMessage(messageData, messageBuffer);
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
@@ -219,7 +218,7 @@ This has some functions that are needed by Bob in different places.
       }
     }
 
-    function handleChunks(messageData, messageBuffer) {
+    function chunkMessage(messageData, messageBuffer) {
       console.log('handle chunks 1')
       $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
       $tw.Bob.Federation.chunkHistory[messageData.id] = $tw.Bob.Federation.chunkHistory[messageData.id] || {};
@@ -240,7 +239,7 @@ This has some functions that are needed by Bob in different places.
             i: i,
             tot: totalChunks
           }
-          const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, [], messageData.id);
+          const newMessageData = createRemoteMessageData(newMessage, undefined, messageData._target_info, []);//, messageData.id);
           if(Buffer.from(JSON.stringify(newMessageData.message)) > 2500) {
             console.log('wat', newMessageData)
           }
