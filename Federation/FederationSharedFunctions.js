@@ -212,7 +212,8 @@ This has some functions that are needed by Bob in different places.
             if (err) {
               console.log(err);
             } else {
-              checkMessageQueue();
+              setTimeout(checkMessageQueue, 20);
+              //checkMessageQueue();
             }
           })
         }
