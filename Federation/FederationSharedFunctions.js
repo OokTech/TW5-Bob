@@ -60,7 +60,8 @@ This has some functions that are needed by Bob in different places.
         // not received the acks expected.
         // These are assumed to have been lost and need to be resent
         if(messageQueue.length > 0) {
-          const theMessage = messageQueue.pop();
+          //const theMessage = messageQueue.pop();
+          const theMessage = messageQueue.shift();
           sendMessage(theMessage);
         }
         messageQueueTimer = setTimeout(checkMessageQueue, 10);
