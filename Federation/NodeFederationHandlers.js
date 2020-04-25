@@ -231,12 +231,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             return;
           }
           // check if the tiddler exists locally
-          const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
+          //const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
+          const thisTid = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
           if (thisTid) {
             // If the tiddler exists than check if the hashes match
             if (data.hashes[tidTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
               // If the hashes don't match add it to the list
               tiddlersToRequest.push(tidTitle);
+            } else {
+              console.log('ALREADY HAVE IT')
             }
           } else {
             // If the tiddler doesn't exist than add it to the list
