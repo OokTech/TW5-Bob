@@ -630,6 +630,9 @@ This has some functions that are needed by Bob in different places.
           if(field === 'list' || field === 'tags') {
             if(Array.isArray(tiddler.fields[field])) {
               newTid[field] = tiddler.fields[field].slice()
+              if (field === 'tags') {
+                newTid[field] = newTid[field].sort()
+              }
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
@@ -728,6 +731,7 @@ This has some functions that are needed by Bob in different places.
   };
   Shared.getTiddlerHash = function(tiddler) {
     const tiddlerString = stableStringify(Shared.normalizeTiddler(tiddler))
+    console.log(tiddlerString)
     let hash = 0;
     if(tiddlerString.length === 0) {
         return hash;

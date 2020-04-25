@@ -283,6 +283,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if (typeof data.tiddlers === 'object') {
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
+          if(!tidFields) {
+            return;
+          }
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
