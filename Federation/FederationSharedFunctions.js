@@ -227,6 +227,7 @@ This has some functions that are needed by Bob in different places.
       $tw.Bob.Federation.chunkHistory[messageData.id].wiki = messageData.wiki;
       const totalChunks = Math.ceil(messageBuffer.length/500);
       //for (let i = 0; i < totalChunks; i++) {
+      let i = 0;
       while(i*500 < messageBuffer.length) {
         if(messageData.exclude.indexOf(i) === -1) {
           // Split message buffer into pieces and seand them individually
