@@ -311,11 +311,14 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if(data._source_info && data.rnonce) {
       // Get the tiddlers
       const tiddlerTitles = $tw.Bob.Wikis[data.wikiName].wiki.filterTiddlers(data.filter);
+      console.log('sending these tiddlers: ', tiddlerTitles)
+      console.log('end of tiddler list for sending')
+      console.log('received data stuff', data.wikiName)
       const tidObj = {};
       tiddlerTitles.forEach(function(tidTitle) {
         const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle)
         if (tempTid) {
-          tidObj[tidTitle] = tempTid.fields;
+          tidObj[encodeURIComponent(tidTitle)] = tempTid.fields;
         }
       })
       const message = {
@@ -368,23 +371,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chunk = function(data) {
     $tw.Bob.Federation.messageChunks = $tw.Bob.Federation.messageChunks || {};
     $tw.Bob.Federation.messageChunks[data.c] = $tw.Bob.Federation.messageChunks[data.c] || {};
-    if($tw.Bob.Federation.messageChunks[data.c][data.i]) {
-      console.log('weirdness')
-    }
     $tw.Bob.Federation.messageChunks[data.c][data.i] = Buffer.from(data.d);
     clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
-    console.log('chunk 1')
-    console.log(data.i)
-    console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length+'/'+data.tot)
     if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot + 1) {
-      console.log('full message received')
       clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
       const outArray = Array(data.tot);
       for (let i = 0; i <= data.tot; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.c][i];
       }
       const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
-      console.log(rebuilt.toString())
       const fs = require('fs')
       fs.writeFile('./test-'+ data.c +'.json', rebuilt.toString(), ()=>{console.log('wrote')});
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
