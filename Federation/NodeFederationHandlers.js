@@ -383,8 +383,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.c][i];
       }
       const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
-      const fs = require('fs')
-      fs.writeFile('./test-'+ data.c +'.json', rebuilt.toString(), ()=>{console.log('wrote')});
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
       $tw.Bob.Federation.messageChunks[data.c].timer = setTimeout(requestResend,500, data);

@@ -63,7 +63,7 @@ This has some functions that are needed by Bob in different places.
           const theMessage = messageQueue.shift();
           sendMessage(theMessage);
         }
-        messageQueueTimer = setTimeout(checkMessageQueue, 10);
+        //messageQueueTimer = setTimeout(checkMessageQueue, 1);
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
@@ -206,12 +206,13 @@ This has some functions that are needed by Bob in different places.
         const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
         if(messageBuffer.length > 2000) {
           chunkMessage(messageData, messageBuffer);
+          checkMessageQueue();
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
               console.log(err);
             } else {
-
+              checkMessageQueue();
             }
           })
         }
