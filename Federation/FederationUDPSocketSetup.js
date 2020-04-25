@@ -132,7 +132,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if (typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
-        if(messageData.type !== 'multicastSearch') {
+        if(messageData.type !== 'multicastSearch' && messageData.type !== 'chunk') {
           console.log('federated message: ', messageData.type)
         }
         messageData._source_info = rinfo;
