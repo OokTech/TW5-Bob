@@ -193,7 +193,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // get tiddler hashes
       const outputHashes = {};
       titleList.forEach(function(thisTitle) {
-        outputHashes[thisTitle] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle));
+        outputHashes[encodeURIComponent(thisTitle)] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle));
       })
       // send them back
       const message = {
@@ -225,7 +225,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nextBit();
       }
       function nextBit() {
-        Object.keys(data.hashes).forEach(function(tidTitle) {
+        Object.keys(data.hashes).forEach(function(rawTitle) {
+          const tidTitle = decodeURIComponent(rawTitle);
           // check if the tiddler exists locally
           const thisTid = ($tw.Bob.Wikis[data.fromWiki])?$tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle):false;
           if (thisTid) {
@@ -384,6 +385,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
       console.log(rebuilt.toString())
+      const fs = require('fs')
+      fs.writeFile('./test-'+ data.c +'.json', rebuilt.toString(), ()=>{console.log('wrote')});
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
       $tw.Bob.Federation.messageChunks[data.c].timer = setTimeout(requestResend,500, data);
