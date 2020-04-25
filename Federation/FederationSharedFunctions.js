@@ -234,7 +234,7 @@ This has some functions that are needed by Bob in different places.
           // Split message buffer into pieces and seand them individually
           const newMessage = {
             type: 'chunk',
-            d: messageBuffer.subarray(i*500, (i+1)*500 - 1),
+            d: messageBuffer.subarray(i*500, (i+1)*500),
             c: messageData.id,
             i: i,
             tot: totalChunks
