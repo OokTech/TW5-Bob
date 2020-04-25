@@ -376,11 +376,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('chunk 1')
     console.log(data.i)
     console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length+'/'+data.tot)
-    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot) {
+    if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot + 1) {
       console.log('full message received')
       clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
       const outArray = Array(data.tot);
-      for (let i = 0; i < data.tot; i++) {
+      for (let i = 0; i <= data.tot; i++) {
         outArray[i] = $tw.Bob.Federation.messageChunks[data.c][i];
       }
       const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
