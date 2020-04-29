@@ -22,6 +22,11 @@ Click the ^^(?)^^ next to options for more information.
 
 </$linkcatcher>
 
+<$button>
+  Download HTML version of this wiki
+  <$action-downloadwiki/>
+</$button> <<helpButton $:/plugins/OokTech/Bob/AboutDownloadHTMLVersion>>
+
 ---
 
 <$list

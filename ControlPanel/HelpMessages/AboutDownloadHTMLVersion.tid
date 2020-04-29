@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/Bob/AboutDownloadHTMLVersion
+
+This button downloads a single file html version of this wiki.
+The downloaded wiki will not have Bob or any of Bobs features, it can be shared
+and used just like any other single file wiki.
