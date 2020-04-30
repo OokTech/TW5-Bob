@@ -233,7 +233,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // stored data is up to date.
       if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
         $tw.Bob.logger.log("New Remote Connection", messageData._source_info.serverKey, {level: 2});
-        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' && messageData.type !== 'sendServerInfo' && messageData.type !== 'requestServerInfo') {
+        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' && messageData.type !== 'sendServerInfo') {// && messageData.type !== 'requestServerInfo') {
           // Add temp info
           $tw.Bob.Federation.connections[messageData._source_info.serverKey] = $tw.Bob.Federation.connections[messageData._source_info.serverKey] || {};
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;

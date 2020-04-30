@@ -145,17 +145,11 @@ This has some functions that are needed by Bob in different places.
       if (!messageData || !queue) {
         return false;
       }
-      /*
-      if(!$tw.Bob.Federation.connections[messageData]) {
-        return false;
-      }
-      */
       // Make sure that the queue exists. This may be over paranoid
       queue = queue || [];
 
       // Start out saying that a message shouldn't be sent
       let send = false;
-
       let ignore = false;
       // I am not sure what conditions we have where we should ignore a
       // messaege.
@@ -421,7 +415,6 @@ This has some functions that are needed by Bob in different places.
     */
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
       const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
-      console.log('messageData', messageData)
       if (messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
@@ -439,8 +432,8 @@ This has some functions that are needed by Bob in different places.
     $tw.Bob.Federation.sendToRemoteServers = function(message) {
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
-      Object.keys($tw.Bob.Federation.connections).forEach(function(serverKey) {
-        console.log('serverKey', serverKey)
+      const targetList = getTargets(message);
+      targetList.forEach(function(serverKey) {
         const target_info = {
           name: serverKey,
           port: $tw.Bob.Federation.connections[serverKey].port,
@@ -448,6 +441,14 @@ This has some functions that are needed by Bob in different places.
         }
         $tw.Bob.Federation.sendToRemoteServer(message, target_info);
       })
+    }
+
+    /*
+      Determine which servers to send a message to
+    */
+    function getTargets(message) {
+      const targetList = Array.isArray(message.targets) ? message.targets : Object.keys($tw.Bob.Federation.connections);
+      return targetList;
     }
   }
 

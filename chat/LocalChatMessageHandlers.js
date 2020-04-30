@@ -39,7 +39,8 @@ if($tw.node) {
       history[theTime] = {
         message:data.message,
         from: data.from,
-        server: data.server
+        server: data.server,
+        conversation: data.conversation
       }
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
@@ -49,7 +50,7 @@ if($tw.node) {
       }), data.wiki);
       if ($tw.settings.enableFederation === 'yes') {
         // Send it to any connected servers
-        $tw.Bob.Federation.sendToRemoteServers(JSON.stringify(data));
+        $tw.Bob.Federation.sendToRemoteServers(data);
       }
     }
   }
