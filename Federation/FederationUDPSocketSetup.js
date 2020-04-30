@@ -119,7 +119,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       console.log(err)
     });
 
-    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk'];
+    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk', 'chatMessage', 'chatHistory'];
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
       if (!rinfo || !message) {

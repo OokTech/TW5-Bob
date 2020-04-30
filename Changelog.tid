@@ -6,9 +6,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 * improved the normalise tiddler function so tiddlers with no text fields are handled consistently
 * Federation - udp multicast works for discovering other Bob servers on the local network.
 * Federation - pulling tiddlers from other Bob servers on the local network works
-* Federation - there is a bug with dates when fetching tiddlers, sometimes dates come out as NaNaNa.... in the receiving wiki.
-* A bug got introduced that breaks bobs saving when you type in a field like the site title, it tires to save every keypress and it chokes, we need the saving delay like in the normal saver, I am not sure why it isn't there.
 * Fixed a regression where draft tiddlers were saved to the server
+* Federation - there is a bug with dates when fetching tiddlers, sometimes dates come out as NaNaNa.... in the receiving wiki.
 * partially fixed a regression caused by switching to the built-in syncer, tiddlers you edit directly (like `$:/SiteTitle`) try to save on every keystroke and it chokes, before there was a throttling system in place for saving tiddlers that used the message queue. Instead of keeping it from saving, it is just slow to respond.
 
 !! Version 1.5.2 Scruffy, the Janitor
