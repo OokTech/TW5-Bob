@@ -1,45 +1,6 @@
 title: $:/plugins/OokTech/Bob/SelectPlugins
 caption: Manage Plugins
 
-<!--
-You can add plugins to the library by selecting them here and click
-`Save Plugin As Folder`. You may want to click `Update Plugin List` below to
-make sure you don't try and save a plugin you already have saved.
-
-<$select
-  tiddler='$:/state/Bob/SavePluginFolder'
->
-  <option
-    value=''
-  >
-    --
-  </option>
-  <$list
-    filter='[prefix[$:/plugins/]]'
-  >
-    <$list
-      filter='[all[current]plugin-type[plugin]removeprefix[$:/plugins/]]-[list[$:/Bob/AvailablePluginList]]'
-      variable=ShortName
-    >
-      <option
-        value=<<currentTiddler>>
-      >
-        <$text
-          text=<<ShortName>>
-        />
-      </option>
-    </$list>
-  </$list>
-</$select>
-<$button>
-  Save Plugin As Folder
-  <$action-websocketmessage
-    $type='savePluginFolder'
-    plugin={{$:/state/Bob/SavePluginFolder}}
-  />
-</$button>
--->
-
 <$button>
   Update Plugin List
   <$action-websocketmessage

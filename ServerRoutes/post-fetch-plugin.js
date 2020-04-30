@@ -39,7 +39,6 @@ exports.handler = function(request,response,state) {
     if(authorised) {
       const plugin = getPlugin(request)
       if(plugin) {
-        //response.setHeader('Access-Control-Allow-Origin', '*')
         response.writeHead(200, {"Access-Control-Allow-Origin":"*"})
         response.end(JSON.stringify(plugin))
       } else {

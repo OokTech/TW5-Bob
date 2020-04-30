@@ -63,7 +63,6 @@ This has some functions that are needed by Bob in different places.
           const theMessage = messageQueue.shift();
           sendMessage(theMessage);
         }
-        //messageQueueTimer = setTimeout(checkMessageQueue, 1);
       } else {
         clearTimeout(messageQueueTimer);
         messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.federatedMessageQueueTimeout || 500);
@@ -207,7 +206,6 @@ This has some functions that are needed by Bob in different places.
               console.log(err);
             } else {
               setTimeout(checkMessageQueue, 20);
-              //checkMessageQueue();
             }
           })
         }

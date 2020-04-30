@@ -183,10 +183,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('receive requestHashes')
     if (data.filter && data.fromWiki) {
-      const test = $tw.ServerSide.loadWiki(data.fromWiki)
+      const test = $tw.ServerSide.loadWiki(data.fromWiki);
       if(!test) {
         console.log('no wiki?', data);
-        return
+        return;
       }
       // get list of tiddlers
       const titleList = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
@@ -235,15 +235,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           const thisTid = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
           if (thisTid) {
             // If the tiddler exists than check if the hashes match
-            console.log(rawTitle)
-            console.log(data.hashes[rawTitle])
-            console.log(thisTid)
-            console.log($tw.Bob.Shared.getTiddlerHash(thisTid))
             if (data.hashes[rawTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
               // If the hashes don't match add it to the list
               tiddlersToRequest.push(tidTitle);
-            } else {
-              console.log('ALREADY HAVE IT')
             }
           } else {
             // If the tiddler doesn't exist than add it to the list
@@ -257,7 +251,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             filter: '[[' + tidTitle + ']]',
             wikiName: data.fromWiki
           }
-          //console.log('sending request tiddlers', tiddlersToRequest)
           $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
         })
       }
@@ -292,6 +285,70 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
         })
       })
+    }
+  }
+
+  /*
+    This function checks the way conflicts are setup to be handled and saves
+    the input tiddler accordingly, or discards it is appropriate.
+  */
+  function federationConflictSave(tidFields, data) {
+    // Check if the tiddler exists
+    const exists = $tw.Bob.Wikis[data.wikiName].getTiddler(tidFields.title);
+    if(exists) {
+      // We assume the tiddler is different, otherwise it wouldn't have been
+      // requested.
+      // Check the conflict resolution type and act accordingly
+      if(resolution === 'localWins') {
+        // If local wins we ignore remote changes
+        return;
+      } else if(resolution === 'remoteWins') {
+        // If remote wins always use remote changes
+        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+      } else if(resolution === 'manual') {
+        if(tidFields.title.startsWith('$:/SyncingConflict/')) {
+          // If the tiddler is already a sync conflict tiddler from the other
+          // wiki, ignore it.
+          return;
+        }
+        // Save a conflict version and let the person decide
+        tidFields.title = '$:/SyncingConflict/' + tidFields.title;
+      }
+    } else if(resolution === 'newestWins') {
+      // Save the one with the newest modified field, if no modified field keep
+      // the local one.
+      // If only one has a modified field, keep that one.
+      if(tidFields.modified && exists.fields.modified) {
+        if(tidFields.modified > exists.fields.modified) {
+          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+        }
+        // otherwise don't do anything
+      } else if(tidFields.modified) {
+        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+      } else {
+        // Either neither have a modified field or only the local one does,
+        // either way just keep the local one.
+        return;
+      }
+    } else if(resolution === 'oldestWins') {
+      // Save the one with the oldest modified field, if no modified field keep
+      // the local one.
+      // If only one has a modified field keep the other one.
+      if(tidFields.modified && exists.fields.modified) {
+        if(tidFields.modified < exists.fields.modified) {
+          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+        }
+        // otherwise don't do anything
+      } else if(exists.fields.modified) {
+        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+      } else {
+        // Either neither have a modified field or only the remote one does,
+        // either way just keep the local one.
+        return;
+      }
+    } else {
+      // If the tiddler doesn't exist locally just add it.
+      $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
     }
   }
 
@@ -333,23 +390,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
         $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
       })
-      /*
-      const tidObj = {};
-      tiddlerTitles.forEach(function(tidTitle) {
-        const tempTid = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidTitle)
-        if (tempTid) {
-          tidObj[encodeURIComponent(tidTitle)] = tempTid.fields;
-        }
-      })
-      const message = {
-        type: 'sendTiddlers',
-        tiddlers: tidObj,
-        nonce: data.rnonce,
-        wikiName: data.wikiName
-      }
-      console.log('send send Tiddlers message', message)
-      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-      */
     }
   }
 
@@ -406,7 +446,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const rebuilt = Buffer.concat(outArray.filter((x) => typeof x !== 'undefined'));
       $tw.Bob.Federation.handleMessage(rebuilt, data._source_info);
     } else {
-      $tw.Bob.Federation.messageChunks[data.c].timer = setTimeout(requestResend,500, data);
+      $tw.Bob.Federation.messageChunks[data.c].timer = setTimeout(requestResend, 500, data);
     }
   }
 

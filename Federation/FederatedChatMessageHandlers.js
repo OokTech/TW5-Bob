@@ -43,8 +43,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         from: data.from,
         server: data.server
       }
-      // Add new message
-      //history[data.time] = data.message
       // save the updated tiddler
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler({
         text:JSON.stringify(history, null, 2),
