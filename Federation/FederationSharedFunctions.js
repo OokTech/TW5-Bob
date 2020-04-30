@@ -421,6 +421,7 @@ This has some functions that are needed by Bob in different places.
     */
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
       const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
+      console.log('messageData', messageData)
       if (messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
@@ -439,7 +440,13 @@ This has some functions that are needed by Bob in different places.
       // Don't send to the server that the message originated in!
       // but that shouldn't happen
       Object.keys($tw.Bob.Federation.connections).forEach(function(serverKey) {
-        $tw.Bob.Federation.sendToRemoteServer(message, serverKey);
+        console.log('serverKey', serverKey)
+        const target_info = {
+          name: serverKey,
+          port: $tw.Bob.Federation.connections[serverKey].port,
+          address: $tw.Bob.Federation.connections[serverKey].address
+        }
+        $tw.Bob.Federation.sendToRemoteServer(message, target_info);
       })
     }
   }
