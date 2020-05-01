@@ -132,6 +132,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
         messageData._source_info = rinfo;
         messageData._source_info.serverKey = getServerKey(messageData);
+        if(messageData.type === 'pong') {
+          console.log('recevied pong', messageData)
+        }
         if (!messageData._source_info.serverKey) {
           return;
         }
