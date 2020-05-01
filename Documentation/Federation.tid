@@ -51,7 +51,7 @@ uniqueName: {
 
 Server info tiddler:
 
-$:/data/KnownServers/<uniqueName>
+$:/Bob/KnownServers/<uniqueName>
 
 Server info tiddler format:
 
@@ -70,7 +70,7 @@ Server info tiddler format:
 
 Each wiki on the server gets:
 
-$:/data/KnownServers/<uniqueName>/wikis/<wikiName>
+$:/Bob/KnownServers/<uniqueName>/wikis/<wikiName>
 
 ```
 {
@@ -86,7 +86,7 @@ $:/data/KnownServers/<uniqueName>/wikis/<wikiName>
 
 Each chat on the server gets:
 
-$:/data/KnownServers/<uniqueName>/chats/<chatName>
+$:/Bob/KnownServers/<uniqueName>/chats/<chatName>
 
 ```
 {

@@ -12,6 +12,10 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
         <$action-setfield
           edit=''
         />
+        <$action-websocketmessage
+          $type='updateFederatedConnectionInfo'
+          $tiddler=<<currentTiddler>>
+        />
         """
         variable=unused
       >
@@ -32,7 +36,25 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
     </$view>
   </th>
   <td>
-    --
+    <$list
+      filter='[<currentTiddler>!field:edit[edit]]'
+      emptyMessage="""
+      <$edit-text
+        field='local_name'
+        default={{!!name}}
+      />
+      """
+    >
+      <$view
+        field='local_name'
+      >
+        <$view
+          field='name'
+        >
+          --
+        </$view>
+      </$view>
+    </$list>
   </td>
   <td>
     <$view
@@ -174,6 +196,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
         $type='sendRemoteMessage'
         $server={{{ [{$:/state/Federation/SelectedRemoteServer}get[name]] }}}
         $message="requestHashes"
+        $tiddler=<<currentTiddler>>
         filter={{!!sync_filter}}
         fromWiki={{{ [<currentTiddler>split[/]nth[6]] }}}
       />
