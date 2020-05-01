@@ -434,7 +434,8 @@ it will overwrite this file.
             availablechats: data.connections[connectionUrl].availableChats.join(' '),
             publickey: data.connections[connectionUrl].publicKey,
             canlogin: data.connections[connectionUrl].canLogin,
-            name: data.connections[connectionUrl].name
+            name: data.connections[connectionUrl].name,
+            local_name: data.connections[connectionUrl].local_name
           }
           $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
           Object.keys(data.connections[connectionUrl].availableWikis).forEach(function(thisWikiName) {
@@ -449,7 +450,8 @@ it will overwrite this file.
               conflict_type: data.connections[connectionUrl].availableWikis[thisWikiName].conflict_type || 'manual',
               allowslogin: data.connections[connectionUrl].availableWikis[thisWikiName].canlogin || 'no',
               name: thisWikiName,
-              serverName: connectionUrl
+              serverName: connectionUrl,
+              local_name: data.connections[connectionUrl].availableWikis[thisWikiName].local_name
             }))
           })
           data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {

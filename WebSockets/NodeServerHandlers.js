@@ -105,6 +105,8 @@ if($tw.node) {
         port: $tw.Bob.Federation.connections[data.$server].port,
         address: $tw.Bob.Federation.connections[data.$server].address
       }
+      console.log(newData)
+      console.log(serverInfo)
       $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), serverInfo, data.wiki)
     }
   }
@@ -128,6 +130,7 @@ if($tw.node) {
       $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].sync = data.tid_param.sync;
       $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].sync_filter = data.tid_param.sync_filter;
       $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].synctype = data.tid_param.synctype;
+      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].local_name = data.tid_param.local_name;
       $tw.Bob.Federation.updateConnectionsInfo();
     }
   }
