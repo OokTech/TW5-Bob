@@ -154,6 +154,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if (data.info && data._source_info) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
       $tw.Bob.Federation.connections[data._source_info.serverKey].canLogin = data.info.canLogin || 'no';
+      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis || {}
       data.info.availableWikis.forEach(function(wikiName) {
         if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis).indexOf(wikiName) === -1) {
           $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName] = {
