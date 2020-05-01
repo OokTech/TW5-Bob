@@ -116,7 +116,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.ping = function(data) {
     // respond with a pong
     console.log('got ping')
-    const message = {type: 'pong'};
+    const message = {type: 'pong', nounce: data.rnounce};
     $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     // ask for updated info if it has been long enough, or they aren't iisted
   }
