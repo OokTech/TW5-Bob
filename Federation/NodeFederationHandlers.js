@@ -207,29 +207,25 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('receive requestHashes')
-    if(data.$tiddler) {
-      sync_filter
-      name
-      conflict_type
-
-      const test = $tw.ServerSide.loadWiki(data.name);
+    if(data.tid_param) {
+      const test = $tw.ServerSide.loadWiki(data.tid_param.name);
       if(!test) {
         console.log('no wiki?', data);
         return;
       }
       // get list of tiddlers
-      const titleList = $tw.Bob.Wikis[data.name].wiki.filterTiddlers(data.sync_filter);
+      const titleList = $tw.Bob.Wikis[data.tid_param.name].wiki.filterTiddlers(data.tid_param.sync_filter);
       // get tiddler hashes
       const outputHashes = {};
       titleList.forEach(function(thisTitle) {
-        outputHashes[encodeURIComponent(thisTitle)] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.name].wiki.getTiddler(thisTitle));
+        outputHashes[encodeURIComponent(thisTitle)] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.tid_param.name].wiki.getTiddler(thisTitle));
       })
       // send them back
       const message = {
         type: 'sendHashes',
         hashes: outputHashes,
         nonce: data.rnonce,
-        fromWiki: data.name
+        fromWiki: data.tid_param.name
       }
       console.log('sending send hashes')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
