@@ -102,7 +102,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // This checks to see if we have the node the broadcast is from listed with
     // the same rinfo stuff as the broadcast, if so we can ignore it, if not
     // than we request info
-    if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
+    if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].active !== 'yes' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
       //$tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, data._source_info);
       updateConnectionsInfo();
     }
@@ -114,6 +114,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.ping = function(data) {
     // respond with a pong
+    const message = {type: 'pong'};
+    $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     // ask for updated info if it has been long enough, or they aren't iisted
   }
 
@@ -154,7 +156,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if (data.info && data._source_info) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
       $tw.Bob.Federation.connections[data._source_info.serverKey].canLogin = data.info.canLogin || 'no';
-      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis || {}
+      $tw.Bob.Federation.connections[data._source_info.serverKey].lastupdate = $tw.utils.stringifyDate(new Date());
+      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis || {};
+      $tw.Bob.Federation.connections[data._source_info.serverKey].active = 'yes';
       data.info.availableWikis.forEach(function(wikiName) {
         if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis).indexOf(wikiName) === -1) {
           $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName] = {
@@ -166,7 +170,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             sync: 'no',
             sync_filter: '[is[system]!is[system]]',
             synctype: ''
-          }
+          };
         } else {
 
         }

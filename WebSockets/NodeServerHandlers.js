@@ -90,7 +90,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('sendRemoteMessage', data)
     if (data.$server && data.$message) {
       const newData = {
         type: data.$message
@@ -117,18 +116,16 @@ if($tw.node) {
     To do this the tiddler that has the information about the connection gets
     sent with the message and it is parsed here.
   */
-  $tw.nodeMessageHandlers.updateConnectionInfo = function(data) {
+  $tw.nodeMessageHandlers.updateFederatedConnectionInfo = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    if(data.tiddler) {
-      if(data.tiddler.fields) {
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].allowslogin = data.tiddler.fields.allowslogin;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].autosync = data.tiddler.fields.autosync;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].conflict_type = data.tiddler.fields.conflict_type;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].public = data.tiddler.fields.public;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].sync = data.tiddler.fields.sync;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].sync_filter = data.tiddler.fields.sync_filter;
-        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].synctype = data.tiddler.fields.synctype;
-      }
+    if(data.tid_param) {
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].allowslogin = data.tid_param.allowslogin;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].autosync = data.tid_param.autosync;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].conflict_type = data.tid_param.conflict_type;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].public = data.tid_param.public;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].sync = data.tid_param.sync;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].sync_filter = data.tid_param.sync_filter;
+      $tw.Bob.Federation.connections[data.tid_param.serverName][data.tid_param.name].synctype = data.tid_param.synctype;
     }
   }
 

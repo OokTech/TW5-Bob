@@ -11,6 +11,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Fixed a regression where draft tiddlers were saved to the server
 * Federation - there is a bug with dates when fetching tiddlers, sometimes dates come out as NaNaNa.... in the receiving wiki.
 * partially fixed a regression caused by switching to the built-in syncer, tiddlers you edit directly (like `$:/SiteTitle`) try to save on every keystroke and it chokes, before there was a throttling system in place for saving tiddlers that used the message queue. Instead of keeping it from saving, it is just slow to respond.
+* Added a `$tiddler` attribute to `action-websocketmessage` to simplify a few things.
 
 !! Version 1.5.2 Scruffy, the Janitor
 

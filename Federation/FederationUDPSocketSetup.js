@@ -23,7 +23,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob = $tw.Bob || {};
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
-    $tw.Bob.Federation.connections = $tw.Bob.Federation.connections || loadConnections();
+    $tw.Bob.Federation.connections = loadConnections();
     $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
 
     /*
@@ -68,7 +68,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.updateConnections = function () {
       $tw.Bob.logger.log('Update federated connections', {level:3});
       $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
-      console.log($tw.Bob.Federation.connections)
       const message = {
         type: 'updateConnections',
         connections: $tw.Bob.Federation.connections
@@ -178,13 +177,67 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
-      $tw.Bob.Federation.connections = loadConnections();
+      if($tw.settings.federation.checkConnections !== 'no') {
+        pingConnections('all');
+      }
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
         if ($tw.settings.federation.broadcast === 'yes') {
           $tw.Bob.Federation.multicastSearch()
         }
       }, $tw.settings.federation.rebroadcastInterval);
+    }
+
+    /*
+      Try and send a ping to every listed connection.
+      Optionally taking a type input to specify which connections to check
+
+      type can be:
+      active - ping only connections marked as active
+      inactive - ping only connections marked as inactive
+      all - ping all listed connections
+      [serverKey] - send a ping to each server listed in the array
+    */
+    function pingConnections(type='inactive') {
+      const message = {type: 'ping'}
+      if(Array.isArray(type)) {
+        type.forEach(function(name) {
+          const serverInfo = {
+            port: $tw.Bob.Federation.connections[name].port,
+            address: $tw.Bob.Federation.connections[name].address
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+        })
+      } else if(type === 'all') {
+        console.log('send pings')
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          const serverInfo = {
+            port: $tw.Bob.Federation.connections[name].port,
+            address: $tw.Bob.Federation.connections[name].address
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+        })
+      } else if(type === 'active') {
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if($tw.Bob.Federation.connections[name].active === 'yes') {
+            const serverInfo = {
+              port: $tw.Bob.Federation.connections[name].port,
+              address: $tw.Bob.Federation.connections[name].address
+            }
+            $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+          }
+        })
+      } else if(type === 'inactive') {
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if($tw.Bob.Federation.connections[name].active === 'no') {
+            const serverInfo = {
+              port: $tw.Bob.Federation.connections[name].port,
+              address: $tw.Bob.Federation.connections[name].address
+            }
+            $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+          }
+        })
+      }
     }
 
     /*
@@ -199,9 +252,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return {};
       }
       try {
-        const connections = fs.readFileSync(connectionsFilePath);
-        return JSON.parse(connections.toString('utf8'));
+        // We mark all connections as inactive when starting so the server
+        // tries to establish connections with all of them.
+        const connections = JSON.parse(fs.readFileSync(connectionsFilePath).toString('utf8'));
+        Object.keys(connections).forEach(function(connectionName) {
+          connections[connectionName].active = 'no';
+        })
+        return connections
       } catch (e) {
+        $tw.Bob.logger.error('problem loading connections', e)
         return {};
       }
     }

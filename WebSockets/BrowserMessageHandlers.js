@@ -76,7 +76,6 @@ it will overwrite this file.
             // different than the existing one.
             const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
             if(changed) {
-              console.log('Create Tiddler', data.tiddler.fields.title);
               $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
             }
           } else {
@@ -418,7 +417,6 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.updateConnections = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('update connections', data)
     if (data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',

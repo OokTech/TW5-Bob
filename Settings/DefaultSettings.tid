@@ -104,7 +104,8 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "enableMulticast": "yes",
     "multicastAddress": "230.0.0.114",
     "broadcast": "yes",
-    "rebroadcastInterval": "30000"
+    "rebroadcastInterval": "30000",
+    "checkConnections": "yes"
   },
   "advanced": {
     "localMessageQueueTimeout": 500,
