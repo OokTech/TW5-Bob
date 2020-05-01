@@ -33,7 +33,10 @@ Connection Status:
       Edit
     </th>
     <th>
-      Wiki Name
+      Remote Wiki Name
+    </th>
+    <th>
+      Local Wiki Name
     </th>
     <th>
       Pubilc

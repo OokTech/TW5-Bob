@@ -51,7 +51,7 @@ uniqueName: {
 
 Server info tiddler:
 
-$:/Federation/RemoteServer/<uniqueName>
+$:/data/KnownServers/<uniqueName>
 
 Server info tiddler format:
 
@@ -70,7 +70,7 @@ Server info tiddler format:
 
 Each wiki on the server gets:
 
-$:/Federation/RemoteServer/<uniqueName>/wikis/<wikiName>
+$:/data/KnownServers/<uniqueName>/wikis/<wikiName>
 
 ```
 {
@@ -86,7 +86,7 @@ $:/Federation/RemoteServer/<uniqueName>/wikis/<wikiName>
 
 Each chat on the server gets:
 
-$:/Federation/RemoteServer/<uniqueName>/chats/<chatName>
+$:/data/KnownServers/<uniqueName>/chats/<chatName>
 
 ```
 {

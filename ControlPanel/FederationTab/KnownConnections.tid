@@ -8,7 +8,7 @@ These are the remote servers you currently have information about.
 
 Each server gets a JSON tiddler named in the form
 
-`$:/Bob/KnownServers/ServerKey`
+`$:/data/KnownServers/ServerKey`
 
 <table>
   <tr>
@@ -26,7 +26,7 @@ Each server gets a JSON tiddler named in the form
     </th>
   </tr>
   <$list
-    filter='[prefix[$:/Bob/KnownServers/]]'
+    filter='[prefix[$:/data/KnownServers/]]'
   >
     <tr>
       <th>

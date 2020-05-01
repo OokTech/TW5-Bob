@@ -178,6 +178,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
+      $tw.Bob.Federation.connections = loadConnections();
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
         if ($tw.settings.federation.broadcast === 'yes') {

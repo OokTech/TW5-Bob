@@ -111,6 +111,28 @@ if($tw.node) {
   }
 
   /*
+    Update information about a federated connection and syncing wikis on the
+    server.
+
+    To do this the tiddler that has the information about the connection gets
+    sent with the message and it is parsed here.
+  */
+  $tw.nodeMessageHandlers.updateConnectionInfo = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    if(data.tiddler) {
+      if(data.tiddler.fields) {
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].allowslogin = data.tiddler.fields.allowslogin;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].autosync = data.tiddler.fields.autosync;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].conflict_type = data.tiddler.fields.conflict_type;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].public = data.tiddler.fields.public;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].sync = data.tiddler.fields.sync;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].sync_filter = data.tiddler.fields.sync_filter;
+        $tw.Bob.Federation.connections[data.tiddler.fields.serverName][data.tiddler.fields.name].synctype = data.tiddler.fields.synctype;
+      }
+    }
+  }
+
+  /*
     This lets us shutdown the server from within the wiki.
   */
   $tw.nodeMessageHandlers.shutdownServer = function(data) {

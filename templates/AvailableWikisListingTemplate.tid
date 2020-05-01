@@ -32,6 +32,9 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
     </$view>
   </th>
   <td>
+    --
+  </td>
+  <td>
     <$view
       field='public'
     >

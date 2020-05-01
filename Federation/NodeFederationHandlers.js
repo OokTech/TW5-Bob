@@ -154,7 +154,22 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     if (data.info && data._source_info) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
       $tw.Bob.Federation.connections[data._source_info.serverKey].canLogin = data.info.canLogin || 'no';
-      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = data.info.availableWikis || [];
+      data.info.availableWikis.forEach(function(wikiName) {
+        if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis).indexOf(wikiName) === -1) {
+          $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName] = {
+            allowslogin: 'no',
+            autosync: 'no',
+            conflict_type: 'manual',
+            name: wikiName,
+            public: 'yes',
+            sync: 'no',
+            sync_filter: '[is[system]!is[system]]',
+            synctype: ''
+          }
+        } else {
+
+        }
+      });
       $tw.Bob.Federation.connections[data._source_info.serverKey].availableChats = data.info.availableChats || [];
       $tw.Bob.Federation.connections[data._source_info.serverKey].port = data.info.port;
       $tw.Bob.Federation.connections[data._source_info.serverKey].address = data._source_info.address;
@@ -274,6 +289,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('receive sendTiddlers')
     if (typeof data.tiddlers === 'object') {
+      console.log(data.tiddlers)
       $tw.ServerSide.loadWiki(data.wikiName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           if(!tidFields) {
@@ -282,7 +298,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           // Send each tiddler recieved to the browser using the conflict message
           // and then let the browser handle it.
           //$tw.Bob.SendToBrowsers({type: 'conflict', tiddler:{fields:tidFields}, wiki: data.wiki || data.wikiName})
-          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+          //$tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
+          federationConflictSave(tidFields, data);
         })
       })
     }
@@ -293,19 +310,29 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     the input tiddler accordingly, or discards it is appropriate.
   */
   function federationConflictSave(tidFields, data) {
+    console.log('save thing')
+    const tidName = '$:/data/KnownServers/' + data.serverName + '/wikis/' + data.wikiName;
+    const theTid = $tw.Bob.Wikis['RootWiki'].wiki.getTiddler(tidName);
+    const resolution = theTid.fields.conflict_type;
+    console.log(resolution)
+    console.log('theTid', theTid)
     // Check if the tiddler exists
-    const exists = $tw.Bob.Wikis[data.wikiName].getTiddler(tidFields.title);
+    const exists = $tw.Bob.Wikis[data.wikiName].wiki.getTiddler(tidFields.title);
     if(exists) {
+      console.log('exists')
       // We assume the tiddler is different, otherwise it wouldn't have been
       // requested.
       // Check the conflict resolution type and act accordingly
       if(resolution === 'localWins') {
+        console.log('local wins')
         // If local wins we ignore remote changes
         return;
       } else if(resolution === 'remoteWins') {
+        console.log('remote wins')
         // If remote wins always use remote changes
         $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
       } else if(resolution === 'manual') {
+        console.log('manual')
         if(tidFields.title.startsWith('$:/SyncingConflict/')) {
           // If the tiddler is already a sync conflict tiddler from the other
           // wiki, ignore it.
@@ -315,6 +342,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         tidFields.title = '$:/SyncingConflict/' + tidFields.title;
       }
     } else if(resolution === 'newestWins') {
+      console.log('newest wins')
       // Save the one with the newest modified field, if no modified field keep
       // the local one.
       // If only one has a modified field, keep that one.
@@ -331,6 +359,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return;
       }
     } else if(resolution === 'oldestWins') {
+      console.log('oldest wins')
       // Save the one with the oldest modified field, if no modified field keep
       // the local one.
       // If only one has a modified field keep the other one.
@@ -347,6 +376,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return;
       }
     } else {
+      console.log('thingy')
       // If the tiddler doesn't exist locally just add it.
       $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), data.wikiName);
     }
@@ -368,12 +398,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('receive requestTiddlers')
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
-    //data.conflictType = data.conflictType || 'newestWins';
 
     $tw.Bob.Federation.connections[data._source_info.url] = $tw.Bob.Federation.connections[data._source_info.url] || {};
 
     $tw.Bob.Federation.connections[data._source_info.url].socket = $tw.Bob.Federation.connections[data._source_info.url].socket || {};
-    //$tw.Bob.Federation.connections[data._source_info.url].conflictType = data.conflictType || 'manual';
 
     if(data._source_info && data.rnonce) {
       // Get the tiddlers
@@ -413,7 +441,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     Object.keys(data.wikis).forEach(function(wikiName) {
       const serverName = $tw.Bob.Federation.connections[data._source_info.url].name;
       // Get the tiddler name that has the information for the wiki
-      const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/Federation/RemoteServer/' + serverName + '/wikis/' + wikiName);
+      const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/data/KnownServers/' + serverName + '/wikis/' + wikiName);
       if (wikiInfoTid) {
         // make sure that the wiki is set up to be synced
         if (['pull','bidirectional'].indexOf(wikiInfoTid.fields.synctype)) {

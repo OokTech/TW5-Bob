@@ -428,32 +428,35 @@ it will overwrite this file.
       Object.keys(data.connections).forEach(function(connectionUrl) {
         if (data.connections[connectionUrl].name) {
           const connectionFields = {
-            title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name,
+            title: '$:/data/KnownServers/' + data.connections[connectionUrl].name,
             tags: '[[Remote Server]]',
             url: connectionUrl,
             staticurl: data.connections[connectionUrl].staticUrl,
-            availablewikis: data.connections[connectionUrl].availableWikis.join(' '),
+            availablewikis: Object.keys(data.connections[connectionUrl].availableWikis).join(' '),
             availablechats: data.connections[connectionUrl].availableChats.join(' '),
             publickey: data.connections[connectionUrl].publicKey,
             canlogin: data.connections[connectionUrl].canLogin,
             name: data.connections[connectionUrl].name
           }
           $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
-          data.connections[connectionUrl].availableWikis.forEach(function(thisWikiName) {
+          Object.keys(data.connections[connectionUrl].availableWikis).forEach(function(thisWikiName) {
+            const theTid = $tw.wiki.getTiddler('$:/data/KnownServers/' + data.connections[connectionUrl].name + '/wikis/' + thisWikiName) || {fields: {}};
             $tw.wiki.addTiddler(new $tw.Tiddler({
-              title: '$:/Federation/RemoteServer/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
-              sync: 'no',
-              synctype: '',
-              autosync: 'no',
-              public: 'yes',
-              conflicttype: 'manual',
-              allowslogin: 'no',
-              name: thisWikiName
+              title: '$:/data/KnownServers/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
+              sync: data.connections[connectionUrl].availableWikis[thisWikiName].sync || 'no',
+              synctype: data.connections[connectionUrl].availableWikis[thisWikiName].synctype || '',
+              autosync: data.connections[connectionUrl].availableWikis[thisWikiName].autosync || 'no',
+              sync_filter: data.connections[connectionUrl].availableWikis[thisWikiName].sync_filter || '',
+              public: data.connections[connectionUrl].availableWikis[thisWikiName].public || 'yes',
+              conflict_type: data.connections[connectionUrl].availableWikis[thisWikiName].conflict_type || 'manual',
+              allowslogin: data.connections[connectionUrl].availableWikis[thisWikiName].canlogin || 'no',
+              name: thisWikiName,
+              serverName: connectionUrl
             }))
           })
           data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {
             $tw.wiki.addTiddler(new $tw.Tiddler({
-              title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name + '/chats/' + thisChatName,
+              title: '$:/data/KnownServers/' + data.connections[connectionUrl].name + '/chats/' + thisChatName,
               public: 'yes',
               relay: 'no',
               name: thisChatName
