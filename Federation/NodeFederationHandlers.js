@@ -266,23 +266,28 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('receive sendHashes', data.hashes)
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
-      const test = $tw.ServerSide.loadWiki(data.fromWiki);
+      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.fromWiki].local_name;
+      const test = $tw.ServerSide.loadWiki(localName);
       if(!test) {
         const wikiData = {
-          wikiName: data.fromWiki,
+          wikiName: localName
         }
         $tw.nodeMessageHandlers.createNewWiki(wikiData, nextBit);
       } else {
         nextBit();
       }
       function nextBit() {
+        const test = $tw.ServerSide.loadWiki(localName);
+        if(!test) {
+          console.log('borked at NodeFederationHandlers line 282')
+        }
         Object.keys(data.hashes).forEach(function(rawTitle) {
           const tidTitle = decodeURIComponent(rawTitle);
           if(tidTitle.indexOf("]]") !== -1) {
             return;
           }
           // check if the tiddler exists locally
-          const thisTid = $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(tidTitle);
+          const thisTid = $tw.Bob.Wikis[localName].wiki.getTiddler(tidTitle);
           if (thisTid) {
             // If the tiddler exists than check if the hashes match
             if (data.hashes[rawTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
@@ -324,9 +329,12 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('receive sendTiddlers')
     if (typeof data.tiddlers === 'object') {
-      $tw.ServerSide.loadWiki(data.wikiName, function() {
+      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name;
+      console.log(localName, Object.keys(data.tiddlers))
+      $tw.ServerSide.loadWiki(localName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           if(!tidFields) {
+            console.log('bork?')
             return;
           }
           // Save the tiddlers using the rules set for the wiki
@@ -341,12 +349,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     the input tiddler accordingly, or discards it is appropriate.
   */
   function federationConflictSave(tidFields, data) {
-    const tidName = '$:/Bob/KnownServers/' + data.serverName + '/wikis/' + data.wikiName;
-    const theTid = $tw.Bob.Wikis['RootWiki'].wiki.getTiddler(tidName);
-    const localName = theTid.fields.local_name || data.wikiName;
-    const resolution = theTid.fields.conflict_type;
+    const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name;
+    const resolution = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].resolution;
     // Check if the tiddler exists
     const exists = $tw.Bob.Wikis[localName].wiki.getTiddler(tidFields.title);
+    console.log(localName, resolution, exists)
     if(exists) {
       // We assume the tiddler is different, otherwise it wouldn't have been
       // requested.
@@ -501,6 +508,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   function requestResend(data) {
+    console.log('request resend')
     const receivedArray = Object.keys($tw.Bob.Federation.messageChunks[data.c]);
     const message = {
       type: 'requestResend',
@@ -512,9 +520,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   $tw.Bob.Federation.messageHandlers.requestResend = function(data) {
+    console.log('resend request received')
     // Make sure we have it saved
     $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
     if($tw.Bob.Federation.chunkHistory[data.mid]) {
+      console.log('have thing, sending')
       $tw.Bob.Federation.sendToRemoteServer(
         $tw.Bob.Federation.chunkHistory[data.mid].message,
         $tw.Bob.Federation.chunkHistory[data.mid].serverInfo,
