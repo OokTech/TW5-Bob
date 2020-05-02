@@ -208,6 +208,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('receive requestHashes')
     if(data.tid_param) {
+      // if the server has any wikis synced from the sending server and it has
+      // been long enough ask for it to sync.
+      const filter = '[server_name[]]'
       const test = $tw.ServerSide.loadWiki(data.tid_param.name);
       if(!test) {
         console.log('no wiki?', data);
@@ -230,32 +233,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       console.log('sending send hashes')
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
-    /*
-    if (data.filter && data.fromWiki) {
-      const test = $tw.ServerSide.loadWiki(data.fromWiki);
-      if(!test) {
-        console.log('no wiki?', data);
-        return;
-      }
-      // get list of tiddlers
-      const titleList = $tw.Bob.Wikis[data.fromWiki].wiki.filterTiddlers(data.filter);
-      // get tiddler hashes
-      const outputHashes = {};
-      titleList.forEach(function(thisTitle) {
-        console.log('tid to hash', $tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle))
-        outputHashes[encodeURIComponent(thisTitle)] = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.fromWiki].wiki.getTiddler(thisTitle));
-      })
-      // send them back
-      const message = {
-        type: 'sendHashes',
-        hashes: outputHashes,
-        nonce: data.rnonce,
-        fromWiki: data.fromWiki
-      }
-      console.log('sending send hashes')
-      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
-
-    }*/
   }
 
   /*
@@ -266,7 +243,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('receive sendHashes', data.hashes)
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
-      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.fromWiki].local_name;
+      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.fromWiki].local_name || data.fromWiki;
       const test = $tw.ServerSide.loadWiki(localName);
       if(!test) {
         const wikiData = {
@@ -278,11 +255,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
       function nextBit() {
         const test = $tw.ServerSide.loadWiki(localName);
-        if(!test) {
-          console.log('borked at NodeFederationHandlers line 282')
-        }
         Object.keys(data.hashes).forEach(function(rawTitle) {
           const tidTitle = decodeURIComponent(rawTitle);
+          if(typeof tidTitle !== 'string') {
+            return;
+          }
           if(tidTitle.indexOf("]]") !== -1) {
             return;
           }
@@ -329,12 +306,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('receive sendTiddlers')
     if (typeof data.tiddlers === 'object') {
-      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name;
+      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name || data.wikiName;
       console.log(localName, Object.keys(data.tiddlers))
       $tw.ServerSide.loadWiki(localName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           if(!tidFields) {
-            console.log('bork?')
             return;
           }
           // Save the tiddlers using the rules set for the wiki
@@ -349,11 +325,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     the input tiddler accordingly, or discards it is appropriate.
   */
   function federationConflictSave(tidFields, data) {
-    const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name;
-    const resolution = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].resolution;
+    const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name || data.wikiName;
+    const resolution = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].conflict_type;
     // Check if the tiddler exists
     const exists = $tw.Bob.Wikis[localName].wiki.getTiddler(tidFields.title);
-    console.log(localName, resolution, exists)
     if(exists) {
       // We assume the tiddler is different, otherwise it wouldn't have been
       // requested.
@@ -363,7 +338,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return;
       } else if(resolution === 'remoteWins') {
         // If remote wins always use remote changes
-        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+        $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
       } else if(resolution === 'manual') {
         if(tidFields.title.startsWith('$:/SyncingConflict/')) {
           // If the tiddler is already a sync conflict tiddler from the other
@@ -372,7 +347,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
         // Save a conflict version and let the person decide
         tidFields.title = '$:/SyncingConflict/' + tidFields.title;
-        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+        $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
       }
     } else if(resolution === 'newestWins') {
       // Save the one with the newest modified field, if no modified field keep
@@ -380,11 +355,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // If only one has a modified field, keep that one.
       if(tidFields.modified && exists.fields.modified) {
         if(tidFields.modified > exists.fields.modified) {
-          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+          $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
         }
         // otherwise don't do anything
       } else if(tidFields.modified) {
-        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+        $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
       } else {
         // Either neither have a modified field or only the local one does,
         // either way just keep the local one.
@@ -396,11 +371,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // If only one has a modified field keep the other one.
       if(tidFields.modified && exists.fields.modified) {
         if(tidFields.modified < exists.fields.modified) {
-          $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+          $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
         }
         // otherwise don't do anything
       } else if(exists.fields.modified) {
-        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+        $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
       } else {
         // Either neither have a modified field or only the remote one does,
         // either way just keep the local one.
@@ -408,7 +383,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       }
     } else {
       // If the tiddler doesn't exist locally just add it.
-      $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
+      $tw.syncadaptor.saveTiddler({fields: tidFields}, localName);
     }
   }
 
@@ -493,7 +468,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.messageChunks[data.c][data.i] = Buffer.from(data.d);
     clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
     if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length % 100 === 0) {
-      console.log(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length + '/' + data.tot);
+      $tw.Bob.logger.log('Receiving message chunks:', Object.keys($tw.Bob.Federation.messageChunks[data.c]).length + '/' + data.tot, {level: 3});
     }
     if(Object.keys($tw.Bob.Federation.messageChunks[data.c]).length === data.tot + 1) {
       clearTimeout($tw.Bob.Federation.messageChunks[data.c].timer);
@@ -525,7 +500,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // Make sure we have it saved
     $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
     if($tw.Bob.Federation.chunkHistory[data.mid]) {
-      console.log('have thing, sending')
       $tw.Bob.Federation.sendToRemoteServer(
         $tw.Bob.Federation.chunkHistory[data.mid].message,
         $tw.Bob.Federation.chunkHistory[data.mid].serverInfo,

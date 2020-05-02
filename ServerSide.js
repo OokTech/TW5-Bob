@@ -161,6 +161,9 @@ ServerSide.wikiExists = function (wikiFolder) {
   This checks to make sure that a wiki exists
 */
 ServerSide.existsListed = function (wikiName) {
+  if(typeof wikiName !== 'string') {
+    return false;
+  }
   let exists = false;
   // First make sure that the wiki is listed
   const wikiPath = ServerSide.getWikiPath(wikiName);

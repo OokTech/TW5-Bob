@@ -121,16 +121,16 @@ if($tw.node) {
   $tw.nodeMessageHandlers.updateFederatedConnectionInfo = function(data) {
     $tw.Bob.Shared.sendAck(data);
     if(data.tid_param) {
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name] || {};
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name] || {};
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].allowslogin = data.tid_param.allowslogin;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].autosync = data.tid_param.autosync;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].conflict_type = data.tid_param.conflict_type;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].public = data.tid_param.public;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].sync = data.tid_param.sync;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].sync_filter = data.tid_param.sync_filter;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].synctype = data.tid_param.synctype;
-      $tw.Bob.Federation.connections[data.tid_param.serverName].availableWikis[data.tid_param.name].local_name = data.tid_param.local_name;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] || {};
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] || {};
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].allowslogin = data.tid_param.allowslogin;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].autosync = data.tid_param.autosync;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].conflict_type = data.tid_param.conflict_type;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].public = data.tid_param.public;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].sync = data.tid_param.sync;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].sync_filter = data.tid_param.sync_filter;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].synctype = data.tid_param.synctype;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name].local_name = data.tid_param.local_name;
       $tw.Bob.Federation.updateConnectionsInfo();
     }
   }

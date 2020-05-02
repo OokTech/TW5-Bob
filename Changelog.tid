@@ -14,6 +14,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * partially fixed a regression caused by switching to the built-in syncer, tiddlers you edit directly (like `$:/SiteTitle`) try to save on every keystroke and it chokes, before there was a throttling system in place for saving tiddlers that used the message queue. Instead of keeping it from saving, it is just slow to respond.
 * Added a `$tiddler` attribute to `action-websocketmessage` to simplify a few things.
 * Single file wikis that contain the Bob plugin shouldn't show the RSOE anymore
+* Fixed some rare edge cases that could cause Bob to crash
 
 !! Version 1.5.2 Scruffy, the Janitor
 

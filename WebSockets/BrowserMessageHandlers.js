@@ -450,7 +450,7 @@ it will overwrite this file.
               conflict_type: data.connections[connectionUrl].availableWikis[thisWikiName].conflict_type || 'manual',
               allowslogin: data.connections[connectionUrl].availableWikis[thisWikiName].canlogin || 'no',
               name: thisWikiName,
-              serverName: connectionUrl,
+              server_name: connectionUrl,
               local_name: data.connections[connectionUrl].availableWikis[thisWikiName].local_name
             }))
           })

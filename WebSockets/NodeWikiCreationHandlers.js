@@ -453,7 +453,7 @@ if($tw.node) {
         data.saveSettings = 'true';
         $tw.nodeMessageHandlers.findAvailableWikis(data);
         if(typeof cb === 'function') {
-          cb()
+          setTimeout(cb, 1500);
         }
       }, 1000);
 
@@ -610,6 +610,9 @@ if($tw.node) {
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+    if(typeof data.fromWiki === 'undefined') {
+      return;
+    }
     if ($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
       const wikiName = GetWikiName(data.newWiki);
       // Get the paths for the source and destination
