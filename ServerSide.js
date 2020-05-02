@@ -445,7 +445,11 @@ ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
       variables: {
         wikiTiddlers:
           $tw.Bob.Wikis[fullName].wiki.allTitles().concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-            return '[[' + tidInfo + ']]';
+            if(servePlugin === 'no' && tidInfo === '$:/plugins/OokTech/Bob') {
+              return '';
+            } else {
+              return '[[' + tidInfo + ']]';
+            }
           }).join(' '),
         wikiName: wikiName
       }

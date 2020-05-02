@@ -498,11 +498,6 @@ if($tw.node) {
       settings = data.settingsString;
 
       // Update the $tw.settings object
-      // First clear the settings
-      // Don't clear the settings, there is some rare bug that makes the
-      // settings string empty or invalid json and it results in an empty
-      // settings file.
-      //$tw.settings = {};
       // Put the updated version in.
       $tw.updateSettings($tw.settings, JSON.parse(settings));
     }
@@ -527,7 +522,8 @@ if($tw.node) {
       // Create the settings folder
       fs.mkdirSync(userSettingsFolder);
     }
-    fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
+    // This should prevent an empty string from ever being given
+    fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
       if(err) {
         const message = {
           alert: 'Error saving settings:' + err,

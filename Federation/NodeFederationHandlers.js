@@ -372,6 +372,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         }
         // Save a conflict version and let the person decide
         tidFields.title = '$:/SyncingConflict/' + tidFields.title;
+        $tw.syncadaptor.saveTiddler(new $tw.Tiddler(tidFields), localName);
       }
     } else if(resolution === 'newestWins') {
       // Save the one with the newest modified field, if no modified field keep

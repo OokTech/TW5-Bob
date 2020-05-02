@@ -124,7 +124,12 @@ function BrowserWSAdaptor(options) {
     $tw.connections = $tw.connections || [];
     $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
     $tw.connections[connectionIndex].index = connectionIndex;
-    $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + ProxyPrefix);
+    try{
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + ProxyPrefix);
+    } catch (e) {
+      console.log(e)
+      $tw.connections[connectionIndex].socket = {};
+    }
     $tw.connections[connectionIndex].socket.onopen = openSocket;
     $tw.connections[connectionIndex].socket.onmessage = parseMessage;
     $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
@@ -428,8 +433,8 @@ function BrowserWSAdaptor(options) {
       }
     });
   }
-  // Only set up the websockets if we aren't in an iframe.
-  if (window.location === window.parent.location) {
+  // Only set up the websockets if we aren't in an iframe or opened as a file.
+  if (window.location === window.parent.location && window.location.hostname) {
     // Send the message to node using the websocket
     $tw.Bob.setup();
   }
