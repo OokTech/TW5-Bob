@@ -209,24 +209,18 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // The time difference compares two tiddlywiki date fields, so the format
     // of the compared values is YYYYMMDDHHmmssmmm (4 digit year, 2 digit month, 2 digit day, 2 digit hour, 2 digit minute, 2 digit second, 3 digit millisecond)
     // so 10000 is 10 seconds, 1000000 is 10 minutes
-    console.log(1)
     const syncWikis = Object.keys($tw.Bob.Federation.connections[serverName].available_wikis).filter(function(wikiName) {
-      console.log(2)
       return $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].auto_sync === 'yes' && $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_type !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].previous_sync > 1000000
     })
-    console.log(3)
     // find any wikis that we want to autosync and that haven't been synced in long enough
     syncWikis.forEach(function(wikiName) {
-      console.log(4)
       // request new things
       const message = {
         type: 'requestHashes',
         fromWiki: wikiName,
         filter: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_filter
       }
-      console.log(5)
       $tw.Bob.Federation.sendToRemoteServer(message, $tw.Bob.Federation.connections[serverName]);
-      console.log(6)
     })
   }
 
