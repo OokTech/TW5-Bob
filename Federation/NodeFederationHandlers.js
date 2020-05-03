@@ -217,6 +217,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // request new things
       const message = {
         type: 'requestHashes',
+        tid_param: $tw.Bob.Wikis[serverName].wiki.getTiddler("$:/Bob/KnownServers/" + serverName + "/wikis/" + wikiName),
         fromWiki: wikiName,
         filter: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_filter
       }
