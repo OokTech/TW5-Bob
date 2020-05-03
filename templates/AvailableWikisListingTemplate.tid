@@ -87,7 +87,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       filter='[<currentTiddler>!field:edit[edit]]'
       emptyMessage="""
         <$select
-          field='synctype'
+          field='sync_type'
           default='none'
         >
           <option
@@ -115,7 +115,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       variable=unused
     >
       <$view
-        field='synctype'
+        field='sync_type'
       >
         None
       </$view>

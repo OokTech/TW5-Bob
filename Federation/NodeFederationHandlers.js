@@ -142,9 +142,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       serverName: $tw.settings.federation.serverName,
       info: {
         name: $tw.settings.federation.serverName || 'Sever Name',
-        canLogin: $tw.settings.federation.canLogin || 'no',
-        availableWikis: $tw.ServerSide.getViewableWikiList(data),
-        availableChats: getAvailableChats(data),
+        allows_login: $tw.settings.federation.allows_login || 'no',
+        available_wikis: $tw.ServerSide.getViewableWikiList(data),
+        available_chats: getAvailableChats(data),
         port: $tw.settings.federation.udpPort,
         publicKey: 'c minor',
         staticUrl: 'no'
@@ -160,28 +160,28 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     data.info = (data.message)?(data.message.info || data.info):data.info;
     if (data.info && data._source_info) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
-      $tw.Bob.Federation.connections[data._source_info.serverKey].canLogin = data.info.canLogin || 'no';
+      $tw.Bob.Federation.connections[data._source_info.serverKey].allows_login = data.info.allows_login || 'no';
       $tw.Bob.Federation.connections[data._source_info.serverKey].lastupdate = $tw.utils.stringifyDate(new Date());
-      $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis || {};
+      $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis = $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis || {};
       $tw.Bob.Federation.connections[data._source_info.serverKey].active = 'yes';
-      data.info.availableWikis.forEach(function(wikiName) {
-        if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis).indexOf(wikiName) === -1) {
-          $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName] = {
-            allowslogin: 'no',
-            autosync: 'no',
+      data.info.available_wikis.forEach(function(wikiName) {
+        if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis).indexOf(wikiName) === -1) {
+          $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName] = {
+            allows_login: 'no',
+            auto_sync: 'no',
             conflict_type: 'manual',
             name: wikiName,
             public: 'yes',
             sync: 'no',
             sync_filter: '[is[system]!is[system]]',
-            synctype: '',
+            sync_type: '',
             previous_sync: 0
           };
         } else {
-          $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync || 0;
+          $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].previous_sync = $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].previous_sync || 0;
         }
       });
-      $tw.Bob.Federation.connections[data._source_info.serverKey].availableChats = data.info.availableChats || [];
+      $tw.Bob.Federation.connections[data._source_info.serverKey].available_chats = data.info.available_chats || [];
       $tw.Bob.Federation.connections[data._source_info.serverKey].port = data.info.port;
       $tw.Bob.Federation.connections[data._source_info.serverKey].address = data._source_info.address;
       $tw.Bob.Federation.connections[data._source_info.serverKey].publicKey = data.info.publicKey;
@@ -209,8 +209,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // The time difference compares two tiddlywiki date fields, so the format
     // of the compared values is YYYYMMDDHHmmssmmm (4 digit year, 2 digit month, 2 digit day, 2 digit hour, 2 digit minute, 2 digit second, 3 digit millisecond)
     // so 10000 is 10 seconds, 1000000 is 10 minutes
-    const syncWikis = Object.keys($tw.Bob.Federation.connections[serverName].availableWikis).filter(function(wikiName) {
-      return $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].autosync === 'yes' && $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].synctype !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync > 1000000
+    const syncWikis = Object.keys($tw.Bob.Federation.connections[serverName].available_wikis).filter(function(wikiName) {
+      return $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].auto_sync === 'yes' && $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].sync_type !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].previous_sync > 1000000
     })
     // find any wikis that we want to autosync and that haven't been synced in long enough
     syncWikis.forEach(function(wikiName) {
@@ -270,7 +270,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     console.log('receive sendHashes', data.hashes)
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
-      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.fromWiki].local_name || data.fromWiki;
+      const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.fromWiki].local_name || data.fromWiki;
       const test = $tw.ServerSide.loadWiki(localName);
       if(!test) {
         const wikiData = {
@@ -333,7 +333,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     console.log('receive sendTiddlers')
     if (typeof data.tiddlers === 'object') {
-      const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name || data.wikiName;
+      const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].local_name || data.wikiName;
       console.log(localName, Object.keys(data.tiddlers))
       $tw.ServerSide.loadWiki(localName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
@@ -352,8 +352,8 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     the input tiddler accordingly, or discards it is appropriate.
   */
   function federationConflictSave(tidFields, data) {
-    const localName = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].local_name || data.wikiName;
-    const resolution = $tw.Bob.Federation.connections[data.serverName].availableWikis[data.wikiName].conflict_type;
+    const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].local_name || data.wikiName;
+    const resolution = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].conflict_type;
     // Check if the tiddler exists
     const exists = $tw.Bob.Wikis[localName].wiki.getTiddler(tidFields.title);
     if(exists) {
@@ -476,7 +476,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/Bob/KnownServers/' + serverName + '/wikis/' + wikiName);
       if (wikiInfoTid) {
         // make sure that the wiki is set up to be synced
-        if (['pull','bidirectional'].indexOf(wikiInfoTid.fields.synctype)) {
+        if (['pull','bidirectional'].indexOf(wikiInfoTid.fields.sync_type)) {
           // Make the request for the tiddlers
           const message = {
             type: 'requestTiddlers',
@@ -550,29 +550,29 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       source_connection: connectionIndex,
       remoteUrl: remoteUrl,
       remoteWikis: [remoteWikiNames],
-      syncFilter: syncFilter,
-      syncType: syncType,
-      conflictType: conflictType,
+      sync_filter: sync_filter,
+      sync_type: sync_type,
+      conflict_type: conflict_type,
       remoteToken: remoteToken
     }
 
-    this takes the tiddlers returned by the syncFilter in the wiki named in
-    wikiName and syncs them with the server at remoteUrl using syncType, any
-    conflicts are handled using conflictType. If the remote server requires an
+    this takes the tiddlers returned by the sync_filter in the wiki named in
+    wikiName and syncs them with the server at remoteUrl using sync_type, any
+    conflicts are handled using conflict_type. If the remote server requires an
     access token it has to be suppiled in remoteToken. If the remote wiki
     doesn't have the same name as the local wiki than it needs to be given as
     remoteWiki.
 
     remoteWikis is a list of wikki names to sync.
 
-    syncType can be:
+    sync_type can be:
       - pushOnly: local tiddlers are pushed to the remote server but no changes
       are pulled from the remote server.
       - pullOnly: changes on the remote server are fetched but no local
       tiddlers are sent.
       - bidirectional: local changes are sent and remote changes are pulled
 
-    conflictType can be:
+    conflict_type can be:
       - localWins: if there are conflicts the local tiddlers are kept even if
       remote tiddlers have been changed, tiddlers that didn't exist previously
       are synced.
@@ -594,17 +594,17 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // Try to connect to the remote server
       $tw.Bob.Federation.connections[data.remoteUrl] = $tw.Bob.Federation.connections[data.remoteUrl] || {}
 
-      data.syncFilter = data.syncFilter || '[!is[system]]'
-      data.syncType = data.syncType || 'bidirectional'
-      data.conflictType = data.conflictType || 'newestWins'
+      data.sync_filter = data.sync_filter || '[!is[system]]'
+      data.sync_type = data.sync_type || 'bidirectional'
+      data.conflict_type = data.conflict_type || 'newestWins'
       // Default to only syncing the current wiki
       data.remoteWikis = data.remoteWikis || data.wiki || 'RootWiki'
 
       $tw.Bob.Federation.connections[data.remoteUrl].socket = $tw.Bob.Federation.connections[data.remoteUrl].socket || {}
       $tw.Bob.Federation.connections[data.remoteUrl].pendingAction = 'sync'
-      $tw.Bob.Federation.connections[data.remoteUrl].syncFilter = data.syncFilter
-      $tw.Bob.Federation.connections[data.remoteUrl].syncType = data.syncType
-      $tw.Bob.Federation.connections[data.remoteUrl].conflictType = data.conflictType
+      $tw.Bob.Federation.connections[data.remoteUrl].sync_filter = data.sync_filter
+      $tw.Bob.Federation.connections[data.remoteUrl].sync_type = data.sync_type
+      $tw.Bob.Federation.connections[data.remoteUrl].conflict_type = data.conflict_type
       $tw.Bob.Federation.connections[data.remoteUrl].remoteWikis = data.remoteWikis
 
       if($tw.Bob.Federation.connections[data.remoteUrl].socket.readyState !== 1) {
@@ -631,10 +631,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
   function startRemoteSync(remoteServerObject, data) {
     // Get a list of tiddlers from the local wiki that should be synced if
-    // syncType is bidirectional or pushOnly
+    // sync_type is bidirectional or pushOnly
     let pushList = []
-    if(['bidirectional','pushOnly'].indexOf(data.syncType) !== -1) {
-      pushList = $tw.Bob.Wikis[data.wiki].filterTiddlers(data.syncFilter)
+    if(['bidirectional','pushOnly'].indexOf(data.sync_type) !== -1) {
+      pushList = $tw.Bob.Wikis[data.wiki].filterTiddlers(data.sync_filter)
     }
     let tiddlerHashes = {}
     pushList.forEach(function(tidName) {
@@ -643,9 +643,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // send a sync message with the filter and accompanying tiddler hashes.
     let message = {
       type: 'syncRequest',
-      syncType: data.syncType,
-      syncFilter: data.syncFilter,
-      conflictType: data.conflictType
+      sync_type: data.sync_type,
+      sync_filter: data.sync_filter,
+      conflict_type: data.conflict_type
     }
     remoteServerObject.send(JSON.stringify(message))
   }

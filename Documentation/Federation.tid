@@ -25,16 +25,16 @@ uniqueName: {
   staticUrl: if the url changes or not (yes or no),
   publicKey: a public key,
   notes: optional notes you can make about the server,
-  canLogin: if the server allows you to login,
-  availableWikis: {
+  allows_login: if the server allows you to login,
+  available_wikis: {
     wikiName1: {
       sync: yes/no,
-      syncFilter: <<someFilter>>,
-      syncType: pull/push/bidirectional,
-      autoSync: yes/no,
+      sync_filter: <<someFilter>>,
+      sync_type: pull/push/bidirectional,
+      auto_sync: yes/no,
       public: yes/no,
-      conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
-      allowsLogin: yes/no
+      conflict_type: newestWins/oldestWins/localWins/remoteWins/manual,
+      allows_login: yes/no
     },
     wikiName2: {
       <<same stuff>>
@@ -61,10 +61,10 @@ Server info tiddler format:
   url: server url,
   staticUrl: yes/no,
   publicKey: a key,
-  canLogin: yes/no,
+  allows_login: yes/no,
   notes: some notes,
-  availableWikis: space separated list of wiki names,
-  availableChats: space separated list of chat names
+  available_wikis: space separated list of wiki names,
+  available_chats: space separated list of chat names
 }
 ```
 
@@ -75,12 +75,12 @@ $:/Bob/KnownServers/<uniqueName>/wikis/<wikiName>
 ```
 {
   sync: yes/no,
-  syncFilter: <<someFilter>>,
-  syncType: pull/push/bidirectional,
-  autoSync: yes/no,
+  sync_filter: <<someFilter>>,
+  sync_type: pull/push/bidirectional,
+  auto_sync: yes/no,
   public: yes/no,
-  conflictType: newestWins/oldestWins/localWins/remoteWins/manual,
-  allowsLogin: yes/no
+  conflict_type: newestWins/oldestWins/localWins/remoteWins/manual,
+  allows_login: yes/no
 }
 ```
 
@@ -98,7 +98,7 @@ $:/Bob/KnownServers/<uniqueName>/chats/<chatName>
 * `uniqueName` will be `serverName (publicKey)` for now, it may end up just being 0, 1, 2, ... as more servers get added, it may never need to be shared with anyone else.
 
 to connect to another server select the serverName from a select widget,
-then there is an interface that has the availableWikis and the current sync
+then there is an interface that has the available_wikis and the current sync
 status and setup for the wiki.
 
 Servers have to have a login interface as well so you can log in to see private
