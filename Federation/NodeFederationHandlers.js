@@ -235,7 +235,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('receive requestHashes')
     if(data.tid_param) {
-      updateSyncing(data._source_info.serverKey);
+      setTimeout(function() {
+        console.log("update syncing")
+        updateSyncing(data._source_info.serverKey);
+      }, 10000);
       // Ask for hashes for the wikis
       // Request the hashes
       const test = $tw.ServerSide.loadWiki(data.tid_param.name);

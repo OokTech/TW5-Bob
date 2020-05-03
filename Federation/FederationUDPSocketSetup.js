@@ -177,13 +177,13 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       Setup the websocket server if we aren't using an external one
     */
     function finishSetup () {
-      if($tw.settings.federation.checkConnections !== 'no') {
-        pingConnections('all');
-      }
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
         if ($tw.settings.federation.broadcast === 'yes') {
           $tw.Bob.Federation.multicastSearch()
+        }
+        if($tw.settings.federation.checkConnections !== 'no') {
+          pingConnections('all');
         }
       }, $tw.settings.federation.rebroadcastInterval);
     }
