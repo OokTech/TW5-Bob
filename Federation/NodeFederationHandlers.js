@@ -225,7 +225,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         filter: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_filter
       }
       console.log(5)
-      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+      $tw.Bob.Federation.sendToRemoteServer(message, $tw.Bob.Federation.connections[serverName]);
       console.log(6)
     })
   }
