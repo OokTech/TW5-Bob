@@ -451,7 +451,8 @@ it will overwrite this file.
               allowslogin: data.connections[connectionUrl].availableWikis[thisWikiName].canlogin || 'no',
               name: thisWikiName,
               server_name: connectionUrl,
-              local_name: data.connections[connectionUrl].availableWikis[thisWikiName].local_name
+              local_name: data.connections[connectionUrl].availableWikis[thisWikiName].local_name,
+              previous_sync: data.connections[connectionUrl].availableWikis[thisWikiName].previous_sync || 0
             }))
           })
           data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {

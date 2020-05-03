@@ -174,10 +174,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             public: 'yes',
             sync: 'no',
             sync_filter: '[is[system]!is[system]]',
-            synctype: ''
+            synctype: '',
+            previous_sync: 0
           };
         } else {
-
+          $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync = $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync || 0;
         }
       });
       $tw.Bob.Federation.connections[data._source_info.serverKey].availableChats = data.info.availableChats || [];
@@ -198,6 +199,32 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   /*
+    This checks the status of automatically syncing wikis and asks to sync if
+    appropriate.
+  */
+  function updateSyncing(serverName) {
+    // if the server has any wikis synced from the sending server and it has
+    // been long enough ask for it to sync.
+
+    // The time difference compares two tiddlywiki date fields, so the format
+    // of the compared values is YYYYMMDDHHmmssmmm (4 digit year, 2 digit month, 2 digit day, 2 digit hour, 2 digit minute, 2 digit second, 3 digit millisecond)
+    // so 10000 is 10 seconds, 1000000 is 10 minutes
+    const syncWikis = Object.keys($tw.Bob.Federation.connections[serverName].availableWikis).filter(function(wikiName) {
+      return $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].autosync === 'yes' && $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].synctype !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[data._source_info.serverKey].availableWikis[wikiName].previous_sync > 1000000
+    })
+    // find any wikis that we want to autosync and that haven't been synced in long enough
+    syncWikis.forEach(function(wikiName) {
+      // request new things
+      const message = {
+        type: 'requestHashes',
+        fromWiki: wikiName,
+        filter: $tw.Bob.Federation.connections[data._source_info].serverKey[wikiName].sync_filter
+      }
+      $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+    })
+  }
+
+  /*
     This requests tiddler hashes from a server in preparation for syncing
 
     data {
@@ -208,9 +235,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
     console.log('receive requestHashes')
     if(data.tid_param) {
-      // if the server has any wikis synced from the sending server and it has
-      // been long enough ask for it to sync.
-      const filter = '[server_name[]]'
+      updateSyncing(data._source_info.serverKey);
+      // Ask for hashes for the wikis
+      // Request the hashes
       const test = $tw.ServerSide.loadWiki(data.tid_param.name);
       if(!test) {
         console.log('no wiki?', data);
