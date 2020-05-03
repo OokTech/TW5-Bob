@@ -222,7 +222,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {
         type: 'requestHashes',
         fromWiki: wikiName,
-        filter: $tw.Bob.Federation.connections[serverName].serverKey[wikiName].sync_filter
+        filter: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_filter
       }
       console.log(5)
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
