@@ -203,6 +203,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {type: 'ping'}
       if(Array.isArray(type)) {
         type.forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
           const serverInfo = {
             port: $tw.Bob.Federation.connections[name].port,
             address: $tw.Bob.Federation.connections[name].address
@@ -211,6 +214,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         })
       } else if(type === 'all') {
         Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
           const serverInfo = {
             port: $tw.Bob.Federation.connections[name].port,
             address: $tw.Bob.Federation.connections[name].address
@@ -219,6 +225,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         })
       } else if(type === 'active') {
         Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
           if($tw.Bob.Federation.connections[name].active === 'yes') {
             const serverInfo = {
               port: $tw.Bob.Federation.connections[name].port,
@@ -229,6 +238,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         })
       } else if(type === 'inactive') {
         Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
           if($tw.Bob.Federation.connections[name].active === 'no') {
             const serverInfo = {
               port: $tw.Bob.Federation.connections[name].port,
