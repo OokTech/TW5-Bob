@@ -210,7 +210,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     // of the compared values is YYYYMMDDHHmmssmmm (4 digit year, 2 digit month, 2 digit day, 2 digit hour, 2 digit minute, 2 digit second, 3 digit millisecond)
     // so 10000 is 10 seconds, 1000000 is 10 minutes
     const syncWikis = Object.keys($tw.Bob.Federation.connections[serverName].available_wikis).filter(function(wikiName) {
-      return $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].auto_sync === 'yes' && $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].sync_type !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName].previous_sync > 1000000
+      return $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].auto_sync === 'yes' && $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_type !== 'push' && $tw.utils.stringifyDate(new Date()) - $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].previous_sync > 1000000
     })
     // find any wikis that we want to autosync and that haven't been synced in long enough
     syncWikis.forEach(function(wikiName) {
@@ -218,7 +218,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       const message = {
         type: 'requestHashes',
         fromWiki: wikiName,
-        filter: $tw.Bob.Federation.connections[data._source_info].serverKey[wikiName].sync_filter
+        filter: $tw.Bob.Federation.connections[serverName].serverKey[wikiName].sync_filter
       }
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     })
