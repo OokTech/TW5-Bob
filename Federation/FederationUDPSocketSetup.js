@@ -96,6 +96,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // local net pubKey and signed will be used later, the public key and a
         // signed token showing that the server has the private key
         $tw.Bob.Federation.multicastSearch = function() {
+          console.log('multicast search')
           const message = {
             type: 'multicastSearch',
             serverName: $tw.settings.federation.serverName,
