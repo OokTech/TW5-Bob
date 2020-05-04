@@ -3,16 +3,48 @@ caption: Federation
 tags: [[Bob Documentation]]
 description: Federation between servers
 
+''HUGE WARNING:'' Do not enable this anywhere but on your home network where
+you know everything connected to the network. This is very very experimental
+and currently has no security features enabled while the communication parts
+are being worked out.
+
+Note: All of this is still experimental, it has worked well for me but one
+person testing is nowhere near enough for something to be considered stable.
+
+Note 2: This is unfinished, it doesn't have any security or privacy controls
+implemented yet. They are coming in future updates but for now if you enable
+this on a public network you are announcing to the world what you have and
+allowing anyone to get copies of your wikis and potentially edit your wikis.
+
 !! Federation
 
-Federation lets you communicate between different servers.
+Federation allows communication between different servers.
 
-This allows many things, including:
+This allows many things.
+
+!!!currently implemented features:
 
 * syncing wikis
-* fetching tiddlers from wikis on remote servers
-* sending tiddlers to wikis on remote servers
 * real-time chat between different servers
+
+!!!Planned features:
+
+* security and privacy controls
+* Separate chat conversations
+* Proper chat syncing (new members in conversations can get the conversation history)
+* fetching tiddlers from wikis on remote servers (this is implemented as part of the syncing, but conceptually it should have a separate interface despite using the same back-end mechanisms)
+* request other servers pull tiddlers from the local server (same note as above)
+
+!! Real-time chat
+
+To use the chat you need to enable federation (TODO put instructions here) and
+enable chat (TODO put instructions here).
+
+Once everything is enabled Bob should automatically connect to any other Bob
+servers on the same network.
+Open the chat interface, enter the name you want to use and start chatting.
+When you type in the text input you can either click the `Send` button or press
+enter to send the message.
 
 !! Backend things
 

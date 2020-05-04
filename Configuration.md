@@ -119,7 +119,8 @@ used. If the json isn't formatted correctly than default values will be used.
     "enableMulticast": "yes",
     "multicastAddress": "230.0.0.114",
     "broadcast": "yes",
-    "rebroadcastInterval": "5000"
+    "rebroadcastInterval": "30000",
+    "checkConnections": "yes"
   },
   "advanced": {
     "localMessageQueueTimeout": 500,
@@ -297,6 +298,9 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
     servers.
   - `multicastAddress` this is the multicast ip used for using multicast on the
     local network to find other servers.
+  - `broadcast` if `yes` Bob will periodically send udp multicast messages to announce its presence to other Bob servers.
+  - `rebroadcastInterval` if `broadcast` is set to `yes` this is the interval between udp multicast messages
+  - `checkConnections` if set to `yes` the server will send a ping trying to contact any known servers to maintain 
 - `advanced` these are advanced settings that should almost never have to be
   changed. Changing these values can cause undesired or unexpected behaviour.
   - `localMessageQueueTimeout` for local messages, the maximum time the server

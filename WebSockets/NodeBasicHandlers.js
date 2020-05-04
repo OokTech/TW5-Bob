@@ -130,7 +130,7 @@ if($tw.node) {
               // The file has the normal title so use the normal title here.
               changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
             } catch (e) {
-              //console.log(e);
+              $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
             }
             if(changed) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
@@ -151,7 +151,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     // Acknowledge the message.
     $tw.Bob.Shared.sendAck(data);
-    //console.log('Node Delete Tiddler');
+    $tw.Bob.logger.log('Node Delete Tiddler', {level: 4});
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;

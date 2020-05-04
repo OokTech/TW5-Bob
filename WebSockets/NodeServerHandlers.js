@@ -22,7 +22,7 @@ if($tw.node) {
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
-    console.log('openRemoteConnection', data)
+    $tw.Bob.logger.log('openRemoteConnection', data, {level: 3})
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
       function authenticateMessage() {
@@ -43,7 +43,7 @@ if($tw.node) {
             port: $tw.settings['ws-server'].port
           }
         }
-        console.log('REMOTE SOCKET OPENED', data.url)
+        $tw.Bob.logger.log('REMOTE SOCKET OPENED', data.url, {level: 4})
         $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
         $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings['ws-server'].port}, data.url)
         $tw.Bob.Federation.updateConnections()
@@ -71,10 +71,10 @@ if($tw.node) {
             Add the on message handlers
           */
         } catch (e) {
-          console.log('error opening federated connection ', e)
+          $tw.Bob.logger.error('error opening federated connection ', e, {level: 2})
         }
       } else {
-        console.log('A connection already exists to ', data.url)
+        $tw.Bob.logger.log('A connection already exists to ', data.url, {level: 3})
       }
     }
   }
@@ -105,8 +105,8 @@ if($tw.node) {
         port: $tw.Bob.Federation.connections[data.$server].port,
         address: $tw.Bob.Federation.connections[data.$server].address
       }
-      console.log(newData)
-      console.log(serverInfo)
+      $tw.Bob.logger.log('send remote message:', newData, {level: 4})
+      $tw.Bob.logger.log('send message to:', serverInfo, {level: 4})
       $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), serverInfo, data.wiki)
     }
   }

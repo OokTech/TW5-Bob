@@ -435,7 +435,8 @@ it will overwrite this file.
             publickey: data.connections[connectionUrl].publicKey,
             allows_login: data.connections[connectionUrl].allows_login,
             name: data.connections[connectionUrl].name,
-            local_name: data.connections[connectionUrl].local_name
+            local_name: data.connections[connectionUrl].local_name,
+            active: data.connections[connectionUrl].active
           }
           $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
           Object.keys(data.connections[connectionUrl].available_wikis).forEach(function(thisWikiName) {

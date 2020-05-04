@@ -678,7 +678,7 @@ ServerSide.sendBrowserAlert = function(input) {
           $tw.Bob.SendToBrowser($tw.connections[index], message);
         });
       } else {
-        console.log('why here?')
+        $tw.Bob.logger.log('send message to all browsers', {level: 4})
         $tw.Bob.SendToBrowsers(message);
       }
     }

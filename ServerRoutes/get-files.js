@@ -91,6 +91,63 @@ exports.handler = function(request,response,state) {
             response.statusCode = 404;
             response.end();
           }
+          const ext = path.parse(pathname).ext.toLowerCase();
+          const mimeMap = $tw.settings.mimeMap || {
+            '.aac': 'audio/aac',
+            '.avi': 'video/x-msvideo',
+            '.csv': 'text/csv',
+            '.doc': 'application/msword',
+            '.epub': 'application/epub+zip',
+            '.gif': 'image/gif',
+            '.html': 'text/html',
+            '.htm': 'text/html',
+            '.ico': 'image/x-icon',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.mp3': 'audio/mpeg',
+            '.mpeg': 'video/mpeg',
+            '.oga': 'audio/ogg',
+            '.ogv': 'video/ogg',
+            '.ogx': 'application/ogg',
+            '.pdf': 'application/pdf',
+            '.png': 'image/png',
+            '.svg': 'image/svg+xml',
+            '.weba': 'audio/weba',
+            '.webm': 'video/webm',
+            '.wav': 'audio/wav'
+          };
+          // Special handling for streaming video types
+          // ref: https://gist.github.com/paolorossi/1993068
+          if(mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+            fs.stat(pathname, function(err, stat) {
+              if(err) {
+                $tw.Bob.logger.error(err, {level:1})
+                response.statusCode = 500;
+                response.end();
+              } else {
+                const total = stat.size;
+                if (request.headers['range']) {
+                  const range = request.headers.range;
+                  const parts = range.replace(/bytes=/, "").split("-");
+                  const partialstart = parts[0];
+                  const partialend = parts[1];
+                  const start = parseInt(partialstart, 10);
+                  const end = partialend ? parseInt(partialend, 10) : total-1;
+                  const chunksize = (end-start)+1;
+                  const file = fs.createReadStream(pathname, {start: start, end: end});
+                  response.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': mimeMap[ext] });
+                  file.pipe(response);
+                } else {
+                  response.writeHead(200, { 'Content-Length': total, 'Content-Type': mimeMap[ext] });
+                  fs.createReadStream(pathname).pipe(response);
+                }
+              }
+            })
+          } else {
+            response.writeHead(403);
+            response.end();
+          }
+          /*
           fs.readFile(pathname, function(err, data) {
             if(err) {
               $tw.Bob.logger.error(err, {level:1})
@@ -131,6 +188,7 @@ exports.handler = function(request,response,state) {
               }
             }
           })
+          */
         })
       }
     }

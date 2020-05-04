@@ -129,6 +129,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         type:'requestServerInfo',
       };
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
+      updateSyncing(data._source_info.serverKey);
     }
   }
 
@@ -217,10 +218,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       // request new things
       const message = {
         type: 'requestHashes',
-        tid_param: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName],
-        fromWiki: wikiName,
-        filter: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].sync_filter
+        tid_param: $tw.Bob.Federation.connections[serverName].available_wikis[wikiName]
       }
+      $tw.Bob.Federation.connections[serverName].available_wikis[wikiName].previous_sync = $tw.utils.stringifyDate(new Date());
       $tw.Bob.Federation.sendToRemoteServer(message, $tw.Bob.Federation.connections[serverName]);
     })
   }
@@ -234,17 +234,17 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestHashes = function(data) {
-    console.log('receive requestHashes')
+    $tw.Bob.logger.log('receive requestHashes', {level: 4})
     if(data.tid_param) {
       setTimeout(function() {
-        console.log("update syncing")
+        $tw.Bob.logger.log("update syncing", {level: 2})
         updateSyncing(data._source_info.serverKey);
       }, 10000);
       // Ask for hashes for the wikis
       // Request the hashes
       const test = $tw.ServerSide.loadWiki(data.tid_param.name);
       if(!test) {
-        console.log('no wiki?', data);
+        $tw.Bob.logger.log('no wiki?', data, {level: 3});
         return;
       }
       // get list of tiddlers
@@ -261,7 +261,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         nonce: data.rnonce,
         fromWiki: data.tid_param.name
       }
-      console.log('sending send hashes')
+      $tw.Bob.logger.log('sending send hashes', {level: 4})
       $tw.Bob.Federation.sendToRemoteServer(message, data._source_info);
     }
   }
@@ -271,7 +271,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     local wiki and requests any that are missing.
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
-    console.log('receive sendHashes', data.hashes)
+    $tw.Bob.logger.log('receive sendHashes', data.hashes, {level: 4})
     if (data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
       const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.fromWiki].local_name || data.fromWiki;
@@ -307,7 +307,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
             tiddlersToRequest.push(tidTitle);
           }
         })
-        console.log('requesting ', tiddlersToRequest.length, ' tiddlers')
+        $tw.Bob.logger.log('requesting ', tiddlersToRequest.length, ' tiddlers', {level: 4})
         tiddlersToRequest.forEach(function(tidTitle) {
           const message = {
             type: 'requestTiddlers',
@@ -335,10 +335,9 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
-    console.log('receive sendTiddlers')
+    $tw.Bob.logger.log('receive sendTiddlers', {level: 4})
     if (typeof data.tiddlers === 'object') {
       const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].local_name || data.wikiName;
-      console.log(localName, Object.keys(data.tiddlers))
       $tw.ServerSide.loadWiki(localName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
           if(!tidFields) {
@@ -431,7 +430,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     }
   */
   $tw.Bob.Federation.messageHandlers.requestTiddlers = function(data) {
-    console.log('receive requestTiddlers')
+    $tw.Bob.logger.log('receive requestTiddlers', {level: 4})
     data.wikiName = data.wikiName || 'RootWiki';
     data.filter = data.filter || '[!is[system]is[system]]';
 
@@ -515,7 +514,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   function requestResend(data) {
-    console.log('request resend')
+    $tw.Bob.logger.log('request resend', {level: 4})
     const receivedArray = Object.keys($tw.Bob.Federation.messageChunks[data.c]);
     const message = {
       type: 'requestResend',
@@ -527,7 +526,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
   }
 
   $tw.Bob.Federation.messageHandlers.requestResend = function(data) {
-    console.log('resend request received')
+    $tw.Bob.logger.log('resend request received', {level: 4})
     // Make sure we have it saved
     $tw.Bob.Federation.chunkHistory = $tw.Bob.Federation.chunkHistory || {};
     if($tw.Bob.Federation.chunkHistory[data.mid]) {
