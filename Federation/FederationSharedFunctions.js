@@ -203,7 +203,7 @@ This has some functions that are needed by Bob in different places.
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
             if (err) {
-              console.log(err);
+              $tw.Bob.logger.error(err,{level: 3});
             } else {
               checkMessageQueue();
             }
@@ -373,7 +373,7 @@ This has some functions that are needed by Bob in different places.
         try{
           message = JSON.parse(message);
         } catch (e) {
-          console.log('err', e);
+          $tw.Bob.logger.error('err', e, {level: 3});
           return false;
         }
       }
@@ -419,8 +419,7 @@ This has some functions that are needed by Bob in different places.
         messageQueue.push(messageData);
         checkMessageQueue();
       } else {
-        // log something here console.log
-        console.log('no message data?')
+        $tw.Bob.logger.error('no message data?', {level: 3})
       }
     }
 

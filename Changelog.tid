@@ -15,6 +15,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Federation - federated chat on the local network works
 * Federation - fixed a problem where some network configurations would prevent servers from finding each other using UDP multicast.
 * Federation - there is a bug with dates when fetching tiddlers, sometimes dates come out as NaNaNa.... in the receiving wiki.
+* Moved more messages to use the Bob logger instead of console.log
+* The file server now correctly supports video files
 
 !! Version 1.5.2 Scruffy, the Janitor
 

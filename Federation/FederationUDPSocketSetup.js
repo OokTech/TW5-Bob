@@ -82,10 +82,10 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.socket.bind($tw.settings.federation.udpPort)
     $tw.Bob.Federation.socket.on('listening', ()=>{
       $tw.Bob.Federation.updateConnections()
-      console.log('listening on udp port', $tw.settings.federation.udpPort)
+      $tw.Bob.logger.log('listening on udp port', $tw.settings.federation.udpPort, {level: 2})
       if ($tw.settings.federation.enableMulticast === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.0.114';
-        console.log('using multicast address ', $tw.settings.federation.multicastAddress);
+        $tw.Bob.logger.log('using multicast address ', $tw.settings.federation.multicastAddress,{level: 2});
         $tw.Bob.Federation.socket.setTTL(128);
         $tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
@@ -105,7 +105,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           const messageBuffer = Buffer.from(JSON.stringify(message))
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, $tw.settings.federation.udpPort, $tw.settings.federation.multicastAddress, function(err) {
             if (err) {
-              console.log(err)
+              $tw.Bob.logger.error(err, {level: 3})
             }
           })
         }
@@ -115,7 +115,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
     $tw.Bob.Federation.socket.on('error', (err) => {
-      console.log(err)
+      $tw.Bob.logger.error(err, {level: 3})
     });
 
     const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk', 'chatMessage', 'chatHistory', 'requestResend'];

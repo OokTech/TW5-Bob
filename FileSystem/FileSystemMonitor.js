@@ -51,7 +51,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
               if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
                 $tw.Bob.DeleteTiddler(folder, filename, prefix);
               } else {
-                console.log('non-tiddler file deleted:', filename)
+                $tw.Bob.logger.log('non-tiddler file deleted:', filename, {level: 3})
               }
             } else if (err.code === 'EACCES') {
               // Permissions error
@@ -84,7 +84,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
                 } catch (e) {
                   if (e.code !== 'ENOENT') {
-                    console.log(e)
+                    $tw.Bob.logger.error(e, {level: 3})
                   }
                   return
                 }
