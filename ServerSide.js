@@ -244,13 +244,6 @@ ServerSide.loadWiki = function (wikiName, cb) {
       text: wikiName
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-    if($tw.settings['ws-server'].proxyprefix) {
-      const wikiPathFields = {
-        title: '$:/ProxyPrefix',
-        text: $tw.settings['ws-server'].pathprefix
-      };
-      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
-    }
     if(typeof cb === 'function') {
       setTimeout(cb, 1000)
     }

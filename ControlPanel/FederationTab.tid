@@ -3,26 +3,12 @@ caption: Federation
 
 These are things for inter-server federation
 
+<$checkbox>
+  Enable Federation
+</$checkbox> <<helpButton "$:/plugins/OokTech/Bob/AboutEnableFederation">>
+
+<$checkbox>
+  Announce on the local network
+</$checkbox> <<helpButton "$:/plugins/OokTech/Bob/AboutAnnounceOnLocalNetwork">>
+
 <<tabs "[all[tiddlers+shadows]tag[FederationTab]]">>
-
-Federation stuff!!
-
-We need to add ways to sync with other wikis, a way to configure what gets
-synced, stuff like that.
-
-!!Active Connections
-
-<$list
-  filter='[list[$:/Bob/ActiveConnections]]'
->
-
-</$list>
-
-!!Known Connections
-
-url, name, synced wikis, other actions
-
-something for security, pubilc keys probably
-
-
-Send remote message - sends a websocket message to a remote server

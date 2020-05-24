@@ -16,6 +16,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Fixed some rare edge cases that could cause Bob to crash
 * Moved more messages to use the Bob logger instead of console.log
 * The file server now correctly supports video files
+* Hopefully removed the need for the `proxyprefix` setting.
 
 !! Version 1.5.2 Scruffy, the Janitor
 

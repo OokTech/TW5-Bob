@@ -109,14 +109,14 @@ function BrowserWSAdaptor(options) {
     if(reconnect) {
       $tw.connections = null;
     }
-    const proxyPrefixTiddler = $tw.wiki.getTiddler('$:/ProxyPrefix');
-    let ProxyPrefix = ''
-    if(proxyPrefixTiddler) {
-      ProxyPrefix = proxyPrefixTiddler.fields.text;
-      if(ProxyPrefix.charAt() !== '/') {
-        ProxyPrefix = '/' + ProxyPrefix;
-      }
+    // Get the name for this wiki for websocket messages
+    const tiddler = $tw.wiki.getTiddler("$:/WikiName");
+    if(tiddler) {
+      $tw.wikiName = tiddler.fields.text;
+    } else {
+      $tw.wikiName = '';
     }
+
     const IPAddress = window.location.hostname;
     const WSSPort = window.location.port;
     const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
@@ -125,7 +125,8 @@ function BrowserWSAdaptor(options) {
     $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
     $tw.connections[connectionIndex].index = connectionIndex;
     try{
-      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + ProxyPrefix);
+      const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + window.location.pathname.replace(r,'') );
     } catch (e) {
       console.log(e)
       $tw.connections[connectionIndex].socket = {};
@@ -133,14 +134,6 @@ function BrowserWSAdaptor(options) {
     $tw.connections[connectionIndex].socket.onopen = openSocket;
     $tw.connections[connectionIndex].socket.onmessage = parseMessage;
     $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
-
-    // Get the name for this wiki for websocket messages
-    const tiddler = $tw.wiki.getTiddler("$:/WikiName");
-    if(tiddler) {
-      $tw.wikiName = tiddler.fields.text;
-    } else {
-      $tw.wikiName = '';
-    }
 
     if(!reconnect) {
       addHooks();
