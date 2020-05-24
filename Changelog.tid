@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.6.0b1 This is a beta, expect it to be unstable, backup your data
+!! Version 1.6.0b1 Mopbucket This is a beta, expect it to be unstable, backup your data
 
 * (BobEXE) switched to using nexe instead of pkg.
 * Fixed uploading media to the RootWiki so it has the correct _canonical_uri

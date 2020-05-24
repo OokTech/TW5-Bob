@@ -31,9 +31,11 @@ const sendToServer = function (message, callback) {
       delayRecord[message.tiddler.fields.title].cb = callback
       delayRecord[message.tiddler.fields.title].message = message
       delayRecord[message.tiddler.fields.title].timeout = setTimeout( function() {
-        $tw.Bob.Shared.sendMessage(delayRecord[message.tiddler.fields.title].message, 0);
-        delayRecord[message.tiddler.fields.title].cb(null, null);
-        delayRecord[message.tiddler.fields.title] = undefined;
+        if(delayRecord[message.tiddler.fields.title]) {
+          $tw.Bob.Shared.sendMessage(delayRecord[message.tiddler.fields.title].message, 0);
+          delayRecord[message.tiddler.fields.title].cb(null, null);
+          delayRecord[message.tiddler.fields.title] = undefined;
+        }
       }, 150);
       return false;
     } else {
