@@ -5,15 +5,16 @@ title: $:/plugins/OokTech/Bob/Changelog
 * (BobEXE) switched to using nexe instead of pkg.
 * Fixed uploading media to the RootWiki so it has the correct _canonical_uri
 * improved the normalise tiddler function so tiddlers with no text fields are handled consistently
-* Federation - udp multicast works for discovering other Bob servers on the local network.
-* Federation - pulling tiddlers from other Bob servers on the local network works
-* Federation - federated chat on the local network works
-* Federation - fixed a problem where some network configurations would prevent servers from finding each other using UDP multicast.
 * Fixed a regression where draft tiddlers were saved to the server
 * partially fixed a regression caused by switching to the built-in syncer, tiddlers you edit directly (like `$:/SiteTitle`) try to save on every keystroke and it chokes, before there was a throttling system in place for saving tiddlers that used the message queue. Instead of keeping it from saving, it is just slow to respond.
 * Added a `$tiddler` attribute to `action-websocketmessage` to simplify a few things.
 * Single file wikis that contain the Bob plugin shouldn't show the RSOE anymore
 * Fixed some rare edge cases that could cause Bob to crash
+* Federation - udp multicast works for discovering other Bob servers on the local network.
+* Federation - pulling tiddlers from other Bob servers on the local network works
+* Federation - federated chat on the local network works
+* Federation - fixed a problem where some network configurations would prevent servers from finding each other using UDP multicast.
+* Federation - there is a bug with dates when fetching tiddlers, sometimes dates come out as NaNaNa.... in the receiving wiki.
 * Moved more messages to use the Bob logger instead of console.log
 * The file server now correctly supports video files
 * Hopefully removed the need for the `proxyprefix` setting.

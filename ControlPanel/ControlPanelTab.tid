@@ -17,7 +17,7 @@ Click the ^^(?)^^ next to options for more information.
 * [[Saver Server|$:/plugins/OokTech/Bob/SaverServer]] - enable and configure the saver for single file wikis
 * [[File Server|$:/plugins/OokTech/Bob/FileServerSetup]] - setup file server so that you can access local media files
 * [[Server Settings|$:/plugins/OokTech/Bob/ServerTab]] - logging and manual settings
-* [[Federation|$:/plugins/OokTech/Bob/FederationTab]] - federated chat and set up wiki syncing between this server and other Bob servers
+<!--* [[Federation|$:/plugins/OokTech/Bob/FederationTab]] - federated chat and set up wiki syncing between this server and other Bob servers-->
 * [[Written Documentation|$:/plugins/OokTech/Bob/Documentation/Bob Documentation]] - more details
 * [[About OokTech/Support Development|$:/plugins/OokTech/Bob/OokTechInfo]] - About the people who make Bob
 
