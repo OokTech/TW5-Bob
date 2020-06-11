@@ -44,6 +44,8 @@ used. If the json isn't formatted correctly than default values will be used.
   "ws-server": {
     "port": 8080,
     "host": "127.0.0.1",
+    "username": "admin",
+    "password": "p4ssw0rd",
     "autoIncrementPort": "false",
     "servePlugin": "true",
     "pathprefix": "",
