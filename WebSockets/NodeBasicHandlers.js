@@ -91,7 +91,8 @@ if($tw.node) {
   /*
     This handles saveTiddler messages sent from the browser.
 
-    TODO: Determine if we always want to ignore draft tiddlers.
+    If we always want to ignore draft tiddlers, 
+    use `[has[draft.of]]` in $:/plugins/OokTech/Bob/ExcludeSync
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
     // Acknowledge the message.
@@ -100,48 +101,45 @@ if($tw.node) {
     if(data.tiddler) {
       // Make sure that the tiddler that is sent has fields
       if(data.tiddler.fields) {
-        // Ignore draft tiddlers
-        if(!data.tiddler.fields['draft.of']) {
-          const prefix = data.wiki || '';
-          // Set the saved tiddler as no longer being edited. It isn't always
-          // being edited but checking eacd time is more complex than just
-          // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({
-            tiddler:{
-              fields:{
-                title:data.tiddler.fields.title
-              }
-            },
-            wiki: prefix
-          });
-          // If we are not expecting a save tiddler event than save the
-          // tiddler normally.
-          if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
-            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-          } else {
-            // If changed send tiddler
-            let changed = true;
-            try {
-              let tiddlerObject = {}
-              if(data.tiddler.fields._canonical_uri) {
-                tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath+'.meta');
-              } else {
-                tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath);
-              }
-              // The file has the normal title so use the normal title here.
-              changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
-            } catch (e) {
-              $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
+        const prefix = data.wiki || '';
+        // Set the saved tiddler as no longer being edited. It isn't always
+        // being edited but checking eacd time is more complex than just
+        // always setting it this way and doesn't benifit us.
+        $tw.nodeMessageHandlers.cancelEditingTiddler({
+          tiddler:{
+            fields:{
+              title:data.tiddler.fields.title
             }
-            if(changed) {
-              $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              // Set the wiki as modified
-              $tw.Bob.Wikis[prefix].modified = true;
+          },
+          wiki: prefix
+        });
+        // If we are not expecting a save tiddler event than save the
+        // tiddler normally.
+        if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
+          $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+        } else {
+          // If changed send tiddler
+          let changed = true;
+          try {
+            let tiddlerObject = {}
+            if(data.tiddler.fields._canonical_uri) {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath+'.meta');
+            } else {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath);
             }
+            // The file has the normal title so use the normal title here.
+            changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
+          } catch (e) {
+            $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
           }
-          delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
-          $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+          if(changed) {
+            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+            // Set the wiki as modified
+            $tw.Bob.Wikis[prefix].modified = true;
+          }
         }
+        delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
+        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);        
       }
     }
   }
