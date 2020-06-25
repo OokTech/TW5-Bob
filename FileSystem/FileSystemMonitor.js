@@ -39,6 +39,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
     $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
       $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
+        filename = filename || "";
         // The full path to the current item
         const itemPath = path.join(folder, filename);
         fs.stat(itemPath, function(err, fileStats) {

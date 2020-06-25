@@ -54,6 +54,8 @@ if($tw.node) {
   The boot process populates $tw.boot.files for each of the tiddler files that it loads. The type is found by looking up the extension in $tw.config.fileExtensionInfo (eg "application/x-tiddler" for ".tid" files).
 
   It is the responsibility of the filesystem adaptor to update $tw.boot.files for new files that are created.
+
+  If $:/config/FileSystemPaths||$:/config/FileSystemPaths exists, we need to test for a new path and delete the old file after saving.
   */
   MultiWikiAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
     prefix = prefix || '';
@@ -77,29 +79,43 @@ if($tw.node) {
     $tw.utils.createFileDirectories(tiddlersPath);
 
     // See if we've already got information about this file
-    const title = tiddler.fields.title;
+    const title = tiddler.fields.title,
+    fileSystemConfig = this.wiki.tiddlerExists("$:/config/FileSystemPaths") || this.wiki.tiddlerExists("$:/config/FileSystemExtensions"),
+    options = {};
     $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
     let fileInfo = $tw.Bob.Files[prefix][title];
     if(!fileInfo) {
-      const systemPathsText = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths")
-      let systemPathsList = []
-      if (systemPathsText) {
-        systemPathsList = systemPathsText.split("\n")
-      }
       // Otherwise, we'll need to generate it
       fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
         directory: tiddlersPath,
-        pathFilters: systemPathsList,
+        pathFilters: this.wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n"),
+        extFilters: this.wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n"),
         wiki: $tw.Bob.Wikis[prefix].wiki
       });
-
       $tw.Bob.Files[prefix][title] = fileInfo;
-      $tw.Bob.Wikis[prefix].tiddlers = $tw.Bob.Wikis[prefix].tiddlers || [];
-      if($tw.Bob.Wikis[prefix].tiddlers.indexOf(title) === -1) {
-        $tw.Bob.Wikis[prefix].tiddlers.push(title);
+    } else if(fileInfo && fileSystemConfig) {
+      // If FileSystemPaths||FileSystemExtensions, store the old path and regenerate it
+      options.fileInfo = {
+        title: title,
+        filepath: fileInfo.filepath,
+        type: fileInfo.type,
+        hasMetaFile: fileInfo.hasMetaFile
+      };
+      fileInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
+        directory: tiddlersPath,
+        pathFilters: this.wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n"),
+        extFilters: this.wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n"),
+        wiki: $tw.Bob.Wikis[prefix].wiki,
+        fileSystemPath: options.fileInfo.filepath
+      });
+      if(	options.fileInfo && options.fileInfo.filepath === fileInfo.filepath ) {
+        options = null; //if filepath matches, options not needed
+      } else {
+        $tw.Bob.Files[prefix][title] = fileInfo; //else, store new fileInfo
       }
     }
-    callback(null,fileInfo);
+    
+    callback(null,fileInfo, options);
   };
 
   /*
@@ -168,6 +184,9 @@ if($tw.node) {
     }
     function finish() {
       if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
+        // Save the tiddler in memory.
+        internalSave(tiddler, prefix);
+        $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
         self.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
          function(err,fileInfo) {
           if(err) {
@@ -177,9 +196,6 @@ if($tw.node) {
           if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
-              // Save the tiddler in memory.
-              internalSave(tiddler, prefix);
-              $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
               $tw.hooks.invokeHook('wiki-modified', prefix);
             } catch (e) {
                 $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
