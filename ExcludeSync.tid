@@ -1,5 +1,6 @@
 title: $:/plugins/OokTech/Bob/ExcludeSync
 
+[has[draft.of]]
 [prefix[$:/state/]]
 [prefix[$:/temp/]]
 [[$:/StoryList]]
