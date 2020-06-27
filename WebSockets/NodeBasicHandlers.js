@@ -195,8 +195,8 @@ if($tw.node) {
     let title = data.tiddler.fields.title;
     if(title) {
       // Make sure that the tiddler title is a string
-      if(title.startsWith("Draft of '")) {
-        title = title.slice(10,-1);
+      if(data.tiddler.fields["draft.of"]) {
+        title = data.tiddler.fields["draft.of"]
       }
       // Remove the current tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
