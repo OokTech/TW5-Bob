@@ -135,7 +135,7 @@ if($tw.node) {
   */
   MultiWikiAdaptor.prototype.generateTiddlerBaseFilepath = function(title, wiki) {
     let baseFilename;
-    let fileSystemConfig, pathNameFilters;
+    let pathNameFilters;
     // Check whether the user has configured a tiddler -> pathname mapping
     if($tw.Bob.Wikis[wiki].wiki) {
       pathNameFilters = $tw.Bob.Wikis[wiki].wiki.getTiddlerText("$:/config/FileSystemPaths");
