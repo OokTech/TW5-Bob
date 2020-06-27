@@ -56,6 +56,10 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
               }
             } else if (err.code === 'EACCES') {
               // Permissions error
+            } else if (error.code === 'EPERM' && require('os').platform() === 'win32') {
+              // Permissions error
+              // Tried to delete an emtpy folder
+              return;
             } else {
               // Some other error
             }
