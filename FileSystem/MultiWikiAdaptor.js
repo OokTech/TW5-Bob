@@ -168,6 +168,9 @@ if($tw.node) {
     }
     function finish() {
       if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
+        // Save the tiddler in memory.
+        internalSave(tiddler, prefix);
+        $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
         self.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
          function(err,fileInfo) {
           if(err) {
@@ -177,9 +180,6 @@ if($tw.node) {
           if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
-              // Save the tiddler in memory.
-              internalSave(tiddler, prefix);
-              $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
               $tw.hooks.invokeHook('wiki-modified', prefix);
             } catch (e) {
                 $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
@@ -190,7 +190,7 @@ if($tw.node) {
     }
   };
 
-  // After the tiddler file is saved this takes care of the internal part
+  // Before the tiddler file is saved this takes care of the internal part
   function internalSave (tiddler, prefix) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
     const message = {
