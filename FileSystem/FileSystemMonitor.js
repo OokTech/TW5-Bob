@@ -39,6 +39,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
     $tw.Bob.Wikis[prefix].watchers = $tw.Bob.Wikis[prefix].watchers || {};
     try {
       $tw.Bob.Wikis[prefix].watchers[folder] = fs.watch(folder, function (eventType, filename) {
+        filename = filename || "";
         // The full path to the current item
         const itemPath = path.join(folder, filename);
         fs.stat(itemPath, function(err, fileStats) {
@@ -163,6 +164,12 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
             }
           }
         })
+      }).on('error', error => {
+        // Ignore EPERM errors in windows, which happen if you delete watched folders...
+        if (error.code === 'EPERM' && require('os').platform() === 'win32') {
+          $tw.Bob.logger.log('[Info] Failed to watch deleted folder.', {level:3});
+          return;
+        }
       });
     } catch (e) {
       $tw.Bob.logger.error('Failed to watch folder!', e, {level:1});

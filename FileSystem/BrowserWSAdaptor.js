@@ -218,7 +218,30 @@ function BrowserWSAdaptor(options) {
       $tw.wikiName = '';
     }
     $tw.hooks.addHook("th-editing-tiddler", function(event) {
+      // Special handling for unedited shadow tiddlers
       const token = localStorage.getItem('ws-token');
+      if($tw.wiki.isShadowTiddler(event.tiddlerTitle) && !$tw.wiki.tiddlerExists(event.tiddlerTitle)) {
+        // Wait for the document to have focus again and then check for the existence of a draft tiddler for the shadow, if one doesn't exist cancel the edit lock
+        setTimeout(function(tid) {
+          if(document.hasFocus()) {
+            if(!$tw.wiki.findDraft(tid)) {
+              console.log("here")
+              // Cancel the edit lock
+              const message = {
+                type: 'cancelEditingTiddler',
+                tiddler:{
+                  fields:{
+                    title: tid
+                  }
+                },
+                wiki: $tw.wikiName,
+                token: token
+              };
+              sendToServer(message);
+            }
+          }
+        }, 200, event.tiddlerTitle)
+      }
       const message = {
         type: 'editingTiddler',
         tiddler: {
