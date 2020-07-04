@@ -48,6 +48,10 @@ if($tw.node) {
       $tw.hooks.addHook('wiki-loaded', function(wikiName) {
         saveWikiBackup(wikiName);
       });
+      $tw.hooks.addHook('wiki-loaded', function(wikiName) {
+        // For now just save a copy of the settings.json when the server starts
+        saveSettingsBackup();
+      });
     }
     if($tw.settings.backups.saveOnModified) {
       $tw.hooks.addHook('wiki-modified', function(wikiName) {
@@ -63,27 +67,62 @@ if($tw.node) {
       $tw.utils.createDirectory(folder);
       fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName, 'no', 'no'), function(err) {
         if(err) {
-          $tw.Bob.logger.error('error saving backup:', err);
+          $tw.Bob.logger.error('error saving backup:', err, {level: 1});
         }
         $tw.Bob.Wikis[wikiName].timer = false;
         if($tw.settings.backups.maxBackups > 0) {
           // make sure there are at most maxBackups wikis saved in the folder.
-          fs.readdir(folder, function(err, filelist) {
-            const backupsList = filelist.filter(function(item) {
-              return item.startsWith('backup-')
-            }).sort()
-            if(backupsList.length > $tw.settings.backups.maxBackups) {
-              for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
-                fs.unlink(path.join(folder,backupsList[i]),function(err){
-                  if(err) {
-                    $tw.Bob.logger.error('error removing old backup:',err)
-                  }
-                });
+          fs.readdir(folder, function(err2, filelist) {
+            if(err2) {
+              $tw.Bob.logger.error('error reading backups folder', err2, {level: 1});
+            } else {
+              const backupsList = filelist.filter(function(item) {
+                return item.startsWith('backup-')
+              }).sort()
+              if(backupsList.length > $tw.settings.backups.maxBackups) {
+                for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
+                  fs.unlink(path.join(folder,backupsList[i]),function(err3){
+                    if(err3) {
+                      $tw.Bob.logger.error('error removing old backup:',err3)
+                    }
+                  });
+                }
               }
             }
           });
         }
       });
+    }
+
+    function saveSettingsBackup() {
+      const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, 'settings');
+      const filePath = path.join(folder, 'settings-backup-' + $tw.utils.stringifyDate(new Date()) + '.json');
+      $tw.utils.createDirectory(folder);
+      fs.writeFile(filePath, JSON.stringify($tw.settings, "", 2), function(err) {
+        if(err) {
+          $tw.Bob.logger.error('error saving settings backup', err, {level: 1});
+        }
+        if($tw.settings.backups.maxBackups > 0) {
+          fs.readdir(folder, function(err2, filelist) {
+            if(err2) {
+              $tw.Bob.logger.error('error reading backups folder', err2, {level: 1});
+            } else {
+              const backupsList = filelist.filter(function(item) {
+                return item.startsWith('settings-backup')
+              }).sort()
+              if(backupsList.length > $tw.settings.backups.maxBackups) {
+                for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
+                  fs.unlink(path.join(folder,backupsList[i]),function(err3){
+                    if(err3) {
+                      $tw.Bob.logger.error('error removing old backup:',err3)
+                    }
+                  });
+                }
+              }
+            }
+          });
+        }
+      })
     }
   }
 }

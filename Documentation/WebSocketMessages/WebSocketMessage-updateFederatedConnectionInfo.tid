@@ -1,0 +1,15 @@
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-updateFederatedConnectionInfo
+tags: [[Websocket Message]][[Human Usable]]
+caption: updateFederatedConnectionInfo
+description: Update the saved information for a federated server
+
+While this is human usable, it is probably always better to use the wiki ui to
+do everything instead of manually using this.
+
+This message takes the information tiddler for a federated connection and sends
+it to the server where it is used to update the saved information on the server.
+
+!!Usage
+
+|!Parameter |!Description |
+|!$tiddler |The title of the tiddler that holds the connection information. |

@@ -21,6 +21,7 @@ The ''action-websocketmessage'' widget is invisible. Any content within it is ig
 |!Attribute |!Description |
 |$type |The name of the websocket message you are sending, from the list in [[WebSocketMessages|$:/plugins/OokTech/Bob/WebSocketMessages]] |
 |$param |This was supposed to be the default parameter for messages but it isn't used. This will probably be removed in the future. |
+|$tiddler |This is the title of a tiddler that can be sent along with the message. |
 |//{any other attributes}// |Each other attributed is added to the message sent. Attributes are added using `attribute=value` syntax. |
 
 ! Examples

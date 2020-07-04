@@ -47,7 +47,7 @@ exports.getLanguageInfo = function() {
         })
       } catch (e) {
         if(e.code === 'ENOENT') {
-          $tw.Bob.logger.log('No Languages Folder ' + languagePaths[languageIndex], {level:2});
+          $tw.Bob.logger.log('No Languages Folder ' + languagePaths[languageIndex], {level:3});
         } else {
           $tw.Bob.logger.error('Error getting language info', e, {level:2});
         }

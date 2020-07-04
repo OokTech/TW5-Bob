@@ -18,6 +18,7 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   /*
     This handles when the browser sends the list of all tiddlers that currently
     exist in the browser version of the wiki. This is different than the list of
@@ -91,11 +92,6 @@ if($tw.node) {
     This handles saveTiddler messages sent from the browser.
 
     TODO: Determine if we always want to ignore draft tiddlers.
-
-    Waiting lists are per-connection so use regular titles.
-    Editing lists are global so need prefixes
-    Saving uses normal titles
-    $tw.boot uses prefixed titles
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
     // Acknowledge the message.
@@ -135,7 +131,7 @@ if($tw.node) {
               // The file has the normal title so use the normal title here.
               changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
             } catch (e) {
-              //console.log(e);
+              $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
             }
             if(changed) {
               $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
@@ -156,7 +152,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     // Acknowledge the message.
     $tw.Bob.Shared.sendAck(data);
-    //console.log('Node Delete Tiddler');
+    $tw.Bob.logger.log('Node Delete Tiddler', {level: 4});
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;

@@ -53,6 +53,7 @@ Compute the internal state of the widget
 ActionWebSocketMessage.prototype.execute = function() {
   this.type = this.getAttribute('$type', undefined);
   this.param = this.getAttribute('$param', undefined);
+  this.tiddler = this.getAttribute('$tiddler', undefined);
 };
 
 /*
@@ -76,6 +77,9 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // Add in the message type and param, if they exist
   message.type = this.type;
   message.param = this.param;
+  if(this.tiddler) {
+    message.tid_param = $tw.wiki.getTiddler(this.tiddler).fields;
+  }
 
   // This is needed for when you serve multiple wikis
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
@@ -85,7 +89,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {
     //if(name.charAt(0) !== "$") {
-    if (['$type', '$param'].indexOf(name) === -1) {
+    if (['$type', '$param', '$tiddler'].indexOf(name) === -1) {
       message[name] = attribute;
     }
   });

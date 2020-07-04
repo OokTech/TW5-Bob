@@ -17,14 +17,42 @@ exports.platforms = ["node"];
 exports.after = ["websocket-server"];
 exports.synchronous = true;
 
-if($tw.node && $tw.settings.enableFederation === 'yes') {
+if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
   const dgram = require('dgram');
   const setup = function () {
     $tw.Bob = $tw.Bob || {};
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
-    $tw.Bob.Federation.connections = $tw.Bob.Federation.connections || loadConnections();
+    $tw.Bob.Federation.connections = loadConnections();
     $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};
+
+    /*
+      Save the connections.json file in the settings folder
+    */
+    $tw.Bob.Federation.updateConnectionsInfo = function() {
+      const fs = require('fs');
+      const path = require('path');
+      const connectionsFilePath = path.join($tw.boot.wikiPath, 'settings', 'connections.json');
+      const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings');
+      if(!fs.existsSync(userSettingsFolder)) {
+        // Create the settings folder
+        fs.mkdirSync(userSettingsFolder);
+      }
+      const connections = JSON.stringify($tw.Bob.Federation.connections, "", 2);
+      fs.writeFile(connectionsFilePath, connections, {encoding: "utf8"}, function (err) {
+        if(err) {
+          const message = {
+            alert: 'Error saving connections:' + err,
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+          $tw.Bob.logger.error(err, {level:1});
+        } else {
+          $tw.Bob.logger.log('Updated connections file', {level:1})
+          $tw.Bob.Federation.updateConnections()
+        }
+      });
+    }
 
     $tw.Bob.Federation.authenticateMessage = function (message) {
       return true;
@@ -40,7 +68,6 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.updateConnections = function () {
       $tw.Bob.logger.log('Update federated connections', {level:3});
       $tw.Bob.logger.log('Connections list:', Object.keys($tw.Bob.Federation.connections), {level:4});
-      console.log($tw.Bob.Federation.connections)
       const message = {
         type: 'updateConnections',
         connections: $tw.Bob.Federation.connections
@@ -55,15 +82,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.socket.bind($tw.settings.federation.udpPort)
     $tw.Bob.Federation.socket.on('listening', ()=>{
       $tw.Bob.Federation.updateConnections()
-      console.log('listening on udp port', $tw.settings.federation.udpPort)
+      $tw.Bob.logger.log('listening on udp port', $tw.settings.federation.udpPort, {level: 2})
       if ($tw.settings.federation.enableMulticast === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.0.114';
-        console.log('using multicast address ', $tw.settings.federation.multicastAddress);
+        $tw.Bob.logger.log('using multicast address ', $tw.settings.federation.multicastAddress,{level: 2});
         $tw.Bob.Federation.socket.setTTL(128);
-        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
         $tw.Bob.Federation.socket.setBroadcast(true);
         $tw.Bob.Federation.socket.setMulticastLoopback(false);
         $tw.Bob.Federation.socket.setMulticastInterface('0.0.0.0');
+        $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
 
         // Broadcast a message informing other nodes that this one is on the
         // local net pubKey and signed will be used later, the public key and a
@@ -78,21 +105,20 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
           const messageBuffer = Buffer.from(JSON.stringify(message))
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, $tw.settings.federation.udpPort, $tw.settings.federation.multicastAddress, function(err) {
             if (err) {
-              console.log(err)
+              $tw.Bob.logger.error(err, {level: 3})
             }
           })
         }
       }
     })
     $tw.Bob.Federation.socket.on('message', (message, rinfo)=>{
-      console.log('received message here:', message.toString())
       $tw.Bob.Federation.handleMessage(message, rinfo);
     });
     $tw.Bob.Federation.socket.on('error', (err) => {
-      console.log(err)
+      $tw.Bob.logger.error(err, {level: 3})
     });
 
-    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync']
+    const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk', 'chatMessage', 'chatHistory', 'requestResend'];
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
       if (!rinfo || !message) {
@@ -114,7 +140,7 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if(typeof $tw.Bob.Federation.messageHandlers[messageData.type] === 'function') {
           // Check authorisation
           const authorised = $tw.Bob.Federation.authenticateMessage(messageData);
-          messageData.wiki = checkNonce(messageData)
+          messageData.wiki = checkNonce(messageData);
           // TODO fix this dirty hack. We need a better way to list which
           // messages don't require a nonce.
           if(authorised && (messageData.wiki || nonNonce.indexOf(messageData.type) !== -1)) {
@@ -156,7 +182,73 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         if ($tw.settings.federation.broadcast === 'yes') {
           $tw.Bob.Federation.multicastSearch()
         }
+        if($tw.settings.federation.checkConnections !== 'no') {
+          pingConnections('all');
+        }
       }, $tw.settings.federation.rebroadcastInterval);
+    }
+
+    /*
+      Try and send a ping to every listed connection.
+      Optionally taking a type input to specify which connections to check
+
+      type can be:
+      active - ping only connections marked as active
+      inactive - ping only connections marked as inactive
+      all - ping all listed connections
+      [serverKey] - send a ping to each server listed in the array
+    */
+    function pingConnections(type='inactive') {
+      const message = {type: 'ping'}
+      if(Array.isArray(type)) {
+        type.forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
+          const serverInfo = {
+            port: $tw.Bob.Federation.connections[name].port,
+            address: $tw.Bob.Federation.connections[name].address
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+        })
+      } else if(type === 'all') {
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
+          const serverInfo = {
+            port: $tw.Bob.Federation.connections[name].port,
+            address: $tw.Bob.Federation.connections[name].address
+          }
+          $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+        })
+      } else if(type === 'active') {
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
+          if($tw.Bob.Federation.connections[name].active === 'yes') {
+            const serverInfo = {
+              port: $tw.Bob.Federation.connections[name].port,
+              address: $tw.Bob.Federation.connections[name].address
+            }
+            $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+          }
+        })
+      } else if(type === 'inactive') {
+        Object.keys($tw.Bob.Federation.connections).forEach(function(name) {
+          if(!$tw.Bob.Federation.connections[name] || !$tw.Bob.Federation.connections[name].port || !$tw.Bob.Federation.connections[name].address) {
+            return;
+          }
+          if($tw.Bob.Federation.connections[name].active === 'no') {
+            const serverInfo = {
+              port: $tw.Bob.Federation.connections[name].port,
+              address: $tw.Bob.Federation.connections[name].address
+            }
+            $tw.Bob.Federation.sendToRemoteServer(message, serverInfo);
+          }
+        })
+      }
     }
 
     /*
@@ -171,9 +263,15 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         return {};
       }
       try {
-        const connections = fs.readFileSync(connectionsFilePath);
-        return JSON.parse(connections.toString('utf8'));
+        // We mark all connections as inactive when starting so the server
+        // tries to establish connections with all of them.
+        const connections = JSON.parse(fs.readFileSync(connectionsFilePath).toString('utf8'));
+        Object.keys(connections).forEach(function(connectionName) {
+          connections[connectionName].active = 'no';
+        })
+        return connections
       } catch (e) {
+        $tw.Bob.logger.error('problem loading connections', e)
         return {};
       }
     }
@@ -182,6 +280,11 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
       This returns the server key used as the unique identifier for a server
     */
     function getServerKey(messageData) {
+      return messageData.serverName
+      /*
+      if(messageData.serverName) {
+        return messageData.serverName
+      }
       if (messageData._source_info) {
         return messageData.serverName || messageData._source_info.address + ':' + messageData._source_info.port;
       } else if (messageData._target_info) {
@@ -190,35 +293,34 @@ if($tw.node && $tw.settings.enableFederation === 'yes') {
         // This should never happen
         return false;
       }
+      */
     }
 
     /*
       This runs when there is a new connection and sets up the message handler
     */
     function handleConnection(messageData) {
-      /*
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
       if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
         $tw.Bob.logger.log("New Remote Connection", messageData._source_info.serverKey, {level: 2});
-        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' || messageData.type !== 'sendServerInfo' || messageData.type !== 'requestServerInfo') {
+        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' && messageData.type !== 'sendServerInfo') {
           // Add temp info
           $tw.Bob.Federation.connections[messageData._source_info.serverKey] = $tw.Bob.Federation.connections[messageData._source_info.serverKey] || {};
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           // Request server info for the new one
           $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings.federation.udpPort}, messageData._source_info)
-          updateConnectionsInfo();
+          $tw.Bob.Federation.updateConnectionsInfo();
         }
       } else {
         // Check to make sure we have the up-to-date address and port
         if ($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
-          updateConnectionsInfo();
+          $tw.Bob.Federation.updateConnectionsInfo();
         }
       }
-      */
     }
 
     finishSetup();

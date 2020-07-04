@@ -33,7 +33,10 @@ Connection Status:
       Edit
     </th>
     <th>
-      Wiki Name
+      Remote Wiki Name
+    </th>
+    <th>
+      Local Wiki Name
     </th>
     <th>
       Pubilc
@@ -55,7 +58,7 @@ Connection Status:
     </th>
   </tr>
   <$list
-    filter='[enlist{!!availablewikis}addprefix[/wikis/]addprefix<currentTiddler>]'
+    filter='[enlist{!!available_wikis}addprefix[/wikis/]addprefix<currentTiddler>]'
     emptyMessage='<tr><td colspan=8>No Wikis Available</td></tr>'
   >
     {{||$:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate}}
@@ -76,7 +79,7 @@ Connection Status:
     </th>
   </tr>
   <$list
-    filter='[enlist{!!availablechats}addprefix[/chats/]addprefix<currentTiddler>]'
+    filter='[enlist{!!available_chats}addprefix[/chats/]addprefix<currentTiddler>]'
     emptyMessage='No Chats Available'
   >
     {{||$:/plugins/OokTech/Bob/Federation/AvailableChatsListingTemplate}}

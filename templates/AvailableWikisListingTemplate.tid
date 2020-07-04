@@ -12,6 +12,10 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
         <$action-setfield
           edit=''
         />
+        <$action-websocketmessage
+          $type='updateFederatedConnectionInfo'
+          $tiddler=<<currentTiddler>>
+        />
         """
         variable=unused
       >
@@ -32,6 +36,28 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
     </$view>
   </th>
   <td>
+    <$list
+      filter='[<currentTiddler>!field:edit[edit]]'
+      emptyMessage="""
+      <$edit-text
+        field='local_name'
+        default={{!!name}}
+      />
+      """
+      variable=unused
+    >
+      <$view
+        field='local_name'
+      >
+        <$view
+          field='name'
+        >
+          --
+        </$view>
+      </$view>
+    </$list>
+  </td>
+  <td>
     <$view
       field='public'
     >
@@ -47,6 +73,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
         default=''
       />
       """
+      variable=unused
     >
       <$view
         field='sync_filter'
@@ -60,7 +87,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       filter='[<currentTiddler>!field:edit[edit]]'
       emptyMessage="""
         <$select
-          field='synctype'
+          field='sync_type'
           default='none'
         >
           <option
@@ -85,9 +112,10 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
           </option>
         </$select>
       """
+      variable=unused
     >
       <$view
-        field='synctype'
+        field='sync_type'
       >
         None
       </$view>
@@ -128,6 +156,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
         </option>
       </$select>
       """
+      variable=unused
     >
       <$view
         field='conflict_type'
@@ -156,6 +185,7 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       </option>
     </$select>
     """
+    variable=unused
   >
     <$view
       field='auto_sync'
@@ -169,8 +199,9 @@ title: $:/plugins/OokTech/Bob/Federation/AvailableWikisListingTemplate
       Sync Now
       <$action-websocketmessage
         $type='sendRemoteMessage'
-        $server={{{ [<currentTiddler>split[/]nth[4]addprefix[$:/Federation/RemoteServer/]get[url]] }}}
-        $message='requestHashes'
+        $server={{{ [{$:/state/Federation/SelectedRemoteServer}get[name]] }}}
+        $message="requestHashes"
+        $tiddler=<<currentTiddler>>
         filter={{!!sync_filter}}
         fromWiki={{{ [<currentTiddler>split[/]nth[6]] }}}
       />

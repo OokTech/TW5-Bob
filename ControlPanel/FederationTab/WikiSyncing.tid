@@ -1,0 +1,38 @@
+title: $:/plugins/OokTech/Bob/FederationTab/WikiSyncing
+caption: Wiki Syncing
+tags: FederationTab
+
+Select Server:
+<$select
+  tiddler='$:/state/Federation/SelectedRemoteServer'
+  default='Add Server'
+>
+  <option
+    value='Add Server'
+  >
+    Add Server
+  </option>
+  <$list
+    filter='[tag[Remote Server]]'
+  >
+    <option
+      value=<<currentTiddler>>
+    >
+      <$view
+        field='name'
+      >
+        <$view
+          field='title'
+        />
+      </$view>
+    </option>
+  </$list>
+</$select>
+
+<$list
+  filter='[{$:/state/Federation/SelectedRemoteServer}has[title]]-[[Add Server]]'
+  emptyMessage={{$:/plugins/OokTech/Bob/Federation/AddRemoteServerTemplate}}
+>
+
+  {{||$:/plugins/OokTech/Bob/Federation/RemoteServerTemplate}}
+</$list>

@@ -45,9 +45,9 @@ exports.handler = function(request,response,state) {
         const buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
         fs.writeFile(path.join(filesPath, bodyData.tiddler.fields.title), buf, function(error) {
           if (error) {
-            console.log(error);
+            $tw.Bob.logger.error(error, {level: 2});
           } else {
-            console.log("C'est fini!");
+            $tw.Bob.logger.log("File saved on server: ", bodyData.tiddler.fields.title, {level: 3});
             // Send browser message letting the person know that the file has been uploaded.
             return true;
           }
