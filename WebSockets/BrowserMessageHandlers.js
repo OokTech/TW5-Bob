@@ -76,7 +76,6 @@ it will overwrite this file.
             // different than the existing one.
             const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
             if(changed) {
-              console.log('Create Tiddler', data.tiddler.fields.title);
               $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
             }
           } else {
@@ -418,7 +417,6 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.updateConnections = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    console.log('update connections', data)
     if (data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',
@@ -432,26 +430,33 @@ it will overwrite this file.
             tags: '[[Remote Server]]',
             url: connectionUrl,
             staticurl: data.connections[connectionUrl].staticUrl,
-            availablewikis: data.connections[connectionUrl].availableWikis.join(' '),
-            availablechats: data.connections[connectionUrl].availableChats.join(' '),
+            available_wikis: Object.keys(data.connections[connectionUrl].available_wikis).join(' '),
+            available_chats: data.connections[connectionUrl].available_chats.join(' '),
             publickey: data.connections[connectionUrl].publicKey,
-            canlogin: data.connections[connectionUrl].canLogin,
-            name: data.connections[connectionUrl].name
+            allows_login: data.connections[connectionUrl].allows_login,
+            name: data.connections[connectionUrl].name,
+            local_name: data.connections[connectionUrl].local_name,
+            active: data.connections[connectionUrl].active
           }
           $tw.wiki.addTiddler(new $tw.Tiddler(connectionFields));
-          data.connections[connectionUrl].availableWikis.forEach(function(thisWikiName) {
+          Object.keys(data.connections[connectionUrl].available_wikis).forEach(function(thisWikiName) {
+            const theTid = $tw.wiki.getTiddler('$:/Bob/KnownServers/' + data.connections[connectionUrl].name + '/wikis/' + thisWikiName) || {fields: {}};
             $tw.wiki.addTiddler(new $tw.Tiddler({
-              title: '$:/Federation/RemoteServer/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
-              sync: 'no',
-              synctype: '',
-              autosync: 'no',
-              public: 'yes',
-              conflicttype: 'manual',
-              allowslogin: 'no',
-              name: thisWikiName
+              title: '$:/Bob/KnownServers/'+ data.connections[connectionUrl].name + '/wikis/' + thisWikiName,
+              sync: data.connections[connectionUrl].available_wikis[thisWikiName].sync || 'no',
+              sync_type: data.connections[connectionUrl].available_wikis[thisWikiName].sync_type || '',
+              auto_sync: data.connections[connectionUrl].available_wikis[thisWikiName].auto_sync || 'no',
+              sync_filter: data.connections[connectionUrl].available_wikis[thisWikiName].sync_filter || '',
+              public: data.connections[connectionUrl].available_wikis[thisWikiName].public || 'yes',
+              conflict_type: data.connections[connectionUrl].available_wikis[thisWikiName].conflict_type || 'manual',
+              allows_login: data.connections[connectionUrl].available_wikis[thisWikiName].allows_login || 'no',
+              name: thisWikiName,
+              server_name: connectionUrl,
+              local_name: data.connections[connectionUrl].available_wikis[thisWikiName].local_name,
+              previous_sync: data.connections[connectionUrl].available_wikis[thisWikiName].previous_sync || 0
             }))
           })
-          data.connections[connectionUrl].availableChats.forEach(function(thisChatName) {
+          data.connections[connectionUrl].available_chats.forEach(function(thisChatName) {
             $tw.wiki.addTiddler(new $tw.Tiddler({
               title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name + '/chats/' + thisChatName,
               public: 'yes',

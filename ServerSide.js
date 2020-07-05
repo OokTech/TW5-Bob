@@ -53,7 +53,7 @@ ServerSide.getFilePathRoot= function() {
   let basePath = '';
   $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
   if($tw.settings.filePathRoot === 'cwd') {
-    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else if($tw.settings.filePathRoot === 'homedir') {
     basePath = os.homedir();
   } else {
@@ -66,12 +66,13 @@ ServerSide.getFilePathRoot= function() {
   Return the resolved basePath
 */
 ServerSide.getBasePath = function() {
-  let basePath = '';//process.pkg?path.dirname(process.argv[0]):process.cwd();
-  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';//basePath;
+  let basePath = '';
+  $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
   if($tw.settings.wikiPathBase === 'homedir') {
     basePath = os.homedir();
   } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-    basePath = process.pkg?path.dirname(process.argv[0]):process.cwd();
+    //basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    basePath = process.cwd();
   } else {
     basePath = path.resolve($tw.settings.wikiPathBase);
   }
@@ -160,6 +161,9 @@ ServerSide.wikiExists = function (wikiFolder) {
   This checks to make sure that a wiki exists
 */
 ServerSide.existsListed = function (wikiName) {
+  if(typeof wikiName !== 'string') {
+    return false;
+  }
   let exists = false;
   // First make sure that the wiki is listed
   const wikiPath = ServerSide.getWikiPath(wikiName);
@@ -177,13 +181,6 @@ ServerSide.existsListed = function (wikiName) {
 */
 ServerSide.loadWiki = function (wikiName, cb) {
   const wikiFolder = ServerSide.existsListed(wikiName);
-  /*
-  // A hacky way to make the root wiki work on termux
-  // This shouldn't be required anymore
-  if(wikiName === 'RootWiki') {
-    wikiFolder = path.resolve($tw.boot.wikiPath);
-  }
-  */
   // Add tiddlers to the node process
   if(wikiFolder) {
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
@@ -247,15 +244,8 @@ ServerSide.loadWiki = function (wikiName, cb) {
       text: wikiName
     };
     $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-    if($tw.settings['ws-server'].proxyprefix) {
-      const wikiPathFields = {
-        title: '$:/ProxyPrefix',
-        text: $tw.settings['ws-server'].pathprefix
-      };
-      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(wikiPathFields));
-    }
     if(typeof cb === 'function') {
-      cb()
+      setTimeout(cb, 1000)
     }
   }
   return wikiFolder;
@@ -451,7 +441,11 @@ ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
       variables: {
         wikiTiddlers:
           $tw.Bob.Wikis[fullName].wiki.allTitles().concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-            return '[[' + tidInfo + ']]';
+            if(servePlugin === 'no' && tidInfo === '$:/plugins/OokTech/Bob') {
+              return '';
+            } else {
+              return '[[' + tidInfo + ']]';
+            }
           }).join(' '),
         wikiName: wikiName
       }
@@ -524,7 +518,7 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
     cb = copyChildren;
     copyChildren = false;
   } else if(typeof copyChildren === 'string') {
-    copyChildren = (copyChildren==='true')?true:false;
+    copyChildren = (copyChildren==='true' || copyChildren === 'yes')?true:false;
   } else if(copyChildren !== true) {
     copyChildren = false;
   }
@@ -548,6 +542,8 @@ ServerSide.specialCopy = function(source, destination, copyChildren, cb) {
   }
   if(typeof cb === 'function') {
     cb(err, source, destination, copyChildren)
+  } else {
+    return err;
   }
 }
 
@@ -675,7 +671,7 @@ ServerSide.sendBrowserAlert = function(input) {
           $tw.Bob.SendToBrowser($tw.connections[index], message);
         });
       } else {
-        console.log('why here?')
+        $tw.Bob.logger.log('send message to all browsers', {level: 4})
         $tw.Bob.SendToBrowsers(message);
       }
     }

@@ -12,6 +12,74 @@ A sync adaptor for syncing changes using websockets with Bob
 /*global $tw: false */
 "use strict";
 
+const delayRecord = {};
+
+const sendToServer = function (message, callback) {
+  const connectionIndex = 0;
+  // If the connection is open, send the message
+  if($tw.connections[connectionIndex].socket.readyState === 1) {
+    // We need to add back in some of our old queue logic here to make sure we aren't spamming save tiddler messages on every keystroke.
+    // We have the callback passed in so that we can add a delay here before sending save messages so we don't send them too quickly, it is the same as the typing delay for the draft refresh stuff in the core.
+    //if(false && message.type === 'saveTiddler') {
+    if(message.type === 'saveTiddler') {
+      delayRecord[message.tiddler.fields.title] = delayRecord[message.tiddler.fields.title] || {};
+      if(typeof delayRecord[message.tiddler.fields.title].cb === 'function') {
+        // Clear the callback so we don't mess up the dirty status.
+        delayRecord[message.tiddler.fields.title].cb(null, null);
+      }
+      clearTimeout(delayRecord[message.tiddler.fields.title].timeout);
+      delayRecord[message.tiddler.fields.title].cb = callback
+      delayRecord[message.tiddler.fields.title].message = message
+      delayRecord[message.tiddler.fields.title].timeout = setTimeout( function() {
+        try {
+          $tw.Bob.Shared.sendMessage(delayRecord[message.tiddler.fields.title].message, 0);
+          delayRecord[message.tiddler.fields.title].cb(null, null);
+          delayRecord[message.tiddler.fields.title] = undefined;
+        } catch (e) {
+          // nothing here
+        }
+
+      }, 150);
+      return false;
+    } else {
+      const messageData = $tw.Bob.Shared.sendMessage(message, 0);
+      return messageData.id;
+    }
+  } else {
+    // If the connection is not open than store the message in the queue
+    const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+    let queue = [];
+    let start = Date.now();
+    if(tiddler) {
+      if(typeof tiddler.fields.text === 'string') {
+        queue = JSON.parse(tiddler.fields.text);
+      }
+      if(tiddler.fields.start) {
+        start = tiddler.fields.start;
+      }
+    }
+    // Check to make sure that the current message is eligible to be saved
+    const messageData = $tw.Bob.Shared.createMessageData(message)
+    if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
+      // Prune the queue and check if the current message makes any enqueued
+      // messages redundant or overrides old messages
+      queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
+      // Don't save any messages that are about the unsent list or you get
+      // infinite loops of badness.
+      if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
+        queue.push(messageData);
+      }
+      const tiddler2 = {
+        title: '$:/plugins/OokTech/Bob/Unsent',
+        text: JSON.stringify(queue, '', 2),
+        type: 'application/json',
+        start: start
+      };
+      $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
+    }
+  }
+}
+
 function BrowserWSAdaptor(options) {
   this.wiki = options.wiki;
   this.idList = [];
@@ -36,7 +104,7 @@ function BrowserWSAdaptor(options) {
       }
     }
     // Add a message that the wiki isn't connected yet
-    const text = "<div  style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
+    const text = "<div style='position:fixed;bottom:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: The connection to server hasn't been established yet.''</div>";
     const warningTiddler = {
       title: '$:/plugins/OokTech/Bob/Server Warning',
       text: text,
@@ -46,26 +114,6 @@ function BrowserWSAdaptor(options) {
     if(reconnect) {
       $tw.connections = null;
     }
-    const proxyPrefixTiddler = $tw.wiki.getTiddler('$:/ProxyPrefix');
-    let ProxyPrefix = ''
-    if(proxyPrefixTiddler) {
-      ProxyPrefix = proxyPrefixTiddler.fields.text;
-      if(ProxyPrefix.charAt() !== '/') {
-        ProxyPrefix = '/' + ProxyPrefix;
-      }
-    }
-    const IPAddress = window.location.hostname;
-    const WSSPort = window.location.port;
-    const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
-
-    $tw.connections = $tw.connections || [];
-    $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
-    $tw.connections[connectionIndex].index = connectionIndex;
-    $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + ProxyPrefix);
-    $tw.connections[connectionIndex].socket.onopen = openSocket;
-    $tw.connections[connectionIndex].socket.onmessage = parseMessage;
-    $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
-
     // Get the name for this wiki for websocket messages
     const tiddler = $tw.wiki.getTiddler("$:/WikiName");
     if(tiddler) {
@@ -73,6 +121,24 @@ function BrowserWSAdaptor(options) {
     } else {
       $tw.wikiName = '';
     }
+
+    const IPAddress = window.location.hostname;
+    const WSSPort = window.location.port;
+    const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
+
+    $tw.connections = $tw.connections || [];
+    $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
+    $tw.connections[connectionIndex].index = connectionIndex;
+    try{
+      const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + window.location.pathname.replace(r,'') );
+    } catch (e) {
+      console.log(e)
+      $tw.connections[connectionIndex].socket = {};
+    }
+    $tw.connections[connectionIndex].socket.onopen = openSocket;
+    $tw.connections[connectionIndex].socket.onmessage = parseMessage;
+    $tw.connections[connectionIndex].socket.binaryType = "arraybuffer";
 
     if(!reconnect) {
       addHooks();
@@ -140,46 +206,6 @@ function BrowserWSAdaptor(options) {
     }
   }
 
-  const sendToServer = function (message) {
-    const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
-    // If the connection is open, send the message
-    if($tw.connections[connectionIndex].socket.readyState === 1) {
-      $tw.Bob.Shared.sendMessage(message, 0);
-    } else {
-      // If the connection is not open than store the message in the queue
-      const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
-      let queue = [];
-      let start = Date.now();
-      if(tiddler) {
-        if(typeof tiddler.fields.text === 'string') {
-          queue = JSON.parse(tiddler.fields.text);
-        }
-        if(tiddler.fields.start) {
-          start = tiddler.fields.start;
-        }
-      }
-      // Check to make sure that the current message is eligible to be saved
-      const messageData = $tw.Bob.Shared.createMessageData(message)
-      if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
-        // Prune the queue and check if the current message makes any enqueued
-        // messages redundant or overrides old messages
-        queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
-        // Don't save any messages that are about the unsent list or you get
-        // infinite loops of badness.
-        if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
-          queue.push(messageData);
-        }
-        const tiddler2 = {
-          title: '$:/plugins/OokTech/Bob/Unsent',
-          text: JSON.stringify(queue, '', 2),
-          type: 'application/json',
-          start: start
-        };
-        $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
-      }
-    }
-  }
-
   /*
     This adds actions for the different event hooks. Each hook sends a
     message to the node process.
@@ -192,7 +218,30 @@ function BrowserWSAdaptor(options) {
       $tw.wikiName = '';
     }
     $tw.hooks.addHook("th-editing-tiddler", function(event) {
+      // Special handling for unedited shadow tiddlers
       const token = localStorage.getItem('ws-token');
+      if($tw.wiki.isShadowTiddler(event.tiddlerTitle) && !$tw.wiki.tiddlerExists(event.tiddlerTitle)) {
+        // Wait for the document to have focus again and then check for the existence of a draft tiddler for the shadow, if one doesn't exist cancel the edit lock
+        setTimeout(function(tid) {
+          if(document.hasFocus()) {
+            if(!$tw.wiki.findDraft(tid)) {
+              console.log("here")
+              // Cancel the edit lock
+              const message = {
+                type: 'cancelEditingTiddler',
+                tiddler:{
+                  fields:{
+                    title: tid
+                  }
+                },
+                wiki: $tw.wikiName,
+                token: token
+              };
+              sendToServer(message);
+            }
+          }
+        }, 200, event.tiddlerTitle)
+      }
       const message = {
         type: 'editingTiddler',
         tiddler: {
@@ -323,7 +372,7 @@ function BrowserWSAdaptor(options) {
         // Figure out if the thing being imported is something that should be
         // saved on the server.
         //const mimeMap = $tw.settings.mimeMap || {
-        const mimeMap = {
+        const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
           '.csv': 'text/csv',
@@ -350,18 +399,18 @@ function BrowserWSAdaptor(options) {
         if (Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
           // Check if this is set up to use HTTP post or websockets to save the
           // image on the server.
-          var request = new XMLHttpRequest();
+          const request = new XMLHttpRequest();
           request.upload.addEventListener('progress', updateProgress);
           request.upload.addEventListener('load', transferComplete);
           request.upload.addEventListener('error', transferFailed);
           request.upload.addEventListener('abort', transferCanceled);
 
-          var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          var uploadURL = '/api/upload';
+          let wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+          const uploadURL = '/api/upload';
           request.open('POST', uploadURL, true);
           // cookies are sent with the request so the authentication cookie
           // should be there if there is one.
-          var thing = {
+          const thing = {
             tiddler: tiddler,
             wiki: $tw.wiki.getTiddlerText('$:/WikiName')
           }
@@ -388,10 +437,11 @@ function BrowserWSAdaptor(options) {
           }
           request.send(JSON.stringify(thing));
           // Change the tiddler fields and stuff
-          var fields = {};
-          var wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          wikiPrefix = wikiPrefix === 'RootWiki'?'':'/'+wikiPrefix;
-          var uri = wikiPrefix+'/files/'+tiddler.fields.title;
+          const fields = {};
+          wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+          wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
+          $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+          const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
           fields.title = tiddler.fields.title;
           fields.type = tiddler.fields.type;
           fields._canonical_uri = uri;
@@ -404,8 +454,8 @@ function BrowserWSAdaptor(options) {
       }
     });
   }
-  // Only set up the websockets if we aren't in an iframe.
-  if (window.location === window.parent.location) {
+  // Only set up the websockets if we aren't in an iframe or opened as a file.
+  if (window.location === window.parent.location && window.location.hostname) {
     // Send the message to node using the websocket
     $tw.Bob.setup();
   }
@@ -453,11 +503,13 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
       wiki: $tw.wikiName,
       token: token
     };
-    const id = sendToServer(message);
-    this.idList.push(id)
-    $tw.rootWidget.addEventListener('handle-ack', function(e) {
-      handleAck(e.detail)
-    })
+    const id = sendToServer(message, callback);
+    if(id) {
+      this.idList.push(id)
+      $tw.rootWidget.addEventListener('handle-ack', function(e) {
+        handleAck(e.detail)
+      })
+    }
   }
 }
 
@@ -636,6 +688,7 @@ function setupSkinnyTiddlerLoading() {
   }
 }
 
+/*
 const sendToServer = function (message) {
   const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
   // If the connection is open, send the message
@@ -676,6 +729,7 @@ const sendToServer = function (message) {
     }
   }
 }
+*/
 
 // Replace this with whatever conditions are required to use your adaptor
 if ($tw.browser) {

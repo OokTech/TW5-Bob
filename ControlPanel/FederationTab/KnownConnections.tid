@@ -36,14 +36,14 @@ Each server gets a JSON tiddler named in the form
       </th>
       <td>
         <$view
-          field='canlogin'
+          field='allows_login'
         />
       </td>
       <td>
-        <$count filter='[enlist{!!availablewikis}]'/> wikis available
+        <$count filter='[enlist{!!available_wikis}]'/> wikis available
       </td>
       <td>
-        <$count filter='[enlist{!!availablechats}]'/> chats available
+        <$count filter='[enlist{!!available_chats}]'/> chats available
       </td>
     </tr>
   </$list>

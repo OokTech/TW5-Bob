@@ -361,7 +361,6 @@ if($tw.node) {
     if(data.wiki === 'RootWiki' || true) {
       const fs = require("fs"),
         path = require("path");
-
       let name = GetWikiName(data.wikiName || data.newWiki);
 
       if(data.nodeWikiPath) {
@@ -375,7 +374,6 @@ if($tw.node) {
       } else if(data.fromWiki && data.newWiki) {
         // Duplicate a wiki
       } else {
-
         // Paths are relative to the root wiki path
         $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
         data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
@@ -388,61 +386,37 @@ if($tw.node) {
         // Wikis than wikis created will be in the basepath/Wikis/relativePath
         // folder I need better names here.
         $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
-
-        // Make sure we have a unique name by appending a number to the wiki name
-        // if it exists.
-        //let name = GetWikiName(data.wikiName)
-        let relativePath = name;
         // This only does something for the secure wiki server
         if($tw.settings.namespacedWikis === 'true') {
           data.decoded = data.decoded || {};
           data.decoded.name = data.decoded.name || 'imaginaryPerson';
-          name = data.decoded.name + '/' + name;
+          name = data.decoded.name + '/' + (data.wikiName || data.newWiki);
           name = GetWikiName(name);
           relativePath = name;
           $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
         }
-        const fullPath = path.join(basePath, data.wikisFolder, relativePath)
-        //var tiddlersPath = path.join(fullPath, 'tiddlers')
+        const fullPath = path.join(basePath, data.wikisFolder, name)
         // For now we only support creating wikis with one edition, multi edition
         // things like in the normal init command can come later.
         const editionName = data.edition?data.edition:"empty";
         const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
-        if(process.pkg) {
-          let editionPath = $tw.findLibraryItem(editionName,searchPaths);
-          if(!$tw.utils.isDirectory(editionPath)) {
-            editionPath = undefined
-            const pluginPath = process.pkg.path.resolve("./editions","./" + editionName)
-            if(true || fs.existsSync(pluginPath) && fs.statSync(pluginPath).isDirectory()) {
-              editionPath = pluginPath;
-            }
-            if(editionPath) {
-              try {
-                $tw.ServerSide.specialCopy(editionPath, fullPath);
-                $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-              } catch (e) {
-                $tw.Bob.logger.error('error copying edition', e, {level:1});
-              }
-            } else {
-              $tw.Bob.logger.error("Edition not found", {level:1});
-            }
-          } else if($tw.utils.isDirectory(editionPath)) {
-            // Copy the edition content
-            const err = $tw.utils.copyDirectory(editionPath,fullPath);
-            if(!err) {
+        let editionPath = $tw.findLibraryItem(editionName,searchPaths);
+        if(!fs.existsSync(editionPath) && false) {
+          editionPath = undefined
+          editionPath = path.resolve(__dirname, "./editions", "./" + editionName);
+          if(fs.existsSync(editionPath)) {
+            try {
+              $tw.ServerSide.specialCopy(editionPath, fullPath);
               $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-            } else {
-              $tw.Bob.logger.error(err, {level:1});
+            } catch (e) {
+              $tw.Bob.logger.error('error copying edition ', editionName, e, {level:1});
             }
+          } else {
+            $tw.Bob.logger.error("Edition not found ", editionName, {level:1});
           }
         } else {
-          // Check the edition exists
-          const editionPath = $tw.findLibraryItem(editionName,searchPaths);
-          if(!$tw.utils.isDirectory(editionPath)) {
-            $tw.Bob.logger.error("Edition '" + editionName + "' not found", {level:1});
-          }
           // Copy the edition content
-          const err = $tw.utils.copyDirectory(editionPath,fullPath);
+          const err = $tw.ServerSide.specialCopy(editionPath, fullPath, true);
           if(!err) {
             $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
           } else {
@@ -461,7 +435,7 @@ if($tw.node) {
         try {
           fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
         } catch (e) {
-          $tw.Bob.logger.error('failed to write settings', e, {level:1})
+          $tw.Bob.logger.error('failed to write tiddlywiki.info ', e, {level:1})
         }
 
         // This is here as a hook for an external server. It is defined by the
@@ -479,7 +453,7 @@ if($tw.node) {
         data.saveSettings = 'true';
         $tw.nodeMessageHandlers.findAvailableWikis(data);
         if(typeof cb === 'function') {
-          cb()
+          setTimeout(cb, 1500);
         }
       }, 1000);
 
@@ -636,6 +610,9 @@ if($tw.node) {
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+    if(typeof data.fromWiki === 'undefined') {
+      return;
+    }
     if ($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
       const wikiName = GetWikiName(data.newWiki);
       // Get the paths for the source and destination

@@ -18,6 +18,7 @@ exports.platforms = ["node"];
 
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
   /*
     This handles when the browser sends the list of all tiddlers that currently
     exist in the browser version of the wiki. This is different than the list of
@@ -90,12 +91,8 @@ if($tw.node) {
   /*
     This handles saveTiddler messages sent from the browser.
 
-    TODO: Determine if we always want to ignore draft tiddlers.
-
-    Waiting lists are per-connection so use regular titles.
-    Editing lists are global so need prefixes
-    Saving uses normal titles
-    $tw.boot uses prefixed titles
+    If we always want to ignore draft tiddlers,
+    use `[has[draft.of]]` in $:/plugins/OokTech/Bob/ExcludeSync
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
     // Acknowledge the message.
@@ -104,48 +101,45 @@ if($tw.node) {
     if(data.tiddler) {
       // Make sure that the tiddler that is sent has fields
       if(data.tiddler.fields) {
-        // Ignore draft tiddlers
-        if(!data.tiddler.fields['draft.of']) {
-          const prefix = data.wiki || '';
-          // Set the saved tiddler as no longer being edited. It isn't always
-          // being edited but checking eacd time is more complex than just
-          // always setting it this way and doesn't benifit us.
-          $tw.nodeMessageHandlers.cancelEditingTiddler({
-            tiddler:{
-              fields:{
-                title:data.tiddler.fields.title
-              }
-            },
-            wiki: prefix
-          });
-          // If we are not expecting a save tiddler event than save the
-          // tiddler normally.
-          if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
-            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-          } else {
-            // If changed send tiddler
-            let changed = true;
-            try {
-              let tiddlerObject = {}
-              if(data.tiddler.fields._canonical_uri) {
-                tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath+'.meta');
-              } else {
-                tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath);
-              }
-              // The file has the normal title so use the normal title here.
-              changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
-            } catch (e) {
-              //console.log(e);
+        const prefix = data.wiki || '';
+        // Set the saved tiddler as no longer being edited. It isn't always
+        // being edited but checking eacd time is more complex than just
+        // always setting it this way and doesn't benifit us.
+        $tw.nodeMessageHandlers.cancelEditingTiddler({
+          tiddler:{
+            fields:{
+              title:data.tiddler.fields.title
             }
-            if(changed) {
-              $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-              // Set the wiki as modified
-              $tw.Bob.Wikis[prefix].modified = true;
+          },
+          wiki: prefix
+        });
+        // If we are not expecting a save tiddler event than save the
+        // tiddler normally.
+        if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
+          $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+        } else {
+          // If changed send tiddler
+          let changed = true;
+          try {
+            let tiddlerObject = {}
+            if(data.tiddler.fields._canonical_uri) {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath+'.meta');
+            } else {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath);
             }
+            // The file has the normal title so use the normal title here.
+            changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
+          } catch (e) {
+            $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
           }
-          delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
-          $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+          if(changed) {
+            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+            // Set the wiki as modified
+            $tw.Bob.Wikis[prefix].modified = true;
+          }
         }
+        delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
+        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
       }
     }
   }
@@ -156,7 +150,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     // Acknowledge the message.
     $tw.Bob.Shared.sendAck(data);
-    //console.log('Node Delete Tiddler');
+    $tw.Bob.logger.log('Node Delete Tiddler', {level: 4});
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;
@@ -201,8 +195,8 @@ if($tw.node) {
     let title = data.tiddler.fields.title;
     if(title) {
       // Make sure that the tiddler title is a string
-      if(title.startsWith("Draft of '")) {
-        title = title.slice(10,-1);
+      if(data.tiddler.fields["draft.of"]) {
+        title = data.tiddler.fields["draft.of"]
       }
       // Remove the current tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {

@@ -54,3 +54,16 @@ The way that syncing works at a relatively low level is:
 #** The tiddlers requested
 #** The nonce sent by server A
 # Server A receives the `sendTiddlers` message and saves the received tiddlers using whatever conflict resolution method is set.
+
+!! Conflicts
+
+When two wikis want to sync and the same tiddler has been modified on both
+wikis there needs to be some conflict resolution method.
+
+The current options are:
+
+* `localWins` - if the conflict type is `localWins` no changes are made to existing local tiddlers regardless of the state of the remote wiki. Only new tiddlers from the remote wiki are imported.
+* `remoteWins` - if the conflict type is `remoteWins` all the remote tiddlers are imported regardless of if they exist on the local wiki or not.
+* `newestWins` - if the conflict type is `newestWins` and a tiddler with the same title exists in both wikis the tiddler that has the largest value in the modified fields is saved. If only one tiddler has a modified field that tiddler is saved, if neither tiddler has a modified field the local one is kept.
+* `oldestWins` - in case of conflict the tiddler with the smallest value in the modified field is saved. If only one tiddler has a modified field the other tiddler is saved, if neither tiddler has a modified field the local one is kept.
+* `manual` - the local tiddler is kept and a copy of the remote tiddler is saved with `$:/SyncingConflict/` prepended to the title. In this case no tiddlers that have the prefix `$:/SyncingConflict/` are saved to prevent infinite loops.

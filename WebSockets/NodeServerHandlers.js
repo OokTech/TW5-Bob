@@ -22,7 +22,7 @@ if($tw.node) {
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
-    console.log('openRemoteConnection', data)
+    $tw.Bob.logger.log('openRemoteConnection', data, {level: 3})
     $tw.Bob.Shared.sendAck(data);
     if(data.url) {
       function authenticateMessage() {
@@ -36,14 +36,14 @@ if($tw.node) {
           info: {
             name: serverName,
             publicKey: 'c minor',
-            canLogin: 'no',
-            availableWikis: $tw.ServerSide.getViewableWikiList(),
-            availableChats: [],
+            allows_login: 'no',
+            available_wikis: $tw.ServerSide.getViewableWikiList(),
+            available_chats: [],
             staticUrl: 'no',
             port: $tw.settings['ws-server'].port
           }
         }
-        console.log('REMOTE SOCKET OPENED', data.url)
+        $tw.Bob.logger.log('REMOTE SOCKET OPENED', data.url, {level: 4})
         $tw.Bob.Federation.sendToRemoteServer(serverFederationInfo, data.url)
         $tw.Bob.Federation.sendToRemoteServer({type:'requestServerInfo', port:$tw.settings['ws-server'].port}, data.url)
         $tw.Bob.Federation.updateConnections()
@@ -71,10 +71,10 @@ if($tw.node) {
             Add the on message handlers
           */
         } catch (e) {
-          console.log('error opening federated connection ', e)
+          $tw.Bob.logger.error('error opening federated connection ', e, {level: 2})
         }
       } else {
-        console.log('A connection already exists to ', data.url)
+        $tw.Bob.logger.log('A connection already exists to ', data.url, {level: 3})
       }
     }
   }
@@ -99,7 +99,39 @@ if($tw.node) {
           newData[key] = data[key]
         }
       })
-      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), data.$server, data.wiki)
+      // TODO here we need to get the server info from the server name in data.$server
+      // We need to get the target server port and address using data.$server and then use that to send.
+      const serverInfo = {
+        port: $tw.Bob.Federation.connections[data.$server].port,
+        address: $tw.Bob.Federation.connections[data.$server].address
+      }
+      $tw.Bob.logger.log('send remote message:', newData, {level: 4})
+      $tw.Bob.logger.log('send message to:', serverInfo, {level: 4})
+      $tw.Bob.Federation.sendToRemoteServer(JSON.stringify(newData), serverInfo, data.wiki)
+    }
+  }
+
+  /*
+    Update information about a federated connection and syncing wikis on the
+    server.
+
+    To do this the tiddler that has the information about the connection gets
+    sent with the message and it is parsed here.
+  */
+  $tw.nodeMessageHandlers.updateFederatedConnectionInfo = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    if(data.tid_param) {
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name] || {};
+      // $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] || {};
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].allows_login = data.tid_param.allows_login;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].auto_sync = data.tid_param.auto_sync;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].conflict_type = data.tid_param.conflict_type;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].public = data.tid_param.public;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].sync = data.tid_param.sync;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].sync_filter = data.tid_param.sync_filter;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].sync_type = data.tid_param.sync_type;
+      $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name].local_name = data.tid_param.local_name;
+      $tw.Bob.Federation.updateConnectionsInfo();
     }
   }
 
@@ -369,7 +401,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
-    if(typeof data.remove !== 'undefined') {
+    if(data.remove && typeof data.remove === 'string') {
       // Remove settings
       const pieces = data.remove.split('.');
       if(pieces) {
@@ -466,11 +498,6 @@ if($tw.node) {
       settings = data.settingsString;
 
       // Update the $tw.settings object
-      // First clear the settings
-      // Don't clear the settings, there is some rare bug that makes the
-      // settings string empty or invalid json and it results in an empty
-      // settings file.
-      //$tw.settings = {};
       // Put the updated version in.
       $tw.updateSettings($tw.settings, JSON.parse(settings));
     }
@@ -495,7 +522,8 @@ if($tw.node) {
       // Create the settings folder
       fs.mkdirSync(userSettingsFolder);
     }
-    fs.writeFile(userSettingsPath, settings, {encoding: "utf8"}, function (err) {
+    // This should prevent an empty string from ever being given
+    fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
       if(err) {
         const message = {
           alert: 'Error saving settings:' + err,
@@ -1148,7 +1176,6 @@ if($tw.node) {
       nextTest(0, testPaths)
       function nextTest(index, pathsToTest) {
         // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
-        //let test = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot, pathsToTest[index]);
         const filePathRoot = $tw.ServerSide.getFilePathRoot();
         let test = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, pathsToTest[index]);
         fs.access(test, fs.constants.F_OK, function(err) {
@@ -1200,37 +1227,42 @@ if($tw.node) {
         };
         const extList = data.mediaTypes || false;
         fs.readdir(resolvedPath, function(err, items) {
-          // filter the list to only include listed mimetypes.
-          let filteredItems = items.filter(function(item) {
-            const splitItem = item.split('.');
-            const ext = splitItem[splitItem.length-1];
-            return typeof mimeMap['.' + ext] === 'string';
-          })
-          if(extList) {
-            filteredItems = filteredItems.filter(function(item) {
+          if(err || !items) {
+            $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
+          } else {
+            // filter the list to only include listed mimetypes.
+            let filteredItems = items.filter(function(item) {
               const splitItem = item.split('.');
               const ext = splitItem[splitItem.length-1];
-              return typeof extList.indexOf('.' + ext) !== -1;
+              return typeof mimeMap['.' + ext] === 'string';
             })
+            if(extList) {
+              filteredItems = filteredItems.filter(function(item) {
+                const splitItem = item.split('.');
+                const ext = splitItem[splitItem.length-1];
+                return typeof extList.indexOf('.' + ext) !== -1;
+              })
+            }
+            // Reply with the list
+            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
+            const fields = {
+              title: data.tiddler,
+              pathprefix: prefix,
+              folder: data.folder,
+            }
+            fields[data.field] = $tw.utils.stringifyList(filteredItems);
+            const message = {
+              type: "saveTiddler",
+              tiddler: {
+                fields: fields
+              },
+              wiki: data.wiki
+            }
+            $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+            $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
           }
-          // Reply with the list
-          let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
-          prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
-          prefix = prefix.endsWith('/') ? prefix : prefix + '/';
-          const fields = {
-            title: data.tiddler,
-            pathprefix: prefix,
-            folder: data.folder,
-          }
-          fields[data.field] = $tw.utils.stringifyList(filteredItems);
-          const message = {
-            type: "saveTiddler",
-            tiddler: {
-              fields: fields
-            },
-            wiki: data.wiki
-          }
-          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
         });
       }
     }

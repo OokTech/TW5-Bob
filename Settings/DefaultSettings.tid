@@ -31,8 +31,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "host": "127.0.0.1",
     "autoIncrementPort": "false",
     "servePlugin": "yes",
-    "pathprefix": "",
-    "proxyprefix": ""
+    "pathprefix": ""
   },
   "heartbeat": {
     "interval": 1000,
@@ -102,9 +101,10 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "enableChat": "no",
     "udpPort": "3232",
     "enableMulticast": "yes",
-    "multicastAddress": "230.0.0.114",
+    "multicastAddress": "224.0.0.114",
     "broadcast": "yes",
-    "rebroadcastInterval": "30000"
+    "rebroadcastInterval": "30000",
+    "checkConnections": "yes"
   },
   "advanced": {
     "localMessageQueueTimeout": 500,
