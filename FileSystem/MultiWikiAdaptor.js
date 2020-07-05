@@ -92,6 +92,7 @@ if($tw.node) {
         extFilters: $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n"),
         wiki: $tw.Bob.Wikis[prefix].wiki
       });
+
       $tw.Bob.Files[prefix][title] = fileInfo;
     } else if(fileInfo && fileSystemConfig) {
       // If FileSystemPaths||FileSystemExtensions, store the old path and regenerate it
@@ -109,11 +110,11 @@ if($tw.node) {
         fileSystemPath: options.fileInfo.filepath
       });
       if(	options.fileInfo && options.fileInfo.filepath === fileInfo.filepath ) {
-        options = null; //if filepath matches, options not needed
+        options = null; //if filepath matches, fileInfo is up to date and options is not needed
       } else {
         $tw.Bob.Files[prefix][title] = fileInfo; //else, store new fileInfo
       }
-    }    
+    }
     callback(null,fileInfo,options);
   };
 
@@ -207,8 +208,8 @@ if($tw.node) {
               $tw.hooks.invokeHook('wiki-modified', prefix);
             } catch (e) {
               $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
-            }               
-          } 
+            }
+          }
         });
       }
     }
