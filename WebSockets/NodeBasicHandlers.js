@@ -91,7 +91,7 @@ if($tw.node) {
   /*
     This handles saveTiddler messages sent from the browser.
 
-    If we always want to ignore draft tiddlers, 
+    If we always want to ignore draft tiddlers,
     use `[has[draft.of]]` in $:/plugins/OokTech/Bob/ExcludeSync
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
@@ -139,7 +139,7 @@ if($tw.node) {
           }
         }
         delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
-        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);        
+        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
       }
     }
   }

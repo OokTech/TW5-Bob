@@ -191,22 +191,18 @@ if($tw.node) {
           if(err) {
             return callback(err);
           }
-          options = options || {wiki: prefix};
-          options.wiki = options.wiki || prefix;
-          try {
-            //If the location has changed, save and delete the old file
-            if (options.fileInfo !== null && typeof options.fileInfo !== "undefined") {
-              // New fileInfo (location, extension, hasMetaFile), call deleteTiddler via options
-              $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
-              self.deleteTiddler(null,null,options);
-              $tw.hooks.invokeHook('wiki-modified', prefix);	
-            } else {
+          // Make sure that the tiddler has actually changed before saving it
+          if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
+            // Save the tiddler in memory.
+            internalSave(tiddler, prefix);
+            $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+            try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
               $tw.hooks.invokeHook('wiki-modified', prefix);
-            }                
-          } catch (e) {
+            } catch (e) {
               $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
-          }
+            }               
+          } 
         });
       }
     }

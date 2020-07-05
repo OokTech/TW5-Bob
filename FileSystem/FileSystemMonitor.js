@@ -167,7 +167,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
       }).on('error', error => {
         // Ignore EPERM errors in windows, which happen if you delete watched folders...
         if (error.code === 'EPERM' && require('os').platform() === 'win32') {
-          $tw.Bob.logger.log('[Info] Failed to watch deleted folder.');
+          $tw.Bob.logger.log('[Info] Failed to watch deleted folder.', {level:3});
           return;
         }
       });
