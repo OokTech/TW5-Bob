@@ -194,7 +194,7 @@ if($tw.node) {
           }
           // Make sure that the tiddler has actually changed before saving it...
           // If self.getTiddlerFileInfo returns an options object, the tiddler's location on disk has changed
-          if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title)) || options.fileInfo) {
+          if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title)) || options) {
             // Save the tiddler in memory.
             internalSave(tiddler, prefix);
             $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
