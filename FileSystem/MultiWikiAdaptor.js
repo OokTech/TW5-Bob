@@ -199,7 +199,7 @@ if($tw.node) {
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
               //If the location has changed, save and delete the old file
-              if (options.fileInfo !== null && typeof options.fileInfo !== "undefined") {
+              if (options && options.fileInfo) {
                 // New fileInfo (location, extension, hasMetaFile), call deleteTiddler via options
                 self.deleteTiddler(null,null,options);
               }
