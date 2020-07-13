@@ -184,7 +184,6 @@ if($tw.node) {
     }
     function finish() {
       if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
-        $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
         self.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
          function(err,fileInfo,options) {
           if(err) {
