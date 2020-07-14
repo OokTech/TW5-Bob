@@ -48,7 +48,7 @@ if($tw.node) {
   /*
     Set up file logging
   */
-  if ($tw.settings.logger.useFileLogging === 'yes') {
+  if($tw.settings.logger.useFileLogging === 'yes') {
     // Output gets written to a file
     const basePath = $tw.ServerSide.getBasePath();
     const outputFolder = $tw.settings.logger.outputFolder || './logs';
@@ -60,7 +60,7 @@ if($tw.node) {
     const outputFile = path.resolve(basePath,outputFolder,outputBaseFileName + ' - ' + timeStamp + '.log')
     const stdout = fs.createWriteStream(outputFile);
     let stderr = undefined;
-    if ($tw.settings.logger.useSeparateErrorFile === 'yes') {
+    if($tw.settings.logger.useSeparateErrorFile === 'yes') {
       const outputErrorFileName = $tw.settings.logger.outputErrorFileName || 'Error';
       const outputErrFile = path.resolve(basePath,outputFolder,outputErrorFileName + ' - ' + timeStamp + '.log')
       const outputErrorStream = '';
@@ -77,7 +77,7 @@ if($tw.node) {
 
     $tw.Bob.logger.file = new Console(options);
   }
-  if ($tw.settings.logger.useBrowserLogging === 'yes') {
+  if($tw.settings.logger.useBrowserLogging === 'yes') {
     // TODO this!!
     const browserLogTiddlerName = '$:/status/Bob/Logs'
     const browserErrorTiddlerName = '$:/status/Bob/Errors'
@@ -104,7 +104,7 @@ if($tw.node) {
       }
     }
   }
-  if ($tw.settings.logger.useConsoleLogging !== 'no') {
+  if($tw.settings.logger.useConsoleLogging !== 'no') {
     $tw.Bob.logger.console = console;
   }
 
@@ -113,29 +113,29 @@ if($tw.node) {
     let params = {}
     $tw.settings.logger = $tw.settings.logger || {};
     const argumentList = [].slice.apply(arguments);
-    if (arguments.length > 1) {
-      if (typeof arguments[arguments.length-1] === 'object') {
+    if(arguments.length > 1) {
+      if(typeof arguments[arguments.length-1] === 'object') {
         params = argumentList.pop();
       }
     }
-    if ($tw.settings.logger.useFileLogging === 'yes') {
+    if($tw.settings.logger.useFileLogging === 'yes') {
       $tw.settings.logger.fileLogLevel = $tw.settings.logger.fileLogLevel || 2;
       // Output gets written to a file
-      if (typeof params.level === 'undefined' || $tw.settings.logger.fileLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.fileLogLevel >= params.level) {
         $tw.Bob.logger.file.log(argumentList.join(' '));
       }
     }
-    if ($tw.settings.logger.useBrowserLogging === 'yes') {
+    if($tw.settings.logger.useBrowserLogging === 'yes') {
       $tw.settings.logger.browserLogLevel = $tw.settings.logger.browserLogLevel || 2;
       // Output gets written to a tiddler so it is visible in the browser
-      if (typeof params.level === 'undefined' || $tw.settings.logger.browserLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.browserLogLevel >= params.level) {
         $tw.Bob.logger.browser.log(argumentList.join(' '));
       }
     }
-    if ($tw.settings.logger.useConsoleLogging !== 'no') {
+    if($tw.settings.logger.useConsoleLogging !== 'no') {
       $tw.settings.logger.consoleLogLevel = $tw.settings.logger.consoleLogLevel || 2;
       // If another option isn't set than output is logged to the console
-      if (typeof params.level === 'undefined' || $tw.settings.logger.consoleLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.consoleLogLevel >= params.level) {
         $tw.Bob.logger.console.log(argumentList.join(' '));
       }
     }
@@ -145,29 +145,29 @@ if($tw.node) {
     let params = {}
     $tw.settings.logger = $tw.settings.logger || {};
     const argumentList = [].slice.apply(arguments);
-    if (arguments.length > 1) {
-      if (typeof arguments[arguments.length-1] === 'object') {
+    if(arguments.length > 1) {
+      if(typeof arguments[arguments.length-1] === 'object') {
         params = argumentList.pop();
       }
     }
-    if ($tw.settings.logger.useFileLogging === 'yes') {
+    if($tw.settings.logger.useFileLogging === 'yes') {
       $tw.settings.logger.fileLogLevel = $tw.settings.logger.fileLogLevel || 2;
       // Output gets written to a file
-      if (typeof params.level === 'undefined' || $tw.settings.logger.fileLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.fileLogLevel >= params.level) {
         $tw.Bob.logger.file.error(argumentList.join(' '));
       }
     }
-    if ($tw.settings.logger.useBrowserLogging === 'yes') {
+    if($tw.settings.logger.useBrowserLogging === 'yes') {
       $tw.settings.logger.browserLogLevel = $tw.settings.logger.browserLogLevel || 2;
       // Output gets written to a tiddler so it is visible in the browser
-      if (typeof params.level === 'undefined' || $tw.settings.logger.browserLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.browserLogLevel >= params.level) {
         $tw.Bob.logger.browser.error(argumentList.join(' '));
       }
     }
-    if ($tw.settings.logger.useConsoleLogging !== 'no') {
+    if($tw.settings.logger.useConsoleLogging !== 'no') {
       $tw.settings.logger.consoleLogLevel = $tw.settings.logger.consoleLogLevel || 2;
       // If another option isn't set than output is logged to the console
-      if (typeof params.level === 'undefined' || $tw.settings.logger.consoleLogLevel >= params.level) {
+      if(typeof params.level === 'undefined' || $tw.settings.logger.consoleLogLevel >= params.level) {
         $tw.Bob.logger.console.error(argumentList.join(' '));
       }
     }

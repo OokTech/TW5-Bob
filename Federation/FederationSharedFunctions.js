@@ -141,7 +141,7 @@ This has some functions that are needed by Bob in different places.
       TODO figure out what else to put here
     */
     function messageIsEligible(messageData, queue) {
-      if (!messageData || !queue) {
+      if(!messageData || !queue) {
         return false;
       }
       // Make sure that the queue exists. This may be over paranoid
@@ -184,10 +184,10 @@ This has some functions that are needed by Bob in different places.
       This modifies messageQueue as a side effect
     */
     function sendMessage(messageData) {
-      if (!messageData) {
+      if(!messageData) {
         return;
       }
-      if (!messageData._target_info) {
+      if(!messageData._target_info) {
         return;
       }
       if(messageIsEligible(messageData, messageQueue)) {
@@ -202,7 +202,7 @@ This has some functions that are needed by Bob in different places.
           checkMessageQueue();
         } else {
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
-            if (err) {
+            if(err) {
               $tw.Bob.logger.error(err,{level: 3});
             } else {
               checkMessageQueue();
@@ -413,7 +413,7 @@ This has some functions that are needed by Bob in different places.
     */
     $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
       const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
-      if (messageData) {
+      if(messageData) {
         // This sends the message. The sendMessage function adds the message to
         // the queue if appropriate.
         messageQueue.push(messageData);

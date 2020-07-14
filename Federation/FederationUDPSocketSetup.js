@@ -83,7 +83,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation.socket.on('listening', ()=>{
       $tw.Bob.Federation.updateConnections()
       $tw.Bob.logger.log('listening on udp port', $tw.settings.federation.udpPort, {level: 2})
-      if ($tw.settings.federation.enableMulticast === 'yes') {
+      if($tw.settings.federation.enableMulticast === 'yes') {
         $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.0.114';
         $tw.Bob.logger.log('using multicast address ', $tw.settings.federation.multicastAddress,{level: 2});
         $tw.Bob.Federation.socket.setTTL(128);
@@ -104,7 +104,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
           }
           const messageBuffer = Buffer.from(JSON.stringify(message))
           $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, $tw.settings.federation.udpPort, $tw.settings.federation.multicastAddress, function(err) {
-            if (err) {
+            if(err) {
               $tw.Bob.logger.error(err, {level: 3})
             }
           })
@@ -121,18 +121,18 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     const nonNonce = ['multicastSearch', 'requestServerInfo', 'requestHashes', 'requestTiddlers', 'requestRemoteSync', 'ping', 'chunk', 'chatMessage', 'chatHistory', 'requestResend'];
 
     $tw.Bob.Federation.handleMessage = function (message, rinfo) {
-      if (!rinfo || !message) {
+      if(!rinfo || !message) {
         return;
       }
       $tw.Bob.logger.log('Received federated message ', message, {level:4});
       try {
         let messageData = JSON.parse(message);
-        if (typeof messageData === 'string') {
+        if(typeof messageData === 'string') {
           messageData = JSON.parse(messageData);
         }
         messageData._source_info = rinfo;
         messageData._source_info.serverKey = getServerKey(messageData);
-        if (!messageData._source_info.serverKey) {
+        if(!messageData._source_info.serverKey) {
           return;
         }
         handleConnection(messageData);
@@ -156,18 +156,18 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     }
 
     function checkNonce(data) {
-      if (!data.nonce) {
+      if(!data.nonce) {
         return false;
       }
       let theWiki = undefined
       let server = undefined
       const match = $tw.Bob.Federation.nonce.filter(function(thisOne) {return thisOne.nonce === data.nonce})
-      if (match.length > 0) {
+      if(match.length > 0) {
         theWiki = (match[0].wiki)?match[0].wiki:undefined;
         server = match[0].server;
         $tw.Bob.Federation.nonce = $tw.Bob.Federation.nonce.filter(function(thisOne) {return thisOne.nonce !== data.nonce});
       }
-      if (typeof theWiki === 'undefined' && typeof server === 'undefined') {
+      if(typeof theWiki === 'undefined' && typeof server === 'undefined') {
         return false;
       }
       return theWiki || server;
@@ -179,7 +179,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     function finishSetup () {
       $tw.settings.federation.rebroadcastInterval = $tw.settings.federation.rebroadcastInterval || 5000;
       setInterval(function() {
-        if ($tw.settings.federation.broadcast === 'yes') {
+        if($tw.settings.federation.broadcast === 'yes') {
           $tw.Bob.Federation.multicastSearch()
         }
         if($tw.settings.federation.checkConnections !== 'no') {
@@ -285,9 +285,9 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
       if(messageData.serverName) {
         return messageData.serverName
       }
-      if (messageData._source_info) {
+      if(messageData._source_info) {
         return messageData.serverName || messageData._source_info.address + ':' + messageData._source_info.port;
-      } else if (messageData._target_info) {
+      } else if(messageData._target_info) {
         return messageData.serverName || messageData._target_info.address + ':' + messageData._source_info.port;
       } else {
         // This should never happen
@@ -302,9 +302,9 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     function handleConnection(messageData) {
       // If this is a new connection save it, otherwise just make sure that our
       // stored data is up to date.
-      if (Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
+      if(Object.keys($tw.Bob.Federation.connections).indexOf(messageData._source_info.serverKey) === -1) {
         $tw.Bob.logger.log("New Remote Connection", messageData._source_info.serverKey, {level: 2});
-        if (typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' && messageData.type !== 'sendServerInfo') {
+        if(typeof $tw.Bob.Federation.connections[messageData._source_info.serverKey] === 'undefined' && messageData.type !== 'sendServerInfo') {
           // Add temp info
           $tw.Bob.Federation.connections[messageData._source_info.serverKey] = $tw.Bob.Federation.connections[messageData._source_info.serverKey] || {};
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
@@ -315,7 +315,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
         }
       } else {
         // Check to make sure we have the up-to-date address and port
-        if ($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
+        if($tw.Bob.Federation.connections[messageData._source_info.serverKey].address !== messageData._source_info.address || $tw.Bob.Federation.connections[messageData._source_info.serverKey].port !== messageData._source_info.port) {
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].address = messageData._source_info.address;
           $tw.Bob.Federation.connections[messageData._source_info.serverKey].port = messageData._source_info.port;
           $tw.Bob.Federation.updateConnectionsInfo();

@@ -21,7 +21,7 @@ const sendToServer = function (message, callback) {
     // We need to add back in some of our old queue logic here to make sure we aren't spamming save tiddler messages on every keystroke.
     // We have the callback passed in so that we can add a delay here before sending save messages so we don't send them too quickly, it is the same as the typing delay for the draft refresh stuff in the core.
     //if(false && message.type === 'saveTiddler') {
-    if(message.type === 'saveTiddler') {
+    if(false && message.type === 'saveTiddler') {
       delayRecord[message.tiddler.fields.title] = delayRecord[message.tiddler.fields.title] || {};
       if(typeof delayRecord[message.tiddler.fields.title].cb === 'function') {
         // Clear the callback so we don't mess up the dirty status.
@@ -39,7 +39,7 @@ const sendToServer = function (message, callback) {
           // nothing here
         }
 
-      }, 150);
+      }, 10);
       return false;
     } else {
       const messageData = $tw.Bob.Shared.sendMessage(message, 0);
@@ -96,9 +96,9 @@ function BrowserWSAdaptor(options) {
   // Do all actions on startup.
   $tw.Bob.setup = function(reconnect) {
     $tw.setcookie = function(cookieName, cookieValue) {
-      if (cookieName && cookieValue) {
+      if(cookieName && cookieValue) {
         document.cookie = cookieName + "=" + cookieValue;
-      } else if (cookieName) {
+      } else if(cookieName) {
         // Clear the cookie if no value given.
         document.cookie = cookieName + "= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
       }
@@ -165,7 +165,7 @@ function BrowserWSAdaptor(options) {
     function tryAgain() {
       setTimeout(function() {
         const tid = $tw.wiki.getTiddler("$:/WikiSettings/split")
-        if (!tid) {
+        if(!tid) {
           const data = {
             type: 'setLoggedIn',
             wiki: $tw.wikiName,
@@ -225,7 +225,6 @@ function BrowserWSAdaptor(options) {
         setTimeout(function(tid) {
           if(document.hasFocus()) {
             if(!$tw.wiki.findDraft(tid)) {
-              console.log("here")
               // Cancel the edit lock
               const message = {
                 type: 'cancelEditingTiddler',
@@ -348,11 +347,11 @@ function BrowserWSAdaptor(options) {
       This handles the hook for importing tiddlers.
     */
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
-      if ($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') !== 'no' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
+      if($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') !== 'no' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
         function updateProgress(e) {
           // TODO make this work in different browsers
           /*
-          if (e.lengthComputable) {
+          if(e.lengthComputable) {
             var percentComplete = e.loaded/e.total*100;
           } else {
             var percentComplete = -1;
@@ -396,7 +395,7 @@ function BrowserWSAdaptor(options) {
           '.webm': 'video/webm',
           '.wav': 'audio/wav'
         };
-        if (Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
+        if(Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
           // Check if this is set up to use HTTP post or websockets to save the
           // image on the server.
           const request = new XMLHttpRequest();
@@ -416,8 +415,8 @@ function BrowserWSAdaptor(options) {
           }
           request.setRequestHeader('x-wiki-name',wikiPrefix);
           request.onreadystatechange = function() {
-            if (request.readyState === XMLHttpRequest.DONE) {
-              if (request.status === 200) {
+            if(request.readyState === XMLHttpRequest.DONE) {
+              if(request.status === 200) {
                 // Things should be ok
                 // The server should send a browser message saying that the
                 // upload was successful.
@@ -455,7 +454,7 @@ function BrowserWSAdaptor(options) {
     });
   }
   // Only set up the websockets if we aren't in an iframe or opened as a file.
-  if (window.location === window.parent.location && window.location.hostname) {
+  if(window.location === window.parent.location && window.location.hostname) {
     // Send the message to node using the websocket
     $tw.Bob.setup();
   }
@@ -479,12 +478,12 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
   const self = this;
   function handleAck(ackId) {
     const ind = self.idList.indexOf(ackId);
-    if (ind > -1) {
+    if(ind > -1) {
       self.idList.splice(ind, 1)
       callback(null, null)
     }
   }
-  if (!this.shouldSync(tiddler.fields.title) || !tiddler) {
+  if(!this.shouldSync(tiddler.fields.title) || !tiddler) {
     callback(null, null);
   } else {
     const token = localStorage.getItem('ws-token')
@@ -520,7 +519,7 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
   function handleLoadedTiddler(tiddler) {
     callback(null, tiddler.fields)
   }
-  if (title.slice(0,3) === '$:/') {
+  if(title.slice(0,3) === '$:/') {
     callback(null, null)
   } else {
     const token = localStorage.getItem('ws-token')
@@ -543,12 +542,12 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
   const self = this;
   function handleAck(ackId) {
     const ind = self.idList.indexOf(ackId)
-    if (ind > -1) {
+    if(ind > -1) {
       self.idList.splice(ind, 1)
       callback(null, null)
     }
   }
-  if (!this.shouldSync(title)) {
+  if(!this.shouldSync(title)) {
     callback(null);
   } else {
     // We have an additional check for tiddlers that start with
@@ -577,7 +576,7 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
 BrowserWSAdaptor.prototype.shouldSync = function(tiddlerTitle) {
   // assume that we are never syncing state and temp tiddlers.
   // This may change later.
-  if (tiddlerTitle.startsWith('$:/state/') || tiddlerTitle.startsWith('$:/temp/')) {
+  if(tiddlerTitle.startsWith('$:/state/') || tiddlerTitle.startsWith('$:/temp/')) {
     return false;
   }
   // If the changed tiddler is the one that holds the exclude filter
@@ -639,7 +638,7 @@ function setupSkinnyTiddlerLoading() {
     }, 100)
   } else {
     clearTimeout(thisTimerTemp)
-    if ($tw.wiki.getTiddlerDataCached('$:/WikiSettings/split/ws-server').rootTiddler === '$:/core/save/lazy-all') {
+    if($tw.wiki.getTiddlerDataCached('$:/WikiSettings/split/ws-server').rootTiddler === '$:/core/save/lazy-all') {
       BrowserWSAdaptor.prototype.getSkinnyTiddlers = function (callback) {
         function handleSkinnyTiddlers(e) {
           callback(null, e)
@@ -647,7 +646,7 @@ function setupSkinnyTiddlerLoading() {
         function sendThing() {
           function setSendThingTimeout() {
             setTimeout(function() {
-              if ($tw.connections) {
+              if($tw.connections) {
                 if($tw.connections[0].socket.readyState === 1) {
                   id = sendToServer(message)
                   $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
@@ -661,7 +660,7 @@ function setupSkinnyTiddlerLoading() {
               }
             }, 100)
           }
-          if ($tw.connections) {
+          if($tw.connections) {
             if($tw.connections[0].socket.readyState === 1) {
               id = sendToServer(message)
               $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
@@ -732,7 +731,7 @@ const sendToServer = function (message) {
 */
 
 // Replace this with whatever conditions are required to use your adaptor
-if ($tw.browser) {
+if($tw.browser) {
   setupSkinnyTiddlerLoading()
   exports.adaptorClass = BrowserWSAdaptor
 }

@@ -281,8 +281,8 @@ This has some functions that are needed by Bob in different places.
     }).filter(function(item) {return item > -1;});
     // Remove the messages that are overruled by the new message.
     const outQueue = queue.filter(function(item, index) {
-      if (duplicateIndicies.indexOf(index) !== -1) {
-        if ($tw.browser) {
+      if(duplicateIndicies.indexOf(index) !== -1) {
+        if($tw.browser) {
           const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: item.id})
           $tw.rootWidget.dispatchEvent(receivedAck)
         }
@@ -454,7 +454,7 @@ This has some functions that are needed by Bob in different places.
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
-      if (messageData.message.tiddler) {
+      if(messageData.message.tiddler) {
         messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler);
       }
 
@@ -478,7 +478,7 @@ This has some functions that are needed by Bob in different places.
         $tw.Bob.MessageQueue.push(messageData);
       }
       _sendMessage($tw.connections[connectionIndex], messageData)
-    } else if ($tw.browser) {
+    } else if($tw.browser) {
       // If we are not sending the message then we have to emit the 'received-ack' event so that the syncer thinks it is finished.
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
@@ -522,7 +522,7 @@ This has some functions that are needed by Bob in different places.
     removed later.
   */
   Shared.handleAck = function (data) {
-    if ($tw.browser) {
+    if($tw.browser) {
       // Events to let the syncadaptor work in the browser
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: data.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
@@ -630,14 +630,14 @@ This has some functions that are needed by Bob in different places.
           if(field === 'list' || field === 'tags') {
             if(Array.isArray(tiddler.fields[field])) {
               newTid[field] = tiddler.fields[field].slice()
-              if (field === 'tags') {
+              if(field === 'tags') {
                 newTid[field] = newTid[field].sort()
               }
             } else if(tiddler.fields[field] === '') {
               newTid[field] = []
             } else {
               newTid[field] = $tw.utils.parseStringArray(tiddler.fields[field]).slice()
-              if (field === 'tags') {
+              if(field === 'tags') {
                 newTid[field] = newTid[field].sort()
               }
             }

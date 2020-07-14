@@ -45,8 +45,8 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
         fs.stat(itemPath, function(err, fileStats) {
           // The file extension, if no file extension than an empty string
           const fileExtension = path.extname(filename);
-          if (err) {
-            if (err.code === 'ENOENT') {
+          if(err) {
+            if(err.code === 'ENOENT') {
               // The item doesn't exist, so it was removed
               // If the file doesn't exist anymore remove it from the wiki
               if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
@@ -54,7 +54,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
               } else {
                 $tw.Bob.logger.log('non-tiddler file deleted:', filename, {level: 3})
               }
-            } else if (err.code === 'EACCES') {
+            } else if(err.code === 'EACCES') {
               // Permissions error
             } else {
               // Some other error
@@ -64,7 +64,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
             // If it is a new folder than watch that folder too
             if(fileStats.isDirectory()) {
               $tw.Bob.WatchFolder(itemPath, prefix)
-            } else if (fileStats.isFile()) {
+            } else if(fileStats.isFile()) {
               const tiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
                 // This is to handle some edge cases I ran into while making
                 // it.
@@ -74,7 +74,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   return false;
                 }
               })[0];
-              if (['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+              if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
                 let tiddlerObject = {tiddlers:[{}]}
                 // This try block catches an annoying race condition problem
                 // when the filesystem adaptor deletes a file the file watcher
@@ -84,7 +84,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   // Load tiddler data from the file
                   tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
                 } catch (e) {
-                  if (e.code !== 'ENOENT') {
+                  if(e.code !== 'ENOENT') {
                     $tw.Bob.logger.error(e, {level: 3})
                   }
                   return
@@ -124,17 +124,17 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                       $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
                     }
                     function arrayEqual(a1, a2) {
-                      if (!Array.isArray(a1) || !Array.isArray(a2)) {
+                      if(!Array.isArray(a1) || !Array.isArray(a2)) {
                         return false
                       }
-                      if (a1 === a2) {
+                      if(a1 === a2) {
                         return true
                       }
-                      if (a1.length !== a2.length) {
+                      if(a1.length !== a2.length) {
                         return false
                       }
                       for (let k = 0; k < a1.length; k++) {
-                        if (a1[k] !== a2[k]) {
+                        if(a1[k] !== a2[k]) {
                           return false
                         }
                       }
@@ -166,7 +166,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
         })
       }).on('error', error => {
         // Ignore EPERM errors in windows, which happen if you delete watched folders...
-        if (error.code === 'EPERM' && require('os').platform() === 'win32') {
+        if(error.code === 'EPERM' && require('os').platform() === 'win32') {
           $tw.Bob.logger.log('[Info] Failed to watch deleted folder.', {level:3});
           return;
         }

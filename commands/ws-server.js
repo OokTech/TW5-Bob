@@ -189,12 +189,12 @@ if($tw.node) {
       }
     });
     httpServer.on('upgrade', function(request, socket, head) {
-      if (request.headers.upgrade === 'websocket') {
-        if (request.url === '/') {
+      if(request.headers.upgrade === 'websocket') {
+        if(request.url === '/') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
           });
-        } else if (request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation === 'yes') {
+        } else if(request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation === 'yes') {
           $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
             console.log('WSS federation upgrade')
             $tw.federationWss.emit('connection', ws, request);
@@ -212,7 +212,7 @@ if($tw.node) {
     if(settingsObj) {
       name = pieces[0]
     }
-    for (let i = 1; i < pieces.length; i++) {
+    for(let i = 1; i < pieces.length; i++) {
       if(settingsObj) {
         if(typeof settingsObj[pieces[i]] === 'object') {
           name = name + '/' + pieces[i]
@@ -225,7 +225,7 @@ if($tw.node) {
         }
       }
     }
-    if (name === '') {
+    if(name === '') {
       //name = 'RootWiki'
     }
     return name
@@ -296,13 +296,13 @@ if($tw.node) {
     $tw.settings.saver = $tw.settings.saver || {};
     const port = $tw.settings.saver.port || 61192;
     let host = '127.0.0.1';
-    if ($tw.settings.saver.host && $tw.settings.acceptance === 'I Will Not Get Tech Support For This') {
+    if($tw.settings.saver.host && $tw.settings.acceptance === 'I Will Not Get Tech Support For This') {
       host = $tw.settings.saver.host;
     }
     function saverHandler(request, response) {
       let body = '';
       response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, x-file-path, x-saver-key"});
-      if (request.url.endsWith('/save')) {
+      if(request.url.endsWith('/save')) {
         request.on('data', function(chunk){
           body += chunk;
           // We limit this to 100mb, this could change if people have gigantic
@@ -319,11 +319,11 @@ if($tw.node) {
           const filepath = request.headers['x-file-path'];
           const key = request.headers['x-saver-key'];
           const match = (key === $tw.settings.saver.key) || (typeof $tw.settings.saver.key === 'undefined');
-          if (typeof body === 'string' && body.length > 0 && filepath && match) {
+          if(typeof body === 'string' && body.length > 0 && filepath && match) {
             // Write the file
             const fs = require('fs');
             const path = require('path');
-            if (['.html', '.htm', '.hta'].indexOf(path.extname(filepath)) === -1) {
+            if(['.html', '.htm', '.hta'].indexOf(path.extname(filepath)) === -1) {
               response.writeHead(403, {'Content-Type': 'text/plain'}).end();
             }
             // Make sure that the path exists, if so save the wiki file
@@ -341,7 +341,7 @@ if($tw.node) {
             response.end(JSON.stringify(responseData));
           }
         });
-      } else if (request.url.endsWith('/check')) {
+      } else if(request.url.endsWith('/check')) {
         response.end('{"ok":"yes"}')
       }
     }
@@ -356,7 +356,7 @@ if($tw.node) {
       }
     });
     saverServer.listen(port, host, function(err) {
-      if (err) {
+      if(err) {
         console.log('Bob saver server error!', err);
       } else {
         console.log('Bob saver server running on', host + ':' + port);
@@ -387,7 +387,7 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
-    if ($tw.settings.enableSaver !== 'no') {
+    if($tw.settings.enableSaver !== 'no') {
       // Create single file saver server
       createSaverServer()
     }

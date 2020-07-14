@@ -102,7 +102,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     // This checks to see if we have the node the broadcast is from listed with
     // the same rinfo stuff as the broadcast, if so we can ignore it, if not
     // than we request info
-    if (typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].active !== 'yes' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
+    if(typeof $tw.Bob.Federation.connections[data._source_info.serverKey] === 'undefined' || $tw.Bob.Federation.connections[data._source_info.serverKey].active !== 'yes' || $tw.Bob.Federation.connections[data._source_info.serverKey].port !== data._source_info.port && $tw.Bob.Federation.connections[data._source_info.serverKey].address !== data._source_info.address) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].active = 'yes';
       $tw.Bob.Federation.updateConnectionsInfo();
     }
@@ -159,7 +159,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     data = data || {};
     $tw.Bob.Federation.connections[data._source_info.serverKey] = $tw.Bob.Federation.connections[data._source_info.serverKey] || {};
     data.info = (data.message)?(data.message.info || data.info):data.info;
-    if (data.info && data._source_info) {
+    if(data.info && data._source_info) {
       $tw.Bob.Federation.connections[data._source_info.serverKey].name = data.info.name;
       $tw.Bob.Federation.connections[data._source_info.serverKey].allows_login = data.info.allows_login || 'no';
       $tw.Bob.Federation.connections[data._source_info.serverKey].lastupdate = $tw.utils.stringifyDate(new Date());
@@ -272,7 +272,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendHashes = function(data) {
     $tw.Bob.logger.log('receive sendHashes', data.hashes, {level: 4})
-    if (data.hashes && data.fromWiki) {
+    if(data.hashes && data.fromWiki) {
       const tiddlersToRequest = [];
       const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.fromWiki].local_name || data.fromWiki;
       const test = $tw.ServerSide.loadWiki(localName);
@@ -296,9 +296,9 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
           }
           // check if the tiddler exists locally
           const thisTid = $tw.Bob.Wikis[localName].wiki.getTiddler(tidTitle);
-          if (thisTid) {
+          if(thisTid) {
             // If the tiddler exists than check if the hashes match
-            if (data.hashes[rawTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
+            if(data.hashes[rawTitle] !== $tw.Bob.Shared.getTiddlerHash(thisTid)) {
               // If the hashes don't match add it to the list
               tiddlersToRequest.push(tidTitle);
             }
@@ -336,7 +336,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
   */
   $tw.Bob.Federation.messageHandlers.sendTiddlers = function(data) {
     $tw.Bob.logger.log('receive sendTiddlers', {level: 4})
-    if (typeof data.tiddlers === 'object') {
+    if(typeof data.tiddlers === 'object') {
       const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].local_name || data.wikiName;
       $tw.ServerSide.loadWiki(localName, function() {
         Object.values(data.tiddlers).forEach(function(tidFields) {
@@ -477,9 +477,9 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
       const serverName = $tw.Bob.Federation.connections[data._source_info.url].name;
       // Get the tiddler name that has the information for the wiki
       const wikiInfoTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/Bob/KnownServers/' + serverName + '/wikis/' + wikiName);
-      if (wikiInfoTid) {
+      if(wikiInfoTid) {
         // make sure that the wiki is set up to be synced
-        if (['pull','bidirectional'].indexOf(wikiInfoTid.fields.sync_type)) {
+        if(['pull','bidirectional'].indexOf(wikiInfoTid.fields.sync_type)) {
           // Make the request for the tiddlers
           const message = {
             type: 'requestTiddlers',

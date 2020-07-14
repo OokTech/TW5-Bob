@@ -89,7 +89,7 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
   // key: value pairs
   $tw.utils.each(this.attributes,function(attribute,name) {
     //if(name.charAt(0) !== "$") {
-    if (['$type', '$param', '$tiddler'].indexOf(name) === -1) {
+    if(['$type', '$param', '$tiddler'].indexOf(name) === -1) {
       message[name] = attribute;
     }
   });

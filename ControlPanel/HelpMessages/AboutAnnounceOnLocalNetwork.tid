@@ -1,0 +1,3 @@
+title: $:/plugins/OokTech/Bob/AboutAnnounceOnLocalNetwork
+
+Checking this will make Bob periodically announce to the local network that the server is available.

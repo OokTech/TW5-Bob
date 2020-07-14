@@ -44,7 +44,7 @@ exports.handler = function(request,response,state) {
         $tw.utils.createDirectory(filesPath);
         const buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
         fs.writeFile(path.join(filesPath, bodyData.tiddler.fields.title), buf, function(error) {
-          if (error) {
+          if(error) {
             $tw.Bob.logger.error(error, {level: 2});
           } else {
             $tw.Bob.logger.log("File saved on server: ", bodyData.tiddler.fields.title, {level: 3});
