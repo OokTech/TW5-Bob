@@ -50,6 +50,7 @@ $tw.Bob.Files = $tw.Bob.Files || {};
   Return the resolved filePathRoot
 */
 ServerSide.getFilePathRoot= function() {
+  const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   let basePath = '';
   $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
   if($tw.settings.filePathRoot === 'cwd') {
@@ -57,7 +58,7 @@ ServerSide.getFilePathRoot= function() {
   } else if($tw.settings.filePathRoot === 'homedir') {
     basePath = os.homedir();
   } else {
-    basePath = path.resolve($tw.settings.filePathRoot);
+    basePath = path.resolve(currPath, $tw.settings.filePathRoot);
   }
   return basePath;
 }
@@ -66,6 +67,7 @@ ServerSide.getFilePathRoot= function() {
   Return the resolved basePath
 */
 ServerSide.getBasePath = function() {
+  const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   let basePath = '';
   $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
   if($tw.settings.wikiPathBase === 'homedir') {
@@ -73,7 +75,7 @@ ServerSide.getBasePath = function() {
   } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
     basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else {
-    basePath = path.resolve($tw.settings.wikiPathBase);
+    basePath = path.resolve(currPath, $tw.settings.wikiPathBase);
   }
   return basePath;
 }
