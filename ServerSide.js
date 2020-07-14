@@ -53,7 +53,7 @@ ServerSide.getFilePathRoot= function() {
   let basePath = '';
   $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
   if($tw.settings.filePathRoot === 'cwd') {
-    basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else if($tw.settings.filePathRoot === 'homedir') {
     basePath = os.homedir();
   } else {
