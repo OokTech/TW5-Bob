@@ -140,10 +140,11 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                       }
                       return true
                     }
-                    // This handles when a tiddler title doesn't match the path
+                    // This handles when we are creating a new file in the fs,
+                    // or a tiddler title doesn't match the path
                     // where the tiddler exists. It deletes the tiddler in the
                     // incorrect path
-                    if(itemPath !== theFilepath || !(arrayEqual($tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]}).fields.tags, $tw.utils.parseStringArray(tiddlerObject.tiddlers[0].tags)))) {
+                    if(eventType === 'rename' || itemPath !== theFilepath || !(arrayEqual($tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]}).fields.tags, $tw.utils.parseStringArray(tiddlerObject.tiddlers[0].tags)))) {
                       // Delete the old file, the normal delete action takes
                       // care of the rest.
                       fs.unlink(itemPath, ()=>{
