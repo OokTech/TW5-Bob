@@ -20,7 +20,7 @@ exports.path = new RegExp('^\/api\/push');
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
-  if ($tw.settings.API.enablePush === 'yes') {
+  if($tw.settings.API.enablePush === 'yes') {
     let body = ''
     request.on('data', function(chunk){
       body += chunk;

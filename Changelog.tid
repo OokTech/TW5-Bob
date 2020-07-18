@@ -1,5 +1,12 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.6.1 Scream in your heart
+
+* Changed how saveTiddler messages are handled that reduce the number of redundant messages. This prevents some undesired behaviour and in some extreme cases infinite saving loops.
+** This makes some significant speed improvements, everything but saving many tiddlers in the browser is now close to the speed it was before switching to the internal syncer
+* Fixed some formatting to fit better with tiddlywiki coding styles
+* Fixed the basepath for the file server
+
 !! Version 1.6.0 Mopbucket, backup your data
 
 Special thanks to @joshuafontany for some much requested stability improvements.

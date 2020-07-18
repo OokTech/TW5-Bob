@@ -23,16 +23,16 @@ if($tw.node) {
   $tw.nodeMessageHandlers.chatMessage = function(data) {
     $tw.Bob.Shared.sendAck(data);
     const conversationTiddler = data.conversation || 'DefaultChat'
-    if (conversationTiddler && data.message) {
+    if(conversationTiddler && data.message) {
       // Get the history tiddler
       const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`)
       let history = {}
-      if (historyTiddler) {
+      if(historyTiddler) {
         // Make sure that the fields aren't read only
         history = JSON.parse(JSON.stringify(historyTiddler.fields.text));
       }
       const theTime = $tw.utils.stringifyDate(new Date());
-      if (typeof history === 'string') {
+      if(typeof history === 'string') {
         history = JSON.parse(history);
       }
       // Add new message
@@ -48,7 +48,7 @@ if($tw.node) {
         title: `$:/chat/${conversationTiddler}`,
         type: 'application/json'
       }), data.wiki);
-      if ($tw.settings.enableFederation === 'yes') {
+      if($tw.settings.enableFederation === 'yes') {
         // Send it to any connected servers
         $tw.Bob.Federation.sendToRemoteServers(data);
       }

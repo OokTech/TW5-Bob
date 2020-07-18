@@ -77,6 +77,17 @@ it will overwrite this file.
             const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
             if(changed) {
               $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
+              // Set the change count in the syncer so that the syncer doesn't save the tiddler again.
+              if($tw.syncer.tiddlerInfo[data.tiddler.fields.title]) {
+                $tw.syncer.tiddlerInfo[data.tiddler.fields.title].changeCount = $tw.wiki.getChangeCount(data.tiddler.fields.title);
+								$tw.syncer.tiddlerInfo[data.tiddler.fields.title].timestampLastSaved = new Date();
+              } else {
+                $tw.syncer.tiddlerInfo[data.tiddler.fields.title] = {
+									changeCount: $tw.wiki.getChangeCount(data.tiddler.fields.title),
+									adaptorInfo: "",
+									revision: undefined
+								}
+              }
             }
           } else {
             console.log('Invalid tiddler title');
@@ -417,14 +428,14 @@ it will overwrite this file.
   */
   $tw.browserMessageHandlers.updateConnections = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    if (data.connections) {
+    if(data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',
         list: $tw.utils.stringifyList(Object.keys(data.connections))
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
       Object.keys(data.connections).forEach(function(connectionUrl) {
-        if (data.connections[connectionUrl].name) {
+        if(data.connections[connectionUrl].name) {
           const connectionFields = {
             title: '$:/Bob/KnownServers/' + data.connections[connectionUrl].name,
             tags: '[[Remote Server]]',

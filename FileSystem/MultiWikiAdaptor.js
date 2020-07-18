@@ -83,7 +83,7 @@ if($tw.node) {
     if(!fileInfo) {
       const systemPathsText = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths")
       let systemPathsList = []
-      if (systemPathsText) {
+      if(systemPathsText) {
         systemPathsList = systemPathsText.split("\n")
       }
       // Otherwise, we'll need to generate it
@@ -149,11 +149,16 @@ if($tw.node) {
   /*
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
-  MultiWikiAdaptor.prototype.saveTiddler = function(tiddler, prefix, callback) {
+  MultiWikiAdaptor.prototype.saveTiddler = function(tiddler, prefix, connectionInd, callback) {
     const self = this;
     if(typeof prefix === 'function') {
       callback = prefix;
       prefix = null;
+      connectionInd = null;
+    }
+    if(typeof connectionInd === 'function') {
+      connectionInd = null;
+      callback = connectionInd
     }
     if(typeof callback !== 'function') {
       callback = function () {
@@ -161,22 +166,22 @@ if($tw.node) {
       }
     }
     prefix = prefix || 'RootWiki';
-    if (!$tw.Bob.Wikis[prefix]) {
+    if(!$tw.Bob.Wikis[prefix]) {
       $tw.ServerSide.loadWiki(prefix, finish);
     } else {
       finish();
     }
     function finish() {
-      if (tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
+      if(tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
         self.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), prefix,
          function(err,fileInfo) {
           if(err) {
             return callback(err);
           }
           // Make sure that the tiddler has actually changed before saving it
-          if ($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
+          if($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
             // Save the tiddler in memory.
-            internalSave(tiddler, prefix);
+            internalSave(tiddler, prefix, connectionInd);
             $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
@@ -191,7 +196,7 @@ if($tw.node) {
   };
 
   // Before the tiddler file is saved this takes care of the internal part
-  function internalSave (tiddler, prefix) {
+  function internalSave (tiddler, prefix, sourceConnection) {
     $tw.Bob.Wikis[prefix].wiki.addTiddler(new $tw.Tiddler(tiddler.fields));
     const message = {
       type: 'saveTiddler',
@@ -200,7 +205,7 @@ if($tw.node) {
         fields: tiddler.fields
       }
     };
-    $tw.Bob.SendToBrowsers(message);
+    $tw.Bob.SendToBrowsers(message, sourceConnection);
     // This may help
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
     $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
@@ -278,7 +283,7 @@ if($tw.node) {
     }
   };
 
-  if ($tw.node) {
+  if($tw.node) {
     exports.adaptorClass = MultiWikiAdaptor;
   }
 }

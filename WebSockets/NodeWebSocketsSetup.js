@@ -237,13 +237,13 @@ if($tw.node) {
     checking because if it needs to be changed and sent to multiple browsers
     changing it once here instead of once per browser should be better.
   */
-  $tw.Bob.SendToBrowsers = function (message) {
+  $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
     $tw.Bob.UpdateHistory(message);
     const messageData = $tw.Bob.Shared.createMessageData(message);
 
-    $tw.connections.forEach(function (connection) {
-      if (connection.socket) {
-        if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+    $tw.connections.forEach(function (connection, ind) {
+      if((ind !== excludeConnection) && connection.socket) {
+        if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
           $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
@@ -263,8 +263,8 @@ if($tw.node) {
     if(connection) {
       $tw.Bob.UpdateHistory(message);
       const messageData = $tw.Bob.Shared.createMessageData(message);
-      if (connection.socket) {
-        if (connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+      if(connection.socket) {
+        if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
           $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
         }
       }
