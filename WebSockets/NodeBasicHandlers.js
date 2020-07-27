@@ -134,8 +134,6 @@ if($tw.node) {
           }
           if(changed) {
             $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
-            // Set the wiki as modified
-            $tw.Bob.Wikis[prefix].modified = true;
           }
         }
         delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
@@ -157,8 +155,6 @@ if($tw.node) {
     if(title) {
       // Delete the tiddler file from the file system
       $tw.syncadaptor.deleteTiddler(title, {wiki: data.wiki});
-      // Set the wiki as modified
-      $tw.Bob.Wikis[data.wiki].modified = true;
       // Remove the tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];

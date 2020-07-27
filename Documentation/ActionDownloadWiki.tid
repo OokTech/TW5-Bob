@@ -34,6 +34,8 @@ Any content of the `action-downloadwiki` widget is ignored.
 |!includeFilter |An optional filter that returns all tiddlers to inclued in the output wiki. If nothing is given than the whole wiki is included. |
 |!excludeFilter |An optional filter that returns tiddlers to exclude from the downloaded wiki. If this lists a tiddler that is also returned by the includeFilter than the excludeFilter takes presidence. Defaults to an empty list so nothing is excluded. |
 |!ignoreDefaultExclude |If this is set to `true` than the default exclude list is ignored. The default exclude list includes the Bob plugin and other things that either break single file wikis or do nothing in single file wikis, so don't set this unless you have a specific reason. |
+|!defaultName |The default name given for the downloaded file, Default `index.html` |
+|!core |The core plugin to include in the downloaded file, this can be used to do things like use the read-only version of the core for downloaded files. Default: `$:/core` |
 
 The default exclude filter is
 
