@@ -150,7 +150,7 @@ function BrowserWSAdaptor(options) {
   */
   const openSocket = function() {
     console.log('Opened socket');
-    const token = localStorage.getItem('ws-token');
+    let token = localStorage.getItem('ws-token');
     // Login with whatever credentials you have
     const data = {
       type: 'setLoggedIn',
@@ -164,6 +164,9 @@ function BrowserWSAdaptor(options) {
     // wikis, so this tries every second until it succeds at creating them.
     function tryAgain() {
       setTimeout(function() {
+        if(!token) {
+          token = localStorage.getItem('ws-token')
+        }
         const tid = $tw.wiki.getTiddler("$:/WikiSettings/split")
         if(!tid) {
           const data = {
