@@ -47,6 +47,9 @@ it will overwrite this file.
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
+	$tw.settings = $tw.settings || {};
+	$tw.settings.heartbeat = $tw.settings.heartbeat || {};
+	$tw.settings.heartbeat.PingTimer = false;
 
   /*
     TODO - determine if we should sanitise the tiddler titles and field names
@@ -285,7 +288,8 @@ it will overwrite this file.
       clearTimeout($tw.settings.heartbeat.TTLID);
       // Clear the retry timeout.
       clearTimeout($tw.settings.heartbeat.retry);
-      setTimeout(function () {
+			clearTimeout($tw.settings.heartbeat.PingTimer);
+      $tw.settings.heartbeat.PingTimer = setTimeout(function () {
         const token = localStorage.getItem('ws-token')
         $tw.connections[0].socket.send(JSON.stringify({
           type: 'ping',

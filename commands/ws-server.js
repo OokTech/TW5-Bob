@@ -387,7 +387,7 @@ if($tw.node) {
       pathprefix: pathprefix
     });
 
-    if($tw.settings.enableSaver !== 'no') {
+    if($tw.settings.enableBobSaver !== 'no') {
       // Create single file saver server
       createSaverServer()
     }

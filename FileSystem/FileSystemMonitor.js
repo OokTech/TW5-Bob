@@ -32,6 +32,15 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
 
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
+
+    File or Folder
+    Exists or Doesn't Exist
+
+    Folder - Exists -> Watch folder
+    Folder - Doesn't Exist -> remove tiddlers in the folder and stop the watcher
+
+    File - Exists -> Update of some sort
+    File - Doesn't Exist -> Remove the tiddler
   */
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
@@ -46,6 +55,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
           // The file extension, if no file extension than an empty string
           const fileExtension = path.extname(filename);
           if(err) {
+            // The item doesn't exist
             if(err.code === 'ENOENT') {
               // The item doesn't exist, so it was removed
               // If the file doesn't exist anymore remove it from the wiki
@@ -87,6 +97,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   if(e.code !== 'ENOENT') {
                     $tw.Bob.logger.error(e, {level: 3})
                   }
+                  // If we reach here the file doesn't exist for other reasons and we don't need to do anything
                   return
                 }
                 // Make sure that it at least has a title
@@ -123,26 +134,11 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                       // Remove the old tiddler
                       $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
                     }
-                    function arrayEqual(a1, a2) {
-                      if(!Array.isArray(a1) || !Array.isArray(a2)) {
-                        return false
+
+                    fs.unlink(itemPath, (err)=>{
+                      if(err) {
+                        // nothing, error if the tiddler doesn't exist just means the monitor is most likely fighting with another syncer like git.
                       }
-                      if(a1 === a2) {
-                        return true
-                      }
-                      if(a1.length !== a2.length) {
-                        return false
-                      }
-                      for (let k = 0; k < a1.length; k++) {
-                        if(a1[k] !== a2[k]) {
-                          return false
-                        }
-                      }
-                      return true
-                    }
-                    // Delete the old file, the normal delete action takes
-                    // care of the rest.
-                    fs.unlink(itemPath, () => {
                       // Create the new tiddler
                       const newTiddler = $tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]});
                       // Save the new file

@@ -182,6 +182,7 @@ if($tw.node) {
           if($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
             // Save the tiddler in memory.
             internalSave(tiddler, prefix, connectionInd);
+            $tw.Bob.Wikis[prefix].modified = true;
             $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
@@ -247,6 +248,8 @@ if($tw.node) {
     }
     const prefix = options.wiki;
     const fileInfo = $tw.Bob.Files[prefix][title];
+    // I guess unconditionally say the wiki is modified in this case.
+    $tw.Bob.Wikis[prefix].modified = true;
     // Only delete the tiddler if we have writable information for the file
     if(fileInfo) {
       // Delete the file
