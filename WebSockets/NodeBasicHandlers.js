@@ -37,12 +37,12 @@ if($tw.node) {
   $tw.nodeMessageHandlers.getSkinnyTiddlers = function(data) {
     $tw.Bob.Shared.sendAck(data);
     // We need at least the name of the wiki
-    if (data.wiki) {
+    if(data.wiki) {
       $tw.ServerSide.loadWiki(data.wiki);
       // Get the skinny tiddlers
       const tiddlers = []
       $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
-        if (title.slice(0,3) !== '$:/') {
+        if(title.slice(0,3) !== '$:/') {
           tiddlers.push($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']}))
         }
       })
@@ -116,7 +116,7 @@ if($tw.node) {
         // If we are not expecting a save tiddler event than save the
         // tiddler normally.
         if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
-          $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
+          $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
         } else {
           // If changed send tiddler
           let changed = true;
@@ -133,9 +133,7 @@ if($tw.node) {
             $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
           }
           if(changed) {
-            $tw.syncadaptor.saveTiddler(data.tiddler, prefix);
-            // Set the wiki as modified
-            $tw.Bob.Wikis[prefix].modified = true;
+            $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
           }
         }
         delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
@@ -157,8 +155,6 @@ if($tw.node) {
     if(title) {
       // Delete the tiddler file from the file system
       $tw.syncadaptor.deleteTiddler(title, {wiki: data.wiki});
-      // Set the wiki as modified
-      $tw.Bob.Wikis[data.wiki].modified = true;
       // Remove the tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];

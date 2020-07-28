@@ -50,14 +50,15 @@ $tw.Bob.Files = $tw.Bob.Files || {};
   Return the resolved filePathRoot
 */
 ServerSide.getFilePathRoot= function() {
+  const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   let basePath = '';
   $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
   if($tw.settings.filePathRoot === 'cwd') {
-    basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else if($tw.settings.filePathRoot === 'homedir') {
     basePath = os.homedir();
   } else {
-    basePath = path.resolve($tw.settings.filePathRoot);
+    basePath = path.resolve(currPath, $tw.settings.filePathRoot);
   }
   return basePath;
 }
@@ -66,15 +67,15 @@ ServerSide.getFilePathRoot= function() {
   Return the resolved basePath
 */
 ServerSide.getBasePath = function() {
+  const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   let basePath = '';
   $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
   if($tw.settings.wikiPathBase === 'homedir') {
     basePath = os.homedir();
   } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-    //basePath = path.parse(process.argv[0]).name === 'node' ? path.dirname(process.argv[0]) : process.cwd();
-    basePath = process.cwd();
+    basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
   } else {
-    basePath = path.resolve($tw.settings.wikiPathBase);
+    basePath = path.resolve(currPath, $tw.settings.wikiPathBase);
   }
   return basePath;
 }
@@ -201,7 +202,7 @@ ServerSide.loadWiki = function (wikiName, cb) {
       // Recursively build the folder tree structure
       $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
 
-      if ($tw.settings.disableFileWatchers !== 'yes') {
+      if($tw.settings.disableFileWatchers !== 'yes') {
         // Watch the root tiddlers folder for chanegs
         $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
       }
@@ -615,7 +616,7 @@ const buildTree = function(location, parent) {
   We can turn off browser messages
 */
 ServerSide.sendBrowserAlert = function(input) {
-  if ($tw.settings.disableBrowserAlerts !== 'true') {
+  if($tw.settings.disableBrowserAlerts !== 'true') {
     const message = {
       type:'browserAlert',
       alert: input.alert
@@ -733,7 +734,7 @@ ServerSide.findName = function(url) {
       }
     }
   }
-  if (name === '' && pieces[0] === 'RootWiki') {
+  if(name === '' && pieces[0] === 'RootWiki') {
     name = 'RootWiki'
   }
   return name

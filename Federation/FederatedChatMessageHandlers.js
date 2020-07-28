@@ -28,11 +28,11 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chatMessage = function(data) {
     data.wiki = data.wiki || 'RootWiki';
     const conversationTiddler = data.conversation || 'DefaultChat';
-    if (conversationTiddler && data.message) {
+    if(conversationTiddler && data.message) {
       // Get the history tiddler
       const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`);
       let history = {};
-      if (historyTiddler) {
+      if(historyTiddler) {
         // Make sure that the fields aren't read only
         history = JSON.parse(JSON.stringify(historyTiddler.fields.text));
       }
@@ -62,11 +62,11 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
   $tw.Bob.Federation.messageHandlers.chatHistory = function(data) {
     //$tw.Bob.Shared.sendAck(data);
     const conversationTiddler = data.conversation || 'DefaultChat'
-    if (data.conversation && data.messages) {
+    if(data.conversation && data.messages) {
       // Get the history tiddler
       const historyTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(`$:/chat/${conversationTiddler}`)
       let history = {}
-      if (historyTiddler) {
+      if(historyTiddler) {
         // Update the history tiddler
         history = JSON.parse(JSON.stringify(historyTiddler.fields));
       }

@@ -45,7 +45,7 @@ ChatView.prototype.render = function(parent,nextSibling) {
   // The tiddler should be a json tiddler so we get the json object here
   const historyTiddlerThing = this.wiki.getTiddler(this.historyTiddler);
   let chatHistoryObject = {};
-  if (historyTiddlerThing) {
+  if(historyTiddlerThing) {
     try {
       chatHistoryObject = JSON.parse(historyTiddlerThing.fields.text);
     } catch (e) {
@@ -75,7 +75,7 @@ ChatView.prototype.render = function(parent,nextSibling) {
       >
         ${chatHistoryObject[messageTimestamp].message}
       </span>`;
-    if (messageIndex % 2 === 0) {
+    if(messageIndex % 2 === 0) {
       newElement.classList.add('defaultChatHistoryViewEvenMessages');
     } else {
       newElement.classList.add('defaultChatHistoryViewOddMessages');
@@ -90,11 +90,11 @@ ChatView.prototype.render = function(parent,nextSibling) {
   // the text scrolls up, if not than the div position is maintained so
   // it doesn't move what you are looking at out of frame.
   const isScrolledToBottom = this.scrollPosition + containerDiv.clientHeight >= containerDiv.scrollHeight - 50;
-  if (this.scrollPosition === 0) {
+  if(this.scrollPosition === 0) {
     this.scrollPosition = containerDiv.scrollHeight;
   }
 
-  if (isScrolledToBottom) {
+  if(isScrolledToBottom) {
     containerDiv.scrollTop = containerDiv.scrollHeight;
   } else {
     containerDiv.scrollTop = this.scrollPosition;

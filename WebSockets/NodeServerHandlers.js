@@ -90,12 +90,12 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    if (data.$server && data.$message) {
+    if(data.$server && data.$message) {
       const newData = {
         type: data.$message
       }
       Object.keys(data).forEach(function(key) {
-        if (['type', '$server', '$message', 'wiki'].indexOf(key) === -1) {
+        if(['type', '$server', '$message', 'wiki'].indexOf(key) === -1) {
           newData[key] = data[key]
         }
       })
@@ -440,12 +440,12 @@ if($tw.node) {
       let updatesObject = {};
       let error = undefined;
       try {
-        if (typeof data.updateString === 'object') {
+        if(typeof data.updateString === 'object') {
           Object.keys(data.updateString).forEach(function(key) {
-            if (typeof data.updateString[key] === 'object') {
+            if(typeof data.updateString[key] === 'object') {
               updatesObject[key] = data.updateString[key]
-            } else if (typeof data.updateString[key] === 'string') {
-              if (data.updateString[key].startsWith('{') || data.updateString[key].startsWith('[')) {
+            } else if(typeof data.updateString[key] === 'string') {
+              if(data.updateString[key].startsWith('{') || data.updateString[key].startsWith('[')) {
                 try {
                   updatesObject[key] = JSON.parse(data.updateString[key]);
                 } catch (e) {
@@ -1048,8 +1048,8 @@ if($tw.node) {
   };
   $tw.stopFileWatchers = function(wikiName) {
     // Close any file watchers that are active for the wiki
-    if ($tw.Bob.Wikis[wikiName]) {
-      if ($tw.Bob.Wikis[wikiName].watchers) {
+    if($tw.Bob.Wikis[wikiName]) {
+      if($tw.Bob.Wikis[wikiName].watchers) {
         Object.values($tw.Bob.Wikis[wikiName].watchers).forEach(function(thisWatcher) {
           thisWatcher.close();
         })
@@ -1155,12 +1155,12 @@ if($tw.node) {
       fileFolder = path.resolve($tw.ServerSide.getBasePath(), filePathRoot);
       // send to browser
       next(fileFolder, '');
-    } else if (wikiName === '' && $tw.settings.servingFiles[thePath]) {
+    } else if(wikiName === '' && $tw.settings.servingFiles[thePath]) {
       // Explicitly listed folders that are globally available
       fileFolder = $tw.settings.servingFiles[thePath];
       // send to browser
       next(fileFolder, thePath);
-    } else if (wikiName !== '') {
+    } else if(wikiName !== '') {
       // Wiki specific files, need to check to make sure that if perwikiFiles is set this only works from the target wiki.
       if($tw.settings.perWikiFiles !== 'yes' || wikiName === data.wiki) {
         const wikiPath = $tw.ServerSide.existsListed(wikiName);
@@ -1201,7 +1201,7 @@ if($tw.node) {
         });
       const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, folder);
       let match = false;
-      if (authorised) {
+      if(authorised) {
         const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
@@ -1307,7 +1307,7 @@ if($tw.node) {
     const filePathRoot = $tw.ServerSide.getFilePathRoot();
     //$tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
-    if (authorised) {
+    if(authorised) {
       $tw.settings.servingFiles[data.prefix] = data.folder;
       const mimeMap = $tw.settings.mimeMap || {
         '.aac': 'audio/aac',
@@ -1332,15 +1332,15 @@ if($tw.node) {
         '.webm': 'video/webm',
         '.wav': 'audio/wav'
       };
-      if (typeof data.mediaTypes === 'string') {
-        if (data.mediaTypes.length > 0) {
+      if(typeof data.mediaTypes === 'string') {
+        if(data.mediaTypes.length > 0) {
           data.mediaTypes = data.mediaTypes.split(' ');
         }
       } else {
         data.mediaTypes = undefined;
       }
       data.mediaTypes = data.mediaTypes || Object.keys(mimeMap);
-      if (data.folder && data.wiki) {
+      if(data.folder && data.wiki) {
         // Make sure the folder exists
         let mediaURIList = [];
         /*
@@ -1351,12 +1351,12 @@ if($tw.node) {
         const mediaDir = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, data.folder)
         if($tw.utils.isDirectory(mediaDir)) {
           fs.readdir(mediaDir, function(err, files) {
-            if (err) {
+            if(err) {
               $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
               return;
             }
             const uriPrefix = '/' + path.relative($tw.ServerSide.getBasePath(), mediaDir);
-            if (data.keepBroken !== true) {
+            if(data.keepBroken !== true) {
               // get a list of all tiddlers with _canonical_uri fields that
               // point to this folder.
               mediaURIList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[has[_canonical_uri]get[_canonical_uri]prefix[${uriPrefix}]]`);
@@ -1367,17 +1367,17 @@ if($tw.node) {
             }
             // For each file check the extension against the mimemap, if it matches make the corresponding _canonical_uri tiddler.
             files.forEach(function(file) {
-              if (fs.statSync(path.join(mediaDir, file)).isFile()) {
+              if(fs.statSync(path.join(mediaDir, file)).isFile()) {
                 const pathInfo = path.parse(file);
-                if (data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
+                if(data.mediaTypes.indexOf(pathInfo.ext) !== -1) {
                   const thisURI = '/' + $tw.settings.fileURLPrefix + '/' + data.prefix + '/' + path.relative(path.resolve(data.folder),path.join(mediaDir, file));
-                  if (data.prune === 'yes') {
+                  if(data.prune === 'yes') {
                     // Remove any _canonical_uri tiddlers that have paths to
                     // this folder but no files exist for them.
                     // remove the current file from the mediaURIList so that at
                     // the end we have a list of URIs that don't have files
                     // that exist.
-                    if (mediaURIList.indexOf(thisURI) > -1) {
+                    if(mediaURIList.indexOf(thisURI) > -1) {
                       mediaURIList.splice(mediaURIList.indexOf(thisURI),1);
                     }
                   }
@@ -1387,12 +1387,12 @@ if($tw.node) {
                     type: mimeMap[pathInfo.ext],
                     _canonical_uri: thisURI
                   };
-                  if (data.ignoreExisting !== 'yes') {
+                  if(data.ignoreExisting !== 'yes') {
                     // check if the tiddler with this _canonical_uri already
                     // exists.
                     // If we aren't set to overwrite than don't do anything for
                     // this file if it exists
-                    if ($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${fields._canonical_uri}]]`).length > 0) {
+                    if($tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(`[_canonical_uri[${fields._canonical_uri}]]`).length > 0) {
                       return;
                     }
                   }
@@ -1401,14 +1401,14 @@ if($tw.node) {
                   // Check if the file exists and only overwrite it if the
                   // overwrite flag is set.
                   // Update this to check for files by the _canonical_uri field
-                  if (data.overwrite === 'yes' || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
+                  if(data.overwrite === 'yes' || !$tw.Bob.Wikis[data.wiki].wiki.getTiddler(file)) {
                     // Add tiddler to the wiki listed in data.wiki
                     $tw.syncadaptor.saveTiddler(thisTiddler, data.wiki);
                   }
                 }
               }
             });
-            if (data.prune === 'yes') {
+            if(data.prune === 'yes') {
               // mediaURIList now has the uris from tiddlers that don't point
               // to real files.
               // Get the tiddlers with the uris listed and remove them.

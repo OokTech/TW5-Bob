@@ -571,7 +571,7 @@ if($tw.node) {
         wiki: data.wiki
       };
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
-      if (data.resolution !== 'force') {
+      if(data.resolution !== 'force') {
         const thisMessage = {
           alert: 'Fetched Tiddlers, see import list',
           wikis: [data.wiki]
@@ -613,7 +613,7 @@ if($tw.node) {
     if(typeof data.fromWiki === 'undefined') {
       return;
     }
-    if ($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
+    if($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
       const wikiName = GetWikiName(data.newWiki);
       // Get the paths for the source and destination
       $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';

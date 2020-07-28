@@ -32,6 +32,15 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
 
   /*
     This watches for changes to a folder and updates the wiki prefix when anything changes in the folder.
+
+    File or Folder
+    Exists or Doesn't Exist
+
+    Folder - Exists -> Watch folder
+    Folder - Doesn't Exist -> remove tiddlers in the folder and stop the watcher
+
+    File - Exists -> Update of some sort
+    File - Doesn't Exist -> Remove the tiddler
   */
   $tw.Bob.WatchFolder = function (folder, prefix) {
     // If there is no prefix set it to an empty string
@@ -45,8 +54,9 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
         fs.stat(itemPath, function(err, fileStats) {
           // The file extension, if no file extension than an empty string
           const fileExtension = path.extname(filename);
-          if (err) {
-            if (err.code === 'ENOENT') {
+          if(err) {
+            // The item doesn't exist
+            if(err.code === 'ENOENT') {
               // The item doesn't exist, so it was removed
               // If the file doesn't exist anymore remove it from the wiki
               if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
@@ -54,7 +64,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
               } else {
                 $tw.Bob.logger.log('non-tiddler file deleted:', filename, {level: 3})
               }
-            } else if (err.code === 'EACCES') {
+            } else if(err.code === 'EACCES') {
               // Permissions error
             } else {
               // Some other error
@@ -64,7 +74,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
             // If it is a new folder than watch that folder too
             if(fileStats.isDirectory()) {
               $tw.Bob.WatchFolder(itemPath, prefix)
-            } else if (fileStats.isFile()) {
+            } else if(fileStats.isFile()) {
               const tiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
                 // This is to handle some edge cases I ran into while making
                 // it.
@@ -74,7 +84,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   return false;
                 }
               })[0];
-              if (['.tid', '.meta'].indexOf(fileExtension) !== -1) {
+              if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
                 let tiddlerObject = {tiddlers:[{}]}
                 // This try block catches an annoying race condition problem
                 // when the filesystem adaptor deletes a file the file watcher
@@ -84,9 +94,10 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                   // Load tiddler data from the file
                   tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
                 } catch (e) {
-                  if (e.code !== 'ENOENT') {
+                  if(e.code !== 'ENOENT') {
                     $tw.Bob.logger.error(e, {level: 3})
                   }
+                  // If we reach here the file doesn't exist for other reasons and we don't need to do anything
                   return
                 }
                 // Make sure that it at least has a title
@@ -123,41 +134,16 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
                       // Remove the old tiddler
                       $tw.Bob.DeleteTiddler(folder, tiddlerName + fileExtension, prefix);
                     }
-                    function arrayEqual(a1, a2) {
-                      if (!Array.isArray(a1) || !Array.isArray(a2)) {
-                        return false
+
+                    fs.unlink(itemPath, (err)=>{
+                      if(err) {
+                        // nothing, error if the tiddler doesn't exist just means the monitor is most likely fighting with another syncer like git.
                       }
-                      if (a1 === a2) {
-                        return true
-                      }
-                      if (a1.length !== a2.length) {
-                        return false
-                      }
-                      for (let k = 0; k < a1.length; k++) {
-                        if (a1[k] !== a2[k]) {
-                          return false
-                        }
-                      }
-                      return true
-                    }
-                    // This handles when a tiddler title doesn't match the path
-                    // where the tiddler exists. It deletes the tiddler in the
-                    // incorrect path
-                    if(itemPath !== theFilepath || !(arrayEqual($tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]}).fields.tags, $tw.utils.parseStringArray(tiddlerObject.tiddlers[0].tags)))) {
-                      // Delete the old file, the normal delete action takes
-                      // care of the rest.
-                      fs.unlink(itemPath, ()=>{
-                        // Create the new tiddler
-                        const newTiddler = $tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]});
-                        // Save the new file
-                        $tw.syncadaptor.saveTiddler(newTiddler, prefix);
-                      });
-                    } else {
                       // Create the new tiddler
                       const newTiddler = $tw.Bob.Shared.normalizeTiddler({fields: tiddlerObject.tiddlers[0]});
                       // Save the new file
                       $tw.syncadaptor.saveTiddler(newTiddler, prefix);
-                    }
+                    });
                   }
                 }
               }
@@ -166,7 +152,7 @@ if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
         })
       }).on('error', error => {
         // Ignore EPERM errors in windows, which happen if you delete watched folders...
-        if (error.code === 'EPERM' && require('os').platform() === 'win32') {
+        if(error.code === 'EPERM' && require('os').platform() === 'win32') {
           $tw.Bob.logger.log('[Info] Failed to watch deleted folder.', {level:3});
           return;
         }

@@ -70,7 +70,7 @@ exports.handler = function(request,response,state) {
     }
     let offset = 1;
     let secondPathPart = '';
-    if ($tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]]) {
+    if($tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]]) {
       secondPathPart = $tw.settings.servingFiles[urlPieces[urlPieces.indexOf(filePrefix)+1]];
       offset += 1;
     }
@@ -126,7 +126,7 @@ exports.handler = function(request,response,state) {
                 response.end();
               } else {
                 const total = stat.size;
-                if (request.headers['range']) {
+                if(request.headers['range']) {
                   const range = request.headers.range;
                   const parts = range.replace(/bytes=/, "").split("-");
                   const partialstart = parts[0];
