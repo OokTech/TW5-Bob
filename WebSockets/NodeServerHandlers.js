@@ -370,7 +370,7 @@ if($tw.node) {
       return messageData.title
     })
     const excludeFilter = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync') || 
-      $tw.Bob.Wikis["RootWiki"].wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync')
+      $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync')
     const excludeList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(excludeFilter.fields.text)
     const updateTiddlersList = serverTiddlerList.filter(function(tidTitle) {
       return (browserChangedTitles.indexOf(tidTitle) === -1 && recentServer.indexOf(tidTitle) === -1 && excludeList.indexOf(tidTitle) === -1 && $tw.Bob.Wikis[data.wiki].plugins.indexOf(tidTitle) === -1 && $tw.Bob.Wikis[data.wiki].themes.indexOf(tidTitle) === -1)
