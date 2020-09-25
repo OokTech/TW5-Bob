@@ -72,14 +72,12 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     if(file) {
       $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
         if(output.length > 0) {
-          const token = localStorage.getItem('ws-token')
           const message = {
             "type": "newWikiFromTiddlers",
             "tiddlers": output,
             "wikisPath": self.wikisPath,
             "wikiName": self.wikiName,
             "wikiFolder": self.wikiFolder,
-            "token": token,
             "wiki": wikiName,
             "overwrite": self.overwrite
           }

@@ -11,6 +11,9 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Fixed the name `enableBobSaver` so that the GUI can disable the saver correctly
 * Updates to setting the modified flag for a wiki on the server to be more consistent
 * Update action-downloadwiki documentation to show you can set which core to use and set the default download name
+* Improved the handling of uploaded files
+* Add proper handling so expired login tokens aren't sent when they shouldn't be
+* Create a single shared method for getting login tokens
 
 !! Version 1.6.0 Mopbucket, backup your data
 

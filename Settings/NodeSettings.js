@@ -48,7 +48,7 @@ if($tw.node) {
     Object.keys(inputObj).forEach(function(entry) {
       if(typeof inputObj[entry] === 'string' && entry !== '__path') {
         inputObj[entry] = {'__path': inputObj[entry]}
-      } else if(typeof inputObj[entry] === 'object') {
+      } else if(typeof inputObj[entry] === 'object' && entry !== '__permissions') {
         updateSettingsWikiPaths(inputObj[entry])
       }
     })
@@ -61,29 +61,33 @@ if($tw.node) {
     json file at newSettingsPath
   */
   $tw.loadSettings = function(settings, newSettingsPath) {
-    if($tw.node && !fs) {
-      const fs = require('fs')
-    }
-    let rawSettings;
     let newSettings;
+    if(typeof $tw.ExternalServer !== 'undefined') {
+      newSettings = require(path.join(process.cwd(),'LoadConfig.js')).settings;
+    } else {
+      if($tw.node && !fs) {
+        const fs = require('fs')
+      }
+      let rawSettings;
 
-    // try/catch in case defined path is invalid.
-    try {
-      rawSettings = fs.readFileSync(newSettingsPath);
-    } catch (err) {
-      console.log('NodeSettings - No settings file, creating one with default values.');
-      rawSettings = '{}';
-    }
+      // try/catch in case defined path is invalid.
+      try {
+        rawSettings = fs.readFileSync(newSettingsPath);
+      } catch (err) {
+        console.log('NodeSettings - No settings file, creating one with default values.');
+        rawSettings = '{}';
+      }
 
-    // Try to parse the JSON after loading the file.
-    try {
-      newSettings = JSON.parse(rawSettings);
-      console.log('NodeSettings - Parsed raw settings.');
-    } catch (err) {
-      console.log('NodeSettings - Malformed settings. Using empty default.');
-      console.log('NodeSettings - Check settings. Maybe comma error?');
-      // Create an empty default settings.
-      newSettings = {};
+      // Try to parse the JSON after loading the file.
+      try {
+        newSettings = JSON.parse(rawSettings);
+        console.log('NodeSettings - Parsed raw settings.');
+      } catch (err) {
+        console.log('NodeSettings - Malformed settings. Using empty default.');
+        console.log('NodeSettings - Check settings. Maybe comma error?');
+        // Create an empty default settings.
+        newSettings = {};
+      }
     }
 
     $tw.updateSettings(settings,newSettings);

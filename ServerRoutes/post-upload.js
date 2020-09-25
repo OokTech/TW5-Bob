@@ -53,6 +53,7 @@ exports.handler = function(request,response,state) {
           }
         });
       } else {
+        $tw.Bob.logger.log("Missing permissions to upload a file.", {level: 3});
         response.writeHead(400);
         response.end();
       }

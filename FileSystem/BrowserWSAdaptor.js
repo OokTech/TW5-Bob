@@ -150,32 +150,27 @@ function BrowserWSAdaptor(options) {
   */
   const openSocket = function() {
     console.log('Opened socket');
-    let token = localStorage.getItem('ws-token');
     // Login with whatever credentials you have
     const data = {
       type: 'setLoggedIn',
       wiki: $tw.wikiName,
-      heartbeat: true,
-      token: token
+      heartbeat: true
     };
-    $tw.Bob.Shared.sendMessage(data, 0);
+    sendToServer(data);
+    //$tw.Bob.Shared.sendMessage(data, 0);
 
     // For some reason the settings tiddlers are not always created in some
     // wikis, so this tries every second until it succeds at creating them.
     function tryAgain() {
       setTimeout(function() {
-        if(!token) {
-          token = localStorage.getItem('ws-token')
-        }
         const tid = $tw.wiki.getTiddler("$:/WikiSettings/split")
         if(!tid) {
           const data = {
             type: 'setLoggedIn',
             wiki: $tw.wikiName,
-            heartbeat: true,
-            token: token
+            heartbeat: true
           };
-          $tw.Bob.Shared.sendMessage(data, 0);
+          sendToServer(data);
           tryAgain()
         } else {
           try {
@@ -222,7 +217,6 @@ function BrowserWSAdaptor(options) {
     }
     $tw.hooks.addHook("th-editing-tiddler", function(event) {
       // Special handling for unedited shadow tiddlers
-      const token = localStorage.getItem('ws-token');
       if($tw.wiki.isShadowTiddler(event.tiddlerTitle) && !$tw.wiki.tiddlerExists(event.tiddlerTitle)) {
         // Wait for the document to have focus again and then check for the existence of a draft tiddler for the shadow, if one doesn't exist cancel the edit lock
         setTimeout(function(tid) {
@@ -236,8 +230,7 @@ function BrowserWSAdaptor(options) {
                     title: tid
                   }
                 },
-                wiki: $tw.wikiName,
-                token: token
+                wiki: $tw.wikiName
               };
               sendToServer(message);
             }
@@ -251,15 +244,13 @@ function BrowserWSAdaptor(options) {
             title: event.tiddlerTitle
           }
         },
-        wiki: $tw.wikiName,
-        token: token
+        wiki: $tw.wikiName
       };
       sendToServer(message);
       // do the normal editing actions for the event
       return true;
     });
     $tw.hooks.addHook("th-cancelling-tiddler", function(event) {
-      const token = localStorage.getItem('ws-token');
       const draftTitle = event.param || event.tiddlerTitle;
       const draftTiddler = $tw.wiki.getTiddler(draftTitle);
       const originalTitle = draftTiddler && draftTiddler.fields["draft.of"];
@@ -270,8 +261,7 @@ function BrowserWSAdaptor(options) {
             title: originalTitle
           }
         },
-        wiki: $tw.wikiName,
-        token: token
+        wiki: $tw.wikiName
       };
       sendToServer(message);
       // Do the normal handling
@@ -324,14 +314,12 @@ function BrowserWSAdaptor(options) {
         })
         // Ask the server for a listing of changes since the browser was
         // disconnected
-        const token = localStorage.getItem('ws-token');
         const message = {
           type: 'syncChanges',
           since: tiddler.fields.start,
           changes: tiddler.fields.text,
           hashes: tiddlerHashes,
-          wiki: $tw.wikiName,
-          token: token
+          wiki: $tw.wikiName
         };
         sendToServer(message);
         $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Unsent')
@@ -352,15 +340,17 @@ function BrowserWSAdaptor(options) {
     $tw.hooks.addHook("th-importing-tiddler", function (tiddler) {
       if($tw.wiki.getTextReference('$:/WikiSettings/split##saveMediaOnServer') !== 'no' && $tw.wiki.getTextReference('$:/WikiSettings/split##enableFileServer') === 'yes') {
         function updateProgress(e) {
-          // TODO make this work in different browsers
-          /*
-          if(e.lengthComputable) {
-            var percentComplete = e.loaded/e.total*100;
-          } else {
-            var percentComplete = -1;
+          try {
+            // TODO make this work in different browsers
+            if(e.lengthComputable) {
+              var percentComplete = e.loaded/e.total*100;
+            } else {
+              var percentComplete = -1;
+            }
+            console.log(percentComplete);
+          } catch (e) {
+            console.log("No progress updates!")
           }
-          console.log(percentComplete);
-          */
         }
         function transferComplete(e) {
           console.log('Complete!!');
@@ -430,7 +420,7 @@ function BrowserWSAdaptor(options) {
                 const fields = {
                   component: 'Server Message',
                   title: "Upload Error",
-                  text: "File failed to upload to server. Try quitting and restarting Bob."+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+                  text: "File failed to upload to server with status code " + request.status + ". Try quitting and restarting Bob."+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
                   tags: '$:/tags/Alert'
                 }
                 $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
@@ -489,7 +479,6 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
   if(!this.shouldSync(tiddler.fields.title) || !tiddler) {
     callback(null, null);
   } else {
-    const token = localStorage.getItem('ws-token')
     let tempTid = {fields:{}};
     Object.keys(tiddler.fields).forEach(function (field) {
         if(field !== 'created' && field !== 'modified') {
@@ -502,8 +491,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
     const message = {
       type: 'saveTiddler',
       tiddler: tempTid,
-      wiki: $tw.wikiName,
-      token: token
+      wiki: $tw.wikiName
     };
     const id = sendToServer(message, callback);
     if(id) {
@@ -525,11 +513,9 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
   if(title.slice(0,3) === '$:/') {
     callback(null, null)
   } else {
-    const token = localStorage.getItem('ws-token')
     const message = {
       type:'getFullTiddler',
       title: title,
-      token: token,
       wiki: $tw.wikiName
     }
     const id = sendToServer(message)
@@ -557,7 +543,6 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
     // $:/state because popups get deleted before the check is done.
     // Without this than every time there is a popup the dirty
     // indicator turns on
-    const token = localStorage.getItem('ws-token');
     const message = {
       type: 'deleteTiddler',
       tiddler:{
@@ -565,8 +550,7 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
           title:title
         }
       },
-      wiki: $tw.wikiName,
-      token: token
+      wiki: $tw.wikiName
     };
     const id = sendToServer(message);
     this.idList.push(id)
@@ -676,11 +660,9 @@ function setupSkinnyTiddlerLoading() {
             setSendThingTimeout()
           }
         }
-        const token = localStorage.getItem('ws-token')
         const message = {
           type: 'getSkinnyTiddlers',
-          wiki: $tw.wikiName,
-          token: token
+          wiki: $tw.wikiName
         }
         let id
         sendThing()

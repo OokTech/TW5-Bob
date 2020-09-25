@@ -93,8 +93,6 @@ ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event)
       message[name] = attribute;
     }
   });
-  const token = localStorage.getItem('ws-token');
-  message["token"] = token;
   // We need a message type at a minimum to send anything
   if(message.type) {
     // Send the message
