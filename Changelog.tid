@@ -1,5 +1,9 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.6.2 Une Vie Typique
+
+* Fixed a regression that would prevent websocket connections if the wiki had a space in its name.
+
 !! Version 1.6.1 Scream in your heart
 
 * Changed how saveTiddler messages are handled that reduce the number of redundant messages. This prevents some undesired behaviour and in some extreme cases infinite saving loops.
