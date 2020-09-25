@@ -131,7 +131,7 @@ function BrowserWSAdaptor(options) {
     $tw.connections[connectionIndex].index = connectionIndex;
     try{
       const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
-      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + window.location.pathname.replace(r,'') );
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,''));
     } catch (e) {
       console.log(e)
       $tw.connections[connectionIndex].socket = {};
