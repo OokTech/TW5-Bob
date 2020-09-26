@@ -713,6 +713,73 @@ ServerSide.getViewableWikiList = function (data) {
   return viewableWikis;
 }
 
+ServerSide.getViewablePluginsList = function (data) {
+  data = data || {};
+  const viewablePlugins = [];
+  const pluginList = $tw.utils.getPluginInfo();
+  Object.keys(pluginList).forEach(function(pluginName) {
+    if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
+      viewablePlugins.push(pluginName);
+    }
+  })
+  return viewablePlugins;
+}
+
+ServerSide.getViewableThemesList = function (data) {
+  data = data || {};
+  const viewableThemes = [];
+  const themeList = $tw.utils.getThemeInfo();
+  Object.keys(themeList).forEach(function(themeName) {
+    if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
+      viewableThemes.push(themeName);
+    }
+  })
+  return viewableThemes;
+}
+
+ServerSide.getViewableEditionsList = function (data) {
+  // This may not be needed anymore
+  if(typeof $tw.settings.editionsPath === 'string') {
+    const basePath = $tw.ServerSide.getBasePath();
+    // We need to make sure this doesn't overwrite existing thing
+    const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
+    if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+      process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + fullEditionsPath;
+    } else {
+      process.env["TIDDLYWIKI_EDITION_PATH"] = fullEditionsPath;
+    }
+  }
+  data = data || {};
+  const viewableEditions = {};
+  const editionList =  $tw.utils.getEditionInfo();
+  Object.keys(editionList).forEach(function(editionName) {
+    if($tw.Bob.AccessCheck(editionName, {"decoded": data.decoded}, 'view', 'edition')) {
+      Object.keys(editionList).forEach(function(index) {
+        viewableEditions[index] = editionList[index].description;
+      });
+    }
+  })
+  return viewableEditions;
+}
+
+ServerSide.getViewableLanguagesList = function (data) {
+  data = data || {};
+  const viewableLanguages = {};
+  const languageList =  $tw.utils.getEditionInfo();
+  Object.keys(languageList).forEach(function(languageName) {
+    if($tw.Bob.AccessCheck(languageName, {"decoded": data.decoded}, 'view', 'edition')) {
+      Object.keys(languageList).forEach(function(index) {
+        viewableLanguages[index] = languageList[index].description;
+      });
+    }
+  })
+  return viewableLanguages;
+}
+
+ServerSide.getViewableSettings = function(data) {
+  return $tw.settings;
+}
+
 ServerSide.findName = function(url) {
   url = url.startsWith('/') ? url.slice(1,url.length-1) : url;
   const pieces = url.split('/')

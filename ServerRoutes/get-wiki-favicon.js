@@ -4,6 +4,7 @@ type: application/javascript
 module-type: wikiroute
 
 GET /^\/favicon.ico/
+GET /^\/<<fullname>>\/favicon.ico/
 
 Returns the favicon of the root wiki
 

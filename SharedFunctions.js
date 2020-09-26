@@ -68,6 +68,18 @@ This has some functions that are needed by Bob in different places.
     return hash1 !== hash2;
   };
 
+  Shared.getMessageToken = function(connectionIndex) {
+    if($tw.browser) {
+      // In the browser we check if the token is still valid and if so attach
+      // it to the message, otherwise don't send a token.
+      if(localStorage.getItem('token-eol') > Date.now()) {
+        return localStorage.getItem('ws-token');
+      }
+    } else if($tw.node) {
+      // Use the connection index to get the token
+    }
+  }
+
   /*
     messageQueue [messageData]
     messageData {
@@ -93,6 +105,8 @@ This has some functions that are needed by Bob in different places.
       otherwise it is undefined.
     type - the message type
 
+    // Add token stuff here const token = localStorage.getItem('ws-token');s
+
     for the ackObject the index is the connection index and ackReceived is a
     boolean indicating if the ack has been received yet or not.
   */
@@ -100,6 +114,7 @@ This has some functions that are needed by Bob in different places.
     //const id = message.id || makeId();
     const id = makeId()
     message.id = id;
+    message.token = $tw.Bob.Shared.getMessageToken();
     let title = undefined;
     if(['saveTiddler', 'deleteTiddler', 'editingTiddler', 'cancelEditingTiddler'].indexOf(message.type) !== -1) {
       message.tiddler = JSON.parse(JSON.stringify(message.tiddler));
@@ -496,7 +511,7 @@ This has some functions that are needed by Bob in different places.
     let outQueue = [];
     if(localStorage) {
       if(typeof localStorage.getItem === 'function') {
-        const token = localStorage.getItem('ws-token');
+        const token = $tw.Bob.Shared.getMessageToken();
         outQueue = messageQueue.filter(function(messageData) {
           return messageData.message.token === token
         })
@@ -749,7 +764,7 @@ This has some functions that are needed by Bob in different places.
   Shared.sendAck = function (data) {
     data = data || {};
     if($tw.browser) {
-      const token = localStorage.getItem('ws-token')
+      const token = $tw.Bob.Shared.getMessageToken();
       $tw.connections[0].socket.send(JSON.stringify({
         type: 'ack',
         id: data.id,

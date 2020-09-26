@@ -55,7 +55,6 @@ ActionUpdateSetting.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
-  const token = localStorage.getItem('ws-token');
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   let update = {};
   let remove = false;
@@ -76,7 +75,6 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
     "type": "updateSetting",
     "updateString": update,
     "remove": remove,
-    "token": token,
     "wiki": wikiName
   };
   $tw.Bob.Shared.sendMessage(message, 0);

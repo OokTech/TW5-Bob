@@ -156,6 +156,7 @@ if($tw.node) {
     - add any configuration interface things
   */
   $tw.nodeMessageHandlers.setLoggedIn = function (data) {
+    //console.log('Set Logged In?')
     $tw.Bob.Shared.sendAck(data);
     // Heartbeat. This can be done if the heartbeat is started or not because
     // if an extra heartbeat pong is heard it just shifts the timing.
@@ -167,9 +168,6 @@ if($tw.node) {
     // When the server receives a ping it sends back a pong.
     const response = JSON.stringify(message);
     $tw.connections[data.source_connection].socket.send(response);
-
-    // Populating the wiki list uses the same stuff as the other message.
-    $tw.nodeMessageHandlers.getViewableWikiList(data);
 
     // Add configuration stuff
     $tw.nodeMessageHandlers.setConfigurationInterface(data);
@@ -490,52 +488,71 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    const path = require('path');
-    const fs = require('fs');
-    let settings = JSON.stringify($tw.settings, "", 2);
-    if(data.fromServer !== true && data.settingsString) {
-      // Get first tiddler to start out
-      settings = data.settingsString;
-
-      // Update the $tw.settings object
-      // Put the updated version in.
-      $tw.updateSettings($tw.settings, JSON.parse(settings));
-    }
-    // Update the settings tiddler in the wiki.
-    const tiddlerFields = {
-      title: '$:/WikiSettings',
-      text: settings,
-      type: 'application/json'
-    };
-    // Push changes out to the browsers
-    $tw.Bob.SendToBrowsers({
-      type: 'saveTiddler',
-      tiddler: {
-        fields: tiddlerFields
-      },
-      wiki: data.wiki
-    });
-    // Save the updated settings
-    const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
-    if(!fs.existsSync(userSettingsFolder)) {
-      // Create the settings folder
-      fs.mkdirSync(userSettingsFolder);
-    }
-    // This should prevent an empty string from ever being given
-    fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
-      if(err) {
-        const message = {
-          alert: 'Error saving settings:' + err,
-          connections: [data.source_connection]
-        };
-        $tw.ServerSide.sendBrowserAlert(message);
-        $tw.Bob.logger.error(err, {level:1});
-      } else {
-        $tw.Bob.logger.log('Wrote settings file', {level:1})
+    if($tw.ExternalServer) {
+      if(data.fromServer !== true && data.settingsString) {
+        // Get first tiddler to start out
+        settings = data.settingsString;
+        // save the settings to the database
+        require('./LoadConfig.js').saveSetting(JSON.parse(data.settingsString));
       }
-    });
+    } else {
+      const path = require('path');
+      const fs = require('fs');
+      let settings = JSON.stringify($tw.settings, "", 2);
+      if(data.fromServer !== true && data.settingsString) {
+        // Get first tiddler to start out
+        settings = data.settingsString;
 
+        // Update the $tw.settings object
+        // Put the updated version in.
+        $tw.updateSettings($tw.settings, JSON.parse(settings));
+      }
+      // Save the updated settings
+      const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+      const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
+      if(!fs.existsSync(userSettingsFolder)) {
+        // Create the settings folder
+        fs.mkdirSync(userSettingsFolder);
+      }
+      // This should prevent an empty string from ever being given
+      fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
+        if(err) {
+          const message = {
+            alert: 'Error saving settings:' + err,
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+          $tw.Bob.logger.error(err, {level:1});
+        } else {
+          $tw.Bob.logger.log('Wrote settings file', {level:1})
+        }
+      });
+    }
+    try {
+      // Update the settings tiddler in the wiki.
+      const tiddlerFields = {
+        title: '$:/WikiSettings',
+        text: JSON.parse(data.settingsString),
+        type: 'application/json'
+      };
+      // Push changes out to the browsers
+      $tw.Bob.SendToBrowsers({
+        type: 'saveTiddler',
+        tiddler: {
+          fields: tiddlerFields
+        },
+        wiki: data.wiki
+      });
+    } catch (e) {
+      // something?
+    }
+    if(typeof data.settingsString === "string") {
+      try {
+        $tw.updateSettings($tw.settings, JSON.parse(data.settingsString));
+      } catch (e) {
+        // nothing
+      }
+    }
     $tw.CreateSettingsTiddlers(data);
     const message = {
       alert: 'Saved wiki settings.',

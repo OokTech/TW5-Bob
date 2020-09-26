@@ -207,14 +207,11 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.updateRoutes = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    // This is only usable on the root wiki!
-    if(data.wiki === 'RootWiki' || true) {
-      // Then clear all the routes to the non-root wiki
-      $tw.httpServer.clearRoutes();
-      // The re-add all the routes from the settings
-      // This reads the settings so we don't need to give it any arguments
-      $tw.httpServer.addOtherRoutes();
-    }
+    // Then clear all the routes to the non-root wiki
+    $tw.httpServer.clearRoutes();
+    // The re-add all the routes from the settings
+    // This reads the settings so we don't need to give it any arguments
+    $tw.httpServer.addOtherRoutes();
   }
 
   /*
@@ -229,7 +226,7 @@ if($tw.node) {
       type: 'setViewableWikis',
       list: $tw.utils.stringifyList(viewableWikis),
       wiki: data.wiki
-  };
+    };
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
   }
 
@@ -244,13 +241,17 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // This gets the paths of all wikis listed in the settings
     function getWikiPaths(settingsObject) {
-      const paths = Object.values(settingsObject);
+      const settingsKeys = Object.keys(settingsObject);
       let outPaths = [];
-      paths.forEach(function(thisPath) {
-        if(typeof thisPath === 'object') {
-          outPaths = outPaths.concat(getWikiPaths(thisPath));
-        } else {
-          outPaths.push(path.resolve(basePath, $tw.settings.wikisPath, thisPath));
+      settingsKeys.forEach(function(thisKey) {
+        if(thisKey === '__path') {
+          // its one of the paths we want
+          outPaths.push(path.resolve(basePath, $tw.settings.wikisPath, settingsObject[thisKey]));
+        } else if(thisKey === '__permissions') {
+          // Ignore it
+        } else if(typeof settingsObject[thisKey] === 'object') {
+          // Recurse
+          outPaths.concat(getWikiPaths(settingsObject[thisKey]));
         }
       })
       return outPaths
@@ -370,7 +371,7 @@ if($tw.node) {
       data.fromServer = true;
       $tw.nodeMessageHandlers.saveSettings(data);
       $tw.nodeMessageHandlers.updateRoutes(data);
-      setTimeout($tw.nodeMessageHandlers.getViewableWikiList,1000,data)
+      //setTimeout($tw.nodeMessageHandlers.getViewableWikiList,1000,data)
     }
   }
 

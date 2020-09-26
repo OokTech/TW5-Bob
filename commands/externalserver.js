@@ -30,6 +30,7 @@ if($tw.node) {
 
   Command.prototype.execute = function() {
     const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
+    $tw.Bob.version = bobVersion;
     $tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level: 0})
 
     // Get the ip address to display to make it easier for other computers to

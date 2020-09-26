@@ -358,6 +358,7 @@ if($tw.node) {
   // This is just a copy of the init command modified to work in this context
   $tw.nodeMessageHandlers.createNewWiki = function (data, cb) {
     $tw.Bob.Shared.sendAck(data);
+    console.log('data', data)
     if(data.wiki === 'RootWiki' || true) {
       const fs = require("fs"),
         path = require("path");
@@ -443,6 +444,7 @@ if($tw.node) {
         // If you are not using an external server than this does nothing
         if($tw.ExternalServer) {
           if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+            const relativePath = path.relative(path.join(basePath, data.wikisFolder),fullPath);
             $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
           }
         }

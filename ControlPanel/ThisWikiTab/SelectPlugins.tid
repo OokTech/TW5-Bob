@@ -2,13 +2,6 @@ title: $:/plugins/OokTech/Bob/SelectPlugins
 caption: Manage Plugins
 
 <$button>
-  Update Plugin List
-  <$action-websocketmessage
-    $type='getPluginList'
-  />
-</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutUpdatePluginList">> <-- Click here first!
-
-<$button>
   Save Plugin Selection
   <$action-websocketmessage
     $type='updateTiddlyWikiInfo'
@@ -33,7 +26,8 @@ Select Plugin Author: <$select
     All
   </option>
   <$list
-    filter='[list[$:/Bob/AvailablePluginList]splitbefore[/]]'
+    afilter='[list[$:/Bob/AvailablePluginList]splitbefore[/]]'
+    filter='[[$:/Bob/AvailablePluginList]indexes[]splitbefore[/]]'
     variable='pluginAuthor'
   >
     <option>
@@ -59,10 +53,10 @@ Search: <$edit-text
   >
     <h2><$text text=<<pluginAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailablePluginList]search{$:/state/Bob/SearchPlugins}prefix<pluginAuthor>]'
+      filter='[[$:/Bob/AvailablePluginList]indexes[]search{$:/state/Bob/SearchPlugins}prefix<pluginAuthor>]'
     >
       <$list
-        filter='[list[$:/Bob/ActivePluginList]is[current]]'
+        filter='[list[$:/Bob/ActivePluginList]match<currentTiddler>]'
         emptyMessage="""
         <$button
           class='tc-btn-invisible'
@@ -70,14 +64,18 @@ Search: <$edit-text
           <input
             type='checkbox'
           />
-          <$view
-            field='title'
-          />
+          <b>
+            <$view
+              field='title'
+            />
+          </b>
           <$action-listops
             $tiddler='$:/Bob/ActivePluginList'
             $subfilter='+[append<currentTiddler>]'
           />
         </$button>
+        :
+        <$view tiddler='$:/Bob/AvailablePluginList' index=<<currentTiddler>>/>
         <br>"""
       >
         <$button
@@ -87,14 +85,18 @@ Search: <$edit-text
             type='checkbox'
             checked
           />
-          <$view
-            field='title'
-          />
+          <b>
+            <$view
+              field='title'
+            />
+          </b>
           <$action-listops
             $tiddler='$:/Bob/ActivePluginList'
             $subfilter='+[remove<currentTiddler>]'
           />
         </$button>
+        :
+        <$view tiddler='$:/Bob/AvailablePluginList' index=<<currentTiddler>>/>
         <br>
       </$list>
     </$list>
@@ -106,15 +108,15 @@ Search: <$edit-text
   variable='unused'
 >
   <$list
-    filter='[list[$:/Bob/AvailablePluginList]splitbefore[/]]'
+    filter='[[$:/Bob/AvailablePluginList]indexes[]splitbefore[/]]'
     variable='pluginAuthor'
   >
     <h2><$text text=<<pluginAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailablePluginList]prefix<pluginAuthor>search{$:/state/Bob/SearchPlugins}]'
+      filter='[[$:/Bob/AvailablePluginList]indexes[]prefix<pluginAuthor>search{$:/state/Bob/SearchPlugins}]'
     >
       <$list
-        filter='[list[$:/Bob/ActivePluginList]is[current]]'
+        filter='[list[$:/Bob/ActivePluginList]match<currentTiddler>]'
         emptyMessage="""
         <$button
           class='tc-btn-invisible'
@@ -122,14 +124,18 @@ Search: <$edit-text
           <input
             type='checkbox'
           />
-          <$view
-            field='title'
-          />
+          <b>
+            <$view
+              field='title'
+            />
+          </b>
           <$action-listops
             $tiddler='$:/Bob/ActivePluginList'
             $subfilter='+[append<currentTiddler>]'
           />
         </$button>
+        :
+        <$view tiddler='$:/Bob/AvailablePluginList' index=<<currentTiddler>>/>
         <br>"""
       >
         <$button
@@ -139,14 +145,18 @@ Search: <$edit-text
             type='checkbox'
             checked
           />
-          <$view
-            field='title'
-          />
+          <b>
+            <$view
+              field='title'
+            />
+          </b>
           <$action-listops
             $tiddler='$:/Bob/ActivePluginList'
             $subfilter='+[remove<currentTiddler>]'
           />
         </$button>
+        :
+        <$view tiddler='$:/Bob/AvailablePluginList' index=<<currentTiddler>>/>
         <br>
       </$list>
     </$list>

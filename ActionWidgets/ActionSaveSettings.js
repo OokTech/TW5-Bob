@@ -58,12 +58,10 @@ ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
   let self = this;
   const tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
   const settings = JSON.stringify(buildSettings(tiddler), "", 2);
-  const token = localStorage.getItem('ws-token');
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   const message = {
     "type": "updateSetting",
     "settingsString": settings,
-    "token": token,
     "wiki": wikiName
   }
   $tw.Bob.Shared.sendMessage(message, 0)
