@@ -1,0 +1,43 @@
+title: $:/plugins/OokTech/Bob/Documentation/http-api
+caption: HTTP API
+tags:
+
+The http api has the following routes:
+
+!! GET
+
+GET routes are used in normal wiki operation, all parameters are part of the
+URL itself.
+URL parameters that get replaced are shown in the form `:parametername`, so
+everywhere there is `:wikiname` you replace it with the name of the wiki.
+If the wiki name has `/` or spaces they are included unmodified.
+
+* `/` - Load the RootWiki
+* `/favicon.ico` - Get the favicon for the RootWiki
+* `/:wikiname` - Load the wiki `:wikiname`
+* `/:wikinamefavicon.ico` - Load the favicon for the wiki `:wikiname`
+* `/files/:filename` - Load the file `:filename` from the globally available files
+* `/:wikiname/files/:filename` - Load the file `:filename` from the files for the wiki `:wikiname`
+* `/api/status` - get status information from the server
+
+!! PUT
+
+The core has a PUT route that is not here because the `/api/push` POST route
+has a similar function and the server is for Bob which handles saving so a PUT
+saver and Bob at the same time probably isn't generally useful.
+
+* UNIMPLEMENTED `/api/:wikiname/:title`
+
+!! POST
+
+POST routes may require authentication and are used for things that aren't
+necessary for normal wiki activity.
+
+* `/api/fetch` - fetch tiddlers from the server using a filter, the results are returned as json
+* `/api/fetch/list` - get a list of the tiddlers from a server using a filter
+* `/api/fetch/html` - fetch the rendered html tiddlers from the server
+* `/api/plugins/fetch/:plugin` - fetch a plugin from the server
+* `/api/plugins/list` - get a list of plugins available on the server
+* `/api/push` - push tiddlers to a wiki on the server
+* `/api/upload` - upload a file to the server
+* `/api/status` - get detailed status information from the server

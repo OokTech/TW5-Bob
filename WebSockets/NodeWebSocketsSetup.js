@@ -140,9 +140,9 @@ if($tw.node) {
         // Make sure we have a handler for the message type
         if(typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
           // Check authorisation
-          const authorised = authenticateMessage(eventData)
+          const authorised = authenticateMessage(eventData);
           if(authorised) {
-            eventData.decoded = authorised
+            eventData.decoded = authorised;
             $tw.nodeMessageHandlers[eventData.type](eventData);
           }
         } else {

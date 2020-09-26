@@ -127,88 +127,15 @@ if($tw.node) {
   $tw.CreateSettingsTiddlers = function (data) {
     data = data || {}
     data.wiki = data.wiki || 'RootWiki'
-    // Set the environment variable for the editions path from the settings.
-    // Because we cheat and don't use command line arguments.
-    if(typeof $tw.settings.editionsPath === 'string') {
-      const basePath = $tw.ServerSide.getBasePath();
-      // We need to make sure this doesn't overwrite existing thing
-      const fullEditionsPath = path.resolve(basePath, $tw.settings.editionsPath);
-      if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + fullEditionsPath;
-      } else {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = fullEditionsPath;
-      }
-    }
-    /*
-      TODO this needs to be set up so that it only shows things that you have
-      permissions to see
-    */
-    // Create the list of plugins on the server
-    const pluginList = $tw.utils.getPluginInfo();
-    $tw.pluginsInfo = {};
-    Object.keys(pluginList).forEach(function(index) {
-      $tw.pluginsInfo[index] = pluginList[index].description;
-    });
-    let message = {
-      type: 'saveTiddler',
-      tiddler: {fields:{title: "$:/Bob/AvailablePluginList", text: JSON.stringify($tw.pluginsInfo, "", 2), type: "application/json"}},
-      wiki: data.wiki
-    };
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-
-    // Create the list of themes on the server
-    const themeList = $tw.utils.getThemeInfo();
-    $tw.themesInfo = {};
-    Object.keys(themeList).forEach(function(index) {
-      $tw.themesInfo[index] = themeList[index].description;
-    });
-    message = {
-      type: 'saveTiddler',
-      tiddler: {fields:{title: "$:/Bob/AvailableThemeList", text: JSON.stringify($tw.themesInfo, "", 2), type: "application/json"}},
-      wiki: data.wiki
-    };
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-
-    // Create the list of languages on the server
-    const languageList = $tw.utils.getLanguageInfo();
-    $tw.languagesInfo = {};
-    Object.keys(languageList).forEach(function(index) {
-      $tw.languagesInfo[index] = languageList[index].description;
-    });
-    message = {
-      type: 'saveTiddler',
-      tiddler: {fields:{title: "$:/Bob/AvailableLanguageList", text: JSON.stringify($tw.languagesInfo, "", 2), type: "application/json"}},
-      wiki: data.wiki
-    };
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-
-    // Create the $:/Bob/AvailableEditionList tiddler
-    const editionsList = $tw.utils.getEditionInfo();
-    $tw.editionsInfo = {};
-    Object.keys(editionsList).forEach(function(index) {
-      $tw.editionsInfo[index] = editionsList[index].description;
-    });
-    message = {
-      type: 'saveTiddler',
-      tiddler: {fields:{title: "$:/Bob/AvailableEditionList", text: JSON.stringify($tw.editionsInfo, "", 2), type: "application/json"}},
-      wiki: data.wiki
-    };
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
 
     // Create the $:/ServerIP tiddler
+    const message = {
+      type: 'saveTiddler',
+      wiki: data.wiki
+    };
     message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-    // Save the settings to a tiddler.
-    const settingsString = JSON.stringify($tw.settings, null, 2);
-    const tiddlerFields = {
-      title: '$:/WikiSettings',
-      text: settingsString,
-      type: 'application/json'
-    };
-    message.tiddler = {fields: tiddlerFields};
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-    // Split it into different things for each thingy
-    doThisLevel($tw.settings, "$:/WikiSettings/split", data);
+
     let wikiInfo = undefined
     try {
       // Save the lists of plugins, languages and themes in tiddlywiki.info
@@ -238,34 +165,6 @@ if($tw.node) {
       message.tiddler = {fields: fieldsLanguagesList};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     }
-  }
-
-  function doThisLevel (inputObject, currentName, data) {
-    let currentLevel = {};
-    Object.keys(inputObject).forEach( function (property) {
-      if(typeof inputObject[property] === 'object') {
-        // Call recursive function to walk through properties, but only if
-        // there are properties
-        if(Object.keys(inputObject[property])) {
-          doThisLevel(inputObject[property], currentName + '/' + property, data);
-          currentLevel[property] = currentName + '/' + property;
-        }
-      } else {
-        // Add it to this one.
-        currentLevel[property] = inputObject[property];
-      }
-    });
-    const tiddlerFields = {
-      title: currentName,
-      text: JSON.stringify(currentLevel, "", 2),
-      type: 'application/json'
-    };
-    let message = {
-      type: 'saveTiddler',
-      wiki: data.wiki
-    };
-    message.tiddler = {fields: tiddlerFields};
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
   }
 
   startup();

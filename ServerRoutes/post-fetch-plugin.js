@@ -3,7 +3,7 @@ title: $:/plugins/Bob/ServerRoutes/post-fetch-plugin.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/plugins\/fetch\/.+$/
+POST /^\/api\/plugins\/fetch\/.+$/
 
 Fetch a plugin
 

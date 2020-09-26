@@ -157,7 +157,71 @@ function BrowserWSAdaptor(options) {
       heartbeat: true
     };
     sendToServer(data);
-    //$tw.Bob.Shared.sendMessage(data, 0);
+
+    // Ask the server for its status
+    fetch('./api/status', {credentials: 'include'})
+    .then(response => response.json())
+    .then(function(data) {
+      function doThisLevel (inputObject, currentName) {
+        let currentLevel = {};
+        Object.keys(inputObject).forEach( function (property) {
+          if(typeof inputObject[property] === 'object') {
+            // Call recursive function to walk through properties, but only if
+            // there are properties
+            if(Object.keys(inputObject[property])) {
+              doThisLevel(inputObject[property], currentName + '/' + property, data);
+              currentLevel[property] = currentName + '/' + property;
+            }
+          } else {
+            // Add it to this one.
+            currentLevel[property] = inputObject[property];
+          }
+        });
+        const tiddlerFields = {
+          title: currentName,
+          text: JSON.stringify(currentLevel, "", 2),
+          type: 'application/json'
+        };
+        $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+      }
+
+      const fields = {};
+      fields.type = 'application/json';
+
+      // Set available wikis
+      fields.title = '$:/state/ViewableWikis';
+      fields.list = $tw.utils.stringifyList(data['available_wikis']);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      fields.list = '';
+      // Set available editions
+      fields.title = '$:/Bob/AvailableEditionList';
+      fields.text = JSON.stringify(data['available_editions'], "", 2);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      // Set available languages
+      fields.title = '$:/Bob/AvailableLanguageList';
+      fields.text = JSON.stringify(data['available_languages'], "", 2);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      // Set available plugins
+      fields.title = '$:/Bob/AvailablePluginList';
+      fields.text = JSON.stringify(data['available_plugins'], "", 2);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      // Set available themes
+      fields.title = '$:/Bob/AvailableThemeList';
+      fields.text = JSON.stringify(data['available_themes'], "", 2);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      // Save settings for the wiki
+      fields.title = '$:/WikiSettings';
+      fields.text = JSON.stringify(data['settings'], "", 2);
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      doThisLevel(data['settings'], '$:/WikiSettings/split');
+
+    });
 
     // For some reason the settings tiddlers are not always created in some
     // wikis, so this tries every second until it succeds at creating them.

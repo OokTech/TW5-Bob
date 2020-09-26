@@ -241,7 +241,6 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // This gets the paths of all wikis listed in the settings
     function getWikiPaths(settingsObject) {
-      console.log('settingsObject', settingsObject)
       const settingsKeys = Object.keys(settingsObject);
       let outPaths = [];
       settingsKeys.forEach(function(thisKey) {
@@ -255,7 +254,6 @@ if($tw.node) {
           outPaths.concat(getWikiPaths(settingsObject[thisKey]));
         }
       })
-      console.log(outPaths)
       return outPaths
     }
     // This gets a list of all wikis in the wikis folder and subfolders
