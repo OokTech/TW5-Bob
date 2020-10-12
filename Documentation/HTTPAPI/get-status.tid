@@ -1,0 +1,35 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-status
+tags: [[HTTP API]]
+verb: GET
+route: /api/status
+response: A JSON object containing status information about the server
+parameters:
+description: get server status information
+
+The returned status is used to get sever settings in opened wikis.
+
+The fields `logged_in`, `username`, `authentication_level` and `read_only`
+currently have no meaning.
+
+The returned JSON object is in the form:
+
+```
+{
+  logged_in: false,
+  username: "",
+  authentication_level: "Guest",
+  tiddlywiki_version: 5.1.22,
+  bob_version: 1.6.2,
+  read_only: false,
+  available_wikis: ["wiki1", "wiki2"],
+  available_themes: ["theme1", "theme2"],
+  available_plugins: ["OokTech/Bob", "OokTech/Login"],
+  available_editions: ["edition1", "edition2"],
+  available_languages: ["language1", "language2"],
+  settings: {/* The full server settings */}
+}
+```
+
+Example:
+
+* `/api/status`

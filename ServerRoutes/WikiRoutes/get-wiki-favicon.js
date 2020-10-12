@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/Bob/ServerRoutes/get-wiki-favicon.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-wiki-favicon.js
 type: application/javascript
 module-type: wikiroute
 
@@ -22,18 +22,16 @@ module.exports = function(fullName) {
     path: thePath,
     handler: function(request,response,state) {
       const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-      const authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
+      const authorised = $tw.Bob.AccessCheck(fullName, token, 'view');
       if(authorised) {
         // Load the wiki
-        const exists = $tw.ServerSide.loadWiki('RootWiki');
+        const exists = $tw.ServerSide.loadWiki(fullName);
         let buffer = ''
         if(exists) {
           response.writeHead(200, {"Content-Type": "image/x-icon"});
-          if($tw.Bob.Wikis['RootWiki']) {
-            buffer = $tw.Bob.Wikis['RootWiki'].wiki.getTiddlerText('$:/favicon.ico')
+          if($tw.Bob.Wikis[fullName]) {
+            buffer = $tw.Bob.Wikis[fullName].wiki.getTiddlerText('$:/favicon.ico')
           }
-        } else {
-          buffer = "";
         }
         response.end(buffer,"base64");
       } else {

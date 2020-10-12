@@ -1,0 +1,20 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-files
+tags: [[HTTP API]]
+verb: GET
+route: /files/:filename /:wikiName/files/:filename
+response: The named file in binary format
+parameters:
+description: load a media file from the server
+
+If the `/files/:filename` path is used the files are taken from the globally
+available files in the folder given by the file path root.
+If the `/:wikiName/files/:filename` path is used the files are taken from the
+`files` folder specific to the wiki `:wikiName`.
+
+If the `perWikiFiles` setting is set to `yes` wiki specific files are only
+available in the wiki associated with them.
+
+Examples:
+
+* `/files/foo.jpg`
+* `/someWiki/files/bar.png`

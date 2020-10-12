@@ -1,0 +1,14 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-wiki
+tags: [[HTTP API]]
+verb: GET
+route: /, /:wikiname
+response: The wiki page
+parameters:
+description: load a wiki
+
+This is the basic route for accessing the wikis.
+
+Examples:
+
+* `/`
+* `/my/wiki/here`

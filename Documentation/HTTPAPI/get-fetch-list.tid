@@ -1,0 +1,39 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/fetch-list
+tags: [[HTTP API]]
+verb: GET
+route: /api/fetch/list
+response: A JSON object containing a list of tiddler titles and optionally additional fields from the tiddlers
+parameters: `wiki` `filter` `fields`
+description: fetch a list of tiddler titles from a wiki using a filter
+
+Requests a list of tiddler titles selected using a filter evaluated in a named
+wiki.
+
+The url parameters are:
+
+* `wiki` is the name of the wiki to fetch titles from, it must be url encoded if it has spaces or `/` characters
+* `filter` is the filter to run in the target wiki
+* `fields` is a comma separated list of fields that are returned in the `info` part of the returned object. Defaults to `modified`
+
+The returned JSON object has the form:
+
+```
+{
+  list: [tiddler1, tiddler2],
+  info: {
+    tiddler1: {
+      field1: "field value",
+      field2: "field2 value"
+    },
+    tiddler2: {
+      field1: "other field value",
+      field2: "other field2 value"
+    }
+  }
+}
+```
+
+Examples:
+
+* `/api/fetch/list?wiki=SomeWiki&filter=[tag[foo]]`
+* `/api/fetch/list?wiki=SomeOtherWiki&filter=[tag[bar]]`

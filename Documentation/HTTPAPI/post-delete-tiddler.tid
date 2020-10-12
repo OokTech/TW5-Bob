@@ -1,0 +1,22 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/delete-tiddler
+tags: [[HTTP API]]
+verb: POST
+route: /api/delete/tiddler/:wikiname
+description: Delete one or more tiddlers from a wiki
+
+This is POST instead of DELETE because in general nothing but the url should
+be needed for a DELETE request, but because there is both a wiki name and a
+tiddler name that have to be given the url parsing would be ambiguous unless
+there were restrictions on wiki or tiddler names.
+
+The POST body should be a JSON object in the form:
+
+```
+{
+  tiddlers: [title1, title2, ...]
+}
+```
+
+If the POST body is larger than 1MB it will be rejected.
+But if you have enough tiddlers in a wiki that their titles take up more than
+1MB you may want to consider a database solution.

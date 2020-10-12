@@ -15,6 +15,7 @@ there may be bugs that I don't know about. Also see notes below.
 - Allows you to run shell scripts and commands from inside the wiki
 - Can be used as a plugin library to make plugins available to other wikis (requires the TWederBob plugin on the other wikis to connect)
 - Inter-server federation. Different Bob servers can communicate to share tiddlers and as chat servers/relays
+- HTTP API for interacting with the server
 
 A lot of the documentation is in the tiddler files in the Documentation folder
 of the plugin, or in the wiki in the plugin information on the control panel.

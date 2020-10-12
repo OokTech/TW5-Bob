@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/Bob/ServerRoutes/get-wiki.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-wiki.js
 type: application/javascript
 module-type: wikiroute
 

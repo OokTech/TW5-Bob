@@ -1,0 +1,14 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-rename-wiki
+tags: [[HTTP API]]
+verb: POST
+route: /api/rename
+response:
+parameters:
+description: rename a wiki
+
+This renames a wiki.
+
+The `x-from-wiki` header should be set to the current wiki name, and the
+`x-to-wiki` header is set to the new name.
+
+Anything in the POST body will be ignored.

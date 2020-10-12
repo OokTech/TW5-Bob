@@ -1,0 +1,16 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-favicon
+tags: [[HTTP API]]
+verb: GET
+route: /favicon.ico /:wikiName/favicon.ico
+response: The contents of the tiddler `$:/favicon.ico` as a base64 encoded string
+parameters:
+description: load a wikis favicon
+
+Sends the favicon for the wiki `:wikiName`, the rouse `/favicon.ico` returns
+the favicon for the root wiki. If `:wikiName` has any `/` characters they are
+preserved in the path.
+
+Example Routes:
+
+* `/favicon.ico`
+* `/Wiki/Name/favicon.ico`

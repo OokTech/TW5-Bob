@@ -157,9 +157,12 @@ function BrowserWSAdaptor(options) {
       heartbeat: true
     };
     sendToServer(data);
+    $tw.Bob.getSettings();
+  }
 
+  $tw.Bob.getSettings = function() {
     // Ask the server for its status
-    fetch('./api/status', {credentials: 'include'})
+    fetch('/api/status', {credentials: 'include'})
     .then(response => response.json())
     .then(function(data) {
       function doThisLevel (inputObject, currentName) {
@@ -206,12 +209,12 @@ function BrowserWSAdaptor(options) {
 
       // Set available plugins
       fields.title = '$:/Bob/AvailablePluginList';
-      fields.text = JSON.stringify(data['available_plugins'], "", 2);
+      fields.text = $tw.utils.stringifyList(data['available_plugins'], "", 2);
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
       // Set available themes
       fields.title = '$:/Bob/AvailableThemeList';
-      fields.text = JSON.stringify(data['available_themes'], "", 2);
+      fields.text = $tw.utils.stringifyList(data['available_themes'], "", 2);
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
       // Save settings for the wiki
@@ -221,39 +224,15 @@ function BrowserWSAdaptor(options) {
 
       doThisLevel(data['settings'], '$:/WikiSettings/split');
 
-    });
-
-    // For some reason the settings tiddlers are not always created in some
-    // wikis, so this tries every second until it succeds at creating them.
-    function tryAgain() {
-      setTimeout(function() {
-        const tid = $tw.wiki.getTiddler("$:/WikiSettings/split")
-        if(!tid) {
-          const data = {
-            type: 'setLoggedIn',
-            wiki: $tw.wikiName,
-            heartbeat: true
-          };
-          sendToServer(data);
-          tryAgain()
-        } else {
-          try {
-            const temp = JSON.parse(tid.fields.text);
-            if(temp.persistentUsernames === "yes") {
-              const savedName = $tw.Bob.getCookie(document.cookie, "userName");
-              if(savedName) {
-                $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/status/UserName", text: savedName}));
-              }
-            }
-          } catch (e) {
-            // Bleh
-          }
+      if(data['settings'].persistentUsernames === "yes") {
+        const savedName = $tw.Bob.getCookie(document.cookie, "userName");
+        if(savedName) {
+          $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/status/UserName", text: savedName}));
         }
-      },1000)
-    }
-
-    tryAgain()
+      }
+    });
   }
+
   /*
     This is a wrapper function, each message from the websocket server has a
     message type and if that message type matches a handler that is defined

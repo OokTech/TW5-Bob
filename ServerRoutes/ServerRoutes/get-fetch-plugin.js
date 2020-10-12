@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/Bob/ServerRoutes/post-fetch-plugin.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-fetch-plugin.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/plugins\/fetch\/.+$/
+GET /^\/api\/fetch\/plugins\/.+$/
 
 Fetch a plugin
 
@@ -14,13 +14,15 @@ Fetch a plugin
 /*global $tw: false */
 "use strict";
 
-exports.method = "POST";
+exports.method = "GET";
 
-exports.path = new RegExp('^\/api\/plugins\/fetch\/.+&');
+exports.path = /^\/api\/fetch\/plugins\/(.+)\/?$/;
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.pluginLibrary === 'yes') {
+    const path = require('path');
+    const fs = require('fs');
     const getPlugin = function (request) {
       const urlParts = request.url.split('/')
       if(typeof $tw.settings.pluginsPath === 'string') {

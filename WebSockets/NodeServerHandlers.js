@@ -559,6 +559,7 @@ if($tw.node) {
       wikis: [data.wiki]
     };
     $tw.ServerSide.sendBrowserAlert(message);
+    $tw.Bob.SendToBrowsers({type: 'updateSettings'});
   }
 
   /*
@@ -776,19 +777,19 @@ if($tw.node) {
       const protocol = data.url.startsWith('https')?'https':'http';
       const JSZip = require("$:/plugins/OokTech/Bob/External/jszip/jszip.js");
       const http = require("$:/plugins/OokTech/Bob/External/followRedirects/followRedirects.js")[protocol];
-      var req = http.get(data.url, function (res) {
+      const req = http.get(data.url, function (res) {
         if(res.statusCode !== 200) {
           $tw.Bob.logger.error('failed to fetch git plugin with code', res.statusCode, {level:1});
           // handle error
           return;
         }
-        var data = [], dataLen = 0;
+        let data = [], dataLen = 0;
         res.on("data", function (chunk) {
           data.push(chunk);
           dataLen += chunk.length;
         });
         res.on("end", function () {
-          var buf = Buffer.concat(data);
+          const buf = Buffer.concat(data);
           // here we go !
           let zipObj;
           let rootFolder;
@@ -958,30 +959,19 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.renameWiki = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    const path = require('path')
-    const fs = require('fs')
-    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
-    if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
-      // Unload the old wiki
-      $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
-      const basePath = $tw.ServerSide.getBasePath();
-      const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
-      const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
-      fs.rename(oldWikiPath, newWikiPath, function(e) {
-        if(e) {
-          $tw.Bob.logger.log('failed to rename wiki',e,{level:1});
-        } else {
-          // Refresh wiki listing
-          data.update = 'true';
-          data.saveSettings = 'true';
-          $tw.nodeMessageHandlers.findAvailableWikis(data);
-          const message = {
-            alert: 'Renamed ' + data.oldWiki + ' to ' + data.newWiki
-          };
-          $tw.ServerSide.sendBrowserAlert(message);
-        }
-      })
-    }
+    $tw.ServerSide.renameWiki(data, function(e) {
+      if(!e) {
+        const message = {
+          alert: 'Renamed ' + data.oldWiki + ' to ' + data.newWiki
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      } else {
+        const message = {
+          alert: 'Failed to rename ' + data.oldWiki
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+      }
+    })
   }
 
   /*
@@ -998,141 +988,28 @@ if($tw.node) {
     child wikis, is deleted, Otherwise only the tiddlywiki.info file and the
     tiddlers folder is removed.
   */
-
-  // This is a thing to do rm -rf using node since rmdir fails on non-empty directories
-
-  function deleteFile(dir, file) {
-    const fs = require('fs');
-    const path = require('path');
-    return new Promise(function (resolve, reject) {
-      //Check to make sure that dir is in the place we expect
-      if(dir.startsWith($tw.ServerSide.getBasePath())) {
-        var filePath = path.join(dir, file);
-        fs.lstat(filePath, function (err, stats) {
-          if(err) {
-            return reject(err);
-          }
-          if(stats.isDirectory()) {
-            resolve(deleteDirectory(filePath));
-          } else {
-            fs.unlink(filePath, function (err) {
-              if(err) {
-                return reject(err);
-              }
-              resolve();
-            });
-          }
-        });
-      } else {
-        reject('The folder is not in expected place!');
-      }
-    });
-  };
-
-  function deleteDirectory(dir) {
-    const fs = require('fs');
-    const path = require('path');
-    return new Promise(function (resolve, reject) {
-      // Check to make sure that dir is in the place we expect
-      if(dir.startsWith($tw.ServerSide.getBasePath())) {
-        fs.access(dir, function (err) {
-          if(err) {
-            if(err.code === 'ENOENT') {
-              return resolve();
-            }
-            return reject(err);
-          }
-          fs.readdir(dir, function (err, files) {
-            if(err) {
-              return reject(err);
-            }
-            Promise.all(files.map(function (file) {
-              return deleteFile(dir, file);
-            })).then(function () {
-              fs.rmdir(dir, function (err) {
-                if(err) {
-                  return reject(err);
-                }
-                resolve();
-              });
-            }).catch(reject);
-          });
-        });
-      } else {
-        reject('The folder is not in expected pace!');
-      }
-    });
-  };
-  $tw.stopFileWatchers = function(wikiName) {
-    // Close any file watchers that are active for the wiki
-    if($tw.Bob.Wikis[wikiName]) {
-      if($tw.Bob.Wikis[wikiName].watchers) {
-        Object.values($tw.Bob.Wikis[wikiName].watchers).forEach(function(thisWatcher) {
-          thisWatcher.close();
-        })
-      }
-    }
-  }
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
     $tw.Bob.Shared.sendAck(data)
-    const path = require('path')
-    const fs = require('fs')
-    const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
-    // Make sure that the wiki exists and is listed
-    if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
-      $tw.stopFileWatchers(data.deleteWiki)
-      const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
-      if(data.deleteChildren === 'yes') {
-        deleteDirectory(wikiPath).then(function() {
-          // Refresh wiki listing
-          data.update = 'true';
-          data.saveSettings = 'true';
-          $tw.nodeMessageHandlers.findAvailableWikis(data);
-          const message = {
+    $tw.ServerSide.deleteWiki(data, thisCallback);
+
+    function thisCallback(err) {
+      let message;
+      if(err) {
+        message = {
+          alert: 'Error trying to delete wiki ' + e
+        };
+      } else {
+        if(data.deleteChildren === 'yes') {
+          message = {
             alert: 'Deleted wiki ' + data.deleteWiki + ' and its child wikis.'
           };
-          $tw.ServerSide.sendBrowserAlert(message);
-        }).catch(function(e) {
-          // Refresh wiki listing
-          data.update = 'true';
-          data.saveSettings = 'true';
-          $tw.nodeMessageHandlers.findAvailableWikis(data);
-          const message = {
-            alert: 'Error trying to delete wiki ' + e
+        } else {
+          message = {
+            alert: 'Deleted wiki ' + data.deleteWiki
           };
-          $tw.ServerSide.sendBrowserAlert(message);
-        })
-      } else {
-        // Delete the tiddlywiki.info file
-        fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
-          if(e) {
-            $tw.Bob.logger.error('failed to delete tiddlywiki.info',e, {level:1});
-          } else {
-            // Delete the tiddlers folder (if any)
-            deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
-              $tw.utils.deleteEmptyDirs(wikiPath,function() {
-                // Refresh wiki listing
-                data.update = 'true';
-                data.saveSettings = 'true';
-                $tw.nodeMessageHandlers.findAvailableWikis(data);
-                const message = {
-                  alert: 'Deleted wiki ' + data.deleteWiki
-                };
-                $tw.ServerSide.sendBrowserAlert(message);
-              });
-            }).catch(function(e){
-              // Refresh wiki listing
-              data.update = 'true';
-              data.saveSettings = 'true';
-              $tw.nodeMessageHandlers.findAvailableWikis(data);
-              const message = {
-                alert: 'Error trying to delete wiki ' + e
-              };
-              $tw.ServerSide.sendBrowserAlert(message);
-            })
-          }
-        })
+        }
       }
+      $tw.ServerSide.sendBrowserAlert(message);
     }
   }
 
@@ -1140,8 +1017,6 @@ if($tw.node) {
     This handlers takes a folder as input and if the folder is one of the
     folders with media being served it will return a list of files available in
     the folder.
-
-    TODO make this return the path to use in a _canonical_uri
 
     data = {
       folder: './',
@@ -1154,135 +1029,30 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.listFiles = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    const path = require('path');
-    const fs = require('fs');
-    const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
 
-    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
-    data.folder = data.folder || $tw.settings.fileURLPrefix;
-    data.folder = data.folder.startsWith('/') ? data.folder : '/' + data.folder;
-    const wikiName = $tw.ServerSide.findName(data.folder);
-    const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
-    const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
-    let fileFolder
-    if(thePath === '' && wikiName === '') {
-      // Globally available files in filePathRoot
-      const filePathRoot = $tw.ServerSide.getFilePathRoot();
-      //fileFolder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.filePathRoot);
-      fileFolder = path.resolve($tw.ServerSide.getBasePath(), filePathRoot);
-      // send to browser
-      next(fileFolder, '');
-    } else if(wikiName === '' && $tw.settings.servingFiles[thePath]) {
-      // Explicitly listed folders that are globally available
-      fileFolder = $tw.settings.servingFiles[thePath];
-      // send to browser
-      next(fileFolder, thePath);
-    } else if(wikiName !== '') {
-      // Wiki specific files, need to check to make sure that if perwikiFiles is set this only works from the target wiki.
-      if($tw.settings.perWikiFiles !== 'yes' || wikiName === data.wiki) {
-        const wikiPath = $tw.ServerSide.existsListed(wikiName);
-        if(!wikiPath) {
-          return;
-        }
-        fileFolder = path.join(wikiPath, 'files');
-        next(fileFolder, thePath, wikiName);
-      }
-    } else {
-      const testPaths = [path.resolve($tw.ServerSide.getBasePath)].concat( Object.values($tw.settings.servingFiles));
-      let ind = 0
-      nextTest(0, testPaths)
-      function nextTest(index, pathsToTest) {
-        // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
-        const filePathRoot = $tw.ServerSide.getFilePathRoot();
-        let test = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, pathsToTest[index]);
-        fs.access(test, fs.constants.F_OK, function(err) {
-          if(err) {
-            if(index < pathToTest.length - 1) {
-              nextTest(index + 1, pathsToTest);
-            }
-          } else {
-            // send the list to the browser
-            next(test, pathsToTest[index]);
-          }
-        })
-      }
-    }
-    function next(folder, urlPath, wikiName) {
+    function thisCallback(prefix, filteredItems, urlPath) {
       wikiName = wikiName || '';
-      data.tiddler = data.tiddler || path.join('$:/state/fileList/', wikiName, $tw.settings.fileURLPrefix, urlPath);
+      data.tiddler = data.tiddler || path.join('$:/state/fileList/', data.wiki, $tw.settings.fileURLPrefix, urlPath);
       data.field = data.field || 'list';
-      // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
-      const filePathRoot = $tw.ServerSide.getFilePathRoot();
-      const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
-          return path.resolve($tw.ServerSide.getBasePath(), filePathRoot, item)
-        });
-      const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, folder);
-      let match = false;
-      if(authorised) {
-        const mimeMap = $tw.settings.mimeMap || {
-          '.aac': 'audio/aac',
-          '.avi': 'video/x-msvideo',
-          '.csv': 'text/csv',
-          '.doc': 'application/msword',
-          '.epub': 'application/epub+zip',
-          '.gif': 'image/gif',
-          '.html': 'text/html',
-          '.htm': 'text/html',
-          '.ico': 'image/x-icon',
-          '.jpg': 'image/jpeg',
-          '.jpeg': 'image/jpeg',
-          '.mp3': 'audio/mpeg',
-          '.mpeg': 'video/mpeg',
-          '.oga': 'audio/ogg',
-          '.ogv': 'video/ogg',
-          '.ogx': 'application/ogg',
-          '.png': 'image/png',
-          '.svg': 'image/svg+xml',
-          '.weba': 'audio/weba',
-          '.webm': 'video/webm',
-          '.wav': 'audio/wav'
-        };
-        const extList = data.mediaTypes || false;
-        fs.readdir(resolvedPath, function(err, items) {
-          if(err || !items) {
-            $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
-          } else {
-            // filter the list to only include listed mimetypes.
-            let filteredItems = items.filter(function(item) {
-              const splitItem = item.split('.');
-              const ext = splitItem[splitItem.length-1];
-              return typeof mimeMap['.' + ext] === 'string';
-            })
-            if(extList) {
-              filteredItems = filteredItems.filter(function(item) {
-                const splitItem = item.split('.');
-                const ext = splitItem[splitItem.length-1];
-                return typeof extList.indexOf('.' + ext) !== -1;
-              })
-            }
-            // Reply with the list
-            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
-            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
-            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
-            const fields = {
-              title: data.tiddler,
-              pathprefix: prefix,
-              folder: data.folder,
-            }
-            fields[data.field] = $tw.utils.stringifyList(filteredItems);
-            const message = {
-              type: "saveTiddler",
-              tiddler: {
-                fields: fields
-              },
-              wiki: data.wiki
-            }
-            $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-            $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
-          }
-        });
+
+      const fields = {
+        title: data.tiddler,
+        pathprefix: prefix,
+        folder: data.folder,
       }
+      fields[data.field] = $tw.utils.stringifyList(filteredItems);
+      const message = {
+        type: "saveTiddler",
+        tiddler: {
+          fields: fields
+        },
+        wiki: data.wiki
+      }
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     }
+
+    $tw.ServerSide.listFiles(data, thisCallback)
+
   }
 
   /*
@@ -1322,7 +1092,6 @@ if($tw.node) {
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
     const filePathRoot = $tw.ServerSide.getFilePathRoot();
-    //$tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if(authorised) {
       $tw.settings.servingFiles[data.prefix] = data.folder;

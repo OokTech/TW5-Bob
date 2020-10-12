@@ -1,8 +1,59 @@
 title: $:/plugins/OokTech/Bob/Documentation/http-api
 caption: HTTP API
-tags:
+tags: [[Bob Documentation]]
+
+To use the http api you have to enable the parts you want in the settings.
+Currently this has to be done manually.
+In the `API` section you can enable or disable fetching, pushing, deleting and
+creating independently.
+
+Fetching is getting tiddlers directly using the API, pushing is adding tiddlers
+to a wiki using the api, delete is deleting both tiddlers and wikis, create is
+creating new wikis and renaming wikis.
+
+```
+"API": {
+  "enableFetch": "no",
+  "enablePush": "no",
+  "enableDelete": "no",
+  "enableCreate": "no",
+  "pluginLibrary": "yes"
+}
+```
 
 The http api has the following routes:
+
+<$list
+  filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]each[verb]get[verb]]'
+  variable='verb'
+>
+  <h2>
+    <<verb>>
+  </h2>
+
+---
+
+  <ul>
+  <$list
+    filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]verb<verb>]'
+  >
+    <li>
+      <$link
+        to=<<currentTiddler>>
+      >
+        <$view
+          field='route'
+        />
+      </$link> -
+      <$view
+        field='description'
+      />
+    </li>
+  </$list>
+  </ul>
+</$list>
+
+<!--
 
 !! GET
 
@@ -15,29 +66,30 @@ If the wiki name has `/` or spaces they are included unmodified.
 * `/` - Load the RootWiki
 * `/favicon.ico` - Get the favicon for the RootWiki
 * `/:wikiname` - Load the wiki `:wikiname`
-* `/:wikinamefavicon.ico` - Load the favicon for the wiki `:wikiname`
+* `/:wikiname/favicon.ico` - Load the favicon for the wiki `:wikiname`
 * `/files/:filename` - Load the file `:filename` from the globally available files
 * `/:wikiname/files/:filename` - Load the file `:filename` from the files for the wiki `:wikiname`
 * `/api/status` - get status information from the server
-
-!! PUT
-
-The core has a PUT route that is not here because the `/api/push` POST route
-has a similar function and the server is for Bob which handles saving so a PUT
-saver and Bob at the same time probably isn't generally useful.
-
-* UNIMPLEMENTED `/api/:wikiname/:title`
+* `/api/list/files` - get the list of globally available files
+* `/api/list/files/wiki/:wikiname` - get the list of files specific to the wiki `:wikiname`
+* `/api/list/files/path/:prefix` - get the list of files served using the prefix `:prefix`
+* `/api/list/wikis` - list available wikis
+* `/api/plugins/list` - get a list of plugins available on the server
+* `/api/plugins/fetch/:plugin` - fetch a plugin from the server
+* `/api/fetch` - fetch tiddlers from the server using a filter, the results are returned as json
+* `/api/fetch/list` - get a list of the tiddlers from a server using a filter
+* `/api/fetch/html` - fetch rendered html tiddlers from the server
 
 !! POST
 
 POST routes may require authentication and are used for things that aren't
 necessary for normal wiki activity.
 
-* `/api/fetch` - fetch tiddlers from the server using a filter, the results are returned as json
-* `/api/fetch/list` - get a list of the tiddlers from a server using a filter
-* `/api/fetch/html` - fetch the rendered html tiddlers from the server
-* `/api/plugins/fetch/:plugin` - fetch a plugin from the server
-* `/api/plugins/list` - get a list of plugins available on the server
 * `/api/push` - push tiddlers to a wiki on the server
 * `/api/upload` - upload a file to the server
-* `/api/status` - get detailed status information from the server
+* `/api/rename/wiki` - rename/move a wiki
+* `/api/create/wiki` - create a new wiki
+* `/api/delete/wiki` - delete an existing wiki
+* `/api/delete/tiddler` - delete one or more tiddlers from a wiki
+
+-->

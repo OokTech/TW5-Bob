@@ -4,7 +4,11 @@ title: $:/plugins/OokTech/Bob/Changelog
 
 * Fixed a regression that would prevent websocket connections if the wiki had a space in its name.
 * Add a `/api/status` http route that returns settings and other wiki information
-* Switched to using the `/api/status` route to set up wikis instead of the setLoggedIn websocket message to make behaviour more predictable and prevent some race conditions
+* Switched to using the `/api/status` route to get wiki settings instead of the setLoggedIn websocket message to make behaviour more predictable and prevent some race conditions
+* Lots of refactoring and cleanup on the wiki management functions in the back-end
+* You no longer need to click a button to see the available plugins/themes/editions/languages on the server. If any new ones are added while you have a wiki open you need to either refresh the page (the reload button on your browser, nothing special) or refresh the settings.
+* Big update to the http api routes
+* Documented the http api
 
 !! Version 1.6.1 Scream in your heart
 
