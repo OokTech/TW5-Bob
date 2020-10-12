@@ -224,7 +224,7 @@ if($tw.node) {
           $tw.Bob.Wikis[wikiName].modified = true;
           data.update = 'true';
           data.saveSettings = 'true';
-          $tw.nodeMessageHandlers.findAvailableWikis(data);
+          $tw.ServerSide.updateWikiListing(data);
         }, 1000);
       }
     } else {
@@ -360,6 +360,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     console.log('data', data)
     if(data.wiki === 'RootWiki' || true) {
+      /*
       const fs = require("fs"),
         path = require("path");
       let name = GetWikiName(data.wikiName || data.newWiki);
@@ -453,18 +454,30 @@ if($tw.node) {
       setTimeout(function() {
         data.update = 'true';
         data.saveSettings = 'true';
-        $tw.nodeMessageHandlers.findAvailableWikis(data);
+        $tw.ServerSide.updateWikiListing(data);
         if(typeof cb === 'function') {
           setTimeout(cb, 1500);
         }
       }, 1000);
+      */
 
-      const message = {
-        alert: 'Created wiki ' + name,
-        connections: [data.source_connection]
-      };
-      $tw.ServerSide.sendBrowserAlert(message);
-      $tw.Bob.logger.log('Created wiki ', name, {level: 2})
+      $tw.ServerSide.createWiki(data, callback);
+
+      function callback(err) {
+        if(err) {
+          const message = {
+            alert: 'Error creating wiki',
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+        } else {
+          const message = {
+            alert: 'Created wiki ' + name,
+            connections: [data.source_connection]
+          };
+          $tw.ServerSide.sendBrowserAlert(message);
+        }
+      }
     }
   }
 
@@ -629,7 +642,7 @@ if($tw.node) {
         // Refresh wiki listing
         data.update = 'true';
         data.saveSettings = 'true';
-        $tw.nodeMessageHandlers.findAvailableWikis(data);
+        $tw.ServerSide.updateWikiListing(data);
         const message = {
           alert: 'Created wiki ' + wikiName,
           connections: [data.source_connection]

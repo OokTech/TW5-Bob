@@ -1,5 +1,5 @@
 caption: Import List
-title: $:/plugins/Bob/ImportList
+title: $:/plugins/OokTech/Bob/ImportList
 
 These are the tiddlers from the most recent import:
 
@@ -22,7 +22,7 @@ These are tiddlers that currently are waiting to be imported:
       filter='[prefix[$:/state/Bob/Import/]]'
     >
       <$list
-        filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+        filter='[<currentTiddler>removeprefix[$:/state/Bob/Import/]]'
         variable=NewTitle
       >
         <$action-setfield
@@ -52,7 +52,7 @@ These are tiddlers that currently are waiting to be imported:
       <tr>
         <td>
           <$list
-            filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+            filter='[<currentTiddler>removeprefix[$:/state/Bob/Import/]]'
           >
             <$view
               field='title'
@@ -61,7 +61,7 @@ These are tiddlers that currently are waiting to be imported:
         </td>
         <td>
         <$list
-          filter='[is[current]removeprefix[$:/state/Bob/Import/]has[title]]'
+          filter='[<currentTiddler>removeprefix[$:/state/Bob/Import/]has[title]]'
           emptyMessage='No Local Version'
         >
           <$link>
@@ -83,7 +83,7 @@ These are tiddlers that currently are waiting to be imported:
         <td>
           <$button>
             <$list
-              filter='[is[current]removeprefix[$:/state/Bob/Import/]has[title]]'
+              filter='[<currentTiddler>removeprefix[$:/state/Bob/Import/]has[title]]'
               emptyMessage='Discard'
             >
               Keep original
@@ -95,7 +95,7 @@ These are tiddlers that currently are waiting to be imported:
           <$button>
             Use imported
             <$list
-              filter='[is[current]removeprefix[$:/state/Bob/Import/]]'
+              filter='[<currentTiddler>removeprefix[$:/state/Bob/Import/]]'
               variable=NewTitle
             >
               <$action-setfield

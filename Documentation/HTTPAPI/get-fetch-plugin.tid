@@ -1,0 +1,17 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/fetch-plugin
+tags: [[HTTP API]]
+verb: GET
+route: /api/fetch/plugins/:plugin
+response: The plugin tiddler as JSON
+parameters:
+description: fetch a plugin from the server
+
+The requested plugin is returned as JSON.
+To use this route the `pluginLibrary` key in the `API` section of the settings
+must be set to `yes`.
+
+The `:plugin` part of the path should be in the from `Author/PluginName`.
+
+Example:
+
+* `/api/fetch/plugins/OokTech/Bob`

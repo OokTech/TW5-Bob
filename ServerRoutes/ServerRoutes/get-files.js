@@ -1,11 +1,11 @@
 /*\
-title: $:/plugins/Bob/ServerRoutes/get-files.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-files.js
 type: application/javascript
 module-type: serverroute
 
 GET /^\/files\/<<filename>>/
 
-GET /^\/<<wikiname>>\/files\/<<filename>>/
+GET /^\/<<wikiName\/files\/<<filename>>\/?/
 
 Returns a media file
 
@@ -19,12 +19,12 @@ Returns a media file
 exports.method = "GET";
 
 // Start with the same base path as the --listen command
-let pathRegExp = new RegExp('\/files\/.+');
-if(typeof $tw.settings.fileURLPrefix === 'string' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+let pathRegExp = /^\/?(.*)(?<!api\/.*)(?:\/files\/)(.+)/;
+if(typeof $tw.settings.fileURLPrefix === 'string' && $tw.settings.fileURLPrefix !== 'files' && ($tw.settings.fileURLPrefix !== '' || $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
   if($tw.settings.fileURLPrefix === '') {
     pathRegExp = new RegExp('^/.+$');
   } else {
-    pathRegExp = new RegExp('\/' + $tw.settings.fileURLPrefix + '\/.+$');
+    pathRegExp = new RegExp('^\/?(.*)\/' + $tw.settings.fileURLPrefix + '\/.+$');
   }
 }
 
@@ -114,7 +114,8 @@ exports.handler = function(request,response,state) {
             '.svg': 'image/svg+xml',
             '.weba': 'audio/weba',
             '.webm': 'video/webm',
-            '.wav': 'audio/wav'
+            '.wav': 'audio/wav',
+            '.md': 'text/markdown'
           };
           // Special handling for streaming video types
           // ref: https://gist.github.com/paolorossi/1993068
@@ -147,48 +148,6 @@ exports.handler = function(request,response,state) {
             response.writeHead(403);
             response.end();
           }
-          /*
-          fs.readFile(pathname, function(err, data) {
-            if(err) {
-              $tw.Bob.logger.error(err, {level:1})
-              response.statusCode = 500;
-              response.end();
-            } else {
-              const ext = path.parse(pathname).ext.toLowerCase();
-              const mimeMap = $tw.settings.mimeMap || {
-                '.aac': 'audio/aac',
-                '.avi': 'video/x-msvideo',
-                '.csv': 'text/csv',
-                '.doc': 'application/msword',
-                '.epub': 'application/epub+zip',
-                '.gif': 'image/gif',
-                '.html': 'text/html',
-                '.htm': 'text/html',
-                '.ico': 'image/x-icon',
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.mp3': 'audio/mpeg',
-                '.mpeg': 'video/mpeg',
-                '.oga': 'audio/ogg',
-                '.ogv': 'video/ogg',
-                '.ogx': 'application/ogg',
-                '.pdf': 'application/pdf',
-                '.png': 'image/png',
-                '.svg': 'image/svg+xml',
-                '.weba': 'audio/weba',
-                '.webm': 'video/webm',
-                '.wav': 'audio/wav'
-              };
-              if(mimeMap[ext] || ($tw.settings.allowUnsafeMimeTypes && $tw.settings.accptance === "I Will Not Get Tech Support For This")) {
-                response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"});
-                response.end(data);
-              } else {
-                response.writeHead(403);
-                response.end();
-              }
-            }
-          })
-          */
         })
       }
     }

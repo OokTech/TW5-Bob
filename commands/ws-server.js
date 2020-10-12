@@ -107,6 +107,15 @@ if($tw.node) {
   };
 
   SimpleServer.prototype.requestHandler = function(request,response) {
+    if(request.method === 'OPTIONS') {
+      response.writeHead(200, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE"
+      })
+      response.end()
+      return
+    }
     // Compose the state object
     let self = this;
     let state = {};
@@ -242,10 +251,6 @@ if($tw.node) {
     $tw.httpServer = new SimpleServer({
       wiki: this.commander.wiki
     });
-    // Add route handlers
-    $tw.modules.forEachModuleOfType("serverroute", function(title, routeDefinition) {
-      $tw.httpServer.addRoute(routeDefinition);
-    });
     // Add placeholders for other routes that load the wikis associated with
     // each route.
     $tw.httpServer.addOtherRoutes();
@@ -255,15 +260,33 @@ if($tw.node) {
     Walk through the $tw.settings.wikis object and add a route for each listed wiki. The routes should make the wiki boot if it hasn't already.
   */
   SimpleServer.prototype.addOtherRoutes = function () {
+    // Add route handlers
+    $tw.modules.forEachModuleOfType("serverroute", function(title, routeDefinition) {
+      if(typeof routeDefinition === 'function') {
+        $tw.httpServer.addRoute(routeDefinition());
+      } else {
+        $tw.httpServer.addRoute(routeDefinition);
+      }
+    });
+    $tw.modules.forEachModuleOfType("wikiroute", function(title, routeDefinition) {
+      if(typeof routeDefinition === 'function') {
+        $tw.httpServer.addRoute(routeDefinition('RootWiki'));
+      }
+    });
+    $tw.modules.forEachModuleOfType("fileroute", function(title, routeDefinition) {
+      if(typeof routeDefinition === 'function') {
+        $tw.httpServer.addRoute(routeDefinition('RootWiki'));
+        $tw.httpServer.addRoute(routeDefinition(''));
+      } else {
+        $tw.httpServer.addRoute(routeDefinition);
+      }
+    });
     addRoutesThing($tw.settings.wikis, '');
   }
 
 
 
   function addRoutesThing(inputObject, prefix) {
-    $tw.modules.forEachModuleOfType("wikiroute", function(title, routeDefinition) {
-      $tw.httpServer.addRoute(routeDefinition('RootWiki'));
-    });
     if(typeof inputObject === 'object') {
       Object.keys(inputObject).forEach(function (wikiName) {
         if(typeof inputObject[wikiName] === 'string') {
@@ -277,9 +300,15 @@ if($tw.node) {
           }
 
           $tw.modules.forEachModuleOfType("wikiroute", function(title, routeDefinition) {
-            $tw.httpServer.addRoute(routeDefinition(fullName));
+            if(typeof routeDefinition === 'function') {
+              $tw.httpServer.addRoute(routeDefinition(fullName));
+            }
           });
-
+          $tw.modules.forEachModuleOfType("fileroute", function(title, routeDefinition) {
+            if(typeof routeDefinition === 'function') {
+              $tw.httpServer.addRoute(routeDefinition(fullName));
+            }
+          });
           $tw.Bob.logger.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')), {level:1})
         } else {
           // recurse!
@@ -384,7 +413,11 @@ if($tw.node) {
       serveType: serveType,
       username: username,
       password: password,
-      pathprefix: pathprefix
+      pathprefix: pathprefix,
+      "tiddler-render-type": "text/html",
+    	"tiddler-render-template": "$:/core/templates/server/static.tiddler.html",
+    	"system-tiddler-render-type": "text/plain",
+    	"system-tiddler-render-template": "$:/core/templates/wikified-tiddler"
     });
 
     if($tw.settings.enableBobSaver !== 'no') {

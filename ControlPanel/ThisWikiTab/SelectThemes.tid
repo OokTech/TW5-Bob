@@ -26,7 +26,7 @@ Select Theme Author: <$select
     All
   </option>
   <$list
-    filter='[[$:/Bob/AvailableThemeList]indexes[]splitbefore[/]]'
+    filter='[list[$:/Bob/AvailableThemeList!!text]splitbefore[/]]'
     variable='themeAuthor'
   >
     <option>
@@ -52,10 +52,10 @@ Search: <$edit-text
   >
     <h2><$text text=<<themeAuthor>>></$text></h2>
     <$list
-      filter='[[$:/Bob/AvailableThemeList]indexes[]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
+      filter='[list[$:/Bob/AvailableThemeList!!text]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
     >
       <$list
-        filter='[list[$:/Bob/ActiveThemeList]is[current]]'
+        filter='[list[$:/Bob/ActiveThemeList]match<currentTiddler>]'
         emptyMessage="""
         <$button
           class='tc-btn-invisible'
@@ -107,15 +107,15 @@ Search: <$edit-text
   variable='unused'
 >
   <$list
-    filter='[[$:/Bob/AvailableThemeList]indexes[]splitbefore[/]]'
+    filter='[list[$:/Bob/AvailableThemeList!!text]splitbefore[/]]'
     variable='themeAuthor'
   >
     <h2><$text text=<<themeAuthor>>></$text></h2>
     <$list
-      filter='[[$:/Bob/AvailableThemeList]indexes[]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
+      filter='[list[$:/Bob/AvailableThemeList!!text]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
     >
       <$list
-        filter='[list[$:/Bob/ActiveThemeList]is[current]]'
+        filter='[list[$:/Bob/ActiveThemeList]match<currentTiddler>]'
         emptyMessage="""
         <$button
           class='tc-btn-invisible'

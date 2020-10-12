@@ -1,0 +1,35 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-list-plugins
+tags: [[HTTP API]]
+verb: GET
+route: /api/list/plugins
+response: An array of JSON objects that contain information about the available plugins
+parameters:
+description: get a list of available plugins
+
+Return a list of JSON objects that each contain metadata for an available
+plugin.
+
+The retuned object is in the form:
+
+```
+[
+  {
+    name: "OokTec/Bob",
+    description: "plugin description",
+    version: "0.0.0",
+    tiddlerName: "$:/plugins/OokTech/Bob",
+    readme: "Readme text"
+  },
+  {
+    name: "OokTec/Login",
+    description: "plugin description",
+    version: "0.0.0",
+    tiddlerName: "$:/plugins/OokTech/Login",
+    readme: "Readme text"
+  }
+]
+```
+
+Example:
+
+* `/api/list/plugins`

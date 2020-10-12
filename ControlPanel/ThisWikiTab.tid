@@ -21,7 +21,7 @@ caption: This Wiki
   default="no"
 >
   Use Persistent Usernames
-</$checkbox> <<helpButton "$:/plugins/Bob/AboutPersistentUsernames">>
+</$checkbox> <<helpButton "$:/plugins/OokTech/Bob/AboutPersistentUsernames">>
 
 You can set which plugins and themes are installed on this wiki here.
 Installing plugins this way is not the same as dragging and dropping plugins

@@ -244,45 +244,57 @@ if($tw.node) {
       }
     }
     if(typeof options !== 'object') {
-      options = {}
+      if(typeof options === 'string') {
+        options = {wiki: options}
+      } else {
+        callback("no wiki given");
+        return
+      }
     }
     const prefix = options.wiki;
-    const fileInfo = $tw.Bob.Files[prefix][title];
-    // I guess unconditionally say the wiki is modified in this case.
-    $tw.Bob.Wikis[prefix].modified = true;
-    // Only delete the tiddler if we have writable information for the file
-    if(fileInfo) {
-      // Delete the file
-      fs.unlink(fileInfo.filepath,function(err) {
-        if(err) {
-          $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
-          return callback(err);
-        }
-        $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
-        // Delete the tiddler from the internal tiddlywiki side of things
-        delete $tw.Bob.Files[prefix][title];
-        $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
-        // Create a message saying to remove the tiddler
-        const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
-        // Send the message to each connected browser
-        $tw.Bob.SendToBrowsers(message);
-        $tw.hooks.invokeHook('wiki-modified', prefix);
-        // Delete the metafile if present
-        if(fileInfo.hasMetaFile) {
-          fs.unlink(fileInfo.filepath + ".meta",function(err) {
-            if(err) {
-              $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
-              return callback(err);
-            }
-            $tw.Bob.logger.log('deleting meta file ', fileInfo.filepath + '.meta', {level:3});
-            return $tw.utils.deleteEmptyDirs(path.dirname(fileInfo.filepath),callback);
-          });
-        } else {
-          return $tw.utils.deleteEmptyDirs(path.dirname(fileInfo.filepath),callback);
-        }
-      });
+    if(!$tw.Bob.Files[prefix]) {
+      $tw.ServerSide.loadWiki(prefix, finish);
     } else {
-      callback(null);
+      finish();
+    }
+    function finish() {
+      const fileInfo = $tw.Bob.Files[prefix][title];
+      // I guess unconditionally say the wiki is modified in this case.
+      $tw.Bob.Wikis[prefix].modified = true;
+      // Only delete the tiddler if we have writable information for the file
+      if(fileInfo) {
+        // Delete the file
+        fs.unlink(fileInfo.filepath,function(err) {
+          if(err) {
+            $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
+            return callback(err);
+          }
+          $tw.Bob.logger.log('deleted file ', fileInfo.filepath, {level:2});
+          // Delete the tiddler from the internal tiddlywiki side of things
+          delete $tw.Bob.Files[prefix][title];
+          $tw.Bob.Wikis[prefix].wiki.deleteTiddler(title);
+          // Create a message saying to remove the tiddler
+          const message = {type: 'deleteTiddler', tiddler: {fields:{title: title}}, wiki: prefix};
+          // Send the message to each connected browser
+          $tw.Bob.SendToBrowsers(message);
+          $tw.hooks.invokeHook('wiki-modified', prefix);
+          // Delete the metafile if present
+          if(fileInfo.hasMetaFile) {
+            fs.unlink(fileInfo.filepath + ".meta",function(err) {
+              if(err) {
+                $tw.Bob.logger.log('error deleting file ', fileInfo.filepath, 'with error', err, {level:2});
+                return callback(err);
+              }
+              $tw.Bob.logger.log('deleting meta file ', fileInfo.filepath + '.meta', {level:3});
+              return $tw.utils.deleteEmptyDirs(path.dirname(fileInfo.filepath),callback);
+            });
+          } else {
+          return $tw.utils.deleteEmptyDirs(path.dirname(fileInfo.filepath),callback);
+          }
+        });
+      } else {
+        callback(null);
+      }
     }
   };
 

@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/Bob/ServerRoutes/post-plugin-list.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-list-plugins.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/plugins\/list/
+GET /^\/api\/list\/plugins\/?$/
 
 fetch a list of available plugins
 
@@ -14,13 +14,15 @@ fetch a list of available plugins
 /*global $tw: false */
 "use strict";
 
-exports.method = "POST";
+exports.method = "GET";
 
-exports.path = new RegExp('^\/api\/plugins\/list');
+exports.path = /^\/api\/list\/plugins\/?$/;
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.pluginLibrary === 'yes') {
+    const path = require('path');
+    const fs = require('fs');
     const getPluginList = function () {
       let pluginList = []
       if(typeof $tw.settings.pluginsPath === 'string') {
@@ -77,13 +79,14 @@ exports.handler = function(request,response,state) {
     const authorised = $tw.Bob.AccessCheck("RootWiki", token, 'list');
     if(authorised) {
       const pluginList = getPluginList()
-      //response.setHeader('Access-Control-Allow-Origin', '*')
       response.writeHead(200, {"Access-Control-Allow-Origin": "*"})
       response.end(JSON.stringify(pluginList))
     } else {
       response.writeHead(403)
       response.end()
     }
+  } else {
+    response.writeHead(403).end()
   }
 };
 

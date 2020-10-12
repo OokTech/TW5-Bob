@@ -210,7 +210,7 @@ it will overwrite this file.
             $tw.wiki.importTiddler(new $tw.Tiddler(wikiTiddler.fields, {title: newTitle}));
             // we have conflicts so open the conflict list tiddler
             let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
-            storyList = "$:/plugins/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
+            storyList = "$:/plugins/OokTech/Bob/ConflictList " + $tw.utils.stringifyList(storyList)
             $tw.wiki.addTiddler({title: "$:/StoryList", text: "", list: storyList},$tw.wiki.getModificationFields());
           }
         } else {
@@ -235,7 +235,7 @@ it will overwrite this file.
     $tw.wiki.importTiddler(new $tw.Tiddler(data.tiddler.fields, {title: newTitle}));
     // we have conflicts so open the conflict list tiddler
     let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
-    storyList = "$:/plugins/Bob/ImportList " + $tw.utils.stringifyList(storyList)
+    storyList = "$:/plugins/OokTech/Bob/ImportList " + $tw.utils.stringifyList(storyList)
     $tw.wiki.addTiddler({
       title: "$:/StoryList",
       text: "",
@@ -483,6 +483,11 @@ it will overwrite this file.
       })
     }
   }
+
+	$tw.browserMessageHandlers.updateSettings = function(data) {
+		$tw.Bob.Shared.sendAck(data);
+		$tw.Bob.getSettings();
+	}
 
   /*
     For some messages we need an ack from the server to make sure that they

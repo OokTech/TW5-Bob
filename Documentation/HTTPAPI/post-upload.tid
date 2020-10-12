@@ -1,0 +1,24 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-upload
+tags: [[HTTP API]]
+verb: POST
+route: /api/upload
+response:
+parameters:
+description: upload a media file to the server
+
+This is the route used to store media on the server when the file server is
+enabled.
+
+It needs the header `x-wiki-name` set to the wiki the upload should be
+associated with.
+
+The POST body should be in the from:
+
+{
+  tiddler: //binay content base64 encoded//,
+  wiki: wikiName
+}
+
+where tiddler is the binary content with base64 encoding, and wiki is the wiki
+the file is associated with. The header and the wiki listed in the body must
+match, or you must have permissions to upload to both.

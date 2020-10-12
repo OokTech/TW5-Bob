@@ -1,0 +1,24 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-fetch-tiddlers
+tags: [[HTTP API]]
+verb: GET
+route: /api/fetch
+response: Tiddlers in JSON format
+parameters: `wiki` `filter` `tiddler`
+description: fetch tiddlers from the server
+
+Return a tiddler by title, or a set of tiddlers using a filter, from the named
+wiki.
+
+If both `filter` and `tiddler` are present the filter is used and the tiddler
+title is ignored.
+
+Parameters:
+
+* `wiki` the wiki to fetch the tiddlers from
+* `filter` the filter to evaluate in the wiki to select tiddlers to fetch
+* `tiddler` the title of a single tiddler to return
+
+Examples:
+
+* `/api/fetch?wiki=someWiki&filter=[tag[foo]]`
+* `/api/fetch?wiki=someOtherWiki&tiddler=tiddlerTitle`

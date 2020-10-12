@@ -781,7 +781,7 @@ ServerSide.getViewableSettings = function(data) {
 }
 
 ServerSide.findName = function(url) {
-  url = url.startsWith('/') ? url.slice(1,url.length-1) : url;
+  url = url.startsWith('/') ? url.slice(1,url.length) : url;
   const pieces = url.split('/')
   let name = ''
   let settingsObj = $tw.settings.wikis[pieces[0]]
@@ -805,6 +805,588 @@ ServerSide.findName = function(url) {
     name = 'RootWiki'
   }
   return name
+}
+
+ServerSide.listFiles = function(data, cb) {
+  const path = require('path');
+  const fs = require('fs');
+  const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+
+  if(authorised) {
+    $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+    data.folder = data.folder || $tw.settings.fileURLPrefix;
+    data.folder = data.folder.startsWith('/') ? data.folder : '/' + data.folder;
+    const wikiName = data.wiki || $tw.ServerSide.findName(data.folder);
+    const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
+    const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
+    let fileFolder
+    if(thePath === '' && wikiName === '') {
+      // Globally available files in filePathRoot
+      const filePathRoot = $tw.ServerSide.getFilePathRoot();
+      fileFolder = path.resolve($tw.ServerSide.getBasePath(), filePathRoot);
+      // send to browser
+      next(fileFolder, '');
+    } else if(wikiName === '' && $tw.settings.servingFiles[thePath]) {
+      // Explicitly listed folders that are globally available
+      fileFolder = $tw.settings.servingFiles[thePath];
+      // send to browser
+      next(fileFolder, thePath);
+    } else if(wikiName !== '') {
+      // Wiki specific files, need to check to make sure that if perwikiFiles is set this only works from the target wiki.
+      if($tw.settings.perWikiFiles !== 'yes' || wikiName === data.wiki) {
+        const wikiPath = $tw.ServerSide.existsListed(wikiName);
+        if(!wikiPath) {
+          return;
+        }
+        fileFolder = path.join(wikiPath, 'files');
+        next(fileFolder, thePath, wikiName);
+      }
+    } else {
+      const testPaths = [path.resolve($tw.ServerSide.getBasePath())].concat( Object.values($tw.settings.servingFiles));
+      let ind = 0
+      nextTest(0, testPaths)
+      function nextTest(index, pathsToTest) {
+        // If the path isn't listed in the servingFiles thing check if it is a child of one of the paths, or of the filePathRoot
+        const filePathRoot = $tw.ServerSide.getFilePathRoot();
+        let test = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, pathsToTest[index]);
+        fs.access(test, fs.constants.F_OK, function(err) {
+          if(err) {
+            if(index < pathToTest.length - 1) {
+              nextTest(index + 1, pathsToTest);
+            }
+          } else {
+            // send the list to the browser
+            next(test, pathsToTest[index]);
+          }
+        })
+      }
+    }
+    function next(folder, urlPath, wikiName) {
+      wikiName = wikiName || '';
+      // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
+      const filePathRoot = $tw.ServerSide.getFilePathRoot();
+      const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
+          return path.resolve($tw.ServerSide.getBasePath(), filePathRoot, item)
+        });
+      const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, folder);
+      let match = false;
+      if(authorised) {
+        const mimeMap = $tw.settings.mimeMap || {
+          '.aac': 'audio/aac',
+          '.avi': 'video/x-msvideo',
+          '.csv': 'text/csv',
+          '.doc': 'application/msword',
+          '.epub': 'application/epub+zip',
+          '.gif': 'image/gif',
+          '.html': 'text/html',
+          '.htm': 'text/html',
+          '.ico': 'image/x-icon',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.mp3': 'audio/mpeg',
+          '.mpeg': 'video/mpeg',
+          '.oga': 'audio/ogg',
+          '.ogv': 'video/ogg',
+          '.ogx': 'application/ogg',
+          '.png': 'image/png',
+          '.svg': 'image/svg+xml',
+          '.weba': 'audio/weba',
+          '.webm': 'video/webm',
+          '.wav': 'audio/wav'
+        };
+        const extList = data.mediaTypes || false;
+        fs.readdir(resolvedPath, function(err, items) {
+          if(err || !items) {
+            $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
+          } else {
+            // filter the list to only include listed mimetypes.
+            let filteredItems = items.filter(function(item) {
+              const splitItem = item.split('.');
+              const ext = splitItem[splitItem.length-1];
+              return typeof mimeMap['.' + ext] === 'string';
+            })
+            if(extList) {
+              filteredItems = filteredItems.filter(function(item) {
+                const splitItem = item.split('.');
+                const ext = splitItem[splitItem.length-1];
+                return typeof extList.indexOf('.' + ext) !== -1;
+              })
+            }
+            // Reply with the list
+            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
+            $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
+            cb(prefix, filteredItems, urlPath);
+          }
+        });
+      }
+    }
+  } else {
+    cb("", [], "");
+  }
+}
+
+function deleteDirectory(dir) {
+  const fs = require('fs');
+  const path = require('path');
+  return new Promise(function (resolve, reject) {
+    // Check to make sure that dir is in the place we expect
+    if(dir.startsWith($tw.ServerSide.getBasePath())) {
+      fs.access(dir, function (err) {
+        if(err) {
+          if(err.code === 'ENOENT') {
+            return resolve();
+          }
+          return reject(err);
+        }
+        fs.readdir(dir, function (err, files) {
+          if(err) {
+            return reject(err);
+          }
+          Promise.all(files.map(function (file) {
+            return deleteFile(dir, file);
+          })).then(function () {
+            fs.rmdir(dir, function (err) {
+              if(err) {
+                return reject(err);
+              }
+              resolve();
+            });
+          }).catch(reject);
+        });
+      });
+    } else {
+      reject('The folder is not in expected pace!');
+    }
+  });
+};
+
+function deleteFile(dir, file) {
+  const fs = require('fs');
+  const path = require('path');
+  return new Promise(function (resolve, reject) {
+    //Check to make sure that dir is in the place we expect
+    if(dir.startsWith($tw.ServerSide.getBasePath())) {
+      const filePath = path.join(dir, file);
+      fs.lstat(filePath, function (err, stats) {
+        if(err) {
+          return reject(err);
+        }
+        if(stats.isDirectory()) {
+          resolve(deleteDirectory(filePath));
+        } else {
+          fs.unlink(filePath, function (err) {
+            if(err) {
+              return reject(err);
+            }
+            resolve();
+          });
+        }
+      });
+    } else {
+      reject('The folder is not in expected place!');
+    }
+  });
+};
+
+ServerSide.deleteWiki = function(data, cb) {
+  const path = require('path')
+  const fs = require('fs')
+  const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
+  // Make sure that the wiki exists and is listed
+  if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
+    $tw.stopFileWatchers(data.deleteWiki)
+    const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
+    if(data.deleteChildren === 'yes') {
+      deleteDirectory(wikiPath).then(function() {
+        cb();
+      }).catch(function(e) {
+        cb(e);
+      }).finally(function() {
+        ServerSide.updateWikiListing();
+      })
+    } else {
+      // Delete the tiddlywiki.info file
+      fs.unlink(path.join(wikiPath, 'tiddlywiki.info'), function(e) {
+        if(e) {
+          $tw.Bob.logger.error('failed to delete tiddlywiki.info',e, {level:1});
+          cb(e);
+          ServerSide.updateWikiListing();
+        } else {
+          // Delete the tiddlers folder (if any)
+          deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
+            $tw.utils.deleteEmptyDirs(wikiPath,function() {
+              cb();
+            });
+          }).catch(function(e){
+            cb(e);
+          }).finally(function() {
+            ServerSide.updateWikiListing();
+          })
+        }
+      })
+    }
+  }
+}
+
+/*
+  This updates the server wiki listing, it is just the server task that checks
+  to see if there are any unlisted wikis and that the currently listed wikis
+  edist, so it doesn't need any authentication.
+
+  This function checks to make sure all listed wikis exist and that all wikis
+  it can find are listed.
+  Then it saves the settings file to reflect the changes.
+*/
+ServerSide.updateWikiListing = function(data) {
+  data = data || {update:'true',remove:'true',saveSettings:true};
+  // This gets the paths of all wikis listed in the settings
+  function getWikiPaths(settingsObject, outPaths) {
+    const settingsKeys = Object.keys(settingsObject);
+    outPaths = outPaths || [];
+    settingsKeys.forEach(function(thisKey) {
+      if(thisKey === '__path') {
+        // its one of the paths we want
+        outPaths.push(path.resolve(basePath, $tw.settings.wikisPath, settingsObject[thisKey]));
+      } else if(thisKey === '__permissions') {
+        // Ignore it
+      } else if(typeof settingsObject[thisKey] === 'object') {
+        // Recurse
+        outPaths = getWikiPaths(settingsObject[thisKey], outPaths);
+      }
+    })
+    return outPaths
+  }
+  // This gets a list of all wikis in the wikis folder and subfolders
+  function getRealPaths(startPath) {
+    // Check each folder in the wikis folder to see if it has a
+    // tiddlywiki.info file
+    let realFolders = [];
+    try {
+      const folderContents = fs.readdirSync(startPath);
+      folderContents.forEach(function (item) {
+        const fullName = path.join(startPath, item);
+        if(fs.statSync(fullName).isDirectory()) {
+          if($tw.ServerSide.wikiExists(fullName)) {
+            realFolders.push(fullName);
+          }
+          // Check if there are subfolders that contain wikis and recurse
+          const nextPath = path.join(startPath,item)
+          if(fs.statSync(nextPath).isDirectory()) {
+            realFolders = realFolders.concat(getRealPaths(nextPath));
+          }
+        }
+      })
+    } catch (e) {
+      $tw.Bob.logger.log('Error getting wiki paths', e, {level:1});
+    }
+    return realFolders;
+  }
+  // This takes the list of wikis in the settings and returns a new object
+  // without any of the non-existent wikis listed
+  function pruneWikiList(dontExistList, settingsObj) {
+    let prunedSettings = {};
+    Object.keys(settingsObj).forEach(function(wikiName) {
+      if(typeof settingsObj[wikiName] === 'string') {
+        // Check if the wikiName resolves to one of the things to remove
+        if(dontExistList.indexOf(path.resolve(wikiFolderPath, settingsObj[wikiName])) === -1) {
+          // If the wiki isn't listed as not existing add it to the prunedSettings
+          prunedSettings[wikiName] = settingsObj[wikiName];
+        }
+      } else if(typeof settingsObj[wikiName] === 'object') {
+        if(Object.keys(settingsObj[wikiName]).length > 0) {
+          const temp = pruneWikiList(dontExistList, settingsObj[wikiName]);
+          if(Object.keys(temp).length > 0) {
+            prunedSettings[wikiName] = temp;
+          }
+        }
+      }
+    })
+    return prunedSettings;
+  }
+  const fs = require('fs');
+  const path = require('path');
+  const basePath = $tw.ServerSide.getBasePath();
+  $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+  let wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
+  // Make sure that the wikiFolderPath exists
+  const error = $tw.utils.createDirectory(path.resolve(basePath, $tw.settings.wikisPath));
+  // Check each folder in the wikis folder to see if it has a tiddlywiki.info
+  // file.
+  // If there is no tiddlywiki.info file it checks sub-folders.
+  const realFolders = getRealPaths(wikiFolderPath);
+  // If it does check to see if any listed wiki has the same path, if so skip
+  // it
+  let alreadyListed = [];
+  const listedWikis = getWikiPaths($tw.settings.wikis);
+  realFolders.forEach(function(folder) {
+    // Check is the wiki is listed
+    if(listedWikis.indexOf(folder) > -1) {
+      alreadyListed.push(folder);
+    }
+  })
+  let wikisToAdd = realFolders.filter(function(folder) {
+    return alreadyListed.indexOf(folder) === -1;
+  })
+  wikisToAdd = wikisToAdd.map(function(thisPath) {
+    return path.relative(wikiFolderPath,thisPath);
+  })
+  const dontExist = listedWikis.filter(function(folder) {
+    return !$tw.ServerSide.wikiExists(folder);
+  })
+  data.update = data.update || ''
+  if(typeof data.update !== 'string') {
+    data.update = (data.update === true)?'true':''
+  }
+  if(data.update.toLowerCase() === 'true') {
+    wikisToAdd.forEach(function (wikiName) {
+      const nameParts = wikiName.split('/');
+      let settingsObj = $tw.settings.wikis;
+      let i;
+      for (i = 0; i < nameParts.length; i++) {
+        if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
+          settingsObj = settingsObj[nameParts[i]];
+        } else if(i < nameParts.length - 1) {
+          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+          settingsObj = settingsObj[nameParts[i]]
+        } else {
+          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+          settingsObj[nameParts[i]].__path = nameParts.join('/');
+        }
+      }
+    })
+  }
+  if(typeof data.remove !== 'string') {
+    data.remove = (data.remove === false)?'false':'true'
+  }
+  if(data.remove.toLowerCase() === 'true') {
+    // update the wikis listing in the settings with a version that doesn't
+    // have the wikis that don't exist.
+    $tw.settings.wikis = pruneWikiList(dontExist, $tw.settings.wikis);
+  }
+  // Save the new settings, update routes, update settings tiddlers in the
+  // browser and update the list of available wikis
+  if(data.saveSettings) {
+    data.fromServer = true;
+    $tw.nodeMessageHandlers.saveSettings(data);
+    $tw.nodeMessageHandlers.updateRoutes(data);
+  }
+}
+
+$tw.stopFileWatchers = function(wikiName) {
+  // Close any file watchers that are active for the wiki
+  if($tw.Bob.Wikis[wikiName]) {
+    if($tw.Bob.Wikis[wikiName].watchers) {
+      Object.values($tw.Bob.Wikis[wikiName].watchers).forEach(function(thisWatcher) {
+        thisWatcher.close();
+      })
+    }
+  }
+}
+
+ServerSide.renameWiki = function(data, cb) {
+  const path = require('path')
+  const fs = require('fs')
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+  if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
+    // Unload the old wiki
+    $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
+    const basePath = $tw.ServerSide.getBasePath();
+    const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
+    const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
+    fs.rename(oldWikiPath, newWikiPath, function(e) {
+      if(e) {
+        $tw.Bob.logger.log('failed to rename wiki',e,{level:1});
+        cb(e);
+      } else {
+        // Refresh wiki listing
+        data.update = 'true';
+        data.saveSettings = 'true';
+        $tw.ServerSide.updateWikiListing(data);
+        cb();
+      }
+    })
+  }
+}
+
+
+/*
+  This ensures that the wikiName used is unique by appending a number to the
+  end of the name and incrementing the number if needed until an unused name
+  is created.
+  If on name is given it defualts to NewWiki
+*/
+function GetWikiName (wikiName, count, wikiObj, fullName) {
+  let updatedName;
+  count = count || 0;
+  wikiName = wikiName || ''
+  if(wikiName.trim() === '') {
+    wikiName = 'NewWiki'
+  }
+  fullName = fullName || wikiName || 'NewWiki';
+  wikiObj = wikiObj || $tw.settings.wikis;
+  const nameParts = wikiName.split('/');
+  if(nameParts.length === 1) {
+    updatedName = nameParts[0];
+    if(wikiObj[updatedName]) {
+      if(wikiObj[updatedName].__path) {
+        count = count + 1;
+        while (wikiObj[updatedName + String(count)]) {
+          if(wikiObj[updatedName + String(count)].__path) {
+            count = count + 1;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    if(count > 0) {
+      return fullName + String(count);
+    } else {
+      return fullName;
+    }
+  } else if(!wikiObj[nameParts[0]]) {
+    if(count > 0) {
+      return fullName + String(count);
+    } else {
+      return fullName;
+    }
+  }
+  if(nameParts.length > 1) {
+    if(wikiObj[nameParts[0]]) {
+      return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
+    } else {
+      return fullName;
+    }
+  } else {
+    return undefined
+  }
+}
+
+ServerSide.createWiki = function(data, cb) {
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'duplicate');
+  if(authorised) {
+    const fs = require("fs"),
+      path = require("path");
+    let name = GetWikiName(data.wikiName || data.newWiki);
+
+    if(data.nodeWikiPath) {
+      // This is just adding an existing node wiki to the listing
+      addListing(name, data.nodeWikiPath);
+      data.fromServer = true;
+      $tw.nodeMessageHandlers.saveSettings(data);
+    } else if(data.tiddlers || data.externalTiddlers) {
+      // Create a wiki using tiddlers sent from the browser, this is what is
+      // used to create wikis from existing html files.
+    } else if(data.fromWiki) {
+      // Duplicate a wiki
+      // Make sure that the wiki to duplicate exists and that the target wiki
+      // name isn't in use
+      if($tw.ServerSide.existsListed(data.fromWiki)) {
+        const wikiName = name;//GetWikiName(data.newWiki);
+        // Get the paths for the source and destination
+        $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+        const source = $tw.ServerSide.getWikiPath(data.fromWiki);
+        const basePath = $tw.ServerSide.getBasePath();
+        const destination = path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+        data.copyChildren = data.copyChildren || 'no';
+        const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
+        // Make the duplicate
+        $tw.ServerSide.specialCopy(source, destination, copyChildren, function() {
+          // Refresh wiki listing
+          data.update = 'true';
+          data.saveSettings = 'true';
+          $tw.ServerSide.updateWikiListing(data);
+          $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', wikiName, {level: 2})
+          cb();
+        });
+      }
+    } else {
+      // Paths are relative to the root wiki path
+      $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
+      data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
+      // If no basepath is given than the default is to place the folder in the
+      // default wikis folder
+      const basePath = data.basePath || $tw.ServerSide.getBasePath();
+      // This is the path given by the person making the wiki, it needs to be
+      // relative to the basePath
+      // data.wikisFolder is an optional sub-folder to use. If it is set to
+      // Wikis than wikis created will be in the basepath/Wikis/relativePath
+      // folder I need better names here.
+      $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
+      // This only does something for the secure wiki server
+      if($tw.settings.namespacedWikis === 'true') {
+        data.decoded = data.decoded || {};
+        data.decoded.name = data.decoded.name || 'imaginaryPerson';
+        name = data.decoded.name + '/' + (data.wikiName || data.newWiki);
+        name = GetWikiName(name);
+        relativePath = name;
+        $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
+      }
+      const fullPath = path.join(basePath, data.wikisFolder, name)
+      // For now we only support creating wikis with one edition, multi edition
+      // things like in the normal init command can come later.
+      const editionName = data.edition?data.edition:"empty";
+      const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
+      let editionPath = $tw.findLibraryItem(editionName,searchPaths);
+      if(!fs.existsSync(editionPath) && false) {
+        editionPath = undefined
+        editionPath = path.resolve(__dirname, "./editions", "./" + editionName);
+        if(fs.existsSync(editionPath)) {
+          try {
+            $tw.ServerSide.specialCopy(editionPath, fullPath);
+            $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
+          } catch (e) {
+            $tw.Bob.logger.error('error copying edition ', editionName, e, {level:1});
+          }
+        } else {
+          $tw.Bob.logger.error("Edition not found ", editionName, {level:1});
+        }
+      } else {
+        // Copy the edition content
+        const err = $tw.ServerSide.specialCopy(editionPath, fullPath, true);
+        if(!err) {
+          $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
+        } else {
+          $tw.Bob.logger.error(err, {level:1});
+        }
+      }
+      // Tweak the tiddlywiki.info to remove any included wikis
+      const packagePath = path.join(fullPath, "tiddlywiki.info");
+      let packageJson = {};
+      try {
+        packageJson = JSON.parse(fs.readFileSync(packagePath));
+      } catch (e) {
+        $tw.Bob.logger.error('failed to load tiddlywiki.info file', e, {level:1});
+      }
+      delete packageJson.includeWikis;
+      try {
+        fs.writeFileSync(packagePath,JSON.stringify(packageJson,null,$tw.config.preferences.jsonSpaces));
+      } catch (e) {
+        $tw.Bob.logger.error('failed to write tiddlywiki.info ', e, {level:1})
+      }
+
+      // This is here as a hook for an external server. It is defined by the
+      // external server and shouldn't be defined here or it will break
+      // If you are not using an external server than this does nothing
+      if($tw.ExternalServer) {
+        if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+          const relativePath = path.relative(path.join(basePath, data.wikisFolder),fullPath);
+          $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
+        }
+      }
+    }
+
+    setTimeout(function() {
+      data.update = 'true';
+      data.saveSettings = 'true';
+      $tw.ServerSide.updateWikiListing(data);
+      if(typeof cb === 'function') {
+        setTimeout(cb, 1500);
+      }
+    }, 1000);
+  }
 }
 
 module.exports = ServerSide

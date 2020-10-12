@@ -1,0 +1,12 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-push
+tags: [[HTTP API]]
+verb: POST
+route: /api/push/:wikiname
+response:
+parameters:
+description: push tiddlers to a wiki
+
+This pushes tiddlers to a wiki.
+
+The wiki is selected by setting the `:wikiname` part of the url.
+The body of the post holds tiddlers is json format.
