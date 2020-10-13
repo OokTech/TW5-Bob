@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.6.2 Une Vie Typique
+!! Version 1.6.2r2 Une Vie Typique
 
 * Fixed a regression that would prevent websocket connections if the wiki had a space in its name.
 * Add a `/api/status` http route that returns settings and other wiki information
@@ -9,6 +9,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * You no longer need to click a button to see the available plugins/themes/editions/languages on the server. If any new ones are added while you have a wiki open you need to either refresh the page (the reload button on your browser, nothing special) or refresh the settings.
 * Big update to the http api routes
 * Documented the http api
+* Fix a crash from a variable scope problem
 
 !! Version 1.6.1 Scream in your heart
 
