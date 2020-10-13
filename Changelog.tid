@@ -10,6 +10,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Big update to the http api routes
 * Documented the http api
 * Fix a crash from a variable scope problem
+* Fix a problem with disabling the browser automatically opening
 
 !! Version 1.6.1 Scream in your heart
 

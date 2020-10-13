@@ -3,13 +3,13 @@ caption: Server
 
 \define checkActions()
   <$action-updatesetting
-    suppressBrowser=true
+    suppressBrowser='yes'
   />
 \end
 
 \define uncheckActions()
 <$action-updatesetting
-  suppressBrowser=false
+  suppressBrowser='no'
 />
 \end
 \define toggleLazyLoadingCheckActions()
