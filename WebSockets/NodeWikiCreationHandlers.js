@@ -471,6 +471,7 @@ if($tw.node) {
           };
           $tw.ServerSide.sendBrowserAlert(message);
         } else {
+          const name = data.newWiki || data.wikiName;
           const message = {
             alert: 'Created wiki ' + name,
             connections: [data.source_connection]
