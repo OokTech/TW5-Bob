@@ -129,5 +129,14 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "saveOnLoad": "yes",
     "saveOnModified": "yes",
     "maxBackups": 10
+  },
+  "pluginLibrary": {
+    "allPublic": "yes"
+  },
+  "editionLibrary": {
+    "allPublic": "yes"
+  },
+  "themeLibrary": {
+    "allPublic": "yes"
   }
 }

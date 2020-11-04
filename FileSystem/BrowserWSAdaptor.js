@@ -18,33 +18,8 @@ const sendToServer = function (message, callback) {
   const connectionIndex = 0;
   // If the connection is open, send the message
   if($tw.connections[connectionIndex].socket.readyState === 1) {
-    // We need to add back in some of our old queue logic here to make sure we aren't spamming save tiddler messages on every keystroke.
-    // We have the callback passed in so that we can add a delay here before sending save messages so we don't send them too quickly, it is the same as the typing delay for the draft refresh stuff in the core.
-    //if(false && message.type === 'saveTiddler') {
-    if(false && message.type === 'saveTiddler') {
-      delayRecord[message.tiddler.fields.title] = delayRecord[message.tiddler.fields.title] || {};
-      if(typeof delayRecord[message.tiddler.fields.title].cb === 'function') {
-        // Clear the callback so we don't mess up the dirty status.
-        delayRecord[message.tiddler.fields.title].cb(null, null);
-      }
-      clearTimeout(delayRecord[message.tiddler.fields.title].timeout);
-      delayRecord[message.tiddler.fields.title].cb = callback
-      delayRecord[message.tiddler.fields.title].message = message
-      delayRecord[message.tiddler.fields.title].timeout = setTimeout( function() {
-        try {
-          $tw.Bob.Shared.sendMessage(delayRecord[message.tiddler.fields.title].message, 0);
-          delayRecord[message.tiddler.fields.title].cb(null, null);
-          delayRecord[message.tiddler.fields.title] = undefined;
-        } catch (e) {
-          // nothing here
-        }
-
-      }, 10);
-      return false;
-    } else {
-      const messageData = $tw.Bob.Shared.sendMessage(message, 0);
-      return messageData.id;
-    }
+    const messageData = $tw.Bob.Shared.sendMessage(message, 0);
+    return messageData.id;
   } else {
     // If the connection is not open than store the message in the queue
     const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
@@ -714,49 +689,6 @@ function setupSkinnyTiddlerLoading() {
     }
   }
 }
-
-/*
-const sendToServer = function (message) {
-  const tiddlerText = $tw.wiki.getTiddlerText('$:/plugins/OokTech/Bob/Unsent', '');
-  // If the connection is open, send the message
-  if($tw.connections[0].socket.readyState === 1) {
-    const messageData = $tw.Bob.Shared.sendMessage(message, 0);
-    return messageData.id;
-  } else {
-    // If the connection is not open than store the message in the queue
-    const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
-    let queue = [];
-    let start = Date.now();
-    if(tiddler) {
-      if(typeof tiddler.fields.text === 'string') {
-        queue = JSON.parse(tiddler.fields.text);
-      }
-      if(tiddler.fields.start) {
-        start = tiddler.fields.start;
-      }
-    }
-    // Check to make sure that the current message is eligible to be saved
-    const messageData = $tw.Bob.Shared.createMessageData(message)
-    if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
-      // Prune the queue and check if the current message makes any enqueued
-      // messages redundant or overrides old messages
-      queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
-      // Don't save any messages that are about the unsent list or you get
-      // infinite loops of badness.
-      if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
-        queue.push(messageData);
-      }
-      const tiddler2 = {
-        title: '$:/plugins/OokTech/Bob/Unsent',
-        text: JSON.stringify(queue, '', 2),
-        type: 'application/json',
-        start: start
-      };
-      $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
-    }
-  }
-}
-*/
 
 // Replace this with whatever conditions are required to use your adaptor
 if($tw.browser) {

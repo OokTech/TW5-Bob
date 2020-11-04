@@ -717,6 +717,9 @@ ServerSide.getViewablePluginsList = function (data) {
   data = data || {};
   const viewablePlugins = [];
   const pluginList = $tw.utils.getPluginInfo();
+  if($tw.settings.pluginLibrary.allPublic === 'yes') {
+    return pluginList;
+  }
   Object.keys(pluginList).forEach(function(pluginName) {
     if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
       viewablePlugins.push(pluginName);
@@ -729,6 +732,9 @@ ServerSide.getViewableThemesList = function (data) {
   data = data || {};
   const viewableThemes = [];
   const themeList = $tw.utils.getThemeInfo();
+  if($tw.settings.themeLibrary.allPublic === 'yes') {
+    return themeList;
+  }
   Object.keys(themeList).forEach(function(themeName) {
     if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
       viewableThemes.push(themeName);
@@ -752,6 +758,9 @@ ServerSide.getViewableEditionsList = function (data) {
   data = data || {};
   const viewableEditions = {};
   const editionList =  $tw.utils.getEditionInfo();
+  if($tw.settings.editionLibrary.allPublic === 'yes') {
+    return editionList;
+  }
   Object.keys(editionList).forEach(function(editionName) {
     if($tw.Bob.AccessCheck(editionName, {"decoded": data.decoded}, 'view', 'edition')) {
       Object.keys(editionList).forEach(function(index) {
@@ -777,7 +786,51 @@ ServerSide.getViewableLanguagesList = function (data) {
 }
 
 ServerSide.getViewableSettings = function(data) {
-  return $tw.settings;
+  const tempSettings = {};
+  // section visible to anyone
+  // Nothing that uses websocket stuff here because they only work when logged
+  // in
+  tempSettings.API = $tw.settings.API;
+  // Federation stuff is visible because you don't have to login to want to see
+  // if federation is possible with a server
+  tempSettings.federation = $tw.settings.federation;
+  tempSettings.enableFederation = $tw.settings.enableFederation;
+
+  tempSettings.includePluginList = $tw.settings.includePluginList;
+  tempSettings.excludePluginList = $tw.settings.excludePluginList;
+  // Section visible by logged in people
+  if(data.decoded) {
+    tempSettings.backups = $tw.settings.backups;
+    tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
+    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
+    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
+    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
+    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
+    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.heartbeat = $tw.settings.heartbeat;
+  }
+  // advanced section only visible to admins
+  if((data.decoded && data.decoded.level === 'Admin') || data.decoded === true) {
+    tempSettings.advanced = $tw.settings.advanced;
+    tempSettings['ws-server'] = $tw.settings['ws-server'];
+    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.disableFileWatchers = $tw.settings.disableFileWatchers;
+    tempSettings.filePathRoot = $tw.settings.filePathRoot;
+    tempSettings.editionsPath = $tw.settings.editionsPath;
+    tempSettings.languagesPath = $tw.settings.languagesPath;
+    tempSettings.pluginsPath = $tw.settings.pluginsPath;
+    tempSettings.themesPath = $tw.settings.themesPath;
+    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
+    tempSettings.wikisPath = $tw.settings.wikisPath;
+    tempSettings.scripts = $tw.settings.scripts;
+    tempSettings.serverInfo = $tw.settings.serverInfo;
+    tempSettings.saver = $tw.settings.saver;
+    tempSettings.logger = $tw.settings.logger;
+    tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
+    tempSettings['fed-wss'] = $tw.settings['fed-wss'];
+  }
+
+  return tempSettings;
 }
 
 ServerSide.findName = function(url) {
