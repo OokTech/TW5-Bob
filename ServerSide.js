@@ -716,7 +716,7 @@ ServerSide.getViewableWikiList = function (data) {
   for (let i = 0; i < viewableWikis.length; i++) {
     tempObj[viewableWikis[i]] = ['view']
     // Check if you can edit it
-    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'edit')) {
+    if($tw.Bob.AccessCheck(viewableWikis[i], {"decoded": data.decoded}, 'edit')) {
       tempObj[viewableWikis[i]].push('edit');
     }
     // Check if you are the owner
