@@ -683,6 +683,8 @@ ServerSide.getViewableWikiList = function (data) {
   data = data || {};
   function getList(obj, prefix) {
     let output = [];
+    let ownedWikis = {};
+    // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
         if($tw.ServerSide.existsListed(prefix+item)) {
@@ -696,7 +698,7 @@ ServerSide.getViewableWikiList = function (data) {
             output.push(prefix+item);
           }
         }
-      } else if(typeof obj[item] === 'object') {
+      } else if(typeof obj[item] === 'object' && item !== '__permissions') {
         output = output.concat(getList(obj[item], prefix + item + '/'));
       }
     })
@@ -710,6 +712,15 @@ ServerSide.getViewableWikiList = function (data) {
       viewableWikis.push(wikiName);
     }
   });
+  const tempObj = {};
+  for (let i = 0; i < viewableWikis.length; i++) {
+    tempObj[viewableWikis[i]] = ['view']
+    // Check if you can edit it
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'edit')) {
+      tempObj[viewableWikis[i]].push('edit');
+    }
+    // Check if you are the owner
+  }
   return viewableWikis;
 }
 
@@ -1318,7 +1329,7 @@ function GetWikiName (wikiName, count, wikiObj, fullName) {
 }
 
 ServerSide.createWiki = function(data, cb) {
-  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'duplicate');
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'createNewWiki');
   if(authorised) {
     const fs = require("fs"),
       path = require("path");
