@@ -616,7 +616,7 @@ const buildTree = function(location, parent) {
   We can turn off browser messages
 */
 ServerSide.sendBrowserAlert = function(input) {
-  if($tw.settings.disableBrowserAlerts !== 'true') {
+  if($tw.settings.disableBrowserAlerts !== 'yes') {
     const message = {
       type:'browserAlert',
       alert: input.alert
@@ -1205,18 +1205,26 @@ ServerSide.updateWikiListing = function(data) {
   }
   if(data.update.toLowerCase() === 'true') {
     wikisToAdd.forEach(function (wikiName) {
-      const nameParts = wikiName.split('/');
-      let settingsObj = $tw.settings.wikis;
-      let i;
-      for (i = 0; i < nameParts.length; i++) {
-        if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
-          settingsObj = settingsObj[nameParts[i]];
-        } else if(i < nameParts.length - 1) {
-          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-          settingsObj = settingsObj[nameParts[i]]
-        } else {
-          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-          settingsObj[nameParts[i]].__path = nameParts.join('/');
+      if($tw.ExternalServer) {
+        if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+          // This adds unlisted wikis as private and without giving them an
+          // owner, so an admin needs to set the owner and stuff.
+          $tw.ExternalServer.initialiseWikiSettings(wikiName);
+        }
+      } else {
+        const nameParts = wikiName.split('/');
+        let settingsObj = $tw.settings.wikis;
+        let i;
+        for (i = 0; i < nameParts.length; i++) {
+          if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
+            settingsObj = settingsObj[nameParts[i]];
+          } else if(i < nameParts.length - 1) {
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+            settingsObj = settingsObj[nameParts[i]]
+          } else {
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+            settingsObj[nameParts[i]].__path = nameParts.join('/');
+          }
         }
       }
     })
@@ -1380,7 +1388,7 @@ ServerSide.createWiki = function(data, cb) {
       // folder I need better names here.
       $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
       // This only does something for the secure wiki server
-      if($tw.settings.namespacedWikis === 'true') {
+      if($tw.settings.namespacedWikis === 'yes') {
         data.decoded = data.decoded || {};
         data.decoded.name = data.decoded.name || 'imaginaryPerson';
         name = data.decoded.name + '/' + (data.wikiName || data.newWiki);

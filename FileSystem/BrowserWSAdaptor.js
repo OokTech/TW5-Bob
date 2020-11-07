@@ -137,7 +137,7 @@ function BrowserWSAdaptor(options) {
 
   $tw.Bob.getSettings = function() {
     // Ask the server for its status
-    fetch('/api/status', {credentials: 'include'})
+    fetch('/api/status', {credentials: 'include', headers: {'x-wiki-name': $tw.wikiName}})
     .then(response => response.json())
     .then(function(data) {
       function doThisLevel (inputObject, currentName) {
@@ -199,7 +199,13 @@ function BrowserWSAdaptor(options) {
 
       doThisLevel(data['settings'], '$:/WikiSettings/split');
 
-      if(data['settings'].persistentUsernames === "yes") {
+      $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/status/IsLoggedIn', text:data.logged_in}));
+
+      $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/status/IsReadOnly', text:data.read_only}));
+
+      if(data.username) { // This is only here with the secure server
+        $tw.wiki.addTiddler(new $tw.Tiddler({title: '$:/status/UserName', text: data.username}));
+      } else if(data['settings'].persistentUsernames === "yes") {
         const savedName = $tw.Bob.getCookie(document.cookie, "userName");
         if(savedName) {
           $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/status/UserName", text: savedName}));

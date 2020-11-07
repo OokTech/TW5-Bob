@@ -33,7 +33,7 @@ Select Wiki:
     Select Wiki
   </option>
   <$list
-    filter='[list[$:/state/ViewableWikis]]'
+    filter='[[RootWiki]][list[$:/state/ViewableWikis]]'
   >
     <option>
       <<currentTiddler>>

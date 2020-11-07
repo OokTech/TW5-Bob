@@ -23,9 +23,9 @@ exports.handler = function(request,response,state) {
 
   // build the status object
   const status = {
-    logged_in: authorised && (authorised !== true),
-    username: "",
-    authentication_level: "Guest",
+    logged_in: (authorised && (authorised !== true)) ? 'yes' : 'no',
+    username: undefined,
+    authentication_level: undefined,
     tiddlywiki_version: $tw.version,
     bob_version: $tw.Bob.version,
     read_only: false,

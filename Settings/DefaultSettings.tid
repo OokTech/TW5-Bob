@@ -9,7 +9,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
   "includePluginList": [],
   "excludePluginList": [],
   "autoUnloadWikis": "false",
-  "disableBrowserAlerts": "false",
+  "disableBrowserAlerts": "no",
   "disableFileWatchers": "no",
   "fileURLPrefix": "files",
   "namespacedWikis": "false",
