@@ -1,0 +1,176 @@
+title: $:/plugins/OokTech/Bob/AdminTab
+caption: Admin
+
+\define publicEditState() $:/state/Bob/EditWikiPermissions/public/$(currentTiddler)$
+\define viewersEditState() $:/state/Bob/ViewersWikiPermissions/public/$(currentTiddler)$
+\define editorsEditState() $:/state/Bob/EditorsWikiPermissions/public/$(currentTiddler)$
+
+This tab lets you manage the wikis you own or have access to as well as who can
+see information about you.
+There will be some sort of user profile setup here at some point.
+
+
+!! Blocked People
+
+This will list people who are blocked and can not see anything of yours other
+than public wikis
+
+`Not Implemented Yet`
+
+!! Owned Wikis
+
+These are wikis you own.
+You can set if the wiki is public or not, and which logins can view or edit the
+wiki.
+
+Click on a field to edit it.
+
+<table
+  style='width:100%'
+>
+  <$list
+    filter='[prefix[$:/Bob/OwnedWikis/]]'
+  >
+    <tr>
+      <th
+        colspan=4
+      >
+        <$view
+          field='wiki_name'
+        />
+      </th>
+      <th>
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<publicEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<publicEditState>>
+            setTo=yes
+          >
+            ''Public:''
+            <$view
+              field='public'
+            />
+          </$button>
+        </$reveal>
+        <$reveal
+          type=match
+          text=yes
+          state=<<publicEditState>>
+        >
+          ''Public:''
+          <$radio
+            tiddler=<<currentTiddler>>
+            field=public
+            value=yes
+          >
+            Yes
+          </$radio>
+          <$radio
+            tiddler=<<currentTiddler>>
+            field=public
+            value=no
+          >
+            No
+          </$radio>
+          <$button
+            set=<<publicEditState>>
+            setTo=no
+          >
+            Ok
+          </$button>
+          <$button
+            set=<<publicEditState>>
+            setTo=no
+          >
+            Cancel
+          </$button>
+        </$reveal>
+      </th>
+    </tr>
+    <tr>
+      <th
+        colspan=1
+      >
+        Viewers
+      </th>
+      <td
+        colspan=4
+      >
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<viewersEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<viewersEditState>>
+            setTo="yes"
+          >
+            <$text text={{{ [has[viewers]get[viewers]enlist[]else[No Viewers]] }}}/>
+          </$button>
+        </$reveal>
+        <$reveal
+          type=match
+          text=yes
+          state=<<editorsEditState>>
+        >
+          aaa
+        </$reveal>
+      </td>
+    </tr>
+    <tr
+      style='border-bottom:solid 2px;'
+    >
+      <th
+        colspan=1
+      >
+        Editors
+      </th>
+      <td
+        colspan=4
+      >
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<viewersEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<editorsEditState>>
+            setTo="yes"
+          >
+            <$text text={{{ [has[editors]get[editors]enlist[]else[No Editors]] }}}/>
+          </$button>
+        </$reveal>
+      </td>
+    </tr>
+  </$list>
+</table>
+
+!! Editable Wikis
+
+These are wikis you have edit access to.
+You can remove your own edit access to a wiki, although unless you block the
+person who owns the wiki they will be able to give you the access again.
+
+!! Viewable Wikis
+
+These are wikis you can view because you were granted permission to do so.
+Public wikis aren't listed here.
+You can remove your own view access to a wiki, although unless you block the
+person who owns the wiki they will be able to give you the access again.
+
+
+!! Missing things
+
+At the moment there is one owner for a wiki, but you can not have multiple wiki-
+level administrators.
+So one person manages a wiki for now. Later we will probably have wikis that
+can have multiple admin accounts so they can be shared community wikis easier.

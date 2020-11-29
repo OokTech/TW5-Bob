@@ -169,32 +169,50 @@ function BrowserWSAdaptor(options) {
       // Set available wikis
       fields.title = '$:/state/ViewableWikis';
       fields.list = $tw.utils.stringifyList(data['available_wikis']);
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
+      const editions_out = {}
+      Object.keys(data['available_editions']).map(function(curr, ind) {
+        editions_out[curr] = data['available_editions'][curr]['description'];
+      })
       fields.list = '';
       // Set available editions
       fields.title = '$:/Bob/AvailableEditionList';
-      fields.text = JSON.stringify(data['available_editions'], "", 2);
+      fields.text = JSON.stringify(editions_out, "", 2);
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
       // Set available languages
       fields.title = '$:/Bob/AvailableLanguageList';
-      fields.text = JSON.stringify(data['available_languages'], "", 2);
+      fields.text = $tw.utils.stringifyList(Object.keys(data['available_languages']));
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
+      const plugins_out = {}
+      Object.keys(data['available_plugins']).map(function(curr, ind) {
+        plugins_out[curr] = data['available_plugins'][curr]['description'];
+      })
       // Set available plugins
       fields.title = '$:/Bob/AvailablePluginList';
-      fields.text = $tw.utils.stringifyList(data['available_plugins'], "", 2);
+      fields.text = JSON.stringify(plugins_out, "", 2);
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
+      const themes_out = {}
+      Object.keys(data['available_themes']).map(function(curr, ind) {
+        themes_out[curr] = data['available_themes'][curr]['description'];
+      })
       // Set available themes
       fields.title = '$:/Bob/AvailableThemeList';
-      fields.text = $tw.utils.stringifyList(data['available_themes'], "", 2);
+      fields.text = JSON.stringify(themes_out, "", 2);
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
       // Save settings for the wiki
       fields.title = '$:/WikiSettings';
       fields.text = JSON.stringify(data['settings'], "", 2);
+      fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
       doThisLevel(data['settings'], '$:/WikiSettings/split');
@@ -202,6 +220,27 @@ function BrowserWSAdaptor(options) {
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/status/IsLoggedIn', text:data.logged_in}));
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/status/IsReadOnly', text:data.read_only}));
+
+      if(data.owned_wikis) {
+        // save any info about owned wikis for the currently logged in person
+        Object.keys(data.owned_wikis).forEach(function(wikiName) {
+          const tidFields = {
+            title: "$:/Bob/OwnedWikis/" + wikiName,
+            public: data.owned_wikis[wikiName].public ? 'yes' : 'no',
+            editors: $tw.utils.stringifyList(data.owned_wikis[wikiName].editors),
+            viewers: $tw.utils.stringifyList(data.owned_wikis[wikiName].viewers),
+            fetchers: $tw.utils.stringifyList(data.owned_wikis[wikiName].fetchers),
+            pushers: $tw.utils.stringifyList(data.owned_wikis[wikiName].pushers),
+            guest_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Guest),
+            normal_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Normal),
+            admin_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Admin),
+            wiki_name: wikiName,
+            text: "{{||$:/plugins/OokTech/Bob/Templates/WikiAccessManager}}",
+            tags: "$:/Bob/OwnedWikis"
+          }
+          $tw.wiki.addTiddler(new $tw.Tiddler(tidFields));
+        });
+      }
 
       if(data.username) { // This is only here with the secure server
         $tw.wiki.addTiddler(new $tw.Tiddler({title: '$:/status/UserName', text: data.username}));

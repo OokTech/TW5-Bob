@@ -34,7 +34,7 @@ exports.handler = function(request,response,state) {
     available_plugins: $tw.ServerSide.getViewablePluginsList({decoded: authorised}),
     available_languages: $tw.ServerSide.getViewableLanguagesList({decoded: authorised}),
     available_editions: $tw.ServerSide.getViewableEditionsList({decoded: authorised}),
-    settings: $tw.ServerSide.getViewableSettings()
+    settings: $tw.ServerSide.getViewableSettings({decoded: authorised})
   }
   response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "*"});
   response.end(JSON.stringify(status));

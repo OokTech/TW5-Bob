@@ -1,0 +1,49 @@
+title: $:/plugins/OokTech/Bob/Templates/WikiAccessManager
+
+!!Wiki Access for {{!!wiki_name}}
+
+!! Public
+
+Public wikis can be viewed by anyone even without logging in.
+
+Public: {{!!public}} (needs set public/set private button here)
+
+!! Individual Access
+
+The lists here are individuals that have different permissions on the wiki.
+In the future you will be able to define groups and assign permissions to
+groups as a whole in addition to individuals, but that isn't fully implemented
+yet.
+
+Viewers are people who can view the wiki when they are logged in.
+
+Viewers: {{!!viewers}} (needs a way to edit viewers list)
+
+Editors are people who can edit the wiki when they are logged in
+
+Editors: {{!!editors}} (needs a way to edit viewers list)
+
+Pushers are people who can push tiddlers to a wiki when they are logged in
+
+Pushers: {{!!pushers}} (needs a way to edit viewers list)
+
+Fetchers are people who can fetch tiddlers from a wiki when logged in
+
+Fetchers: {{!!fetchers}} (needs a way to edit viewers list)
+
+!! Authentication Level Access
+
+Authentication level access is access granted to a person based on their login
+level.
+So `Guest` access would apply to anyone with a guest account, `Normal` applies
+to everyone with a normal login and `Admin` shows what permissions admin
+accounts have.
+
+Guest Access: {{!!guest_access}} (needs a way to edit guest access permissions)
+
+Normal Access: {{!!normal_access}} (needs a way to edit normal access permissions)
+
+Admin access is how much access someone logged in with an admin account has.
+This is a server wide setting and can only be changed by an admin.
+
+Admin Access: {{!!admin_access}} (admin access to wikis is a server setting, people can't set this for individual wikis)

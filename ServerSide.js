@@ -844,6 +844,41 @@ ServerSide.getViewableSettings = function(data) {
   return tempSettings;
 }
 
+ServerSide.getOwnedWikis = function(data) {
+  function getList(obj, prefix) {
+    let output = [];
+    let ownedWikis = {};
+    // data.decoded.name
+    Object.keys(obj).forEach(function(item) {
+      if(typeof obj[item] === 'string') {
+        if($tw.ServerSide.existsListed(prefix+item)) {
+          if(item == '__path') {
+            if(prefix.endsWith('/')) {
+              output.push(prefix.slice(0,-1));
+            } else {
+              output.push(prefix);
+            }
+          } else {
+            output.push(prefix+item);
+          }
+        }
+      } else if(typeof obj[item] === 'object' && item !== '__permissions') {
+        output = output.concat(getList(obj[item], prefix + item + '/'));
+      }
+    })
+    return output;
+  }
+  // Get the wiki list of wiki names from the settings object
+  const wikiList = getList($tw.settings.wikis, '');
+  const ownedWikis = {};
+  wikiList.forEach(function(wikiName) {
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'owner')) {
+      ownedWikis[wikiName] = $tw.Bob.AccessCheck(wikiName, {decoded: data.decoded})
+    }
+  });
+  return ownedWikis
+}
+
 ServerSide.findName = function(url) {
   url = url.startsWith('/') ? url.slice(1,url.length) : url;
   const pieces = url.split('/')
