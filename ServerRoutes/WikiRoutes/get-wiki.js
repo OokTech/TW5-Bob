@@ -31,10 +31,16 @@ module.exports = function (fullName) {
         // This does nothing if the wiki is already loaded.
         const exists = $tw.ServerSide.loadWiki(fullName);
         if(exists) {
+          // Check if the external server exists, if so check if there is a
+          // decoded token.
+          // This allows you to only serve the plugin to logged in people if
+          // you have a secure server, so everyone else gets read-only versions
+          // of public wikis.
+          const loggedIn = (!$tw.ExternalServer || request.decoded || ($tw.ExternalServer && $tw.settings.wsserver.servePluginWithoutLogin !== 'no'))
           // If servePlugin is not false than we strip out the filesystem
           // and tiddlyweb plugins if they are there and add in the
           // Bob plugin.
-          const servePlugin = ($tw.settings['ws-server'].servePlugin !== 'no') ? 'yes' : 'no';
+          const servePlugin = (($tw.settings['ws-server'].servePlugin !== 'no') && loggedIn) ? 'yes' : 'no';
           // Get the full text of the html wiki to send as the response.
           text = $tw.ServerSide.prepareWiki(fullName, servePlugin);
         } else {

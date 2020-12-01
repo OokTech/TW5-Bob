@@ -20,6 +20,7 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
+  $tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
   const URL = require("url"),
     path = require("path"),
     http = require("http")

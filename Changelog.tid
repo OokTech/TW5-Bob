@@ -7,6 +7,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Ensure that the settings are always correctly loaded in some edge cases
 * Add `RootWiki` to the list of wikis that can be duplicated in the UI
 * The `disableBrowserAlerts` setting now takes input values `yes` and `no` instead of `true` and `false`
+* Added the option to serve single file wikis without Bob to people who aren't logged in (secure server only)
 
 !! Version 1.6.2r2 Une Vie Typique
 

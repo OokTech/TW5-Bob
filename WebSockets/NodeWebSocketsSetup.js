@@ -24,7 +24,7 @@ exports.synchronous = true;
 
 
 // Make sure that $tw.settings is available.
-$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
+//$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
 
 
 if($tw.node) {

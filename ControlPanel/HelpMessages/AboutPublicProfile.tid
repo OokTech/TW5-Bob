@@ -1,0 +1,13 @@
+title: $:/plugins/OokTech/Bob/AboutPublicProfile
+
+If your profile is public it will be listed and visible to anyone. This
+includes your name, a list of any publicly viewable wikis you have created and
+anything you put in the `About Me` section of your profile.
+
+The three levels are `Public`, where everyone can see your profile,
+`Logged in Only` where only people who are logged into the server can see your
+profile and `Private` where only server administrators can see information
+about you.
+
+Server administrators can limit the options available for profiles, so your
+server may not have all there options.

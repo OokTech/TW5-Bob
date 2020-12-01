@@ -40,9 +40,6 @@ if(!Object.entries) {
 }
 // END POLYFILL
 
-// Make sure that $tw.settings is available.
-const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
-
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
@@ -842,6 +839,26 @@ ServerSide.getViewableSettings = function(data) {
   }
 
   return tempSettings;
+}
+
+ServerSide.getProfileInfo = function(data) {
+  $tw.settings.profiles = $tw.settings.profiles || {};
+  if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
+    return $tw.settings.profiles[data.profileName];
+  } else {
+    return {};
+  }
+}
+
+ServerSide.listProfiles = function(data) {
+  $tw.settings.profiles = $tw.settings.profiles || {};
+  const result = {};
+  Object.keys(settings.profiles).forEach(function(profileName) {
+    if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
+      result[profileName] = $tw.settings.profiles[data.profileName]
+    }
+  })
+  return result;
 }
 
 ServerSide.getOwnedWikis = function(data) {

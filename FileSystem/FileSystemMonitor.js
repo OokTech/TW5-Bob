@@ -22,7 +22,7 @@ exports.platforms = ["node"];
 exports.synchronous = true;
 
 if($tw.node) {
-  $tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
+  //$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
 }
 $tw.settings = $tw.settings || {};
 

@@ -7,6 +7,9 @@ located.
 Everything is optional, if there are any missing pieces default values will be
 used. If the json isn't formatted correctly than default values will be used.
 
+Some options are only available when using the secure server version. They are
+marked in the explanations below.
+
 ## Example settings.json file
 
 ```
@@ -46,6 +49,7 @@ used. If the json isn't formatted correctly than default values will be used.
     "host": "127.0.0.1",
     "autoIncrementPort": "false",
     "servePlugin": "true",
+    "servePluginWithoutLogin": "yes",
     "pathprefix": ""
   },
   "heartbeat": {
@@ -142,6 +146,21 @@ used. If the json isn't formatted correctly than default values will be used.
     "saveOnLoad": "yes",
     "saveOnModified": "yes",
     "maxBackups": 10
+  },
+  "pluginLibrary": {
+    "allPublic": "yes"
+  },
+  "editionLibrary": {
+    "allPublic": "yes"
+  },
+  "themeLibrary": {
+    "allPublic": "yes"
+  },
+  "profileOptions": {
+    "allowPublic": "yes",
+    "allowLoggedIn": "yes",
+    "allowPrivate": "yes",
+    "allPublic": "no"
   }
 }
 ```
@@ -195,9 +214,9 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   Note: If you set this to an empty string it will use the default value of
   `files` unless you set the `acceptance` value described below. This will break
   things and no tech support will be provided.
-- `namespacedWikis` this only has an effect if you are using an external
-  server with a login. If so this prefixes the wiki path with the currently
-  logged in persons name when creating a wiki.
+- `namespacedWikis` (external server only) this only has an effect if you are
+  using an external server with a login. If so this prefixes the wiki path with
+  the currently logged in persons name when creating a wiki.
 - `saveMediaOnServer` if this is set to `yes` any files with a type listed in
   the mime map are uploaded to the server and a `_canonical_uri` tiddler is
   created for the file instead of importing the file directly into the wiki.
@@ -242,6 +261,13 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `servePlugin` is not `false` than any child wiki served will include the
     Bob plugin. So you can serve wikis that don't normally have the plugin and
     edit them as though they did.
+  - `servePluginWithoutLogin` (external server only) if set to `no` and
+    `servePlugin` isn't set to `false` than the Bob plugin will only be served
+    to people who are logged in. So anyone not logged in a single file wiki
+    that doesn't save anything to the server and doesn't update when changes
+    are made to the wiki on the server. If this is set to `no` a person would
+    have to login and then reload the wiki to get the version with the Bob
+    plugin.
 - `heartbeat` settings for the heartbeat that makes sure the browser and server
   are still connected. You can almost certainly ignore these settings.
   - `interval` the heartbeat message is sent every `interval` milliseconds
@@ -338,6 +364,26 @@ in windows replace `/home` with `C:\Users` and change the `/` into `\`.
   - `maxBackups` is the maximum number of backups to keep for any wiki. If
     there are more than this the oldest are removed until there are at most
     this number of backups.
+- `pluginLibrary` (external server only) this holds settings for the plugin
+  library
+  - `allPublic` if this is set to `yes` there are no access checks when someone
+    tries to get a plugin.
+- `editionLibrary` (external server only) this holds settings for the edition
+  library
+  - `allPublic` if this is set to `yes` there are no access checks when someone
+    tries to get an edition.
+- `themeLibrary` (external server only) this holds settings for the theme
+  library
+  - `allPublic` if this is set to `yes` there are no access checks when someone
+    tries to get a theme.
+- `profileOptions` (external server only) this holds settings for what profile
+  options are available on the server
+  - `allowPublic` if this is set to `yes` profiles can be set as public
+  - `allowLoggedIn` if this is set to `yes` profiles can be set as logged in
+    only
+  - `allowPrivate` if this is set to `yes` profiles can be set to private
+  - `allPublic` if this is set to `yes` all profiles are public regardless of
+    other options set.
 - `acceptance` this is a setting for accepting that you will get no help if you
   do something that requires it to be set. These are things that are either
   insecure or have a very good chance of breaking your wiki. You will get no
