@@ -32,7 +32,6 @@ exports.handler = function(request,response,state) {
         newWiki: state.params[0]
 
       };
-      console.log(data)
       $tw.ServerSide.createWiki(data, cb);
       function cb(e) {
         if(e) {
