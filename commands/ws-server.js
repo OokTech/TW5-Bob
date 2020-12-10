@@ -67,10 +67,9 @@ if($tw.node) {
     });
   }
 
-  SimpleServer.prototype.findMatchingRoute = function(request,state) {
+  SimpleServer.prototype.findMatchingRoute = function(request) {
     let pathprefix = this.get("pathprefix") || "";
     pathprefix = pathprefix.startsWith("/") ? pathprefix : "/" + pathprefix;
-    //let pathname = decodeURIComponent(state.urlInfo.pathname);
     let pathname = decodeURIComponent(request.urlInfo.pathname);
     if(!pathname.startsWith(pathprefix)) {
       return null;
@@ -84,12 +83,6 @@ if($tw.node) {
         match = potentialRoute.path.exec(pathname);
       }
       if(match && request.method === potentialRoute.method) {
-        /*
-        state.params = [];
-        for(let p=1; p<match.length; p++) {
-          state.params.push(match[p]);
-        }
-        */
         request.params = [];
         for(let p=1; p<match.length; p++) {
           request.params.push(match[p]);
@@ -126,26 +119,18 @@ if($tw.node) {
     }
     // Compose the state object
     let self = this;
-    /*
-    let state = {};
-    state.wiki = self.wiki;
-    state.server = self;
-    state.urlInfo = URL.parse(request.url);
-    state.settings = $tw.settings;
-    */
     //request.wiki = self.wiki;
     //request.server = self;
     request.urlInfo = URL.parse(request.url);
     request.settings = $tw.settings;
     // Find the route that matches this path
-    const route = self.findMatchingRoute(request,state);
+    const route = self.findMatchingRoute(request);
     // Check for the username and password if we've got one
     const username = self.get("username"),
       password = self.get("password");
     if(username && password) {
       // Check they match
       if(self.checkCredentials(request,username,password) !== "ALLOWED") {
-        //const servername = state.wiki.getTiddlerText("$:/SiteTitle") || "TiddlyWiki5";
         const servername = self.wiki.getTiddlerText("$:/SiteTitle") || "TiddlyWiki5";
         response.writeHead(401,"Authentication required",{
           "WWW-Authenticate": 'Basic realm="Please provide your username and password to login to ' + servername + '"'
@@ -168,7 +153,7 @@ if($tw.node) {
       case "GET": // Intentional fall-through
       case "POST": // Intentional fall-through
       case "DELETE":
-        route.handler(request,response,state);
+        route.handler(request,response);
         break;
       case "PUT":
         let data = "";
@@ -177,7 +162,7 @@ if($tw.node) {
         });
         request.on("end",function() {
           state.data = data;
-          route.handler(request,response,state);
+          route.handler(request,response);
         });
         break;
     }
