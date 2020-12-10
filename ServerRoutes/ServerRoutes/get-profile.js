@@ -18,7 +18,7 @@ const thePath = /^\/api\/profile\/(.+?)\/?$/;
 exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
-  response.end(JSON.stringify({name:"", aboutMe:"", publicStatus:""}));
+  response.end(JSON.stringify({name:"", about:"", visibility:""}));
 }
 
 }());

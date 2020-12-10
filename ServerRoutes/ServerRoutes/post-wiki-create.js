@@ -23,13 +23,13 @@ exports.handler = function(request,response,state) {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const edition = request.headers['x-edition'];
     const duplicate = request.headers['x-duplicate'];
-    const authorised = $tw.Bob.AccessCheck('', token, 'admin');
+    const authorised = $tw.Bob.AccessCheck('', token, 'create/wiki', 'server');
     if(authorised) {
       const data = {
         decoded: authorised,
         edition: edition,
         fromWiki: duplicate,
-        newWiki: state.params[0]
+        newWiki: request.params[0]
 
       };
       $tw.ServerSide.createWiki(data, cb);

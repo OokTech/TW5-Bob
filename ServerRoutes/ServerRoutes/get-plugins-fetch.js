@@ -1,5 +1,5 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/get-fetch-plugin.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-plugins-fetch.js
 type: application/javascript
 module-type: serverroute
 
@@ -16,7 +16,7 @@ Fetch a plugin
 
 exports.method = "GET";
 
-exports.path = /^\/api\/fetch\/plugins\/(.+)\/?$/;
+exports.path = /^\/api\/plugins\/fetch\/(.+)\/?$/;
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
@@ -37,7 +37,7 @@ exports.handler = function(request,response,state) {
       return false
     }
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck("RootWiki", token, 'fetchPlugin');
+    const authorised = $tw.Bob.AccessCheck('', token, 'fetch', 'plugin');
     if(authorised) {
       const plugin = getPlugin(request)
       if(plugin) {

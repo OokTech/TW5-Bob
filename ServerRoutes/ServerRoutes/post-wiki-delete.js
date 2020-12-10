@@ -22,8 +22,9 @@ exports.handler = function(request,response,state) {
   if($tw.settings.API.enableDelete === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const deleteChildren = request.headers['x-delete-children'];
-    const toDelete = state.params[0];
-    const authorised = $tw.Bob.AccessCheck(toDelete, token, 'admin');
+    //const toDelete = state.params[0];
+    const toDelete = request.params[0];
+    const authorised = $tw.Bob.AccessCheck(toDelete, token, 'delete', 'wiki');
     if(authorised) {
       const data = {
         decoded: authorised,

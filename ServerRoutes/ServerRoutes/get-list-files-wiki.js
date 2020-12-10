@@ -20,11 +20,12 @@ exports.path = thePath;
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck(state.params[0], token, 'view');
+    const authorised = $tw.Bob.AccessCheck(request.params[0], token, 'view', 'wiki');
     if(authorised) {
       const data = {
         folder: "",
-        wiki: state.params[0],
+        //wiki: state.params[0],
+        wiki: request.params[0],
         decoded: authorised,
         mediaTypes: ""
       }

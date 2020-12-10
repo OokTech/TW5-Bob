@@ -37,7 +37,7 @@ exports.handler = function(request,response,state) {
     }
     // Make sure that the person has access to the wiki
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck(params.wiki, token, 'view');
+    const authorised = $tw.Bob.AccessCheck(params.wiki, token, 'view', 'wiki');
     if(authorised) {
       let list = [];
       let data = {};

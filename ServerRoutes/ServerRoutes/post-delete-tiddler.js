@@ -21,8 +21,9 @@ exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.enableDelete === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const fromWiki = state.params[0];
-    const authorised = $tw.Bob.AccessCheck(fromWiki, token, 'edit');
+    //const fromWiki = state.params[0];
+    const fromWiki = request.params[0];
+    const authorised = $tw.Bob.AccessCheck(fromWiki, token, 'edit', 'wiki');
     if(authorised) {
       let body = ''
       request.on('data', function(chunk){

@@ -20,7 +20,7 @@ exports.path = thePath;
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck("", token, 'view');
+    const authorised = $tw.Bob.AccessCheck("", token, 'view', 'wiki');
     if(authorised) {
       const data = {
         folder: "",

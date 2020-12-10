@@ -23,7 +23,7 @@ exports.handler = function(request,response,state) {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const fromName = request.headers['x-from-wiki'];
     const toName = request.headers['x-to-wiki'];
-    const authorised = $tw.Bob.AccessCheck(fromName, token, 'admin');
+    const authorised = $tw.Bob.AccessCheck(fromName, token, 'rename', 'wiki');
     if(authorised) {
       const data = {
         decoded: authorised,

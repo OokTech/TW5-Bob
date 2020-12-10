@@ -70,7 +70,8 @@ if($tw.node) {
   SimpleServer.prototype.findMatchingRoute = function(request,state) {
     let pathprefix = this.get("pathprefix") || "";
     pathprefix = pathprefix.startsWith("/") ? pathprefix : "/" + pathprefix;
-    let pathname = decodeURIComponent(state.urlInfo.pathname);
+    //let pathname = decodeURIComponent(state.urlInfo.pathname);
+    let pathname = decodeURIComponent(request.urlInfo.pathname);
     if(!pathname.startsWith(pathprefix)) {
       return null;
     }
@@ -83,9 +84,15 @@ if($tw.node) {
         match = potentialRoute.path.exec(pathname);
       }
       if(match && request.method === potentialRoute.method) {
+        /*
         state.params = [];
         for(let p=1; p<match.length; p++) {
           state.params.push(match[p]);
+        }
+        */
+        request.params = [];
+        for(let p=1; p<match.length; p++) {
+          request.params.push(match[p]);
         }
         return potentialRoute;
       }
@@ -119,10 +126,17 @@ if($tw.node) {
     }
     // Compose the state object
     let self = this;
+    /*
     let state = {};
     state.wiki = self.wiki;
     state.server = self;
     state.urlInfo = URL.parse(request.url);
+    state.settings = $tw.settings;
+    */
+    //request.wiki = self.wiki;
+    //request.server = self;
+    request.urlInfo = URL.parse(request.url);
+    request.settings = $tw.settings;
     // Find the route that matches this path
     const route = self.findMatchingRoute(request,state);
     // Check for the username and password if we've got one
@@ -131,7 +145,8 @@ if($tw.node) {
     if(username && password) {
       // Check they match
       if(self.checkCredentials(request,username,password) !== "ALLOWED") {
-        const servername = state.wiki.getTiddlerText("$:/SiteTitle") || "TiddlyWiki5";
+        //const servername = state.wiki.getTiddlerText("$:/SiteTitle") || "TiddlyWiki5";
+        const servername = self.wiki.getTiddlerText("$:/SiteTitle") || "TiddlyWiki5";
         response.writeHead(401,"Authentication required",{
           "WWW-Authenticate": 'Basic realm="Please provide your username and password to login to ' + servername + '"'
         });
@@ -479,7 +494,7 @@ if($tw.node) {
       the list of wikis and actions that are allowed to it and if the action is
       allowed for the wiki return true, otherwise false.
     */
-    $tw.Bob.AccessCheck = function(wikiName, token, action) {
+    $tw.Bob.AccessCheck = function(fullName, token, action, category) {
       return true;
     }
 

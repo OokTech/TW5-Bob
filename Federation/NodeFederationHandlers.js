@@ -57,7 +57,7 @@ if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
     const wikiList = getList($tw.settings.wikis, '')
     const viewableWikis = []
     wikiList.forEach(function(wikiName) {
-      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+      if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view', 'wiki')) {
         viewableWikis.push(wikiName);
       }
     })

@@ -76,7 +76,7 @@ exports.handler = function(request,response,state) {
     }
     const filePath = decodeURIComponent(urlPieces.slice(urlPieces.indexOf(filePrefix)+offset).join('/'));
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view');
+    const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view', 'wiki');
     if(authorised && ok) {
       const basePath = $tw.ServerSide.getBasePath();
       let pathRoot = path.resolve(basePath,filePathRoot);

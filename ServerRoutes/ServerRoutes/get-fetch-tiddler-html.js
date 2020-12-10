@@ -37,7 +37,7 @@ exports.handler = function(request,response,state) {
 		const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
 		// make sure that the wiki exists
 		const exists = $tw.ServerSide.existsListed(params['wiki']);
-		const authorised = $tw.Bob.AccessCheck(params['wiki'], token, 'view');
+		const authorised = $tw.Bob.AccessCheck(params['wiki'], token, 'view', 'wiki');
 		if(exists && authorised) {
 			const fromWiki = params['wiki']
 			$tw.ServerSide.loadWiki(fromWiki);

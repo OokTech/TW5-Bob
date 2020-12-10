@@ -44,7 +44,7 @@ exports.handler = function(request,response,state) {
       if(params.filter && params.wiki) {
         // Make sure that the person has access to the wiki
         const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-        const authorised = $tw.Bob.AccessCheck(params.wiki, token, 'view');
+        const authorised = $tw.Bob.AccessCheck(params.wiki, token, 'view', 'wiki');
         if(authorised) {
           // Make sure that the wiki is listed
           if($tw.settings.wikis[params.wiki] || params.wiki === 'RootWiki') {
