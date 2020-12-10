@@ -40,9 +40,6 @@ if(!Object.entries) {
 }
 // END POLYFILL
 
-// Make sure that $tw.settings is available.
-const settings = require('$:/plugins/OokTech/NodeSettings/NodeSettings.js')
-
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 
@@ -616,7 +613,7 @@ const buildTree = function(location, parent) {
   We can turn off browser messages
 */
 ServerSide.sendBrowserAlert = function(input) {
-  if($tw.settings.disableBrowserAlerts !== 'true') {
+  if($tw.settings.disableBrowserAlerts !== 'yes') {
     const message = {
       type:'browserAlert',
       alert: input.alert
@@ -683,6 +680,8 @@ ServerSide.getViewableWikiList = function (data) {
   data = data || {};
   function getList(obj, prefix) {
     let output = [];
+    let ownedWikis = {};
+    // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
         if($tw.ServerSide.existsListed(prefix+item)) {
@@ -696,7 +695,7 @@ ServerSide.getViewableWikiList = function (data) {
             output.push(prefix+item);
           }
         }
-      } else if(typeof obj[item] === 'object') {
+      } else if(typeof obj[item] === 'object' && item !== '__permissions') {
         output = output.concat(getList(obj[item], prefix + item + '/'));
       }
     })
@@ -710,6 +709,15 @@ ServerSide.getViewableWikiList = function (data) {
       viewableWikis.push(wikiName);
     }
   });
+  const tempObj = {};
+  for (let i = 0; i < viewableWikis.length; i++) {
+    tempObj[viewableWikis[i]] = ['view']
+    // Check if you can edit it
+    if($tw.Bob.AccessCheck(viewableWikis[i], {"decoded": data.decoded}, 'edit')) {
+      tempObj[viewableWikis[i]].push('edit');
+    }
+    // Check if you are the owner
+  }
   return viewableWikis;
 }
 
@@ -717,6 +725,9 @@ ServerSide.getViewablePluginsList = function (data) {
   data = data || {};
   const viewablePlugins = [];
   const pluginList = $tw.utils.getPluginInfo();
+  if($tw.settings.pluginLibrary.allPublic === 'yes') {
+    return pluginList;
+  }
   Object.keys(pluginList).forEach(function(pluginName) {
     if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
       viewablePlugins.push(pluginName);
@@ -729,6 +740,9 @@ ServerSide.getViewableThemesList = function (data) {
   data = data || {};
   const viewableThemes = [];
   const themeList = $tw.utils.getThemeInfo();
+  if($tw.settings.themeLibrary.allPublic === 'yes') {
+    return themeList;
+  }
   Object.keys(themeList).forEach(function(themeName) {
     if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
       viewableThemes.push(themeName);
@@ -752,6 +766,9 @@ ServerSide.getViewableEditionsList = function (data) {
   data = data || {};
   const viewableEditions = {};
   const editionList =  $tw.utils.getEditionInfo();
+  if($tw.settings.editionLibrary.allPublic === 'yes') {
+    return editionList;
+  }
   Object.keys(editionList).forEach(function(editionName) {
     if($tw.Bob.AccessCheck(editionName, {"decoded": data.decoded}, 'view', 'edition')) {
       Object.keys(editionList).forEach(function(index) {
@@ -777,7 +794,106 @@ ServerSide.getViewableLanguagesList = function (data) {
 }
 
 ServerSide.getViewableSettings = function(data) {
-  return $tw.settings;
+  const tempSettings = {};
+  // section visible to anyone
+  // Nothing that uses websocket stuff here because they only work when logged
+  // in
+  tempSettings.API = $tw.settings.API;
+  // Federation stuff is visible because you don't have to login to want to see
+  // if federation is possible with a server
+  tempSettings.federation = $tw.settings.federation;
+  tempSettings.enableFederation = $tw.settings.enableFederation;
+
+  tempSettings.includePluginList = $tw.settings.includePluginList;
+  tempSettings.excludePluginList = $tw.settings.excludePluginList;
+  // Section visible by logged in people
+  if(data.decoded) {
+    tempSettings.backups = $tw.settings.backups;
+    tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
+    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
+    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
+    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
+    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
+    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.heartbeat = $tw.settings.heartbeat;
+  }
+  // advanced section only visible to admins
+  if((data.decoded && data.decoded.level === 'Admin') || data.decoded === true) {
+    tempSettings.advanced = $tw.settings.advanced;
+    tempSettings['ws-server'] = $tw.settings['ws-server'];
+    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.disableFileWatchers = $tw.settings.disableFileWatchers;
+    tempSettings.filePathRoot = $tw.settings.filePathRoot;
+    tempSettings.editionsPath = $tw.settings.editionsPath;
+    tempSettings.languagesPath = $tw.settings.languagesPath;
+    tempSettings.pluginsPath = $tw.settings.pluginsPath;
+    tempSettings.themesPath = $tw.settings.themesPath;
+    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
+    tempSettings.wikisPath = $tw.settings.wikisPath;
+    tempSettings.scripts = $tw.settings.scripts;
+    tempSettings.serverInfo = $tw.settings.serverInfo;
+    tempSettings.saver = $tw.settings.saver;
+    tempSettings.logger = $tw.settings.logger;
+    tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
+    tempSettings['fed-wss'] = $tw.settings['fed-wss'];
+  }
+
+  return tempSettings;
+}
+
+ServerSide.getProfileInfo = function(data) {
+  $tw.settings.profiles = $tw.settings.profiles || {};
+  if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
+    return $tw.settings.profiles[data.profileName];
+  } else {
+    return {};
+  }
+}
+
+ServerSide.listProfiles = function(data) {
+  $tw.settings.profiles = $tw.settings.profiles || {};
+  const result = {};
+  Object.keys(settings.profiles).forEach(function(profileName) {
+    if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
+      result[profileName] = $tw.settings.profiles[data.profileName]
+    }
+  })
+  return result;
+}
+
+ServerSide.getOwnedWikis = function(data) {
+  function getList(obj, prefix) {
+    let output = [];
+    let ownedWikis = {};
+    // data.decoded.name
+    Object.keys(obj).forEach(function(item) {
+      if(typeof obj[item] === 'string') {
+        if($tw.ServerSide.existsListed(prefix+item)) {
+          if(item == '__path') {
+            if(prefix.endsWith('/')) {
+              output.push(prefix.slice(0,-1));
+            } else {
+              output.push(prefix);
+            }
+          } else {
+            output.push(prefix+item);
+          }
+        }
+      } else if(typeof obj[item] === 'object' && item !== '__permissions') {
+        output = output.concat(getList(obj[item], prefix + item + '/'));
+      }
+    })
+    return output;
+  }
+  // Get the wiki list of wiki names from the settings object
+  const wikiList = getList($tw.settings.wikis, '');
+  const ownedWikis = {};
+  wikiList.forEach(function(wikiName) {
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'owner')) {
+      ownedWikis[wikiName] = $tw.Bob.AccessCheck(wikiName, {decoded: data.decoded})
+    }
+  });
+  return ownedWikis
 }
 
 ServerSide.findName = function(url) {
@@ -1141,18 +1257,26 @@ ServerSide.updateWikiListing = function(data) {
   }
   if(data.update.toLowerCase() === 'true') {
     wikisToAdd.forEach(function (wikiName) {
-      const nameParts = wikiName.split('/');
-      let settingsObj = $tw.settings.wikis;
-      let i;
-      for (i = 0; i < nameParts.length; i++) {
-        if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
-          settingsObj = settingsObj[nameParts[i]];
-        } else if(i < nameParts.length - 1) {
-          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-          settingsObj = settingsObj[nameParts[i]]
-        } else {
-          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-          settingsObj[nameParts[i]].__path = nameParts.join('/');
+      if($tw.ExternalServer) {
+        if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
+          // This adds unlisted wikis as private and without giving them an
+          // owner, so an admin needs to set the owner and stuff.
+          $tw.ExternalServer.initialiseWikiSettings(wikiName);
+        }
+      } else {
+        const nameParts = wikiName.split('/');
+        let settingsObj = $tw.settings.wikis;
+        let i;
+        for (i = 0; i < nameParts.length; i++) {
+          if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
+            settingsObj = settingsObj[nameParts[i]];
+          } else if(i < nameParts.length - 1) {
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+            settingsObj = settingsObj[nameParts[i]]
+          } else {
+            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+            settingsObj[nameParts[i]].__path = nameParts.join('/');
+          }
         }
       }
     })
@@ -1265,7 +1389,7 @@ function GetWikiName (wikiName, count, wikiObj, fullName) {
 }
 
 ServerSide.createWiki = function(data, cb) {
-  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'duplicate');
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'createNewWiki');
   if(authorised) {
     const fs = require("fs"),
       path = require("path");
@@ -1316,7 +1440,7 @@ ServerSide.createWiki = function(data, cb) {
       // folder I need better names here.
       $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
       // This only does something for the secure wiki server
-      if($tw.settings.namespacedWikis === 'true') {
+      if($tw.settings.namespacedWikis === 'yes') {
         data.decoded = data.decoded || {};
         data.decoded.name = data.decoded.name || 'imaginaryPerson';
         name = data.decoded.name + '/' + (data.wikiName || data.newWiki);

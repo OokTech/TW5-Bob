@@ -156,7 +156,6 @@ if($tw.node) {
     - add any configuration interface things
   */
   $tw.nodeMessageHandlers.setLoggedIn = function (data) {
-    //console.log('Set Logged In?')
     $tw.Bob.Shared.sendAck(data);
     // Heartbeat. This can be done if the heartbeat is started or not because
     // if an extra heartbeat pong is heard it just shifts the timing.

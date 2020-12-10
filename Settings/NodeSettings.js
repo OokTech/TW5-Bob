@@ -25,6 +25,53 @@ $tw.settings.wikis = $tw.settings.wikis || {};
 if($tw.node) {
   const fs = require("fs");
   const path = require("path");
+  $tw.CreateSettingsTiddlers = function (data) {
+    data = data || {}
+    data.wiki = data.wiki || 'RootWiki'
+
+    // Create the $:/ServerIP tiddler
+    const message = {
+      type: 'saveTiddler',
+      wiki: data.wiki
+    };
+    message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
+    let wikiInfo = undefined
+    try {
+      // Save the lists of plugins, languages and themes in tiddlywiki.info
+      const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
+      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    } catch(e) {
+      console.log(e)
+    }
+    if(typeof wikiInfo === 'object') {
+      // Get plugin list
+      const fieldsPluginList = {
+        title: '$:/Bob/ActivePluginList',
+        list: $tw.utils.stringifyList(wikiInfo.plugins)
+      }
+      message.tiddler = {fields: fieldsPluginList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+      const fieldsThemesList = {
+        title: '$:/Bob/ActiveThemesList',
+        list: $tw.utils.stringifyList(wikiInfo.themes)
+      }
+      message.tiddler = {fields: fieldsThemesList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+      const fieldsLanguagesList = {
+        title: '$:/Bob/ActiveLanguagesList',
+        list: $tw.utils.stringifyList(wikiInfo.languages)
+      }
+      message.tiddler = {fields: fieldsLanguagesList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+    }
+  }
+}
+
+if($tw.node && !$tw.ExternalServer) {
+  const fs = require("fs");
+  const path = require("path");
   /*
     Only load the settings if you are running node
   */
@@ -122,49 +169,6 @@ if($tw.node) {
         globalSettings[key] = localSettings[key];
       }
     });
-  }
-
-  $tw.CreateSettingsTiddlers = function (data) {
-    data = data || {}
-    data.wiki = data.wiki || 'RootWiki'
-
-    // Create the $:/ServerIP tiddler
-    const message = {
-      type: 'saveTiddler',
-      wiki: data.wiki
-    };
-    message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-
-    let wikiInfo = undefined
-    try {
-      // Save the lists of plugins, languages and themes in tiddlywiki.info
-      const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
-      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
-    } catch(e) {
-      console.log(e)
-    }
-    if(typeof wikiInfo === 'object') {
-      // Get plugin list
-      const fieldsPluginList = {
-        title: '$:/Bob/ActivePluginList',
-        list: $tw.utils.stringifyList(wikiInfo.plugins)
-      }
-      message.tiddler = {fields: fieldsPluginList};
-      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-      const fieldsThemesList = {
-        title: '$:/Bob/ActiveThemesList',
-        list: $tw.utils.stringifyList(wikiInfo.themes)
-      }
-      message.tiddler = {fields: fieldsThemesList};
-      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-      const fieldsLanguagesList = {
-        title: '$:/Bob/ActiveLanguagesList',
-        list: $tw.utils.stringifyList(wikiInfo.languages)
-      }
-      message.tiddler = {fields: fieldsLanguagesList};
-      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
-    }
   }
 
   startup();

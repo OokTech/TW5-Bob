@@ -23,9 +23,9 @@ exports.handler = function(request,response,state) {
 
   // build the status object
   const status = {
-    logged_in: authorised && (authorised !== true),
-    username: "",
-    authentication_level: "Guest",
+    logged_in: (authorised && (authorised !== true)) ? 'yes' : 'no',
+    username: undefined,
+    authentication_level: undefined,
     tiddlywiki_version: $tw.version,
     bob_version: $tw.Bob.version,
     read_only: false,
@@ -34,7 +34,8 @@ exports.handler = function(request,response,state) {
     available_plugins: $tw.ServerSide.getViewablePluginsList({decoded: authorised}),
     available_languages: $tw.ServerSide.getViewableLanguagesList({decoded: authorised}),
     available_editions: $tw.ServerSide.getViewableEditionsList({decoded: authorised}),
-    settings: $tw.ServerSide.getViewableSettings()
+    settings: $tw.ServerSide.getViewableSettings({decoded: authorised}),
+    profile: {}
   }
   response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "*"});
   response.end(JSON.stringify(status));

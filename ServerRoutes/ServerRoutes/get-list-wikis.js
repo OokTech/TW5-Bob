@@ -21,7 +21,6 @@ exports.handler = function(request,response,state) {
   const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
   const authorised = $tw.Bob.AccessCheck("", token, 'view');
   if(authorised) {
-    console.log(1)
     const data = {
       decoded: authorised
     }

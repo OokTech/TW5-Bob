@@ -9,7 +9,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
   "includePluginList": [],
   "excludePluginList": [],
   "autoUnloadWikis": "false",
-  "disableBrowserAlerts": "false",
+  "disableBrowserAlerts": "no",
   "disableFileWatchers": "no",
   "fileURLPrefix": "files",
   "namespacedWikis": "false",
@@ -31,6 +31,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "host": "127.0.0.1",
     "autoIncrementPort": "false",
     "servePlugin": "yes",
+    "servePluginWithoutLogin": "yes",
     "pathprefix": ""
   },
   "heartbeat": {
@@ -129,5 +130,19 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
     "saveOnLoad": "yes",
     "saveOnModified": "yes",
     "maxBackups": 10
+  },
+  "pluginLibrary": {
+    "allPublic": "yes"
+  },
+  "editionLibrary": {
+    "allPublic": "yes"
+  },
+  "themeLibrary": {
+    "allPublic": "yes"
+  },
+  "profileOptions": {
+    "allowPublic": "yes",
+    "allowLoggedIn": "yes",
+    "allowPrivate": "yes"
   }
 }

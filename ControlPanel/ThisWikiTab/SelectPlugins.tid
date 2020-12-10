@@ -26,7 +26,7 @@ Select Plugin Author: <$select
     All
   </option>
   <$list
-    filter='[list[$:/Bob/AvailablePluginList!!text]splitbefore[/]]'
+    filter='[[$:/Bob/AvailablePluginList]indexes[]splitbefore[/]]'
     variable='pluginAuthor'
   >
     <option>
@@ -52,7 +52,7 @@ Search: <$edit-text
   >
     <h2><$text text=<<pluginAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailablePluginList!!text]search{$:/state/Bob/SearchPlugins}prefix<pluginAuthor>]'
+      filter='[[$:/Bob/AvailablePluginList]indexes[]search{$:/state/Bob/SearchPlugins}prefix<pluginAuthor>]'
     >
       <$list
         filter='[list[$:/Bob/ActivePluginList]match<currentTiddler>]'
@@ -107,12 +107,12 @@ Search: <$edit-text
   variable='unused'
 >
   <$list
-    filter='[list[$:/Bob/AvailablePluginList!!text]splitbefore[/]]'
+    filter='[[$:/Bob/AvailablePluginList]indexes[]splitbefore[/]]'
     variable='pluginAuthor'
   >
     <h2><$text text=<<pluginAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailablePluginList!!text]prefix<pluginAuthor>search{$:/state/Bob/SearchPlugins}]'
+      filter='[[$:/Bob/AvailablePluginList]indexes[]prefix<pluginAuthor>search{$:/state/Bob/SearchPlugins}]'
     >
       <$list
         filter='[list[$:/Bob/ActivePluginList]match<currentTiddler>]'

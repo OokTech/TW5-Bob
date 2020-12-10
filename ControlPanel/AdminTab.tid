@@ -1,0 +1,369 @@
+title: $:/plugins/OokTech/Bob/AdminTab
+caption: Admin
+
+\define publicEditState() $:/state/Bob/EditWikiPermissions/public/$(currentTiddler)$
+\define viewersEditState() $:/state/Bob/ViewersWikiPermissions/public/$(currentTiddler)$
+\define editorsEditState() $:/state/Bob/EditorsWikiPermissions/public/$(currentTiddler)$
+
+<style>
+.tableradio {
+  width: 1em;
+}
+
+.tableradio input[type='radio'] {
+  width: 1em;
+}
+
+.edit-about-me {
+  width:100%;
+}
+</style>
+
+This tab lets you manage the wikis you own or have access to as well as who can
+see information about you.
+There will be some sort of user profile setup here at some point.
+
+!! Personal Profile
+
+!!! Name<<helpButton $:/plugins/OokTech/Bob/AboutName>>: {{$:/status/UserName}}
+
+<h3> Public Status<<helpButton $:/plugins/OokTech/Bob/AboutPublicProfile>>:
+<$reveal
+  state="$:/state/Bob/PublicProfileOptionEdit"
+  type=nomatch
+  text=yes
+>
+  {{$:/Bob/Profile/AboutMe!!PublicProfile}}
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Edit Profile Public Status'
+    aria-label='Edit'
+  >
+    {{$:/core/images/edit-button}}
+    <$action-setfield
+      $tiddler="$:/state/Bob/PublicProfileOptionEdit"
+      text='yes'
+    />
+    <$action-setfield
+      $tiddler='$:/temp/Bob/PublicProfileOption'
+      text={{$:/Bob/Profile/AboutMe!!PublicProfile}}
+    />
+  </$button>
+</$reveal>
+<$reveal
+  state="$:/state/Bob/PublicProfileOptionEdit"
+  type=match
+  text=yes
+>
+  <$select
+    tiddler='$:/temp/Bob/PublicProfileOption'
+  >
+    <$list
+      filter=''
+      emptyMessage="<option value=''>--</option>"
+    >
+      <option>
+        <<currentTiddler>>
+      </option>
+    </$list>
+  </$select>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Save'
+    aria-label='Save'
+  >
+    {{$:/core/images/done-button}}
+    <$action-setfield
+      $tiddler="$:/state/Bob/PublicProfileOptionEdit"
+      text='no'
+    />
+    <$action-setfield
+      $tiddler="$:/Bob/Profile/AboutMe!!PublicProfile"
+      text={{$:/temp/Bob/PublicProfileOption}}
+    />
+  </$button>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Cancel'
+    aria-label='Cancel'
+  >
+    {{$:/core/images/cancel-button}}
+    <$action-setfield
+      $tiddler="$:/state/Bob/PublicProfileOptionEdit"
+      text='no'
+    />
+  </$button>
+</$reveal>
+</h3>
+
+<h3> About Me<<helpButton $:/plugins/OokTech/Bob/AboutAboutMe>>
+<$reveal
+  state="$:/state/Bob/AboutMeEdit"
+  type=nomatch
+  text=yes
+>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Edit the About Me info'
+    aria-label='Edit'
+  >
+    {{$:/core/images/edit-button}}
+    <$action-setfield
+      $tiddler='$:/state/Bob/AboutMeEdit'
+      text='yes'
+    />
+    <$action-setfield
+      $tiddler='$:/temp/Bob/AboutMe'
+      text={{$:/Bob/Profile/AboutMe}}
+    />
+  </$button>
+</$reveal>
+<$reveal
+  state="$:/state/Bob/AboutMeEdit"
+  type=match
+  text=yes
+>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Save changes'
+    aria-label='Save'
+  >
+    {{$:/core/images/done-button}}
+    <$action-setfield
+      $tiddler='$:/Bob/Profile/AboutMe'
+      text={{$:/temp/Bob/AboutMe}}
+    />
+    <$action-setfield
+      $tiddler="$:/state/Bob/AboutMeEdit"
+      text=no
+    />
+  </$button>
+  <$button
+    class='tc-btn-invisible'
+    tooltip='Discard changes'
+    aria-label='Discard'
+  >
+    {{$:/core/images/cancel-button}}
+    <$action-setfield
+      $tiddler="$:/state/Bob/AboutMeEdit"
+      text=no
+    />
+  </$button>
+</$reveal>
+</h3>
+
+<$reveal
+  state="$:/state/Bob/AboutMeEdit"
+  type=nomatch
+  text=yes
+>
+  <$list
+    filter='[[$:/Bob/Profile/AboutMe]has[text]get[text]]'
+    emptyMessage='//No Information Given//'
+  >
+    {{$:/Bob/Profile/AboutMe}}
+  </$list>
+</$reveal>
+<$reveal
+  state="$:/state/Bob/AboutMeEdit"
+  type=match
+  text=yes
+>
+  <br>
+  <$edit-text
+    tiddler='$:/temp/Bob/AboutMe'
+    class='edit-about-me'
+  />
+</$reveal>
+
+!! Blocked People
+
+This will list people who are blocked and can not see anything of yours other
+than public wikis.
+Blocked people will not be able to add you as viewers or editors of their
+wikis or, when federation is implemented, send or receive messages from you.
+
+`Not Implemented Yet`
+
+!! Owned Wikis
+
+These are wikis you own.
+You can set if the wiki is public or not, and which logins can view or edit the
+wiki.
+
+Click on a field to edit it.
+
+<table
+  style='width:100%'
+>
+  <$list
+    filter='[prefix[$:/Bob/OwnedWikis/]]'
+  >
+    <tr>
+      <th
+        style='text-align:right'
+      >
+        <$view
+          field='wiki_name'
+        />
+      </th>
+      <th
+        style='width:80%;'
+      >
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<publicEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<publicEditState>>
+            setTo=yes
+          >
+            ''Public:''
+            <$view
+              field='public'
+            />
+          </$button>
+        </$reveal>
+        <$reveal
+          type=match
+          text=yes
+          state=<<publicEditState>>
+        >
+          ''Public:''
+          <$radio
+            tiddler=<<currentTiddler>>
+            field=public
+            value=yes
+            class='tableradio'
+          >
+            Yes
+          </$radio>
+          <$radio
+            tiddler=<<currentTiddler>>
+            field=public
+            value=no
+            class='tableradio'
+          >
+            No
+          </$radio>
+          <$button
+            set=<<publicEditState>>
+            setTo=no
+          >
+            Ok
+          </$button>
+          <$button
+            set=<<publicEditState>>
+            setTo=no
+          >
+            Cancel
+          </$button>
+        </$reveal>
+      </th>
+    </tr>
+    <tr>
+      <th
+        style='text-align:right'
+      >
+        Viewers
+      </th>
+      <td
+        style='text-align:left;width:100%'
+      >
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<viewersEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<viewersEditState>>
+            setTo=yes
+          >
+            <$text text={{{ [has[viewers]get[viewers]enlist[]else[No Viewers]] }}}/>
+          </$button>
+        </$reveal>
+        <$reveal
+          type=match
+          text=yes
+          state=<<viewersEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<viewersEditState>>
+            setTo=no
+          >
+            __something here__
+          </$button>
+        </$reveal>
+      </td>
+    </tr>
+    <tr
+      style='border-bottom:solid 2px;'
+    >
+      <th
+        style='text-align:right'
+      >
+        Editors
+      </th>
+      <td
+        style='text-align:left'
+      >
+        <$reveal
+          type=nomatch
+          text=yes
+          state=<<editorsEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<editorsEditState>>
+            setTo="yes"
+          >
+            <$text text={{{ [has[editors]get[editors]enlist[]else[No Editors]] }}}/>
+          </$button>
+        </$reveal>
+        <$reveal
+          type=match
+          text=yes
+          state=<<editorsEditState>>
+        >
+          <$button
+            style='width:100%;height:100%;'
+            class='tc-btn-invisible'
+            set=<<editorsEditState>>
+            setTo="no"
+          >
+            __something here__
+          </$button>
+        </$reveal>
+      </td>
+    </tr>
+  </$list>
+</table>
+
+!! Editable Wikis
+
+These are wikis you have edit access to.
+You can remove your own edit access to a wiki, although unless you block the
+person who owns the wiki they will be able to give you the access again.
+
+!! Viewable Wikis
+
+These are wikis you can view because you were granted permission to do so.
+Public wikis aren't listed here.
+You can remove your own view access to a wiki, although unless you block the
+person who owns the wiki they will be able to give you the access again.
+
+
+!! Missing things
+
+At the moment there is one owner for a wiki, but you can not have multiple wiki-
+level administrators.
+So one person manages a wiki for now. Later we will probably have wikis that
+can have multiple admin accounts so they can be shared community wikis easier.

@@ -18,6 +18,15 @@ Click the ^^(?)^^ next to options for more information.
 * [[File Server|$:/plugins/OokTech/Bob/FileServerSetup]] - setup file server so that you can access local media files
 * [[Server Settings|$:/plugins/OokTech/Bob/ServerTab]] - logging and manual settings
 <!--* [[Federation|$:/plugins/OokTech/Bob/FederationTab]] - federated chat and set up wiki syncing between this server and other Bob servers-->
+<$reveal
+  type=match
+  state="$:/status/IsLoggedIn"
+  text=yes
+  tag=""
+>
+
+* [[Personal Admin|$:/plugins/OokTech/Bob/AdminTab]] - Manage your personal profile and settings for other peoples access to your wikis.
+</$reveal>
 * [[Written Documentation|$:/plugins/OokTech/Bob/Documentation/Bob Documentation]] - more details
 * [[About OokTech/Support Development|$:/plugins/OokTech/Bob/OokTechInfo]] - About the people who make Bob
 

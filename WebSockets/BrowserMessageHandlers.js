@@ -249,7 +249,7 @@ it will overwrite this file.
     The pong response also echos back whatever was sent along with the ping.
   */
   $tw.browserMessageHandlers.ping = function (data) {
-    const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
+    const token = $tw.Bob.Shared.getMessageToken();
     let message = {};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];

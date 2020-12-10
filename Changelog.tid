@@ -1,5 +1,14 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.6.3 Can of soup
+
+* clean up some code problems
+* add framework for limiting access to settings and plugins based on login status (secure server only)
+* Ensure that the settings are always correctly loaded in some edge cases
+* Add `RootWiki` to the list of wikis that can be duplicated in the UI
+* The `disableBrowserAlerts` setting now takes input values `yes` and `no` instead of `true` and `false`
+* Added the option to serve single file wikis without Bob to people who aren't logged in (secure server only)
+
 !! Version 1.6.2r2 Une Vie Typique
 
 * Fixed a regression that would prevent websocket connections if the wiki had a space in its name.

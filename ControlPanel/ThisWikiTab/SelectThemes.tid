@@ -26,7 +26,7 @@ Select Theme Author: <$select
     All
   </option>
   <$list
-    filter='[list[$:/Bob/AvailableThemeList!!text]splitbefore[/]]'
+    filter='[[$:/Bob/AvailableThemeList]indexes[]splitbefore[/]]'
     variable='themeAuthor'
   >
     <option>
@@ -52,7 +52,7 @@ Search: <$edit-text
   >
     <h2><$text text=<<themeAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailableThemeList!!text]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
+      filter='[[$:/Bob/AvailableThemeList]indexes[]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
     >
       <$list
         filter='[list[$:/Bob/ActiveThemeList]match<currentTiddler>]'
@@ -107,12 +107,12 @@ Search: <$edit-text
   variable='unused'
 >
   <$list
-    filter='[list[$:/Bob/AvailableThemeList!!text]splitbefore[/]]'
+    filter='[[$:/Bob/AvailableThemeList]indexes[]splitbefore[/]]'
     variable='themeAuthor'
   >
     <h2><$text text=<<themeAuthor>>></$text></h2>
     <$list
-      filter='[list[$:/Bob/AvailableThemeList!!text]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
+      filter='[[$:/Bob/AvailableThemeList]indexes[]search{$:/state/Bob/SearchThemes}prefix<themeAuthor>]'
     >
       <$list
         filter='[list[$:/Bob/ActiveThemeList]match<currentTiddler>]'

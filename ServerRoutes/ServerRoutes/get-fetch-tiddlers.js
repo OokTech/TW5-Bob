@@ -26,7 +26,6 @@ exports.method = "GET";
 exports.path = /^\/api\/fetch\/tiddlers\/?$/;
 
 exports.handler = function(request,response,state) {
-  console.log('here')
   if($tw.settings.API.enableFetch === 'yes') {
     const URL = require('url')
     const parsed = URL.parse(request.url);

@@ -21,6 +21,11 @@ exports.after = ["load-modules"];
 exports.platforms = ["node"];
 exports.synchronous = true;
 
+if($tw.node) {
+  //$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
+}
+$tw.settings = $tw.settings || {};
+
 if($tw.node && $tw.settings.disableFileWatchers !== 'yes') {
   // require the fs module if we are running node
   const fs = require("fs");
