@@ -56,7 +56,7 @@ exports.handler = function(request,response,state) {
 				}
 				let text = $tw.Bob.Wikis[wikiName].wiki.renderTiddler(renderType,renderTemplate,{parseAsInline: true, variables: {currentTiddler: params['tiddler']}});
 				// Naughty not to set a content-type, but it's the easiest way to ensure the browser will see HTML pages as HTML, and accept plain text tiddlers as CSS or JS
-				response.writeHead(200);
+				response.writeHead(200, {"Content-Type": "text/html"});
 				response.end(text,"utf8");
 			} else {
 				response.writeHead(404);

@@ -23,7 +23,7 @@ exports.handler = function(request,response,state) {
   if($tw.settings.API.pluginLibrary === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const pluginList = $tw.ServerSide.getViewablePluginsList({decoded: token})
-    response.writeHead(200, {"Access-Control-Allow-Origin": "*"})
+    response.writeHead(200, {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"})
     response.end(JSON.stringify(pluginList))
   } else {
     response.writeHead(403).end()

@@ -76,6 +76,7 @@ exports.handler = function(request,response,state) {
       }
       // Send the info
       data = JSON.stringify(data) || '{"list":[],"info":{}}';
+      response.writeHead(200, {"Content-Type": "application/json"})
       response.end(data);
     }
   } else {
