@@ -1,11 +1,11 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/get-list-files-path.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-files-list.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/list\/files\/path\/<<prefix>>/
+GET /^\/api\/files\/list\/?$/
 
-Returns the list of globally avilable files in a non-default path
+Returns the list of globally available files
 
 \*/
 (function() {
@@ -14,19 +14,16 @@ Returns the list of globally avilable files in a non-default path
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/list\/files\/path\/(.+?)\/?$/;
+const thePath = /^\/api\/files\/list\/?$/;
 exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
-    const path = require('path');
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const authorised = $tw.Bob.AccessCheck("", token, 'view', 'wiki');
     if(authorised) {
-      $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files'
       const data = {
-        //folder:  path.join($tw.settings.fileURLPrefix,state.params[0]),
-        folder:  path.join($tw.settings.fileURLPrefix,request.params[0]),
+        folder: "",
         wiki: "",
         decoded: authorised,
         mediaTypes: ""
@@ -45,8 +42,6 @@ exports.handler = function(request,response,state) {
         response.writeHead(200, {"Content-Type": 'application/json'});
         response.end(text,"utf8");
       }
-    } else {
-      response.writeHead(404).end();
     }
   }
 }

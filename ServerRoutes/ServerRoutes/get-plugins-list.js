@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/get-plugins-list.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/list\/plugins\/?$/
+GET /^\/api\/plugins\/list\/?$/
 
 fetch a list of available plugins
 

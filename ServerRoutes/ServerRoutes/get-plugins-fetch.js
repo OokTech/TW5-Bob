@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/get-plugins-fetch.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/fetch\/plugins\/.+$/
+GET /^\/api\/plugins\/fetch\/<<author>>/<<plugin>>\/?$/
 
 Fetch a plugin
 

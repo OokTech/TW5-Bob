@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/post-push.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/post-tiddlers-push.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/push\/:wikiname\/?$/
+POST /^\/api\/tiddlers\/push\/:wikiname\/?$/
 
 Push tiddlers to the wiki :wikiname on the server
 
@@ -16,7 +16,7 @@ Push tiddlers to the wiki :wikiname on the server
 
 exports.method = "POST";
 
-exports.path = /^\/api\/push\/(.+?)\/?$/;
+exports.path = /^\/api\/tiddlers\/push\/(.+?)\/?$/;
 
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
@@ -38,21 +38,15 @@ exports.handler = function(request,response,state) {
       request.on('end', function() {
         try {
           const bodyData = JSON.parse(body)
-          //if($tw.ServerSide.existsListed(state.params[0])) {
           if($tw.ServerSide.existsListed(request.params[0])) {
-            //$tw.ServerSide.loadWiki(state.params[0]);
             $tw.ServerSide.loadWiki(request.params[0]);
             // Make sure that the wiki exists and is loaded
-            //if($tw.Bob.Wikis[state.params[0]]) {
             if($tw.Bob.Wikis[request.params[0]]) {
-              //if($tw.Bob.Wikis[state.params[0]].State === 'loaded') {
               if($tw.Bob.Wikis[request.params[0]].State === 'loaded') {
-                //if(bodyData.tiddlers && state.params[0]) {
                 if(bodyData.tiddlers && request.params[0]) {
                   Object.keys(bodyData.tiddlers).forEach(function(title) {
                     bodyData.tiddlers[title].fields.modified = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
                     bodyData.tiddlers[title].fields.created = $tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
-                    //$tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], state.params[0]);
                     $tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], request.params[0]);
                   });
                   response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "*"}).end('{"status": "ok"}')

@@ -3,16 +3,15 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/get-fetch-tiddler.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/fetch\/?$/
+GET /^\/api\/tiddlers\/fetch\/<<wikiname>>\/?$/
 
 fetch tiddlers
 
-parameters: wiki, filter, tiddler
+parameters: filter
 
-examples:
+example:
 
-localhost:8080/api/fetch/tiddlers?wiki=someWiki&filter=[tag[foo]]
-localhost:8080/api/fetch/tiddlers?wiki=someWiki&tiddler=tidName
+localhost:8080/api/tiddlers/fetch/someWiki&filter=[tag[foo]]
 
 \*/
 (function() {
@@ -23,7 +22,7 @@ localhost:8080/api/fetch/tiddlers?wiki=someWiki&tiddler=tidName
 
 exports.method = "GET";
 
-exports.path = /^\/api\/fetch\/tiddlers\/?$/;
+exports.path = /^\/api\/tiddlers\/fetch\/(.+?)\/?$/;
 
 exports.handler = function(request,response,state) {
   if($tw.settings.API.enableFetch === 'yes') {

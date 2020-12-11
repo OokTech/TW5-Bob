@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/post-delete-tiddler.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/delete\/tiddler\/?$/
+POST /^\/api\/tiddlers\/delete\/<<wikiname>>\/?$/
 
 Delete a tiddler from a wiki
 
@@ -14,14 +14,13 @@ Delete a tiddler from a wiki
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/delete\/tiddler\/(.+?)\/?$/;
+const thePath = /^\/api\/tiddlers\/delete\/(.+?)\/?$/;
 exports.method = "POST";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.enableDelete === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    //const fromWiki = state.params[0];
     const fromWiki = request.params[0];
     const authorised = $tw.Bob.AccessCheck(fromWiki, token, 'edit', 'wiki');
     if(authorised) {

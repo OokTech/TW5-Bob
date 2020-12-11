@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/get-list-wikis.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-wikis-list.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/list\/wikis\/?$/
+GET /^\/api\/wikis\/list\/?$/
 
 Returns the list of available wikis
 
@@ -14,7 +14,7 @@ Returns the list of available wikis
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/list\/wikis\/?$/;
+const thePath = /^\/api\/wikis\/list\/?$/;
 exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {

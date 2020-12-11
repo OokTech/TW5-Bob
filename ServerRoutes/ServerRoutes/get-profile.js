@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/get-status.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/status\/?$/
+GET /^\/api\/profile\/<<profilename>>\/?$/
 
 Returns server status information
 
