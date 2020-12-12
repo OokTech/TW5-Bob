@@ -26,6 +26,7 @@ exports.path = /^\/api\/tiddlers\/fetch\/(.+?)\/?$/;
 
 exports.handler = function(request,response,state) {
   if($tw.settings.API.enableFetch === 'yes') {
+    const wikiName = request.params[0];
     const URL = require('url')
     const parsed = URL.parse(request.url);
     const params = {};
@@ -34,29 +35,29 @@ exports.handler = function(request,response,state) {
     }
     parsed.query.split('&').forEach(function(item) {
       const parts = item.split('=');
-      params[parts[0]] = parts[1];
+      params[parts[0]] = decodeURIComponent(parts[1]);
     })
     let list = []
     let data = {}
     response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
     try {
-      if(params.filter && params.wiki) {
+      if(params.filter && wikiName) {
         // Make sure that the person has access to the wiki
         const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-        const authorised = $tw.Bob.AccessCheck(params.wiki, token, 'view', 'wiki');
+        const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view', 'wiki');
         if(authorised) {
           // Make sure that the wiki is listed
-          if($tw.settings.wikis[params.wiki] || params.wiki === 'RootWiki') {
+          if($tw.settings.wikis[wikiName] || wikiName === 'RootWiki') {
             // If the wiki isn't loaded than load it
-            if(!$tw.Bob.Wikis[params.wiki]) {
-              $tw.ServerSide.loadWiki(params.wiki);
-            } else if($tw.Bob.Wikis[params.wiki].State !== 'loaded') {
-              $tw.ServerSide.loadWiki(params.wiki);
+            if(!$tw.Bob.Wikis[wikiName]) {
+              $tw.ServerSide.loadWiki(wikiName);
+            } else if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+              $tw.ServerSide.loadWiki(wikiName);
             }
             // Make sure that the wiki exists and is loaded
-            if($tw.Bob.Wikis[params.wiki]) {
-              if($tw.Bob.Wikis[params.wiki].State === 'loaded') {
-                list = $tw.Bob.Wikis[params.wiki].wiki.filterTiddlers(params.filter);
+            if($tw.Bob.Wikis[wikiName]) {
+              if($tw.Bob.Wikis[wikiName].State === 'loaded') {
+                list = $tw.Bob.Wikis[wikiName].wiki.filterTiddlers(params.filter);
               }
             }
           }
@@ -64,7 +65,7 @@ exports.handler = function(request,response,state) {
         let tiddlers = {};
         let info = {};
         list.forEach(function(title) {
-          const tempTid = $tw.Bob.Wikis[params.wiki].wiki.getTiddler(title);
+          const tempTid = $tw.Bob.Wikis[wikiName].wiki.getTiddler(title);
           tiddlers[title] = tempTid;
           info[title] = {};
           if(params.fields) {

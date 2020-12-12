@@ -1005,9 +1005,13 @@ ServerSide.listFiles = function(data, cb) {
           '.wav': 'audio/wav'
         };
         const extList = data.mediaTypes || false;
+        let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+        prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+        prefix = prefix.endsWith('/') ? prefix : prefix + '/';
         fs.readdir(resolvedPath, function(err, items) {
           if(err || !items) {
             $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
+            cb(prefix, [], urlPath);
           } else {
             // filter the list to only include listed mimetypes.
             let filteredItems = items.filter(function(item) {
@@ -1023,9 +1027,6 @@ ServerSide.listFiles = function(data, cb) {
               })
             }
             // Reply with the list
-            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
-            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
-            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
             $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
             cb(prefix, filteredItems, urlPath);
           }

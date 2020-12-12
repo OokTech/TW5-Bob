@@ -31,10 +31,14 @@ exports.handler = function(request,response,state) {
     if(typeof parsed.query !== 'string') {
       response.writeHead(403).end();
     }
-    parsed.query.split('&').forEach(function(item) {
-      const parts = item.split('=');
-      params[parts[0]] = parts[1];
-    })
+		if(parsed.query) {
+	    parsed.query.split('&').forEach(function(item) {
+				console.log(item)
+	      const parts = item.split('=');
+	      params[parts[0]] = decodeURIComponent(parts[1]);
+	    })
+		}
+		console.log(params)
 		const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
 		// make sure that the wiki exists
 		const exists = $tw.ServerSide.existsListed(wikiName);

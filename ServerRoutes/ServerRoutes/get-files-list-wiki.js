@@ -24,7 +24,6 @@ exports.handler = function(request,response,state) {
     if(authorised) {
       const data = {
         folder: "",
-        //wiki: state.params[0],
         wiki: request.params[0],
         decoded: authorised,
         mediaTypes: ""
