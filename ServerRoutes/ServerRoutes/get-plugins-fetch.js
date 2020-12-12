@@ -25,14 +25,11 @@ exports.handler = function(request,response,state) {
     const fs = require('fs');
     const getPlugin = function (request) {
       const urlParts = request.url.split('/')
-      if(typeof $tw.settings.pluginsPath === 'string') {
-        const basePath = $tw.ServerSide.getBasePath();
-        const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath)
-        const pluginPath = path.resolve(pluginsPath, urlParts[urlParts.length-2], urlParts[urlParts.length-1])
-        if(fs.statSync(pluginPath).isDirectory()) {
-          const pluginFields = $tw.loadPluginFolder(pluginPath)
-          return pluginFields
-        }
+      const pluginPaths = $tw.getLibraryItemSearchPaths($tw.config.pluginsPath,$tw.config.pluginsEnvVar);
+      const pluginPath = $tw.findLibraryItem(urlParts[urlParts.length-2]+'/'+urlParts[urlParts.length-1],pluginPaths)
+      if(pluginPath && fs.statSync(pluginPath, {throwIfNoEntry: false}).isDirectory()) {
+        const pluginFields = $tw.loadPluginFolder(pluginPath)
+        return pluginFields
       }
       return false
     }

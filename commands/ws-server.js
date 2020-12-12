@@ -181,20 +181,25 @@ if($tw.node) {
           self.listen(Number(port)+1, host);
         }
       } else {
-        $tw.Bob.logger.error(e, {level:0});
+        //$tw.Bob.logger.error(e, {level:0});
+        console.log(e);
       }
     });
     httpServer.listen(port,host, function (e) {
       if(!e) {
         $tw.httpServerPort = port;
-        $tw.Bob.logger.log("Serving on " + host + ":" + $tw.httpServerPort, {level:0});
-        $tw.Bob.logger.log("(press ctrl-C to exit)", {level:0});
+        //$tw.Bob.logger.log("Serving on " + host + ":" + $tw.httpServerPort, {level:0});
+        console.log("Serving on " + host + ":" + $tw.httpServerPort)
+        //$tw.Bob.logger.log("(press ctrl-C to exit)", {level:0});
+        console.log("(press ctrl-C to exit)")
         $tw.settings['ws-server'].port = $tw.httpServerPort;
       } else {
         if($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
-          $tw.Bob.logger.log('Port ', port, ' in use, trying ', port+1, {level:1});
+          //$tw.Bob.logger.log('Port ', port, ' in use, trying ', port+1, {level:1});
+          console.log('Port ', port, ' in use, trying ', port+1);
         } else {
-          $tw.Bob.logger.error(e, {level:0});
+          //$tw.Bob.logger.error(e, {level:0});
+          console.log(e);
         }
       }
     });
@@ -310,7 +315,8 @@ if($tw.node) {
               $tw.httpServer.addRoute(routeDefinition(fullName));
             }
           });
-          $tw.Bob.logger.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')), {level:1})
+          //$tw.Bob.logger.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')), {level:1})
+          console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
         } else {
           // recurse!
           // This needs to be a new variable or else the rest of the wikis at
@@ -359,10 +365,12 @@ if($tw.node) {
             // Make sure that the path exists, if so save the wiki file
             fs.writeFile(path.resolve(filepath),body,{encoding: "utf8"},function (err) {
               if(err) {
-                $tw.Bob.logger.error(err, {level:1});
+                //$tw.Bob.logger.error(err, {level:1});
+                console.log(err)
                 responseData.error = err;
               } else {
-                $tw.Bob.logger.log('saved file', filepath, {level:2});
+                //$tw.Bob.logger.log('saved file', filepath, {level:2});
+                console.log('saved file', filepath)
                 responseData.ok = 'yes';
               }
               response.end(JSON.stringify(responseData));
@@ -379,10 +387,12 @@ if($tw.node) {
     saverServer.on('error', function (e) {
       if($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
         if(e.code === 'EADDRINUSE') {
-          $tw.Bob.logger.error('Port conflict with the saver server, do you have Bob running already?', e,{level:0})
+          //$tw.Bob.logger.error('Port conflict with the saver server, do you have Bob running already?', e,{level:0})
+          console.log('Port conflict with the saver server, do you have Bob running already?')
         }
       } else {
-        $tw.Bob.logger.error(e, {level:0});
+        //$tw.Bob.logger.error(e, {level:0});
+        console.log(e)
       }
     });
     saverServer.listen(port, host, function(err) {
@@ -466,7 +476,8 @@ if($tw.node) {
 
     const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
     $tw.Bob.version = bobVersion;
-    $tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level:0})
+    //$tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level:0})
+    console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
 
     /*
       This function checks to see if the current action is allowed with the access
