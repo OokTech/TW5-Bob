@@ -7,7 +7,7 @@ get /^\/api\/tiddlers\/fetch\/list\/<<wikiName>>\/?$/
 
 fetch a list of tiddlers returned by a filter
 
-params: ?wiki=wikiName&filter=<<someFilter>>&fields=tags
+params: ?filter=<<someFilter>>
 
 \*/
 (function() {

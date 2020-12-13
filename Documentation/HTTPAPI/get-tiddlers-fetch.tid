@@ -1,0 +1,36 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-fetch-tiddlers
+tags: [[HTTP API]]
+verb: GET
+route: /api/tiddlers/fetch/:wikiname
+response: Tiddlers in JSON format
+parameters: `filter` `tiddler`
+description: fetch tiddlers from the server
+
+Return a set of tiddlers using a filter, from the named wiki.
+
+
+Parameters:
+
+* `filter` the filter to evaluate in the wiki to select tiddlers to fetch
+* `fields` a space separated list of field names that get included in the `info` part of the returned data
+
+the returned json object has the form:
+
+```
+{
+  list: ["title1", "title2"],
+  tiddlers: {
+    title1: {\* tiddler fields *\},
+    title2: {\* tiddler fields *\}
+  },
+  info: {
+    title1: {\* fields listed in the fields paramater *\},
+    title2: {\* fields listed in the fields paramater *\}
+  }
+}
+```
+
+Examples:
+
+* `/api/fetch?wiki=someWiki&filter=[tag[foo]]`
+* `/api/fetch?wiki=someWiki&filter=[tag[foo]]&fields=foo bar`

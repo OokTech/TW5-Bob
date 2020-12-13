@@ -1,18 +1,18 @@
 title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-list-files
 tags: [[HTTP API]]
 verb: GET
-route: /api/list/files /api/list/files/path/:prefix /api/list/files/wiki/:wikiname
-response: JSON object with a list of globally available files
+route: /api/files/list /api/files/list/path/:prefix /api/files/list/wiki/:wikiname
+response: JSON object with a list of available files
 parameters:
 description: get a list of available files on the server
 
-Using the `/api/list/files/` path the list of files returned is from the folder
+Using the `/api/files/list/` path the list of files returned is from the folder
 listed as the `filePathRoot`.
 
-Using the `/api/list/files/path/:prefix` path returns the list of files served
+Using the `/api/files/list/path/:prefix` path returns the list of files served
 using the prefix `:prefix`.
 
-Using the `/api/list/files/wiki/:wikiname` path returns the files specific to
+Using the `/api/files/list/wiki/:wikiname` path returns the files specific to
 the wiki `:wikiname`. These files are in the `files` folder next to the
 `tiddlers` folder for the wiki.
 
@@ -32,6 +32,6 @@ appended to the front of the file name, like `/files/file1.png`.
 
 Example:
 
-* `/api/list/files`
-* `/api/list/files/path/foo`
-* `/api/list/files/wiki/someWiki`
+* `/api/files/list`
+* `/api/files/list/path/foo`
+* `/api/files/list/wiki/someWiki`

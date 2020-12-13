@@ -1,7 +1,7 @@
 title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-push
 tags: [[HTTP API]]
 verb: POST
-route: /api/push/:wikiname
+route: /api/tiddlers/push/:wikiname
 response:
 parameters:
 description: push tiddlers to a wiki

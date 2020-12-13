@@ -1,7 +1,7 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-list-plugins
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-plugins-list
 tags: [[HTTP API]]
 verb: GET
-route: /api/list/plugins
+route: /api/plugins/list
 response: An array of JSON objects that contain information about the available plugins
 parameters:
 description: get a list of available plugins
@@ -32,4 +32,4 @@ The retuned object is in the form:
 
 Example:
 
-* `/api/list/plugins`
+* `/api/plugins/list`
