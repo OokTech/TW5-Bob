@@ -254,7 +254,7 @@ if($tw.node) {
           transformFilters = JSON.parse(transformFilters);
         }
         Object.keys(externalData).forEach(function(wikiTitle) {
-          const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view');
+          const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view', 'wiki');
           if(allowed) {
             const exists = $tw.ServerSide.loadWiki(wikiTitle);
             if(exists) {
@@ -387,7 +387,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     if(data.wiki) {
       const downloadWiki = data.forWiki || data.wiki;
-      const allowed = $tw.Bob.AccessCheck(downloadWiki, {"decoded":data.decoded}, 'view');
+      const allowed = $tw.Bob.AccessCheck(downloadWiki, {"decoded":data.decoded}, 'view', 'wiki');
       if(allowed) {
         const path = require('path');
         const fs = require('fs');
@@ -423,7 +423,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.internalFetch = function(data) {
     $tw.Bob.Shared.sendAck(data);
     // Make sure that the person has access to the wiki
-    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'view');
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'view', 'wiki');
     if(authorised) {
       let externalTiddlers = {};
       if(data.externalTiddlers) {
@@ -524,7 +524,7 @@ if($tw.node) {
     const fs = require('fs');
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
-    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicateWiki');
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate', 'wiki');
     if($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
       const wikiName = GetWikiName(data.newWiki);
       // Get the paths for the source and destination

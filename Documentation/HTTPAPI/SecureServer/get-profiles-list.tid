@@ -1,0 +1,10 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-profiles-list
+tags: [[HTTP API]] [[Secure Server]]
+verb: GET
+route: /api/profiles/list
+response: A JSON object that contains information for all of the profiles that the logged in account has view access for
+parameters:
+description: Get information about all visible the profiles on the server
+
+This lists all the public profiles and any profiles the logged in account has
+view access to.

@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/post-create-wiki.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/post-wiki-create.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/create\/wiki\/:wikiname\/?$/
+POST /^\/api\/wiki\/create\/:wikiname\/?$/
 
 Create a new wiki
 
@@ -14,22 +14,31 @@ Create a new wiki
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/create\/wiki\/(.+?)\/?$/;
+const thePath = /^\/api\/wiki\/create\/(.+?)\/?$/;
 exports.method = "POST";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.enableCreate === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const edition = request.headers['x-edition'];
-    const duplicate = request.headers['x-duplicate'];
-    const authorised = $tw.Bob.AccessCheck('', token, 'admin');
+    const URL = require('url')
+    const parsed = URL.parse(request.url);
+    const params = {};
+    if(parsed.query) {
+      parsed.query.split('&').forEach(function(item) {
+        const parts = item.split('=');
+        params[parts[0]] = decodeURIComponent(parts[1]);
+      })
+    }
+    const edition = params['edition'];
+    const duplicate = params['duplicate'];
+    const authorised = $tw.Bob.AccessCheck('', token, 'create/wiki', 'server');
     if(authorised) {
       const data = {
         decoded: authorised,
         edition: edition,
         fromWiki: duplicate,
-        newWiki: state.params[0]
+        newWiki: request.params[0]
 
       };
       $tw.ServerSide.createWiki(data, cb);

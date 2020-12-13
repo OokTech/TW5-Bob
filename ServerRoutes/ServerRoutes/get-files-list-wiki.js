@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/get-list-files-wiki.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/get-files-list-wiki.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/list\/files\/wiki\/<<wikiname>>/
+GET /^\/api\/files\/list\/wiki\/<<wikiname>>/
 
 Returns the list of media files specific to <<wikiname>>
 
@@ -14,17 +14,17 @@ Returns the list of media files specific to <<wikiname>>
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/list\/files\/wiki\/(.+?)\/?$/;
+const thePath = /^\/api\/files\/list\/wiki\/(.+?)\/?$/;
 exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const authorised = $tw.Bob.AccessCheck(state.params[0], token, 'view');
+    const authorised = $tw.Bob.AccessCheck(request.params[0], token, 'view', 'wiki');
     if(authorised) {
       const data = {
         folder: "",
-        wiki: state.params[0],
+        wiki: request.params[0],
         decoded: authorised,
         mediaTypes: ""
       }

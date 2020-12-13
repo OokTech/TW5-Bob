@@ -66,7 +66,7 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
     } else {
       try {
         update[attribute] = JSON.parse(name);
-      } catch {
+      } catch (e) {
         update[attribute] = name;
       }
     }

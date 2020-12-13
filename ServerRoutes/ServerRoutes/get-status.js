@@ -19,7 +19,7 @@ exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-  const authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view');
+  const authorised = $tw.Bob.AccessCheck('RootWiki', token, 'view', 'wiki');
 
   // build the status object
   const status = {

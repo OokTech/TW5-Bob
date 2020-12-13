@@ -1,9 +1,9 @@
 /*\
-title: $:/plugins/OokTech/Bob/ServerRoutes/post-delete-wiki.js
+title: $:/plugins/OokTech/Bob/ServerRoutes/post-wiki-delete.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/delete\/wiki\/<<wikiName>>\/?/
+POST /^\/api\/wiki\/delete\/<<wikiName>>\/?/
 
 Delete a wiki
 
@@ -14,16 +14,25 @@ Delete a wiki
 /*global $tw: false */
 "use strict";
 
-const thePath = /^\/api\/delete\/wiki\/(.+?)\/?$/;
+const thePath = /^\/api\/wiki\/delete\/(.+?)\/?$/;
 exports.method = "POST";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
   $tw.settings.API = $tw.settings.API || {};
   if($tw.settings.API.enableDelete === 'yes') {
+    const URL = require('url')
+    const parsed = URL.parse(request.url);
+    const params = {};
+    if(parsed.query) {
+      parsed.query.split('&').forEach(function(item) {
+        const parts = item.split('=');
+        params[parts[0]] = decodeURIComponent(parts[1]);
+      })
+    }
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-    const deleteChildren = request.headers['x-delete-children'];
-    const toDelete = state.params[0];
-    const authorised = $tw.Bob.AccessCheck(toDelete, token, 'admin');
+    const deleteChildren = params['deletechildren'];
+    const toDelete = request.params[0];
+    const authorised = $tw.Bob.AccessCheck(toDelete, token, 'delete', 'wiki');
     if(authorised) {
       const data = {
         decoded: authorised,

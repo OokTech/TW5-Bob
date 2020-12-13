@@ -878,7 +878,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.makeImagesExternal = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'admin');
+    const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'makeImagesExternal', 'server');
     if(authorised) {
       $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files'
       const path = require('path');

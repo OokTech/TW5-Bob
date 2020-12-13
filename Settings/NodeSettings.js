@@ -17,7 +17,6 @@ exports.name = "node-settings";
 exports.platforms = ["node"];
 exports.after = ["load-modules"];
 exports.synchronous = true;
-
 // Initialise the $tw.settings object
 $tw.settings = $tw.settings || {};
 $tw.settings.wikis = $tw.settings.wikis || {};

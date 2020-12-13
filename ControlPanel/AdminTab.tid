@@ -33,7 +33,7 @@ There will be some sort of user profile setup here at some point.
   type=nomatch
   text=yes
 >
-  {{$:/Bob/Profile/AboutMe!!PublicProfile}}
+  {{$:/Bob/Profile/About!!PublicProfile}}
   <$button
     class='tc-btn-invisible'
     tooltip='Edit Profile Public Status'
@@ -46,7 +46,7 @@ There will be some sort of user profile setup here at some point.
     />
     <$action-setfield
       $tiddler='$:/temp/Bob/PublicProfileOption'
-      text={{$:/Bob/Profile/AboutMe!!PublicProfile}}
+      text={{$:/Bob/Profile/About!!PublicProfile}}
     />
   </$button>
 </$reveal>
@@ -78,7 +78,7 @@ There will be some sort of user profile setup here at some point.
       text='no'
     />
     <$action-setfield
-      $tiddler="$:/Bob/Profile/AboutMe!!PublicProfile"
+      $tiddler="$:/Bob/Profile/About!!PublicProfile"
       text={{$:/temp/Bob/PublicProfileOption}}
     />
   </$button>
@@ -114,7 +114,7 @@ There will be some sort of user profile setup here at some point.
     />
     <$action-setfield
       $tiddler='$:/temp/Bob/AboutMe'
-      text={{$:/Bob/Profile/AboutMe}}
+      text={{$:/Bob/Profile/About}}
     />
   </$button>
 </$reveal>
@@ -130,7 +130,7 @@ There will be some sort of user profile setup here at some point.
   >
     {{$:/core/images/done-button}}
     <$action-setfield
-      $tiddler='$:/Bob/Profile/AboutMe'
+      $tiddler='$:/Bob/Profile/About'
       text={{$:/temp/Bob/AboutMe}}
     />
     <$action-setfield
@@ -158,7 +158,7 @@ There will be some sort of user profile setup here at some point.
   text=yes
 >
   <$list
-    filter='[[$:/Bob/Profile/AboutMe]has[text]get[text]]'
+    filter='[[$:/Bob/Profile/About]has[text]get[text]]'
     emptyMessage='//No Information Given//'
   >
     {{$:/Bob/Profile/AboutMe}}

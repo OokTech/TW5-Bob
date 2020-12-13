@@ -1,0 +1,15 @@
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-profiles-set-name
+tags: [[HTTP API]] [[Secure Server]]
+verb: POST
+route: /api/profiles/set/:name
+response: HTTP status 200 on success, otherwise 403
+parameters: about visibility
+description: Set information for the profile :name
+
+You must be logged in with the profile in order to set the information for it.
+
+!! POST parameters:
+
+`about` is a string that can give information about the profile to other people
+on the server.
+`visibility` sets the visibility of the profile.

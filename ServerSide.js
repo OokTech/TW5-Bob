@@ -32,12 +32,6 @@ if(!Object.values) {
     return reduce(keys(O), (v, k) => concat(v, typeof k === 'string' && isEnumerable(O, k) ? [O[k]] : []), []);
   };
 }
-
-if(!Object.entries) {
-  Object.entries = function entries(O) {
-    return reduce(keys(O), (e, k) => concat(e, typeof k === 'string' && isEnumerable(O, k) ? [[k, O[k]]] : []), []);
-  };
-}
 // END POLYFILL
 
 $tw.Bob = $tw.Bob || {};
@@ -705,7 +699,7 @@ ServerSide.getViewableWikiList = function (data) {
   const wikiList = getList($tw.settings.wikis, '');
   const viewableWikis = [];
   wikiList.forEach(function(wikiName) {
-    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view')) {
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view', 'wiki')) {
       viewableWikis.push(wikiName);
     }
   });
@@ -713,7 +707,7 @@ ServerSide.getViewableWikiList = function (data) {
   for (let i = 0; i < viewableWikis.length; i++) {
     tempObj[viewableWikis[i]] = ['view']
     // Check if you can edit it
-    if($tw.Bob.AccessCheck(viewableWikis[i], {"decoded": data.decoded}, 'edit')) {
+    if($tw.Bob.AccessCheck(viewableWikis[i], {"decoded": data.decoded}, 'edit', 'wiki')) {
       tempObj[viewableWikis[i]].push('edit');
     }
     // Check if you are the owner
@@ -730,7 +724,7 @@ ServerSide.getViewablePluginsList = function (data) {
   }
   Object.keys(pluginList).forEach(function(pluginName) {
     if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
-      viewablePlugins.push(pluginName);
+      viewablePlugins[pluginName] = pluginList[pluginName];
     }
   })
   return viewablePlugins;
@@ -745,7 +739,7 @@ ServerSide.getViewableThemesList = function (data) {
   }
   Object.keys(themeList).forEach(function(themeName) {
     if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
-      viewableThemes.push(themeName);
+      viewableThemes[themeName] = themeList[themeName];
     }
   })
   return viewableThemes;
@@ -885,12 +879,12 @@ ServerSide.getOwnedWikis = function(data) {
     })
     return output;
   }
-  // Get the wiki list of wiki names from the settings object
+  // Get the list of wiki names from the settings object
   const wikiList = getList($tw.settings.wikis, '');
-  const ownedWikis = {};
+  const ownedWikis = [];
   wikiList.forEach(function(wikiName) {
-    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'owner')) {
-      ownedWikis[wikiName] = $tw.Bob.AccessCheck(wikiName, {decoded: data.decoded})
+    if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'owner', 'wiki')) {
+      ownedWikis.push(wikiName);
     }
   });
   return ownedWikis
@@ -926,7 +920,7 @@ ServerSide.findName = function(url) {
 ServerSide.listFiles = function(data, cb) {
   const path = require('path');
   const fs = require('fs');
-  const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
+  const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'listFiles', 'wiki');
 
   if(authorised) {
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
@@ -1011,9 +1005,13 @@ ServerSide.listFiles = function(data, cb) {
           '.wav': 'audio/wav'
         };
         const extList = data.mediaTypes || false;
+        let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
+        prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
+        prefix = prefix.endsWith('/') ? prefix : prefix + '/';
         fs.readdir(resolvedPath, function(err, items) {
           if(err || !items) {
             $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
+            cb(prefix, [], urlPath);
           } else {
             // filter the list to only include listed mimetypes.
             let filteredItems = items.filter(function(item) {
@@ -1029,9 +1027,6 @@ ServerSide.listFiles = function(data, cb) {
               })
             }
             // Reply with the list
-            let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
-            prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
-            prefix = prefix.endsWith('/') ? prefix : prefix + '/';
             $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
             cb(prefix, filteredItems, urlPath);
           }
@@ -1109,7 +1104,7 @@ function deleteFile(dir, file) {
 ServerSide.deleteWiki = function(data, cb) {
   const path = require('path')
   const fs = require('fs')
-  const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete');
+  const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete', 'wiki');
   // Make sure that the wiki exists and is listed
   if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
     $tw.stopFileWatchers(data.deleteWiki)
@@ -1312,7 +1307,7 @@ $tw.stopFileWatchers = function(wikiName) {
 ServerSide.renameWiki = function(data, cb) {
   const path = require('path')
   const fs = require('fs')
-  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate');
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
   if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
     // Unload the old wiki
     $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
@@ -1389,7 +1384,7 @@ function GetWikiName (wikiName, count, wikiObj, fullName) {
 }
 
 ServerSide.createWiki = function(data, cb) {
-  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'createNewWiki');
+  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded": data.decoded}, 'create/wiki', 'server');
   if(authorised) {
     const fs = require("fs"),
       path = require("path");

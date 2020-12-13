@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/get-status.js
 type: application/javascript
 module-type: serverroute
 
-GET /^\/api\/status\/?$/
+GET /^\/api\/profile\/<<profilename>>\/?$/
 
 Returns server status information
 
@@ -18,7 +18,8 @@ const thePath = /^\/api\/profile\/(.+?)\/?$/;
 exports.method = "GET";
 exports.path = thePath;
 exports.handler = function(request,response,state) {
-  response.end(JSON.stringify({name:"", aboutMe:"", publicStatus:""}));
+  response.writeHead(200, {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"})
+  response.end(JSON.stringify({name:"", about:"", visibility:""}));
 }
 
 }());

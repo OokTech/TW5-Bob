@@ -34,6 +34,10 @@ if($tw.node) {
     this.wiki = options.wiki;
   }
 
+  $tw.hooks.addHook("th-make-tiddler-path", function(unused, originalPath) {
+    return originalPath;
+  })
+
   MultiWikiAdaptor.prototype.name = "MultiWikiAdaptor";
 
   MultiWikiAdaptor.prototype.isReady = function() {
@@ -99,6 +103,7 @@ if($tw.node) {
         $tw.Bob.Wikis[prefix].tiddlers.push(title);
       }
     }
+    console.log(fileInfo)
     callback(null,fileInfo);
   };
 

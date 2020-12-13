@@ -24,7 +24,7 @@ module.exports = function (fullName) {
     path: thePath,
     handler: function(request,response,state) {
       const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
-      const authorised = $tw.Bob.AccessCheck(fullName, token, 'view');
+      const authorised = $tw.Bob.AccessCheck(fullName, token, 'view', 'wiki');
       let text;
       if(authorised) {
         // Make sure we have loaded the wiki tiddlers.
@@ -47,7 +47,8 @@ module.exports = function (fullName) {
           text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
         }
 
-        response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+        //response.writeHead(200, {"Content-Type": state.server.get("serveType")});
+        response.writeHead(200, {"Content-Type": request.settings['ws-server'].serveType || "text/html"});
         response.end(text,"utf8");
       }
     }
