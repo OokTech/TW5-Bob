@@ -34,7 +34,7 @@ if($tw.node) {
     this.wiki = options.wiki;
   }
 
-  $tw.hooks.addHook("th-make-tiddler-path", function(unused, originalPath) {
+  $tw.hooks.addHook("th-make-tiddler-path", function(thePath, originalPath) {
     return originalPath;
   })
 
@@ -103,7 +103,6 @@ if($tw.node) {
         $tw.Bob.Wikis[prefix].tiddlers.push(title);
       }
     }
-    console.log(fileInfo)
     callback(null,fileInfo);
   };
 

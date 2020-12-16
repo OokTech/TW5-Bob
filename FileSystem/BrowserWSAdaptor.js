@@ -214,6 +214,7 @@ function BrowserWSAdaptor(options) {
       fields.text = JSON.stringify(data['settings'], "", 2);
       fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+      $tw.settings = data['settings']
 
       doThisLevel(data['settings'], '$:/WikiSettings/split');
 
@@ -231,9 +232,9 @@ function BrowserWSAdaptor(options) {
             viewers: $tw.utils.stringifyList(data.owned_wikis[wikiName].viewers),
             fetchers: $tw.utils.stringifyList(data.owned_wikis[wikiName].fetchers),
             pushers: $tw.utils.stringifyList(data.owned_wikis[wikiName].pushers),
-            guest_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Guest),
-            normal_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Normal),
-            admin_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access.Admin),
+            guest_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access ? data.owned_wikis[wikiName].access.Guest : ''),
+            normal_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access ? data.owned_wikis[wikiName].access.Normal : ''),
+            admin_access: $tw.utils.stringifyList(data.owned_wikis[wikiName].access ? data.owned_wikis[wikiName].access.Admin : ''),
             wiki_name: wikiName,
             text: "{{||$:/plugins/OokTech/Bob/Templates/WikiAccessManager}}",
             tags: "$:/Bob/OwnedWikis"
