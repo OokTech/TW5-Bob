@@ -831,6 +831,9 @@ ServerSide.getViewableSettings = function(data) {
     tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
     tempSettings['fed-wss'] = $tw.settings['fed-wss'];
   }
+  tempSettings.advanced = tempSettings.avanced || {};
+  tempSettings['ws-server'] = tempSettings['ws-server'] || {};
+  tempSettings['fed-wss'] = tempSettings['fed-wss'] || {};
 
   return tempSettings;
 }
