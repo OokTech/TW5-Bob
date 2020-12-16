@@ -489,6 +489,11 @@ it will overwrite this file.
 		$tw.Bob.getSettings();
 	}
 
+	$tw.browserMessageHandlers.profileList = function(data) {
+		$tw.Bob.Shared.sendAck(data);
+		console.log(data)
+	}
+
   /*
     For some messages we need an ack from the server to make sure that they
     were received correctly. This removes the messages from the queue after

@@ -1211,5 +1211,20 @@ if($tw.node) {
       $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki});
     }
   }
+
+  /*
+    List visible profiles
+  */
+  $tw.nodeMessageHandlers.listProfiles = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    // Access is controlled by the listProfile function, it checks each profile
+    // to see if the logged in person can view it.
+    const profiles = request.wiki.tw.ServerSide.listProfiles(data);
+    const message = {
+      type: "profileList",
+      profiles: profiles
+    }
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+  }
 }
 })();
