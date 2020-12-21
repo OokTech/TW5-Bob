@@ -1,7 +1,7 @@
 title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/delete-tiddler
 tags: [[HTTP API]]
 verb: POST
-route: /api/delete/tiddler/:wikiname
+route: /api/tiddlers/delete/:wikiname
 description: Delete one or more tiddlers from a wiki
 
 This is POST instead of DELETE because in general nothing but the url should

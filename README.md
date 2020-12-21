@@ -61,7 +61,7 @@ instructions:
 Clone the tiddlywiki repo and get the plugin (Only do this the first time to
 install everything):
 ```
-git clone --depth=1 --branch v5.1.21 https://github.com/Jermolene/TiddlyWiki5.git
+git clone --depth=1 --branch v5.1.22 https://github.com/Jermolene/TiddlyWiki5.git
 git clone --depth=1 https://github.com/OokTech/TW5-Bob.git TiddlyWiki5/plugins/OokTech/Bob
 mkdir TiddlyWiki5/Wikis
 cp -r TiddlyWiki5/plugins/OokTech/Bob/MultiUserWiki TiddlyWiki5/Wikis/BobWiki/
@@ -132,10 +132,10 @@ In a terminal type these commands:
 ```
 cd TiddlyWiki5
 git fetch --all --tags --prune
-git checkout tags/v5.1.21
+git checkout tags/v5.1.22
 ```
 
-To use future or previous versions you would change the `5.1.21` in the last
+To use future or previous versions you would change the `5.1.22` in the last
 command to match the version number you want to use.
 
 ### Notes

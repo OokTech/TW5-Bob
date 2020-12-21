@@ -831,6 +831,9 @@ ServerSide.getViewableSettings = function(data) {
     tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
     tempSettings['fed-wss'] = $tw.settings['fed-wss'];
   }
+  tempSettings.advanced = tempSettings.avanced || {};
+  tempSettings['ws-server'] = tempSettings['ws-server'] || {};
+  tempSettings['fed-wss'] = tempSettings['fed-wss'] || {};
 
   return tempSettings;
 }
@@ -847,7 +850,7 @@ ServerSide.getProfileInfo = function(data) {
 ServerSide.listProfiles = function(data) {
   $tw.settings.profiles = $tw.settings.profiles || {};
   const result = {};
-  Object.keys(settings.profiles).forEach(function(profileName) {
+  Object.keys($tw.settings.profiles).forEach(function(profileName) {
     if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
       result[profileName] = $tw.settings.profiles[data.profileName]
     }

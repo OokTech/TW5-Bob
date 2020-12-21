@@ -484,9 +484,20 @@ it will overwrite this file.
     }
   }
 
+	/*
+		The server tells the browser to check if there are new settings
+	*/
 	$tw.browserMessageHandlers.updateSettings = function(data) {
 		$tw.Bob.Shared.sendAck(data);
 		$tw.Bob.getSettings();
+	}
+
+	/*
+		Receive a list of visible profiles from the server
+	*/
+	$tw.browserMessageHandlers.profileList = function(data) {
+		$tw.Bob.Shared.sendAck(data);
+		console.log(data)
 	}
 
   /*
