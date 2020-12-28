@@ -861,7 +861,6 @@ ServerSide.listProfiles = function(data) {
 ServerSide.getOwnedWikis = function(data) {
   function getList(obj, prefix) {
     let output = [];
-    let ownedWikis = [];
     // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
@@ -882,15 +881,22 @@ ServerSide.getOwnedWikis = function(data) {
     })
     return output;
   }
+  function wikiInfo(wikiName) {
+    let thisObj = $tw.settings.wikis;
+    wikiName.split('/').forEach(function(part) {
+      thisObj = thisObj[part];
+    })
+    return thisObj.__permissions;
+  }
   // Get the list of wiki names from the settings object
   const wikiList = getList($tw.settings.wikis, '');
-  const ownedWikis = [];
+  const ownedWikis = {};
   wikiList.forEach(function(wikiName) {
     if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'owner', 'wiki')) {
-      ownedWikis.push(wikiName);
+      ownedWikis[wikiName] = wikiInfo(wikiName);
     }
   });
-  return ownedWikis
+  return ownedWikis;
 }
 
 ServerSide.findName = function(url) {
