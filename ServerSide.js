@@ -861,7 +861,7 @@ ServerSide.listProfiles = function(data) {
 ServerSide.getOwnedWikis = function(data) {
   function getList(obj, prefix) {
     let output = [];
-    let ownedWikis = {};
+    let ownedWikis = [];
     // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
