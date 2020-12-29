@@ -145,7 +145,7 @@ tags: $:/tags/Macro
 />
 \end
 
-\define foldingTree(source:'[list[$:/state/ViewableWikis]]' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
+\define foldingTree(source:'[list[$:/state/ViewableWikis]] -RootWiki' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
 <$vars
   InputList=<<__source__>>
   Sep=<<__sep__>>

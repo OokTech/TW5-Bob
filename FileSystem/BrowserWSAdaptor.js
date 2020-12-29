@@ -164,11 +164,22 @@ function BrowserWSAdaptor(options) {
       }
 
       const fields = {};
-      fields.type = 'application/json';
 
+      const viewableWikiList = Object.keys(data['available_wikis']).filter(function(wikiName) {
+        return data['available_wikis'][wikiName].indexOf('view') > -1
+      })
+      const editableWikiList = Object.keys(data['available_wikis']).filter(function(wikiName) {
+        return data['available_wikis'][wikiName].indexOf('view') > -1
+      })
       // Set available wikis
       fields.title = '$:/state/ViewableWikis';
-      fields.list = $tw.utils.stringifyList(data['available_wikis']);
+      fields.list = $tw.utils.stringifyList(viewableWikiList);
+      fields.type = 'application/json';
+      $tw.wiki.addTiddler(new $tw.Tiddler(fields));
+
+      // Set available wikis
+      fields.title = '$:/state/EditableWikis';
+      fields.list = $tw.utils.stringifyList(editableWikiList);
       fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
@@ -227,7 +238,7 @@ function BrowserWSAdaptor(options) {
         Object.keys(data.owned_wikis).forEach(function(wikiName) {
           const tidFields = {
             title: "$:/Bob/OwnedWikis/" + wikiName,
-            public: data.owned_wikis[wikiName].public ? 'yes' : 'no',
+            visibility: data.owned_wikis[wikiName].visibility,
             editors: $tw.utils.stringifyList(data.owned_wikis[wikiName].editors),
             viewers: $tw.utils.stringifyList(data.owned_wikis[wikiName].viewers),
             fetchers: $tw.utils.stringifyList(data.owned_wikis[wikiName].fetchers),
