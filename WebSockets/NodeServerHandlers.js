@@ -676,6 +676,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.savePluginFolder = function(data) {
     $tw.Bob.Shared.sendAck(data);
+    debugger;
     if(data.plugin) {
       const fs = require('fs')
       const path = require('path')
@@ -721,16 +722,22 @@ if($tw.node) {
         }
         if(isNewVersion) {
           // Save the plugin tiddlers
+          var prefix = data.wiki;
           Object.keys(JSON.parse(pluginTiddler.fields.text).tiddlers).forEach(function(title) {
-            const content = $tw.Bob.Wikis[data.wiki].wiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
-            const fileExtension = '.tid'
-            const filepath = path.join(pluginFolderPath, $tw.syncadaptor.generateTiddlerBaseFilepath(title, data.wiki) + fileExtension);
+            const tiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(title);
+            const fileInfo = $tw.syncadaptor.generateCustomFileInfo(title, 
+              {
+                prefix: prefix, 
+                directory: pluginFolderPath,
+                pathFilters: ["[prefix["+data.plugin+"]removeprefix["+data.plugin+"]]"],
+                extFilters: []
+              });
             // If we aren't passed a path
-            fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
+            $tw.utils.saveTiddlerToFile(tiddler, fileInfo, function (err) {
               if(err) {
                 $tw.Bob.logger.error(err, {level:1});
               } else {
-                $tw.Bob.logger.log('saved file', filepath, {level:2})
+                $tw.Bob.logger.log('saved file', fileInfo.filepath, {level:2})
               }
             });
           })

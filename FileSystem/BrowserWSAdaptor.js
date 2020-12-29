@@ -185,7 +185,7 @@ function BrowserWSAdaptor(options) {
 
       // Set available languages
       fields.title = '$:/Bob/AvailableLanguageList';
-      fields.text = $tw.utils.stringifyList(Object.keys(data['available_languages']));
+      fields.text = JSON.stringify(Object.keys(data['available_languages']));
       fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 
@@ -540,7 +540,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
       callback(null, null)
     }
   }
-  if(!this.shouldSync(tiddler.fields.title) || !tiddler) {
+  if(!tiddler || !this.shouldSync(tiddler.fields.title)) {
     callback(null, null);
   } else {
     let tempTid = {fields:{}};

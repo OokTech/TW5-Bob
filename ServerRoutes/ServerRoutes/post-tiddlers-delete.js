@@ -37,9 +37,9 @@ exports.handler = function(request,response,state) {
         try {
           const titleArray = JSON.parse(body).tiddlers;
           for(let i = 0; i < titleArray.length - 1; i++) {
-            $tw.syncadaptor.deleteTiddler(titleArray[i], function(){} , {wiki: fromWiki});
+            $tw.syncadaptor.deleteTiddler(titleArray[i], {wiki: fromWiki}, function(){});
           }
-          $tw.syncadaptor.deleteTiddler(titleArray[titleArray.length-1], cb, {wiki: fromWiki});
+          $tw.syncadaptor.deleteTiddler(titleArray[titleArray.length-1], {wiki: fromWiki}, cb);
           function cb(e) {
             response.writeHead(200, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "*"});
             response.end("{status:'ok'}");

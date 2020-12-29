@@ -81,7 +81,7 @@ ServerSide.generateWikiPath = function(wikiName) {
 }
 
 /*
-  Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
+  Given a wiki name this gets the wiki path of one is listed, if the wiki isn't
   listed this returns undefined.
   This can be used to determine if a wiki is listed or not.
 */

@@ -14,11 +14,11 @@ saved by the wiki.
 So anything you change in a tiddler returned by that filter is not saved
 between wiki refreshes and isn't sent to the server.
 
-This is the same filter used by the server to determine if a tiddler should be
+This is the same filter used by the server to determine if a tiddler should not be
 sent to the browser.
 
 The default filter is:
 
 ```
-[has[draft.of]][prefix[$:/state/]][prefix[$:/temp/]][[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][[$:/plugins/OokTech/Bob/Server Warning]]
+[prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/WikiSettings]][[$:/StoryList]][[$:/HistoryList]][[$:/status/UserName]][[$:/Import]][[$:/plugins/OokTech/Bob/Server Warning]]
 ```

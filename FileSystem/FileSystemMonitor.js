@@ -87,21 +87,23 @@ exports.startup = function() {
                     return false;
                   }
                 })[0];
+                debugger;
                 if(['.tid', '.meta'].indexOf(fileExtension) !== -1) {
                   let tiddlerObject = {tiddlers:[{}]}
                   // This try block catches an annoying race condition problem
                   // when the filesystem adaptor deletes a file the file watcher
                   // starts acting before the deleting is completely finished.
-                  // This means that it sees the file as still existing and tries // to open it, but it is deleted so there is an error.
+                  // This means that it sees the file as still existing and tries 
+                  // to open it, but it is deleted so there is an error.
                   try {
                     // Load tiddler data from the file
                     tiddlerObject = $tw.loadTiddlersFromFile(itemPath);
                   } catch (e) {
                     if(e.code !== 'ENOENT') {
-                      $tw.Bob.logger.error(e, {level: 3})
+                      $tw.Bob.logger.error(e, {level: 3});
                     }
                     // If we reach here the file doesn't exist for other reasons and we don't need to do anything
-                    return
+                    return;
                   }
                   // Make sure that it at least has a title
                   if(tiddlerObject.tiddlers[0]['title']) {
@@ -109,8 +111,10 @@ exports.startup = function() {
                     // should be. If not rename the file to match the rules set by
                     // the wiki.
                     // This is the title based on the current .tid file
-                    let newTitle = $tw.syncadaptor.generateTiddlerBaseFilepath(tiddlerObject.tiddlers[0].title, prefix);
-                    const existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddlerObject.tiddlers[0].title);
+                    let title = tiddlerObject.tiddlers[0]['title'],
+                    fileInfo = $tw.syncadaptor.generateCustomFileInfo(title, {prefix: prefix, directory: folder}),
+                    newTitle = path.dirname(fileInfo.filepath);
+                    const existingTiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(title);
                     // Load the tiddler from the wiki, check if they are different (non-existent is changed)
                     if($tw.Bob.Shared.TiddlerHasChanged(existingTiddler, {fields: tiddlerObject.tiddlers[0]})) {
                       // Rename the file

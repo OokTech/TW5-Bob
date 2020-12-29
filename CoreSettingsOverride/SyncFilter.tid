@@ -1,3 +1,3 @@
 title: $:/config/SyncFilter
 
-[is[tiddler]] -[[$:/HistoryList]] -[[$:/Import]] -[[$:/isEncrypted]] -[prefix[$:/status/]] -[prefix[$:/state/]] -[prefix[$:/temp/]] -[prefix[$:/Bob/]] -[prefix[$:/WikiSettings/]] -[[$:/plugins/OokTech/Bob/Server Warning]] -[[$:/WikiSettings]] -[[$:/ServerIP]] -[[$:/StoryList]] -[[$:/WikiName]] -[prefix[$:/Federation/RemoteServer/]] -[has[draft.of]]
+[is[tiddler]] -$:/core -$:/library/sjcl.js -[prefix[$:/boot/]] -[prefix[$:/HistoryList]] -[status[pending]plugin-type[import]] -$:/isEncrypted -[prefix[$:/status/]] -[prefix[$:/state/]] -[prefix[$:/temp/]] -[prefix[$:/Bob/]] -[prefix[$:/WikiSettings]] -[[$:/plugins/OokTech/Bob/Server Warning]] -[[$:/ServerIP]] -[[$:/WikiName]] -[prefix[$:/Federation/RemoteServer/]]
