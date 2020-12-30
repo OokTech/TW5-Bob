@@ -77,34 +77,32 @@ if($tw.node) {
     }
     // Generate the base filepath and ensure the directories exist
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
-    $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
-    $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
-    // Refactor this to make sure the wiki is loaded, which will ensure a valid wikiTiddlersPath, 
-    // because it might not be "/tiddlers"
-    if(prefix === 'RootWiki' && !$tw.Bob.Wikis[prefix].wikiTiddlersPath) {
-      $tw.Bob.Wikis[prefix].wikiTiddlersPath = $tw.boot.wikiTiddlersPath;
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      return $tw.ServerSide.loadWiki(prefix, finish);
+    } else {
+      return finish();
     }
-    const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath || path.join($tw.ServerSide.generateWikiPath(prefix), 'tiddlers');
-    $tw.utils.createFileDirectories(tiddlersPath);
-
-    // Always generate a fileInfo object when this fuction is called
-    var title = tiddler.fields.title, newInfo, pathFilters, extFilters;
-    if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemPaths")){
-      pathFilters = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n");
-    }
-    if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemExtensions")){
-      extFilters = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n");
-    }
-    newInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
-      directory: tiddlersPath,
-      pathFilters: pathFilters,
-      extFilters: extFilters,
-      wiki: $tw.Bob.Wikis[prefix].wiki,
-      fileInfo: $tw.Bob.Files[prefix][title],
-      originalpath: $tw.Bob.Wikis[prefix].wiki.extractTiddlerDataItem("$:/config/OriginalTiddlerPaths",title, "")
-    });
-    $tw.Bob.Files[prefix][title] = newInfo;
-    callback(null,newInfo);
+    function finish() {
+      const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
+      // Always generate a fileInfo object when this fuction is called
+      var title = tiddler.fields.title, newInfo, pathFilters, extFilters;
+      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemPaths")){
+        pathFilters = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n");
+      }
+      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemExtensions")){
+        extFilters = $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n");
+      }
+      newInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
+        directory: tiddlersPath,
+        pathFilters: pathFilters,
+        extFilters: extFilters,
+        wiki: $tw.Bob.Wikis[prefix].wiki,
+        fileInfo: $tw.Bob.Files[prefix][title],
+        originalpath: $tw.Bob.Wikis[prefix].wiki.extractTiddlerDataItem("$:/config/OriginalTiddlerPaths",title, "")
+      });
+      $tw.Bob.Files[prefix][title] = newInfo;
+      callback(null,newInfo);
+    };
   };
 
   /*
@@ -114,25 +112,30 @@ if($tw.node) {
     options = options || {};
     const prefix = options.prefix || '';
     $tw.Bob.Wikis = $tw.Bob.Wikis || {};
-    $tw.Bob.Wikis[prefix] = $tw.Bob.Wikis[prefix] || {};
-    $tw.Bob.Files[prefix] = $tw.Bob.Files[prefix] || {};
-    // Always generate a fileInfo object when this fuction is called
-    var tiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(title) || $tw.newTiddler({title: title}), newInfo, pathFilters, extFilters;
-    if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemPaths")){
-      pathFilters = options.pathFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n");
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      return $tw.ServerSide.loadWiki(prefix, finish);
+    } else {
+      return finish();
     }
-    if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemExtensions")){
-      extFilters = options.extFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n");
+    function finish() {
+      // Always generate a fileInfo object when this fuction is called
+      var tiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(title) || $tw.newTiddler({title: title}), newInfo, pathFilters, extFilters;
+      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemPaths")){
+        pathFilters = options.pathFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n");
+      }
+      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemExtensions")){
+        extFilters = options.extFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n");
+      }
+      newInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
+        directory: options.directory,
+        pathFilters: pathFilters,
+        extFilters: extFilters,
+        wiki: $tw.Bob.Wikis[prefix].wiki,
+        fileInfo: $tw.Bob.Files[prefix][title],
+        originalpath: $tw.Bob.Wikis[prefix].wiki.extractTiddlerDataItem("$:/config/OriginalTiddlerPaths",title, "")
+      });
+      return newInfo;
     }
-    newInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
-      directory: options.directory,
-      pathFilters: pathFilters,
-      extFilters: extFilters,
-      wiki: $tw.Bob.Wikis[prefix].wiki,
-      fileInfo: $tw.Bob.Files[prefix][title],
-      originalpath: $tw.Bob.Wikis[prefix].wiki.extractTiddlerDataItem("$:/config/OriginalTiddlerPaths",title, "")
-    });
-    return newInfo;
   };
 
   /*
@@ -160,7 +163,8 @@ if($tw.node) {
     const prefix = prefix || 'RootWiki';
     self.adaptorInfo = self.adaptorInfo || {};
     self.adaptorInfo[prefix] = self.adaptorInfo[prefix] || {};
-    if(!$tw.Bob.Wikis[prefix]) {
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
       return $tw.ServerSide.loadWiki(prefix, finish);
     } else {
       return finish();
@@ -270,10 +274,10 @@ if($tw.node) {
     }
     if(!title || typeof title !== 'string') callback("Delete Tiddler Error. No title given.");
     const prefix = options.wiki || "RootWiki";
-    if(!$tw.Bob.Files[prefix]) {
-      $tw.ServerSide.loadWiki(prefix, finish);
+    if(!$tw.Bob.Files[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      return $tw.ServerSide.loadWiki(prefix, finish);
     } else {
-      finish();
+      return finish();
     }
     function finish() {
       const fileInfo = self.getTiddlerInfo({fields: {title: title}}, prefix);
