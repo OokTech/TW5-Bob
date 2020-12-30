@@ -16,6 +16,7 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
+exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
@@ -126,7 +127,7 @@ if($tw.node) {
           }
 				} else {
           delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
-          $tw.Bob.UpdateEditingTiddlers(false, data.wiki);				
+          $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);				
 				}
 			});
     }
@@ -154,7 +155,7 @@ if($tw.node) {
         // Remove the tiddler from the list of tiddlers being edited.
         if($tw.Bob.EditingTiddlers[data.wiki][title]) {
           delete $tw.Bob.EditingTiddlers[data.wiki][title];
-          $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+          $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
         }
       });
     }
@@ -172,7 +173,7 @@ if($tw.node) {
     if(title) {
       // Add the tiddler to the list of tiddlers being edited to prevent
       // multiple people from editing it at the same time.
-      $tw.Bob.UpdateEditingTiddlers(title, data.wiki);
+      $tw.ServerSide.UpdateEditingTiddlers(title, data.wiki);
     }
   }
 
@@ -194,7 +195,7 @@ if($tw.node) {
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
       }
-      $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+      $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
     }
   }
 
@@ -243,5 +244,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;
 
+}
 }
 })();

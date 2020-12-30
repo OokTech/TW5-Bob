@@ -20,10 +20,116 @@ exports.info = {
 exports.platforms = ["node"];
 
 if($tw.node) {
-  //$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
   const URL = require("url"),
     path = require("path"),
-    http = require("http")
+    http = require("http");
+
+  /*
+    The websocket components
+  */
+  const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
+  $tw.connections = $tw.connections || [];
+  $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
+  $tw.wss = new WebSocketServer({noServer: true});
+  // Set the onconnection function
+  $tw.wss.on('connection', handleConnection);
+  // This doesn't do anything useful yet
+  $tw.wss.on('close', function(connection) {
+    $tw.Bob.logger.log('closed connection ', connection, {level:2});
+  });
+  // Avoid a memory leak
+  $tw.PruneTimeout = setInterval(function(){
+        $tw.Bob.PruneConnections();
+      }, 10000);
+
+  /*
+    This makes sure that the token send allows the action on the wiki
+  */
+  function authenticateMessage(event) {
+    return $tw.Bob.AccessCheck(event.wiki, event.token, event.type);
+  }
+  /*
+    The handle message function, split out so we can use it other places
+  */
+  $tw.Bob.handleMessage = function(event) {
+    $tw.Bob.logger.log('Received websocket message ', event, {level:4});
+    let self = this;
+    // Determine which connection the message came from
+    const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
+    try {
+      let eventData = JSON.parse(event);
+      // Add the source to the eventData object so it can be used later.
+      eventData.source_connection = thisIndex;
+      // If the wiki on this connection hasn't been determined yet, take it
+      // from the first message that lists the wiki.
+      // After that the wiki can't be changed. It isn't a good security
+      // measure but this part doesn't have real security anyway.
+      // TODO figure out if this is actually a security problem.
+      // We may have to add a check to the token before sending outgoing
+      // messages.
+      // This is really only a concern for the secure server, in that case
+      // you authenticate the token and it only works if the wiki matches
+      // and the token has access to that wiki.
+      if(eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+        $tw.connections[thisIndex].wiki = eventData.wiki;
+        // Make sure that the new connection has the correct list of tiddlers
+        // being edited.
+        $tw.ServerSide.UpdateEditingTiddlers(false, eventData.wiki);
+      }
+      // Make sure that the connection is from the wiki the message is for.
+      // This may not be a necessary security measure.
+      // I don't think that not having this would open up any exploits but I am not sure.
+      // TODO figure out if this is needed.
+      if(eventData.wiki === $tw.connections[thisIndex].wiki) {
+        // Make sure we have a handler for the message type
+        if(typeof $tw.nodeMessageHandlers[eventData.type] === 'function') {
+          // Check authorisation
+          const authorised = authenticateMessage(eventData);
+          if(authorised) {
+            eventData.decoded = authorised;
+            $tw.nodeMessageHandlers[eventData.type](eventData);
+          }
+        } else {
+          $tw.Bob.logger.error('No handler for message of type ', eventData.type, {level:3});
+        }
+      } else {
+        $tw.Bob.logger.log('Target wiki and connected wiki don\'t match', {level:3});
+      }
+    } catch (e) {
+      $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
+    }
+  }
+
+
+  /*
+    This function handles connections to a client.
+    It currently only supports one client and if a new client connection is made
+    it will replace the current connection.
+    This function saves the connection and adds the message handler wrapper to
+    the client connection.
+    The message handler part is a generic wrapper that checks to see if we have a
+    handler function for the message type and if so it passes the message to the
+    handler, if not it prints an error to the console.
+
+    connection objects are:
+    {
+      "socket": socketObject,
+      "wiki": the name for the wiki using this connection
+    }
+  */
+  function handleConnection(client, request) {
+    $tw.Bob.logger.log("new connection", {level:2});
+    $tw.connections.push({'socket':client, 'wiki': undefined});
+    client.on('message', $tw.Bob.handleMessage);
+    // Respond to the initial connection with a request for the tiddlers the
+    // browser currently has to initialise everything.
+    $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
+    const message = {type: 'listTiddlers'}
+    $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
+    if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
+      $tw.Bob.Federation.updateConnections();
+    }
+  }
 
   /*
   A simple HTTP server with regexp-based routes
@@ -188,18 +294,14 @@ if($tw.node) {
     httpServer.listen(port,host, function (e) {
       if(!e) {
         $tw.httpServerPort = port;
-        //$tw.Bob.logger.log("Serving on " + host + ":" + $tw.httpServerPort, {level:0});
-        console.log("Serving on " + host + ":" + $tw.httpServerPort)
-        //$tw.Bob.logger.log("(press ctrl-C to exit)", {level:0});
-        console.log("(press ctrl-C to exit)")
+        $tw.Bob.logger.log("Serving on " + host + ":" + $tw.httpServerPort, {level:0});
+        $tw.Bob.logger.log("(press ctrl-C to exit)", {level:0});
         $tw.settings['ws-server'].port = $tw.httpServerPort;
       } else {
         if($tw.settings['ws-server'].autoIncrementPort || typeof $tw.settings['ws-server'].autoIncrementPort === 'undefined') {
-          //$tw.Bob.logger.log('Port ', port, ' in use, trying ', port+1, {level:1});
-          console.log('Port ', port, ' in use, trying ', port+1);
+          $tw.Bob.logger.log('Port ', port, ' in use, trying ', port+1, {level:1});
         } else {
-          //$tw.Bob.logger.error(e, {level:0});
-          console.log(e);
+          $tw.Bob.logger.error(e, {level:0});
         }
       }
     });

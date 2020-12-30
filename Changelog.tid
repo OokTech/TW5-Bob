@@ -1,5 +1,11 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.7.1 Leftover Christmas Cookies
+
+* Clean up code to make the changes for using the external server work with normal Bob/BobEXE
+* Cleanup how settings are updated
+* Moved everything out of NodeWebsocketSetup.js, a few components were just unneeded and removed.
+
 !! Version 1.7.0 Can of soup
 
 * clean up some code problems

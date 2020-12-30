@@ -16,6 +16,7 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
+exports.startup = function() {
 if($tw.node) {
   $tw.connections = $tw.connections || [];
   $tw.Bob = $tw.Bob || {};
@@ -35,5 +36,6 @@ if($tw.node) {
   $tw.nodeMessageHandlers.test = function(data) {
     $tw.Bob.logger.log(data, {level:0});
   }
+}
 }
 })()

@@ -36,6 +36,7 @@ if(!Object.values) {
 
 $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
+$tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
 
 /*
   Return the resolved filePathRoot
@@ -865,48 +866,74 @@ ServerSide.getViewableLanguagesList = function (data) {
 
 ServerSide.getViewableSettings = function(data) {
   const tempSettings = {};
+
   // section visible to anyone
   // Nothing that uses websocket stuff here because they only work when logged
   // in
   tempSettings.API = $tw.settings.API;
   // Federation stuff is visible because you don't have to login to want to see
   // if federation is possible with a server
-  tempSettings.federation = $tw.settings.federation;
   tempSettings.enableFederation = $tw.settings.enableFederation;
+  tempSettings.federation = $tw.settings.federation;
 
-  tempSettings.includePluginList = $tw.settings.includePluginList;
-  tempSettings.excludePluginList = $tw.settings.excludePluginList;
   // Section visible by logged in people
   if(data.decoded) {
-    tempSettings.enableFileServer = $tw.settings.enableFileServer;
     tempSettings.backups = $tw.settings.backups;
     tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
-    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
-    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
-    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
-    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
-    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.editionLibrary = $tw.settings.editionLibrary;
+    tempSettings.enableFileServer = $tw.settings.enableFileServer;
+    tempSettings.excludePluginList = $tw.settings.excludePluginList;
+    tempSettings.fileURLPrefix = $tw.settings.fileURLPrefix;
     tempSettings.heartbeat = $tw.settings.heartbeat;
+    tempSettings.includePluginList = $tw.settings.includePluginList;
+    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
+    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
+    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
+    tempSettings.pluginList = $tw.settings.pluginLibrary;
+    tempSettings.profileOptions = $tw.settings.profileOptions;
+    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
+    tempSettings.themeLibrary = $tw.settings.themeLibrary;
+    tempSettings.tokenTTL = $tw.settings.tokenTTL;
   }
   // advanced section only visible to admins
   if((data.decoded && data.decoded.level === 'Admin') || data.decoded === true) {
+    tempSettings.actions = $tw.settings.actions;
+    tempSettings.admin = $tw.settings.admin;
     tempSettings.advanced = $tw.settings.advanced;
-    tempSettings['ws-server'] = $tw.settings['ws-server'];
-    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.certPath = $tw.settings.certPath;
     tempSettings.disableFileWatchers = $tw.settings.disableFileWatchers;
-    tempSettings.filePathRoot = $tw.settings.filePathRoot;
+    tempSettings.editions = $tw.settings.editions;
     tempSettings.editionsPath = $tw.settings.editionsPath;
-    tempSettings.languagesPath = $tw.settings.languagesPath;
-    tempSettings.pluginsPath = $tw.settings.pluginsPath;
-    tempSettings.themesPath = $tw.settings.themesPath;
-    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
-    tempSettings.wikisPath = $tw.settings.wikisPath;
-    tempSettings.scripts = $tw.settings.scripts;
-    tempSettings.serverInfo = $tw.settings.serverInfo;
-    tempSettings.saver = $tw.settings.saver;
-    tempSettings.logger = $tw.settings.logger;
     tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
+    tempSettings.filePathRoot = $tw.settings.filePathRoot;
     tempSettings['fed-wss'] = $tw.settings['fed-wss'];
+    tempSettings.httpsPort = $tw.settings.httpsPort;
+    tempSettings.languages = $tw.settings.languages;
+    tempSettings.languagesPath = $tw.settings.languagesPath;
+    tempSettings.logger = $tw.settings.logger;
+    tempSettings.plugins = $tw.settings.plugins;
+    tempSettings.pluginsPath = $tw.settings.pluginsPath;
+    tempSettings.profiles = $tw.settings.profiles;
+    tempSettings.reverseProxy = $tw.settings.reverseProxy;
+    tempSettings.rootWikiName = $tw.settings.rootWikiName;
+    tempSettings.saltRounds = $tw.settings.saltRounds;
+    tempSettings.saver = $tw.settings.saver;
+    tempSettings.scripts = $tw.settings.scripts;
+    tempSettings.servingFiles = $tw.settings.servingFiles;
+    tempSettings.server = $tw.settings.server;
+    tempSettings.serverInfo = $tw.settings.serverInfo;
+    tempSettings.serverKeyPath = $tw.settings.serverKeyPath;
+    tempSettings.serveWikiOnRoot = $tw.settings.serveWikiOnRoot;
+    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.themes = $tw.settings.themes;
+    tempSettings.themesPath = $tw.settings.themesPath;
+    tempSettings.tokenPrivateKeyPath = $tw.settings.tokenPrivateKeyPath;
+    tempSettings.useHTTPS = $tw.settings.useHTTPS;
+    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
+    tempSettings.wikiPermissionsPath = $tw.settings.wikiPermissionsPath;
+    tempSettings.wikisPath = $tw.settings.wikisPath;
+    tempSettings['ws-server'] = $tw.settings['ws-server'];
   }
   tempSettings.advanced = tempSettings.avanced || {};
   tempSettings['ws-server'] = tempSettings['ws-server'] || {};
@@ -1592,6 +1619,162 @@ ServerSide.createWiki = function(data, cb) {
     }, 1000);
   }
 }
+
+/*
+  This updates the list of tiddlers being edited in each wiki. Any tiddler on
+  this list has the edit button disabled to prevent two people from
+  simultaneously editing the same tiddler.
+  If run without an input it just re-sends the lists to each browser, with a
+  tiddler title as input it appends that tiddler to the list and sends the
+  updated list to all connected browsers.
+
+  For privacy and security only the tiddlers that are in the wiki a
+  conneciton is using are sent to that connection.
+*/
+ServerSide.UpdateEditingTiddlers = function (tiddler, wikiName) {
+  // Make sure that the wiki is loaded
+  const exists = $tw.ServerSide.loadWiki(wikiName);
+  // This should never be false, but then this shouldn't every have been a
+  // problem to start.
+  if(exists) {
+    // Check if a tiddler title was passed as input and that the tiddler isn't
+    // already listed as being edited.
+    // If there is a title and it isn't being edited add it to the list.
+    if(tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
+      $tw.Bob.EditingTiddlers[wikiName][tiddler] = true;
+    }
+    Object.keys($tw.connections).forEach(function(index) {
+      if($tw.connections[index].wiki === wikiName) {
+        $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
+        const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
+        const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
+        $tw.Bob.SendToBrowser($tw.connections[index], message);
+        $tw.Bob.logger.log('Update Editing Tiddlers', {level: 4})
+      }
+    });
+  }
+}
+/*
+  This keeps a history of changes for each wiki so that when a wiki is
+  disconnected and reconnects and asks to resync this can be used to resync
+  the wiki with the minimum amount of network traffic.
+
+  Resyncing only needs to keep track of creating and deleting tiddlers here.
+  The editing state of tiddlers is taken care of by the websocket
+  reconnection process.
+
+  So this is just the list of deleted tiddlers and saved tiddlers with time
+  stamps, and it should at most have one item per tiddler because the newest
+  save or delete message overrides any previous messages.
+
+  The hisotry is an array of change entries
+  Each entry in the history is in the form
+  {
+    title: tiddlerTitle,
+    timestamp: changeTimeStamp,
+    type: messageType
+  }
+*/
+$tw.Bob.UpdateHistory = function(message) {
+  // Only save saveTiddler or deleteTiddler events that have a wiki listed
+  if(['saveTiddler', 'deleteTiddler'].indexOf(message.type) !== -1 && message.wiki) {
+    $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
+    $tw.Bob.ServerHistory[message.wiki] = $tw.Bob.ServerHistory[message.wiki] || [];
+    const entryIndex = $tw.Bob.ServerHistory[message.wiki].findIndex(function(entry) {
+      return entry.title === message.tiddler.fields.title;
+    })
+    const entry = {
+      timestamp: Date.now(),
+      title: message.tiddler.fields.title,
+      type: message.type
+    }
+    if(entryIndex > -1) {
+      $tw.Bob.ServerHistory[message.wiki][entryIndex] = entry;
+    } else {
+      $tw.Bob.ServerHistory[message.wiki].push(entry);
+    }
+  }
+}
+
+/*
+  This is a wrapper function that takes a message that is meant to be sent to
+  all connected browsers and handles the details.
+
+  It iterates though all connections, checkis if each one is active, tries to
+  send the message, if the sending fails than it sets the connection as
+  inactive.
+
+  Note: This checks if the message is a string despite SendToBrowser also
+  checking because if it needs to be changed and sent to multiple browsers
+  changing it once here instead of once per browser should be better.
+*/
+$tw.Bob.SendToBrowsers = function (message, excludeConnection) {
+  $tw.Bob.UpdateHistory(message);
+  const messageData = $tw.Bob.Shared.createMessageData(message);
+
+  $tw.connections.forEach(function (connection, ind) {
+    if((ind !== excludeConnection) && connection.socket) {
+      if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+        $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
+      }
+    }
+  })
+}
+
+/*
+  This function sends a message to a single connected browser. It takes the
+  browser connection object and the stringifyed message as input.
+  If any attempt fails mark the connection as inacive.
+
+  On the server side the history is a bit more complex.
+  There is one history of messages sent that has the message ids, each
+  connection has a list of message ids that are still waiting for acks.
+*/
+$tw.Bob.SendToBrowser = function (connection, message) {
+  if(connection) {
+    $tw.Bob.UpdateHistory(message);
+    const messageData = $tw.Bob.Shared.createMessageData(message);
+    if(connection.socket) {
+      if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+        $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
+      }
+    }
+  }
+}
+
+/*
+  This disconnects all connections that are for a specific wiki. this is used
+  when unloading a wiki to make sure that people aren't trying to interact
+  with a disconnected wiki.
+*/
+$tw.Bob.DisconnectWiki = function (wiki) {
+  $tw.connections.forEach(function(connectionIndex) {
+    if(connectionIndex.wiki === wiki) {
+      if(connectionIndex.socket !== undefined) {
+        // Close the websocket connection
+        connectionIndex.socket.terminate();
+      }
+    }
+  })
+}
+
+/*
+    This checks to see if a wiki has no connected sockets and if not it unloads
+    the wiki.
+  */
+  $tw.Bob.PruneConnections = function () {
+    if($tw.settings.autoUnloadWikis === "true") {
+      $tw.connections.forEach(function(connection) {
+        if(connection.socket !== undefined) {
+          if(connection.socket.readyState !== 1) {
+            //$tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
+            connection.socket.terminate();
+            connection.socket = undefined;
+          }
+        }
+      })
+    }
+  }
 
 module.exports = ServerSide
 
