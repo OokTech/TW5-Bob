@@ -186,33 +186,42 @@ ServerSide.loadWiki = function (wikiName, cb) {
       // Save the wiki path and tiddlers path
       $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
       // Create a wiki object for this wiki
-      $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
-      // From $tw.loadTiddlersNode
-      // Load the boot tiddlers
-      $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
-        $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
-      });
-      // Load the core tiddlers
-      $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
-      // Add tiddlers to the wiki
-      $tw.Bob.Wikis[wikiName].wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
-      // From $tw.boot.execStartup
-      $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
-      $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
-      // Unpack plugin tiddlers
-      $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-      // Process "safe mode"
-      if($tw.safeMode) {
-        $tw.Bob.Wikis[wikiName].wiki.processSafeMode();
+      if(wikiName == "RootWiki"){
+        $tw.Bob.Wikis[wikiName].wiki = $tw.wiki;
+        $tw.Bob.Wikis[wikiName].wikiInfo = $tw.boot.wikiInfo;
+        $tw.Bob.Wikis[wikiName].wikiTiddlersPath = $tw.boot.wikiTiddlersPath;
+        $tw.Bob.Files[wikiName] = $tw.boot.files;
+      } else {
+        $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
+        // From $tw.loadTiddlersNode
+        // Load the boot tiddlers
+        $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
+          $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
+        });
+        // Load the core tiddlers
+        $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
+        // Add tiddlers to the wiki
+        $tw.Bob.Wikis[wikiName].wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
+        // From $tw.boot.execStartup
+        $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
+        $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
+        // Unpack plugin tiddlers
+        $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
+        // Process "safe mode"
+        if($tw.safeMode) {
+          $tw.Bob.Wikis[wikiName].wiki.processSafeMode();
+        }
+        // Register typed modules from the tiddlers we've just loaded
+        // instead of $tw.Bob.Wikis[wikiName].wiki.defineTiddlerModules();
+        defineTiddlerModules(wikiName);
+        // And any modules within plugins
+        // instead of $tw.Bob.Wikis[wikiName].wiki.defineShadowModules();
+        defineShadowModules(wikiName);
+        // Encryption handling would go here
+        // from $tw.boot.execStartup
+        // Get the list of tiddlers for this wiki
       }
-      // Register typed modules from the tiddlers we've just loaded
-      $tw.Bob.Wikis[wikiName].wiki.defineTiddlerModules();
-      // And any modules within plugins
-      $tw.Bob.Wikis[wikiName].wiki.defineShadowModules();
-      // Encryption handling would go here
-      // from $tw.boot.execStartup
-
-      // Get the list of tiddlers for this wiki
+      let wikiInfo = $tw.Bob.Wikis[wikiName].wikiInfo;      
       $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
       $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins ? wikiInfo.plugins.map(function(name) {
         return '$:/plugins/' + name;
@@ -223,6 +232,18 @@ ServerSide.loadWiki = function (wikiName, cb) {
       $tw.Bob.Wikis[wikiName].languages = wikiInfo.languages ? wikiInfo.languages.map(function(name) {
         return '$:/themes/' + name;
       }): [];
+      // Setup the FileSystemMonitors
+      // Make sure that the tiddlers folder exists
+      const error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
+      if(error){
+        $tw.Bob.logger.error('Error creating wikiTiddlersPath', error, {level:1});
+      }
+      // Recursively build the folder tree structure
+      $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
+      if($tw.settings.disableFileWatchers !== 'yes') {
+        // Watch the root tiddlers folder for chanegs
+        $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
+      }
       // If the wiki isn't loaded yet set the wiki as loaded
       $tw.Bob.Wikis[wikiName].State = 'loaded';
       $tw.hooks.invokeHook('wiki-loaded', wikiName);
@@ -264,14 +285,8 @@ function loadWikiTiddlers(wikiPath,options) {
     return null;
   }
   // Save the wikiTiddlersPath for the MultiWikiAdaptor
-	var config = wikiInfo.config || {};
-	if($tw.Bob.Wikis[options.prefix].wikiPath == wikiPath) {
-    if(options.prefix === 'RootWiki' && !$tw.Bob.Wikis[options.prefix].wikiTiddlersPath) {
-      $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = $tw.boot.wikiTiddlersPath;
-    } else {
-      $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve($tw.Bob.Wikis[options.prefix].wikiPath,config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-    }
-	}
+  let config = wikiInfo.config || {};
+  $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve($tw.Bob.Wikis[options.prefix].wikiPath,config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
   // Load any parent wikis
   if(wikiInfo.includeWikis) {
     $tw.Bob.logger.log('Load Wiki: includeWikis!', {level:1});
@@ -322,7 +337,7 @@ function loadWikiTiddlers(wikiPath,options) {
               filepath: tiddlerFile.filepath,
               type: tiddlerFile.type,
               hasMetaFile: tiddlerFile.hasMetaFile,
-              isEditableFile: config["retain-original-tiddler-path"] || tiddlerFile.isEditableFile || tiddlerFile.filepath.indexOf($tw.Bob.Wikis[options.prefix].wikiTiddlersPath) !== 0
+              isEditableFile: wikiInfo.config["retain-original-tiddler-path"] || tiddlerFile.isEditableFile || tiddlerFile.filepath.indexOf($tw.Bob.Wikis[options.prefix].wikiTiddlersPath) !== 0
             };
           }
         });
@@ -401,6 +416,46 @@ function loadWikiTiddlers(wikiPath,options) {
     }
   }
   return wikiInfo;
+};
+
+/*
+wikiName: the wiki to check for unloaded module definitions
+We only define modules that haven't already been defined, 
+  because the exiting ones were defined by the RootWiki
+  and reloading all of them would spam the server log.
+*/
+function defineTiddlerModules(wikiName) {
+  $tw.Bob.Wikis[wikiName].wiki.each(function(tiddler,title) {
+    if(tiddler.hasField("module-type") && !$tw.utils.hop($tw.modules.titles,tiddler.fields.title)) {
+      switch (tiddler.fields.type) {
+        case "application/javascript":
+            $tw.modules.define(tiddler.fields.title,tiddler.fields["module-type"],tiddler.fields.text);
+          break;
+        case "application/json":
+          $tw.modules.define(tiddler.fields.title,tiddler.fields["module-type"],JSON.parse(tiddler.fields.text));
+          break;
+        case "application/x-tiddler-dictionary":
+          $tw.modules.define(tiddler.fields.title,tiddler.fields["module-type"],$tw.utils.parseFields(tiddler.fields.text));
+          break;
+      }
+    }
+  });
+};
+
+/*
+wikiName: the wiki to check for unloaded shadow module definitions
+We only define modules that haven't already been defined, 
+  because the exiting ones were defined by the RootWiki
+  and reloading all of them would spam the server log.
+*/
+function defineShadowModules(wikiName) {
+  $tw.Bob.Wikis[wikiName].wiki.eachShadow(function(tiddler,title) {
+		// Don't define the module if it is overidden by an ordinary tiddler
+		if(!$tw.Bob.Wikis[wikiName].wiki.tiddlerExists(title) && tiddler.hasField("module-type") && !$tw.utils.hop($tw.modules.titles,tiddler.fields.title)) {
+			// Define the module
+			$tw.modules.define(tiddler.fields.title,tiddler.fields["module-type"],tiddler.fields.text);
+		}
+	});
 };
 
 ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {

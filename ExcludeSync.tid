@@ -3,7 +3,6 @@ title: $:/plugins/OokTech/Bob/ExcludeSync
 [prefix[$:/state/]]
 [prefix[$:/temp/]]
 [prefix[$:/HistoryList]]
-[prefix[$:/StoryList]]
 [prefix[$:/WikiSettings]]
 [[$:/status/UserName]]
 [[$:/Import]]
