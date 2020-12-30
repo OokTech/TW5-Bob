@@ -790,48 +790,74 @@ ServerSide.getViewableLanguagesList = function (data) {
 
 ServerSide.getViewableSettings = function(data) {
   const tempSettings = {};
+
   // section visible to anyone
   // Nothing that uses websocket stuff here because they only work when logged
   // in
   tempSettings.API = $tw.settings.API;
   // Federation stuff is visible because you don't have to login to want to see
   // if federation is possible with a server
-  tempSettings.federation = $tw.settings.federation;
   tempSettings.enableFederation = $tw.settings.enableFederation;
+  tempSettings.federation = $tw.settings.federation;
 
-  tempSettings.includePluginList = $tw.settings.includePluginList;
-  tempSettings.excludePluginList = $tw.settings.excludePluginList;
   // Section visible by logged in people
   if(data.decoded) {
-    tempSettings.enableFileServer = $tw.settings.enableFileServer;
     tempSettings.backups = $tw.settings.backups;
     tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
-    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
-    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
-    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
-    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
-    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.editionLibrary = $tw.settings.editionLibrary;
+    tempSettings.enableFileServer = $tw.settings.enableFileServer;
+    tempSettings.excludePluginList = $tw.settings.excludePluginList;
+    tempSettings.fileURLPrefix = $tw.settings.fileURLPrefix;
     tempSettings.heartbeat = $tw.settings.heartbeat;
+    tempSettings.includePluginList = $tw.settings.includePluginList;
+    tempSettings.mimeMap = $tw.settings.mimeMap;
+    tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
+    tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
+    tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
+    tempSettings.pluginList = $tw.settings.pluginLibrary;
+    tempSettings.profileOptions = $tw.settings.profileOptions;
+    tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
+    tempSettings.themeLibrary = $tw.settings.themeLibrary;
+    tempSettings.tokenTTL = $tw.settings.tokenTTL;
   }
   // advanced section only visible to admins
   if((data.decoded && data.decoded.level === 'Admin') || data.decoded === true) {
+    tempSettings.actions = $tw.settings.actions;
+    tempSettings.admin = $tw.settings.admin;
     tempSettings.advanced = $tw.settings.advanced;
-    tempSettings['ws-server'] = $tw.settings['ws-server'];
-    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.certPath = $tw.settings.certPath;
     tempSettings.disableFileWatchers = $tw.settings.disableFileWatchers;
-    tempSettings.filePathRoot = $tw.settings.filePathRoot;
+    tempSettings.editions = $tw.settings.editions;
     tempSettings.editionsPath = $tw.settings.editionsPath;
-    tempSettings.languagesPath = $tw.settings.languagesPath;
-    tempSettings.pluginsPath = $tw.settings.pluginsPath;
-    tempSettings.themesPath = $tw.settings.themesPath;
-    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
-    tempSettings.wikisPath = $tw.settings.wikisPath;
-    tempSettings.scripts = $tw.settings.scripts;
-    tempSettings.serverInfo = $tw.settings.serverInfo;
-    tempSettings.saver = $tw.settings.saver;
-    tempSettings.logger = $tw.settings.logger;
     tempSettings.enableBobSaver = $tw.settings.enableBobSaver;
+    tempSettings.filePathRoot = $tw.settings.filePathRoot;
     tempSettings['fed-wss'] = $tw.settings['fed-wss'];
+    tempSettings.httpsPort = $tw.settings.httpsPort;
+    tempSettings.languages = $tw.settings.languages;
+    tempSettings.languagesPath = $tw.settings.languagesPath;
+    tempSettings.logger = $tw.settings.logger;
+    tempSettings.plugins = $tw.settings.plugins;
+    tempSettings.pluginsPath = $tw.settings.pluginsPath;
+    tempSettings.profiles = $tw.settings.profiles;
+    tempSettings.reverseProxy = $tw.settings.reverseProxy;
+    tempSettings.rootWikiName = $tw.settings.rootWikiName;
+    tempSettings.saltRounds = $tw.settings.saltRounds;
+    tempSettings.saver = $tw.settings.saver;
+    tempSettings.scripts = $tw.settings.scripts;
+    tempSettings.servingFiles = $tw.settings.servingFiles;
+    tempSettings.server = $tw.settings.server;
+    tempSettings.serverInfo = $tw.settings.serverInfo;
+    tempSettings.serverKeyPath = $tw.settings.serverKeyPath;
+    tempSettings.serveWikiOnRoot = $tw.settings.serveWikiOnRoot;
+    tempSettings.suppressBrowser = $tw.settings.suppressBrowser;
+    tempSettings.themes = $tw.settings.themes;
+    tempSettings.themesPath = $tw.settings.themesPath;
+    tempSettings.tokenPrivateKeyPath = $tw.settings.tokenPrivateKeyPath;
+    tempSettings.useHTTPS = $tw.settings.useHTTPS;
+    tempSettings.wikiPathBase = $tw.settings.wikiPathBase;
+    tempSettings.wikiPermissionsPath = $tw.settings.wikiPermissionsPath;
+    tempSettings.wikisPath = $tw.settings.wikisPath;
+    tempSettings['ws-server'] = $tw.settings['ws-server'];
   }
   tempSettings.advanced = tempSettings.avanced || {};
   tempSettings['ws-server'] = tempSettings['ws-server'] || {};

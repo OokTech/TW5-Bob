@@ -16,6 +16,7 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
+exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   /*
@@ -129,5 +130,6 @@ if($tw.node) {
     $tw.ServerSide.sendBrowserAlert(message);
   }
 
+}
 }
 })();

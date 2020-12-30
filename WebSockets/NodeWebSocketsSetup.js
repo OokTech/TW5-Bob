@@ -26,7 +26,7 @@ exports.synchronous = true;
 // Make sure that $tw.settings is available.
 //$tw.settings = $tw.settings || require('$:/plugins/OokTech/NodeSettings/NodeSettings.js');
 
-
+exports.startup = function() {
 if($tw.node) {
   //  var TOML = $tw.node ? require('$:/plugins/OokTech/Bob/External/@iarna/toml/toml.js') : undefined;
   // Import shared commands
@@ -322,5 +322,5 @@ if($tw.node) {
     setup();
   }
 }
-
+}
 })();

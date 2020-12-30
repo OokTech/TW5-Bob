@@ -16,6 +16,7 @@ This handles messages sent to the node process.
 
 exports.platforms = ["node"];
 
+exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
@@ -247,5 +248,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.ack = $tw.Bob.Shared.handleAck;
 
+}
 }
 })();

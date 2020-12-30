@@ -15,7 +15,7 @@ This handles messages sent to the node process.
 "use strict";
 
 exports.platforms = ["node"];
-
+exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
   $tw.Bob.Federation = $tw.Bob.Federation || {};
@@ -1226,5 +1226,6 @@ if($tw.node) {
     }
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
   }
+}
 }
 })();
