@@ -695,7 +695,6 @@ ServerSide.getViewableWikiList = function (data) {
   function getList(obj, prefix) {
     let output = [];
     let ownedWikis = {};
-    // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
         if($tw.ServerSide.existsListed(prefix+item)) {
@@ -713,6 +712,9 @@ ServerSide.getViewableWikiList = function (data) {
         output = output.concat(getList(obj[item], prefix + item + '/'));
       }
     })
+    if (prefix === '') {
+      output.push('RootWiki')
+    }
     return output;
   }
   // Get the wiki list of wiki names from the settings object
@@ -725,14 +727,13 @@ ServerSide.getViewableWikiList = function (data) {
   });
   const tempObj = {};
   for (let i = 0; i < viewableWikis.length; i++) {
-    tempObj[viewableWikis[i]] = ['view']
+    tempObj[viewableWikis[i]] = ['view'];
     // Check if you can edit it
     if($tw.Bob.AccessCheck(viewableWikis[i], {"decoded": data.decoded}, 'edit', 'wiki')) {
       tempObj[viewableWikis[i]].push('edit');
     }
-    // Check if you are the owner
   }
-  return viewableWikis;
+  return tempObj;
 }
 
 ServerSide.getViewablePluginsList = function (data) {
@@ -822,6 +823,7 @@ ServerSide.getViewableSettings = function(data) {
   tempSettings.excludePluginList = $tw.settings.excludePluginList;
   // Section visible by logged in people
   if(data.decoded) {
+    tempSettings.enableFileServer = $tw.settings.enableFileServer;
     tempSettings.backups = $tw.settings.backups;
     tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
     tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
@@ -861,7 +863,7 @@ ServerSide.getViewableSettings = function(data) {
 ServerSide.getProfileInfo = function(data) {
   $tw.settings.profiles = $tw.settings.profiles || {};
   if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
-    return $tw.settings.profiles[data.profileName];
+    return $tw.settings.profiles[data.profileName] || {};
   } else {
     return {};
   }
@@ -881,7 +883,6 @@ ServerSide.listProfiles = function(data) {
 ServerSide.getOwnedWikis = function(data) {
   function getList(obj, prefix) {
     let output = [];
-    // data.decoded.name
     Object.keys(obj).forEach(function(item) {
       if(typeof obj[item] === 'string') {
         if($tw.ServerSide.existsListed(prefix+item)) {

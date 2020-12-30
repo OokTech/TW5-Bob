@@ -27,7 +27,7 @@ There will be some sort of user profile setup here at some point.
 
 !!! Name<<helpButton $:/plugins/OokTech/Bob/AboutName>>: {{$:/status/UserName}}
 
-<h3> Public Status<<helpButton $:/plugins/OokTech/Bob/AboutPublicProfile>>:
+<h3> Visibility<<helpButton $:/plugins/OokTech/Bob/AboutPublicProfile>>:
 <$reveal
   state="$:/state/Bob/PublicProfileOptionEdit"
   type=nomatch
@@ -176,20 +176,17 @@ There will be some sort of user profile setup here at some point.
   />
 </$reveal>
 
-!! Blocked People
-
-This will list people who are blocked and can not see anything of yours other
-than public wikis.
-Blocked people will not be able to add you as viewers or editors of their
-wikis or, when federation is implemented, send or receive messages from you.
-
-`Not Implemented Yet`
-
 !! Owned Wikis
 
 These are wikis you own.
-You can set if the wiki is public or not, and which logins can view or edit the
-wiki.
+You can set the visibility of the wiki in general, and which profiles can view
+or edit the wiki.
+
+The visibility options are:
+
+* Public - this means that anyone can view the wiki regardless of being logged in
+* Private - this means that access must be explicitly granted for someone to be able to view the wiki
+* Logged In Only - this means that anyone who is logged in can view the wiki. This includes guest logins if they are enabled on the server.
 
 Click on a field to edit it.
 
@@ -221,9 +218,9 @@ Click on a field to edit it.
             set=<<publicEditState>>
             setTo=yes
           >
-            ''Public:''
+            ''Visibility:''
             <$view
-              field='public'
+              field='visibility'
             />
           </$button>
         </$reveal>
@@ -232,22 +229,30 @@ Click on a field to edit it.
           text=yes
           state=<<publicEditState>>
         >
-          ''Public:''
+          ''Visibility:''
           <$radio
             tiddler=<<currentTiddler>>
-            field=public
-            value=yes
+            field=visibility
+            value='Public'
             class='tableradio'
           >
-            Yes
+            Public
           </$radio>
           <$radio
             tiddler=<<currentTiddler>>
-            field=public
-            value=no
+            field=visibility
+            value='Private'
             class='tableradio'
           >
-            No
+            Private
+          </$radio>
+          <$radio
+            tiddler=<<currentTiddler>>
+            field=visibility
+            value='LoggedInOnly'
+            class='tableradio'
+          >
+            Logged In Only
           </$radio>
           <$button
             set=<<publicEditState>>
@@ -347,19 +352,77 @@ Click on a field to edit it.
   </$list>
 </table>
 
-!! Editable Wikis
+!! Accessible Wikis
 
-These are wikis you have edit access to.
-You can remove your own edit access to a wiki, although unless you block the
-person who owns the wiki they will be able to give you the access again.
+These are wikis you can view or edit because you were either granted permission
+to do so or they are public.
 
-!! Viewable Wikis
+In the future you will be able to remove your own access to a wiki, although
+unless you block the person who owns the wiki they will be able to give you the
+access again.
 
-These are wikis you can view because you were granted permission to do so.
-Public wikis aren't listed here.
-You can remove your own view access to a wiki, although unless you block the
-person who owns the wiki they will be able to give you the access again.
+<table
+  style='width:100%'
+>
+  <tr>
+    <th>
+      Wiki Name
+    </th>
+    <th>
+      Viewable
+    </th>
+    <th>
+      Editable
+    </th>
+  </tr>
+  <$list
+    filter='[[$:/state/ViewableWikis]contains:list[RootWiki]]'
+  >
+    <tr>
+      <th>
+        <a
+          href='/'
+        >
+          Index Wiki
+        </a>
+      </th>
+      <td>
+        Yes
+      </td>
+      <td>
+        <$list filter='[[$:/state/EditableWikis]contains:list[RootWiki]]'>Yes</$list>
+      </td>
+    </tr>
+  </$list>
+  <$list
+    filter='[list[$:/state/ViewableWikis]] -RootWiki'
+  >
+    <tr>
+      <th>
+        <a
+          href={{{ [<currentTiddler>addprefix[/]] }}}
+        >
+          <$text text=<<currentTiddler>>/>
+        </a>
+      </th>
+      <td>
+        Yes
+      </td>
+      <td>
+        <$list filter='[[$:/state/EditableWikis]contains:list<currentTiddler>]'>Yes</$list>
+      </td>
+    </tr>
+  </$list>
+</table>
 
+!! Blocked People
+
+This will list people who are blocked and can not see anything of yours other
+than public wikis.
+Blocked people will not be able to add you as viewers or editors of their
+wikis or, when federation is implemented, send or receive messages from you.
+
+`Not Implemented Yet`
 
 !! Missing things
 
