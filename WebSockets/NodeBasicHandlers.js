@@ -138,7 +138,7 @@ if($tw.node) {
           }
         }
         delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
-        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+        $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
       }
     }
   }
@@ -159,7 +159,7 @@ if($tw.node) {
       // Remove the tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
-        $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+        $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
       }
       $tw.Bob.logger.log('Deleted tiddler', data.tiddler.fields.title)
     }
@@ -177,7 +177,7 @@ if($tw.node) {
     if(title) {
       // Add the tiddler to the list of tiddlers being edited to prevent
       // multiple people from editing it at the same time.
-      $tw.Bob.UpdateEditingTiddlers(title, data.wiki);
+      $tw.ServerSide.UpdateEditingTiddlers(title, data.wiki);
     }
   }
 
@@ -199,7 +199,7 @@ if($tw.node) {
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
         delete $tw.Bob.EditingTiddlers[data.wiki][title];
       }
-      $tw.Bob.UpdateEditingTiddlers(false, data.wiki);
+      $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
     }
   }
 
