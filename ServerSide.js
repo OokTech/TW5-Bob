@@ -18,6 +18,12 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
+// Setup unhandled promise logger for node
+process.on('unhandledRejection', (reason, promise) => {
+  $tw.Bob.logger.error('Unhandled Rejection at:', promise, 'reason:', reason, {level:1});
+  // Application specific logging, throwing an error, or other logic here
+});
+
 // A polyfilL to make this work with older node installs
 
 
@@ -170,7 +176,7 @@ ServerSide.existsListed = function (wikiName) {
 }
 
 /*
-  This function loads a wiki that has a route listed.
+  This function loads a wiki that has a route listed and returns a Promise for further action.
 */
 ServerSide.loadWiki = function (wikiName, cb) {
   const wikiFolder = ServerSide.existsListed(wikiName);
@@ -187,41 +193,40 @@ ServerSide.loadWiki = function (wikiName, cb) {
       // Save the wiki path and tiddlers path
       $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
       // Create a wiki object for this wiki
-      if(wikiName == "RootWiki"){
-        $tw.Bob.Wikis[wikiName].wiki = $tw.wiki;
-        $tw.Bob.Wikis[wikiName].wikiInfo = $tw.boot.wikiInfo;
-        $tw.Bob.Wikis[wikiName].wikiTiddlersPath = $tw.boot.wikiTiddlersPath;
-        $tw.Bob.Files[wikiName] = $tw.boot.files;
-      } else {
-        $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
-        // From $tw.loadTiddlersNode
-        // Load the boot tiddlers
-        $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
-          $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
-        });
-        // Load the core tiddlers
-        $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
-        // Add tiddlers to the wiki
-        $tw.Bob.Wikis[wikiName].wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
-        // From $tw.boot.execStartup
-        $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
-        $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
-        // Unpack plugin tiddlers
-        $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-        // Process "safe mode"
-        if($tw.safeMode) {
-          $tw.Bob.Wikis[wikiName].wiki.processSafeMode();
-        }
-        // Register typed modules from the tiddlers we've just loaded
-        // instead of $tw.Bob.Wikis[wikiName].wiki.defineTiddlerModules();
-        defineTiddlerModules(wikiName);
-        // And any modules within plugins
-        // instead of $tw.Bob.Wikis[wikiName].wiki.defineShadowModules();
-        defineShadowModules(wikiName);
-        // Encryption handling would go here
-        // from $tw.boot.execStartup
-        // Get the list of tiddlers for this wiki
+      $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
+      // From $tw.loadTiddlersNode
+      // Load the boot tiddlers
+      $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
+        $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
+      });
+      // Load the core tiddlers
+      $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
+      // Add tiddlers to the wiki
+      $tw.Bob.Wikis[wikiName].wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
+      // From $tw.boot.execStartup
+      $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
+      $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
+      // Unpack plugin tiddlers
+      $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
+      // Process "safe mode"
+      if($tw.safeMode) {
+        $tw.Bob.Wikis[wikiName].wiki.processSafeMode();
       }
+      // Register typed modules from the tiddlers we've just loaded
+      // instead of calling $tw.Bob.Wikis[wikiName].wiki.defineTiddlerModules();
+      // defineTiddlerModules(wikiName);
+      // And any modules within plugins
+      // instead of calling $tw.Bob.Wikis[wikiName].wiki.defineShadowModules();
+      // defineShadowModules(wikiName);
+      // Encryption handling would go here
+      // from $tw.boot.execStartup
+      // Name the wiki
+      const fields = {
+        title: '$:/WikiName',
+        text: wikiName
+      };
+      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+      // Get the list of tiddlers for this wiki
       let wikiInfo = $tw.Bob.Wikis[wikiName].wikiInfo;      
       $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
       $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins ? wikiInfo.plugins.map(function(name) {
@@ -249,13 +254,8 @@ ServerSide.loadWiki = function (wikiName, cb) {
       $tw.Bob.Wikis[wikiName].State = 'loaded';
       $tw.hooks.invokeHook('wiki-loaded', wikiName);
     }
-    const fields = {
-      title: '$:/WikiName',
-      text: wikiName
-    };
-    $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
     if(typeof cb === 'function') {
-      setTimeout(cb, 1000)
+      setTimeout(function(){cb()}, 1000)
     }
   }
   return wikiFolder;
@@ -338,7 +338,7 @@ function loadWikiTiddlers(wikiPath,options) {
               filepath: tiddlerFile.filepath,
               type: tiddlerFile.type,
               hasMetaFile: tiddlerFile.hasMetaFile,
-              isEditableFile: wikiInfo.config["retain-original-tiddler-path"] || tiddlerFile.isEditableFile || tiddlerFile.filepath.indexOf($tw.Bob.Wikis[options.prefix].wikiTiddlersPath) !== 0
+              isEditableFile: config["retain-original-tiddler-path"] || tiddlerFile.isEditableFile || tiddlerFile.filepath.indexOf($tw.Bob.Wikis[options.prefix].wikiTiddlersPath) !== 0
             };
           }
         });
@@ -1501,7 +1501,7 @@ ServerSide.createWiki = function(data, cb) {
     const fs = require("fs"),
       path = require("path");
     let name = GetWikiName(data.wikiName || data.newWiki);
-
+    // Check for security issues here
     if(data.nodeWikiPath) {
       // This is just adding an existing node wiki to the listing
       addListing(name, data.nodeWikiPath);
