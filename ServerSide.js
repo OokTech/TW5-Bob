@@ -18,14 +18,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// Setup unhandled promise logger for node
-process.on('unhandledRejection', (reason, promise) => {
-  $tw.Bob.logger.error('Unhandled Rejection at:', promise, 'reason:', reason, {level:1});
-  // Application specific logging, throwing an error, or other logic here
-});
-
 // A polyfilL to make this work with older node installs
-
 
 // START POLYFILL
 const reduce = Function.bind.call(Function.call, Array.prototype.reduce);
@@ -176,7 +169,7 @@ ServerSide.existsListed = function (wikiName) {
 }
 
 /*
-  This function loads a wiki that has a route listed and returns a Promise for further action.
+  This function loads a wiki and returns a timeout with any callback.
 */
 ServerSide.loadWiki = function (wikiName, cb) {
   const wikiFolder = ServerSide.existsListed(wikiName);
@@ -255,7 +248,7 @@ ServerSide.loadWiki = function (wikiName, cb) {
       $tw.hooks.invokeHook('wiki-loaded', wikiName);
     }
     if(typeof cb === 'function') {
-      setTimeout(function(){cb()}, 1000)
+      setTimeout(cb, 1000)
     }
   }
   return wikiFolder;

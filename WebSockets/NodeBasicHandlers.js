@@ -114,6 +114,7 @@ if($tw.node) {
       });
       $tw.Bob.logger.log('Node Save Tiddler', {level: 4});
       $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection, function(err, fileInfo) {
+        debugger;
 				if(err) {
           if($tw.Bob.Files[prefix][tiddler.fields.title].writeError == true){
             $tw.Bob.logger.log("Sync error while processing Save of '" + data.tiddler.fields.title + "'. Retrying.", err, {level: 1});

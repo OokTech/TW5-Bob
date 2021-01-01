@@ -16,8 +16,9 @@ exports.platforms = ["node"];
 
 if($tw.node) {
 
-  // Get a reference to the node utilities
-  const util = require("util");
+  // Get a reference to the file system
+  const fs = require("fs"),
+    path = require("path");
 
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.Files = $tw.Bob.Files || {};
@@ -30,23 +31,11 @@ if($tw.node) {
   $tw.Bob.ExcludeFilter = $tw.Bob.ExcludeFilter || "[prefix[$:/state/]][prefix[$:/temp/]][prefix[$:/HistoryList]][prefix[$:/WikiSettings]][[$:/status/UserName]][[$:/Import]][[$:/plugins/OokTech/Bob/Server Warning]]";
 
   $tw.hooks.addHook("th-make-tiddler-path", function(thePath, originalPath) {
-    return originalPath;
+    return thePath || originalPath;
   })
 
-  const loadWikiPromise = (prefix) => {
-    return new Promise((resolve, reject) => {
-      let path = $tw.ServerSide.loadWiki(prefix);
-      if(path){
-        resolve(path);
-      } else {
-        reject();
-      }
-    })
-  
-  }
-
   function MultiWikiAdaptor(options) {
-
+    this.wiki = options.wiki;
   }
 
   MultiWikiAdaptor.prototype.name = "MultiWikiAdaptor";
@@ -76,7 +65,7 @@ if($tw.node) {
   It is the responsibility of the filesystem adaptor to update $tw.Bob.Files[prefix][title] for new files that are created.
   */
   MultiWikiAdaptor.prototype.getTiddlerFileInfo = function(tiddler, prefix, callback) {
-    const self = this;
+    tiddler = tiddler || undefined;
     prefix = prefix || '';
     if(!callback) {
       callback = function (err, fileInfo) {
@@ -87,9 +76,15 @@ if($tw.node) {
         }
       }
     }
-    // Use a promise to ensure the wiki exists
-    loadWikiPromise(prefix).then(finish.bind(this));
+    // Generate the base filepath and ensure the directories exist
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      $tw.ServerSide.loadWiki(prefix, finish.bind(this));
+    } else {
+      finish.bind(this)();
+    }
     function finish() {
+      debugger;
       const tiddlersPath = $tw.Bob.Wikis[prefix].wikiTiddlersPath;
       // Always generate a fileInfo object when this fuction is called
       var title = tiddler.fields.title, newInfo, pathFilters, extFilters;
@@ -112,40 +107,13 @@ if($tw.node) {
     };
   };
 
-  /*
-  Given a tiddler title and a options object, generate a fileInfo object but do not save it 
-  */
-  MultiWikiAdaptor.prototype.generateCustomFileInfo = function(title, options) {
-    options = options || {};
-    const prefix = options.prefix || '';
-    // Use a promise to ensure the wiki exists
-    loadWikiPromise(prefix).then(finish.bind(this));
-    function finish() {
-      // Always generate a fileInfo object when this fuction is called
-      var tiddler = $tw.Bob.Wikis[prefix].wiki.getTiddler(title) || $tw.newTiddler({title: title}), newInfo, pathFilters, extFilters;
-      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemPaths")){
-        pathFilters = options.pathFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemPaths","").split("\n");
-      }
-      if($tw.Bob.Wikis[prefix].wiki.tiddlerExists("$:/config/FileSystemExtensions")){
-        extFilters = options.extFilters || $tw.Bob.Wikis[prefix].wiki.getTiddlerText("$:/config/FileSystemExtensions","").split("\n");
-      }
-      newInfo = $tw.utils.generateTiddlerFileInfo(tiddler,{
-        directory: options.directory,
-        pathFilters: pathFilters,
-        extFilters: extFilters,
-        wiki: $tw.Bob.Wikis[prefix].wiki,
-        fileInfo: $tw.Bob.Files[prefix][title],
-        originalpath: $tw.Bob.Wikis[prefix].wiki.extractTiddlerDataItem("$:/config/OriginalTiddlerPaths",title, "")
-      });
-      return newInfo;
-    }
-  };
 
   /*
   Save a tiddler and invoke the callback with (err,adaptorInfo,revision)
   */
   MultiWikiAdaptor.prototype.saveTiddler = function(tiddler, prefix, connectionInd, callback) {
     const self = this;
+    tiddler = tiddler || undefined;
     if(typeof prefix === 'function') {
       callback = prefix;
       prefix = null;
@@ -163,27 +131,29 @@ if($tw.node) {
     prefix = prefix || 'RootWiki';
     self.adaptorInfo = self.adaptorInfo || {};
     self.adaptorInfo[prefix] = self.adaptorInfo[prefix] || {};
-    // Use a promise to ensure the wiki exists
-    loadWikiPromise(prefix).then(finish.bind(this));
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    debugger;
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      $tw.ServerSide.loadWiki(prefix, finish.bind(this));
+    } else {
+      finish.bind(this)();
+    }
     function finish() {
+      debugger;
+      if(typeof(tiddler) == "undefined" || !tiddler || !tiddler.fields) return callback("Node Save Error - no tiddler fields given.");
       if($tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
-        if(typeof(tiddler) == "undefined" || !tiddler || !tiddler.fields) return callback("[" + prefix + "] Node Save Error - no tiddler fields given.");
-        tiddler = new $tw.Tiddler(tiddler.fields);
-        self.adaptorInfo[prefix][tiddler.fields.title] = $tw.utils.extend(Object.create(null), self.
-        getTiddlerInfo(tiddler, prefix));
-        debugger;
+        var tiddler = new $tw.Tiddler(tiddler);
+        self.adaptorInfo[prefix][tiddler.fields.title] = $tw.utils.extend(Object.create(null), self.getTiddlerInfo(tiddler, prefix));
         self.getTiddlerFileInfo(tiddler, prefix,
-         function(err,fileInfo) {
+        function(err,fileInfo) {
           if(err) {
             return callback(err);
           }
-          debugger;
-          $tw.Bob.logger.log('[' + prefix + '] Save Tiddler:', tiddler.fields.title, {level:2});
+          $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
           $tw.utils.saveTiddlerToFile(tiddler,fileInfo,function(err) {
-            debugger;
             if(err) {
               // If there's an error, exit without changing any internal wiki state
-              $tw.Bob.logger.log('[' + prefix + '] Error Saving Tiddler:', tiddler.fields.title, err, {level:1});
+              $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, err, {level:1});
               if ((err.code == "EPERM" || err.code == "EACCES") && err.syscall == "open") {
                 var bootInfo = $tw.Bob.Files[prefix][tiddler.fields.title];
                 bootInfo.writeError = true;
@@ -254,7 +224,8 @@ if($tw.node) {
         return err;
       }
     }
-    //call internalSave, for FileSystemWatchers on new files?
+    // call internalSave, for FileSystemWatchers on new files?
+    // store and return fileInfo?
     callback(null,null);
   };
 
@@ -274,9 +245,14 @@ if($tw.node) {
         callback("Delete Tiddler Error. No wiki given.");
       }
     }
-    // Use a promise to ensure the wiki exists
-    loadWikiPromise(prefix).then(finish.bind(this));
+    const prefix = options.wiki || "RootWiki";
+    if(!$tw.Bob.Wikis[prefix] || $tw.Bob.Wikis[prefix].State !== 'loaded') {
+      $tw.ServerSide.loadWiki(prefix, finish.bind(this));
+    } else {
+      finish.bind(this)();
+    }
     function finish() {
+      debugger;
       if(typeof(title) == "undefined" || !title || typeof title !== 'string') return callback("Delete Tiddler Error. No title given.");
       const fileInfo = self.getTiddlerInfo({fields: {title: title}}, prefix);
       // Only delete the tiddler if we have writable information for the file
