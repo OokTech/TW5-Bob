@@ -37,6 +37,8 @@ ActionUpdateSetting.prototype.render = function(parent,nextSibling) {
 Compute the internal state of the widget
 */
 ActionUpdateSetting.prototype.execute = function() {
+  this.name = this.getAttribute('$name', undefined)
+  this.value = this.getAttribute('$value', undefined)
 };
 
 /*
@@ -57,20 +59,38 @@ Invoke the action associated with this widget
 ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");
   let update = {};
+  let useThis = update;
   let remove = false;
+  if(this.name && this.value) {
+    const nameParts = this.name.split('/');
+    for(let i = 0; i < nameParts.length - 1; i++) {
+      useThis[nameParts[i]] = useThis[nameParts[i]] || {};
+      useThis = useThis[nameParts[i]];
+    }
+    try {
+      useThis[nameParts[nameParts.length - 1]] = JSON.parse(this.value);
+    } catch (e) {
+      useThis[nameParts[nameParts.length - 1]] = this.value;
+    }
+  }
   $tw.utils.each(this.attributes,function(name,attribute) {
     if(attribute.startsWith("$")) {
       if(attribute === "$remove") {
         remove = name;
       }
     } else {
+      const nameParts = attribute.split('/');
+      for(let i = 0; i < nameParts.length - 1; i++) {
+        useThis = useThis[nameParts[i]] || {};
+      }
       try {
-        update[attribute] = JSON.parse(name);
+        useThis[nameParts.length - 1] = JSON.parse(name);
       } catch (e) {
-        update[attribute] = name;
+        useThis[nameParts.length - 1] = name;
       }
     }
   });
+  console.log(update)
   const message = {
     "type": "updateSetting",
     "updateString": update,

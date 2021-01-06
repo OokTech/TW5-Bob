@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/AdminTab
+title: $:/plugins/OokTech/Bob/WikisTab
 caption: Admin
 
 \define publicEditState() $:/state/Bob/EditWikiPermissions/public/$(currentTiddler)$
@@ -33,7 +33,7 @@ There will be some sort of user profile setup here at some point.
   type=nomatch
   text=yes
 >
-  {{$:/Bob/Profile/About!!PublicProfile}}
+  {{$:/status/UserName!!visibility}}
   <$button
     class='tc-btn-invisible'
     tooltip='Edit Profile Public Status'
@@ -46,7 +46,7 @@ There will be some sort of user profile setup here at some point.
     />
     <$action-setfield
       $tiddler='$:/temp/Bob/PublicProfileOption'
-      text={{$:/Bob/Profile/About!!PublicProfile}}
+      text={{$:/status/UserName!!visibility}}
     />
   </$button>
 </$reveal>
@@ -59,7 +59,7 @@ There will be some sort of user profile setup here at some point.
     tiddler='$:/temp/Bob/PublicProfileOption'
   >
     <$list
-      filter=''
+      filter='Public Private [[Logged In Only]]'
       emptyMessage="<option value=''>--</option>"
     >
       <option>
@@ -78,8 +78,12 @@ There will be some sort of user profile setup here at some point.
       text='no'
     />
     <$action-setfield
-      $tiddler="$:/Bob/Profile/About!!PublicProfile"
-      text={{$:/temp/Bob/PublicProfileOption}}
+      $tiddler='$:/status/UserName'
+      visibility={{$:/temp/Bob/PublicProfileOption}}
+    />
+    <$action-websocketmessage
+      $type='setProfile'
+      visibility={{$:/temp/Bob/PublicProfileOption}}
     />
   </$button>
   <$button
@@ -114,7 +118,7 @@ There will be some sort of user profile setup here at some point.
     />
     <$action-setfield
       $tiddler='$:/temp/Bob/AboutMe'
-      text={{$:/Bob/Profile/About}}
+      text={{{ [[$:/status/VisibleProfile/]addsuffix{$:/status/UserName}get[text]] }}}
     />
   </$button>
 </$reveal>
@@ -137,6 +141,16 @@ There will be some sort of user profile setup here at some point.
       $tiddler="$:/state/Bob/AboutMeEdit"
       text=no
     />
+    <$wikify
+      text={{$:/temp/Bob/AboutMe}}
+      name=AboutMe
+      output=html
+    >
+      <$action-websocketmessage
+        $type='setProfile'
+        about=<<AboutMe>>
+      />
+    </$wikify>
   </$button>
   <$button
     class='tc-btn-invisible'
@@ -158,10 +172,10 @@ There will be some sort of user profile setup here at some point.
   text=yes
 >
   <$list
-    filter='[[$:/Bob/Profile/About]has[text]get[text]]'
+    filter='[[$:/status/VisibleProfile/]addsuffix{$:/status/UserName}has[text]]'
     emptyMessage='//No Information Given//'
   >
-    {{$:/Bob/Profile/AboutMe}}
+    <$transclude />
   </$list>
 </$reveal>
 <$reveal
@@ -170,6 +184,8 @@ There will be some sort of user profile setup here at some point.
   text=yes
 >
   <br>
+  Note: The contents of this will be wikified and saved as static html for
+  safety.
   <$edit-text
     tiddler='$:/temp/Bob/AboutMe'
     class='edit-about-me'
@@ -222,6 +238,10 @@ Click on a field to edit it.
             <$view
               field='visibility'
             />
+            <$action-setfield
+              $tiddler={{{ [[$:/temp/Bob/WikiVisibility/]addsuffix<currentTiddler>] }}}
+              text={{!!visibility}}
+            />
           </$button>
         </$reveal>
         <$reveal
@@ -230,35 +250,28 @@ Click on a field to edit it.
           state=<<publicEditState>>
         >
           ''Visibility:''
-          <$radio
-            tiddler=<<currentTiddler>>
-            field=visibility
-            value='Public'
-            class='tableradio'
+          <$select
+            tiddler={{{ [[$:/temp/Bob/WikiVisibility/]addsuffix<currentTiddler>] }}}
           >
-            Public
-          </$radio>
-          <$radio
-            tiddler=<<currentTiddler>>
-            field=visibility
-            value='Private'
-            class='tableradio'
-          >
-            Private
-          </$radio>
-          <$radio
-            tiddler=<<currentTiddler>>
-            field=visibility
-            value='LoggedInOnly'
-            class='tableradio'
-          >
-            Logged In Only
-          </$radio>
+            <$list
+              filter='Public Private [[Logged In Only]]'
+              emptyMessage="<option value=''>--</option>"
+            >
+              <option>
+                <<currentTiddler>>
+              </option>
+            </$list>
+          </$select>
           <$button
             set=<<publicEditState>>
             setTo=no
           >
             Ok
+            <$action-websocketmessage
+              $type='setVisibility'
+              wikiName={{{ [<currentTiddler>removeprefix[$:/Bob/OwnedWikis/]] }}}
+              visibility={{{ [[$:/temp/Bob/WikiVisibility/]addsuffix<currentTiddler>get[text]] }}}
+            />
           </$button>
           <$button
             set=<<publicEditState>>
@@ -373,6 +386,9 @@ access again.
     </th>
     <th>
       Editable
+    </th>
+    <th>
+      Owner
     </th>
   </tr>
   <$list

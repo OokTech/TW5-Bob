@@ -1,0 +1,39 @@
+title: $:/plugins/OokTech/Bob/PeopleTab
+caption: People
+
+Manage your relationships with people.
+
+!! People Listing
+
+These are the people on the server with profiles visible to you.
+
+<table
+  style='width:100%'
+>
+  <tr>
+    <th>
+      Name
+    </th>
+    <th>
+      Level
+    </th>
+    <th>
+      About
+    </th>
+  </tr>
+  <$list
+    filter='[prefix[$:/status/VisibleProfile/]]'
+  >
+    <tr>
+      <th>
+        <$text text={{{ [<currentTiddler>removeprefix[$:/status/VisibleProfile/]] }}} />
+      </th>
+      <td>
+        {{!!level}}
+      </td>
+      <td>
+        <$link to=<<currentTiddler>>>About</$link>
+      </td>
+    </tr>
+  </$list>
+</table>

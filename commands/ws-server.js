@@ -582,8 +582,8 @@ if($tw.node) {
     console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
 
     /*
-      This function checks to see if the current action is allowed with the access
-      level given by the supplied token
+      This function checks to see if the current action is allowed with the
+      access level given by the supplied token
 
       If access controls are not enabled than this just returns true and
       everything is allowed.
@@ -593,6 +593,15 @@ if($tw.node) {
       allowed for the wiki return true, otherwise false.
     */
     $tw.Bob.AccessCheck = function(fullName, token, action, category) {
+      return true;
+    }
+    /*
+      This function checks to see if creating a wiki or uploading a file is
+      allowed based on server quotas.
+      Using the normal Bob server you have no quotas so this always says it is
+      allowed.
+    */
+    $tw.Bob.CheckQuotas = function(data) {
       return true;
     }
 

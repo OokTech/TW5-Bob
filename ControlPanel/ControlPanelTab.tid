@@ -3,7 +3,7 @@ tags: $:/tags/ControlPanel
 caption: Bob
 
 Wiki Server Address (<$reveal type='nomatch' state='$:/ServerIP!!host' text='0.0.0.0'>not </$reveal>available on local network):
-<pre>{{$:/ServerIP}}:{{$:/ServerIP!!port}}</pre>
+<pre><$text text={{{ [{$:/ServerIP}addsuffix[:]addsuffix{$:/ServerIP!!port}] }}}/></pre>
 
 Click the ^^(?)^^ next to options for more information.
 
@@ -25,7 +25,8 @@ Click the ^^(?)^^ next to options for more information.
   tag=""
 >
 
-* [[Personal Admin|$:/plugins/OokTech/Bob/AdminTab]] - Manage your personal profile and settings for other peoples access to your wikis.
+* [[Wiki Access Settings|$:/plugins/OokTech/Bob/WikisTab]] - Manage access to your wikis and wikis that you have been given access to.
+* [[Profile and People|$:/plugins/OokTech/Bob/PeopleTab]] - View and manage your profile and your connections to other people using this server.
 </$reveal>
 * [[Written Documentation|$:/plugins/OokTech/Bob/Documentation/Bob Documentation]] - more details
 * [[About OokTech/Support Development|$:/plugins/OokTech/Bob/OokTechInfo]] - About the people who make Bob

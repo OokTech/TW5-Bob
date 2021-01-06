@@ -791,7 +791,6 @@ ServerSide.getViewableLanguagesList = function (data) {
 
 ServerSide.getViewableSettings = function(data) {
   const tempSettings = {};
-
   // section visible to anyone
   // Nothing that uses websocket stuff here because they only work when logged
   // in
@@ -804,6 +803,7 @@ ServerSide.getViewableSettings = function(data) {
   // Section visible by logged in people
   if(data.decoded) {
     tempSettings.backups = $tw.settings.backups;
+    tempSettings.defaultVisibility = $tw.settings.defaultVisibility;
     tempSettings.disableBrowserAlerts = $tw.settings.disableBrowserAlerts;
     tempSettings.editionLibrary = $tw.settings.editionLibrary;
     tempSettings.enableFileServer = $tw.settings.enableFileServer;
@@ -815,7 +815,7 @@ ServerSide.getViewableSettings = function(data) {
     tempSettings.namespacedWikis = $tw.settings.namespacedWikis;
     tempSettings.persistentUsernames = $tw.settings.persistentUsernames;
     tempSettings.perWikiFiles = $tw.settings.perWikiFiles;
-    tempSettings.pluginList = $tw.settings.pluginLibrary;
+    tempSettings.pluginLibrary = $tw.settings.pluginLibrary;
     tempSettings.profileOptions = $tw.settings.profileOptions;
     tempSettings.saveMediaOnServer = $tw.settings.saveMediaOnServer;
     tempSettings.themeLibrary = $tw.settings.themeLibrary;
@@ -880,8 +880,8 @@ ServerSide.listProfiles = function(data) {
   $tw.settings.profiles = $tw.settings.profiles || {};
   const result = {};
   Object.keys($tw.settings.profiles).forEach(function(profileName) {
-    if ($tw.Bob.AccessCheck(data.profileName, {"decoded": data.decoded}, 'view', 'profile')) {
-      result[profileName] = $tw.settings.profiles[data.profileName]
+    if ($tw.Bob.AccessCheck(profileName, data, 'view', 'profile') || $tw.Bob.AccessCheck(profileName, data, 'view/anyProfile', 'server')) {
+      result[profileName] = $tw.settings.profiles[profileName]
     }
   })
   return result;
@@ -1422,11 +1422,13 @@ function GetWikiName (wikiName, count, wikiObj, fullName) {
 
 ServerSide.createWiki = function(data, cb) {
   const authorised = $tw.Bob.AccessCheck('create/wiki', {"decoded": data.decoded}, 'create/wiki', 'server');
-  if(authorised) {
+  const quotasOk = $tw.Bob.CheckQuotas(data);
+  if(authorised && quotasOk) {
     const fs = require("fs"),
       path = require("path");
-    let name = GetWikiName(data.wikiName || data.newWiki);
-
+    // if we are using namespaced wikis prepend the logged in profiles name to
+    // the wiki name.
+    const name = ($tw.settings.namespacedWikis === 'yes') ? GetWikiName((data.decoded.name || 'imaginaryPerson') + '/' + (data.wikiName || data.newWiki || 'NewWiki')) : GetWikiName(data.wikiName || data.newWiki);
     if(data.nodeWikiPath) {
       // This is just adding an existing node wiki to the listing
       addListing(name, data.nodeWikiPath);
@@ -1440,12 +1442,11 @@ ServerSide.createWiki = function(data, cb) {
       // Make sure that the wiki to duplicate exists and that the target wiki
       // name isn't in use
       if($tw.ServerSide.existsListed(data.fromWiki)) {
-        const wikiName = name;//GetWikiName(data.newWiki);
         // Get the paths for the source and destination
         $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
         const source = $tw.ServerSide.getWikiPath(data.fromWiki);
         const basePath = $tw.ServerSide.getBasePath();
-        const destination = path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+        const destination = path.resolve(basePath, $tw.settings.wikisPath, name);
         data.copyChildren = data.copyChildren || 'no';
         const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
         // Make the duplicate
@@ -1454,7 +1455,7 @@ ServerSide.createWiki = function(data, cb) {
           data.update = 'true';
           data.saveSettings = 'true';
           $tw.ServerSide.updateWikiListing(data);
-          $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', wikiName, {level: 2})
+          $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', name, {level: 2})
           cb();
         });
       }
@@ -1471,15 +1472,6 @@ ServerSide.createWiki = function(data, cb) {
       // Wikis than wikis created will be in the basepath/Wikis/relativePath
       // folder I need better names here.
       $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
-      // This only does something for the secure wiki server
-      if($tw.settings.namespacedWikis === 'yes') {
-        data.decoded = data.decoded || {};
-        data.decoded.name = data.decoded.name || 'imaginaryPerson';
-        name = data.decoded.name + '/' + (data.wikiName || data.newWiki);
-        name = GetWikiName(name);
-        relativePath = name;
-        $tw.utils.createDirectory(path.join(basePath, data.decoded.name));
-      }
       const fullPath = path.join(basePath, data.wikisFolder, name)
       // For now we only support creating wikis with one edition, multi edition
       // things like in the normal init command can come later.

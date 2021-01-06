@@ -236,6 +236,11 @@ function BrowserWSAdaptor(options) {
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/status/IsReadOnly', text:data.read_only}));
       $tw.readOnly = data.read_only;
 
+      // Delete any info about owned wikis, this is here to clear the list if
+      // you log out
+      $tw.wiki.filterTiddlers('[prefix[$:/Bob/OwnedWikis]]').forEach(function(tidName) {
+        $tw.wiki.deleteTiddler(tidName);
+      })
       if(data.owned_wikis) {
         // save any info about owned wikis for the currently logged in person
         Object.keys(data.owned_wikis).forEach(function(wikiName) {
@@ -256,14 +261,38 @@ function BrowserWSAdaptor(options) {
           $tw.wiki.addTiddler(new $tw.Tiddler(tidFields));
         });
       }
-
-      if(data.username) { // This is only here with the secure server
-        $tw.wiki.addTiddler(new $tw.Tiddler({title: '$:/status/UserName', text: data.username}));
+      // Delete any listing for visible profiles, this makes sure they aren't
+      // left when you log out.
+      $tw.wiki.filterTiddlers('[prefix[$:/status/VisibleProfile/]]').forEach(function(tidName) {
+        $tw.wiki.deleteTiddler(tidName);
+      })
+      if(data.visible_profiles) {
+        Object.keys(data.visible_profiles).forEach(function(profileName) {
+          const tidFields = {
+            title: '$:/status/VisibleProfile/' + profileName,
+            visibility: data.visible_profiles[profileName].visibility,
+            text: $tw.wiki.renderText('text/html', "text/vnd.tiddlywiki", data.visible_profiles[profileName].about),
+            level: data.visible_profiles[profileName].level
+          };
+          $tw.wiki.addTiddler(new $tw.Tiddler(tidFields));
+        })
+      }
+      if(data.username) {
+        data.visible_profiles = data.visible_profiles || {};
+        data.visible_profiles[data.username] = data.visible_profiles[data.username] || {};
+        // This is only here with the secure server, add username and profile
+        // info
+        $tw.wiki.addTiddler(new $tw.Tiddler({title: '$:/status/UserName', text: data.username, visibility: data.visible_profiles[data.username].visibility, level: data.visible_profiles[data.username].level}));
+        $tw.wiki.addTiddler(new $tw.Tiddler({title: '$:/status/UserName/About', text: data.visible_profiles[data.username].about}));
       } else if(data['settings'].persistentUsernames === "yes") {
+        // In non-secure version load the username from
         const savedName = $tw.Bob.getCookie(document.cookie, "userName");
         if(savedName) {
           $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/status/UserName", text: savedName}));
+          $tw.wiki.deleteTiddler('$:/status/UserName/About');
         }
+      } else {
+        $tw.wiki.deleteTiddler('$:/status/UserName/About');
       }
     });
   }

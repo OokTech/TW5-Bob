@@ -429,7 +429,7 @@ if($tw.node) {
         alert: 'Updated 1 wiki settings.'
       };
       $tw.ServerSide.sendBrowserAlert(message);
-      $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
+      //$tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
     }
     if(typeof data.updateString !== 'undefined') {
       // Add/Update settings values
@@ -470,7 +470,7 @@ if($tw.node) {
           alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
+        //$tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
       } else {
         $tw.CreateSettingsTiddlers(data);
         const message = {
@@ -479,6 +479,7 @@ if($tw.node) {
         $tw.ServerSide.sendBrowserAlert(message);
       }
     }
+    $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
   }
 
   /*
@@ -488,12 +489,8 @@ if($tw.node) {
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);
     if($tw.ExternalServer) {
-      if(data.fromServer !== true && data.settingsString) {
-        // Get first tiddler to start out
-        settings = data.settingsString;
-        // save the settings to the database
-        require('./LoadConfig.js').saveSetting(JSON.parse(data.settingsString));
-      }
+      // save the settings to the database
+      $tw.saveSetting($tw.settings);
     } else {
       const path = require('path');
       const fs = require('fs');
@@ -545,6 +542,7 @@ if($tw.node) {
     } catch (e) {
       // something?
     }
+    /*
     if(typeof data.settingsString === "string") {
       try {
         $tw.updateSettings($tw.settings, JSON.parse(data.settingsString));
@@ -552,6 +550,7 @@ if($tw.node) {
         // nothing
       }
     }
+    */
     $tw.CreateSettingsTiddlers(data);
     const message = {
       alert: 'Saved wiki settings.',
