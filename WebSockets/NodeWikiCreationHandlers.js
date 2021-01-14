@@ -556,7 +556,7 @@ if($tw.node) {
       if($tw.ExternalServer) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
           const relativePath = path.relative(path.join(basePath, data.wikisFolder),destination);
-          //$tw.ExternalServer.initialiseWikiSettings(relativePath, data);
+          $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
         }
       }
     }
