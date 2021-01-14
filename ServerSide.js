@@ -1293,7 +1293,7 @@ ServerSide.updateWikiListing = function(data) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
           // This adds unlisted wikis as private and without giving them an
           // owner, so an admin needs to set the owner and stuff.
-          $tw.ExternalServer.initialiseWikiSettings(wikiName, {});
+          //$tw.ExternalServer.initialiseWikiSettings(wikiName, {});
         }
       } else {
         const nameParts = wikiName.split('/');
@@ -1422,7 +1422,7 @@ function GetWikiName (wikiName, count, wikiObj, fullName) {
 
 ServerSide.createWiki = function(data, cb) {
   const authorised = $tw.Bob.AccessCheck('create/wiki', {"decoded": data.decoded}, 'create/wiki', 'server');
-  const quotasOk = $tw.Bob.CheckQuotas(data);
+  const quotasOk = $tw.Bob.CheckQuotas(data, 'wiki');
   if(authorised && quotasOk) {
     const fs = require("fs"),
       path = require("path");
