@@ -1293,7 +1293,7 @@ ServerSide.updateWikiListing = function(data) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
           // This adds unlisted wikis as private and without giving them an
           // owner, so an admin needs to set the owner and stuff.
-          //$tw.ExternalServer.initialiseWikiSettings(wikiName, {});
+          $tw.ExternalServer.initialiseWikiSettings(wikiName, {});
         }
       } else {
         const nameParts = wikiName.split('/');
