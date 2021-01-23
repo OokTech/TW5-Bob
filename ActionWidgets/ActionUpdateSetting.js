@@ -84,9 +84,9 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
         useThis = useThis[nameParts[i]] || {};
       }
       try {
-        useThis[nameParts.length - 1] = JSON.parse(name);
+        useThis[nameParts[nameParts.length - 1]] = JSON.parse(name);
       } catch (e) {
-        useThis[nameParts.length - 1] = name;
+        useThis[nameParts[nameParts.length - 1]] = name;
       }
     }
   });

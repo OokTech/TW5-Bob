@@ -12,17 +12,10 @@ If you use a proxy that rewrites the path component of the wiki URL than you
 need to set the removed prefix in the settings so that the browser can connect
 to the websockets component of the server on the correct port.
 
-''Note:'' This is outdated, you should be able to ignore this setting now.
-
-The setting is in the `ws-server` section of the manual settings. An example
-`ws-server` is:
+The setting is in root section of the manual settings. An example is:
 
 ```
-'ws-server': {
-  "host":  "127.0.0.1",
-  "port":  "8090",
-  "proxyprefix": "wiki"
-}
+"proxyprefix": "wiki"
 ```
 
 you can add the leading `/` or not, so you could use `/wiki` or `wiki`.

@@ -71,6 +71,8 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     // Read the file and pass it to the parsing stuff
     if(file) {
       $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
+        console.log(output)
+        console.log(self.wikiName)
         if(output.length > 0) {
           const message = {
             "type": "newWikiFromTiddlers",

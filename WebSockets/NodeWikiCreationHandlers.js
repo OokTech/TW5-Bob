@@ -176,7 +176,7 @@ if($tw.node) {
           "decoded": data.decoded,
           "fromServer": true
         };
-        $tw.nodeMessageHandlers.createNewWiki(params, nextPart);
+        $tw.ServerSide.createWiki(params, nextPart);
         // Get the folder for the wiki tiddlers
         wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
         // Make sure tiddlers folder exists
@@ -200,8 +200,8 @@ if($tw.node) {
           // because we start with that
           if(tiddler.title !== '$:/core' && tiddler.title !== '$:/themes/tiddlywiki/snowwhite' && tiddler.title !== '$:/themes/tiddlywiki/vanilla') {
             $tw.syncadaptor.saveTiddler({fields: tiddler}, wikiName);
+            count++;
           }
-          count++;
         });
         // If there are external tiddlers to add try and add them
         let tempWiki = new $tw.Wiki();

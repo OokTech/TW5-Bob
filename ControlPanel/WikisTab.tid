@@ -318,6 +318,23 @@ Click on a field to edit it.
           >
             __something here__
           </$button>
+          <$button
+            set=<<viewersEditState>>
+            setTo=no
+          >
+            Ok
+            <$action-websocketmessage
+              $type='setVisibility'
+              wikiName={{{ [<currentTiddler>removeprefix[$:/Bob/OwnedWikis/]] }}}
+              visibility={{{ [[$:/temp/Bob/WikiVisibility/]addsuffix<currentTiddler>get[text]] }}}
+            />
+          </$button>
+          <$button
+            set=<<viewersEditState>>
+            setTo=no
+          >
+            Cancel
+          </$button>
         </$reveal>
       </td>
     </tr>

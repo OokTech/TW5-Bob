@@ -18,6 +18,7 @@ exports.platforms = ["node"];
 exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
+  if(false) { // disable federation stuff now
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
 
@@ -134,6 +135,7 @@ if($tw.node) {
       $tw.Bob.Federation.updateConnectionsInfo();
     }
   }
+  } // disable all federation stuff now
 
   /*
     This lets us shutdown the server from within the wiki.
@@ -167,25 +169,6 @@ if($tw.node) {
     // When the server receives a ping it sends back a pong.
     const response = JSON.stringify(message);
     $tw.connections[data.source_connection].socket.send(response);
-
-    // Add configuration stuff
-    $tw.nodeMessageHandlers.setConfigurationInterface(data);
-  }
-
-  /*
-    This uses the token to determine which configuration options should be
-    visible on the wiki and sends the appropriate tiddlers
-  */
-  $tw.nodeMessageHandlers.setConfigurationInterface = function (data) {
-    $tw.Bob.Shared.sendAck(data);
-    // I need to figure out what to put here
-    const fields = {
-      title: '$:/Bob/VisibleConfigurationTabs',
-      list: "hi"
-    }
-    const tiddler = {fields: fields}
-    const message = {type: 'saveTiddler', tiddler: tiddler, wiki: data.wiki}
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
     $tw.CreateSettingsTiddlers(data);
   }
 
@@ -429,7 +412,6 @@ if($tw.node) {
         alert: 'Updated 1 wiki settings.'
       };
       $tw.ServerSide.sendBrowserAlert(message);
-      //$tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
     }
     if(typeof data.updateString !== 'undefined') {
       // Add/Update settings values
@@ -470,7 +452,6 @@ if($tw.node) {
           alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
         };
         $tw.ServerSide.sendBrowserAlert(message);
-        //$tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
       } else {
         $tw.CreateSettingsTiddlers(data);
         const message = {
@@ -570,22 +551,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.unloadWiki = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    // make sure that there is a wiki name given.
-    if(data.wikiName) {
-      $tw.Bob.logger.log('Unload wiki ', data.wikiName, {level:1});
-      $tw.stopFileWatchers(data.wikiName);
-      // Make sure that the wiki is loaded
-      if($tw.Bob.Wikis[data.wikiName]) {
-        if($tw.Bob.Wikis[data.wikiName].State === 'loaded') {
-          // If so than unload the wiki
-          // This removes the information about the wiki and the wiki object
-          delete $tw.Bob.Wikis[data.wikiName];
-          // This removes all the info about the files for the wiki
-          delete $tw.Bob.Files[data.wikiName];
-        }
-      }
-      $tw.Bob.DisconnectWiki(data.wikiName);
-    }
+    $tw.Bob.unloadWiki(data.wikiName);
   }
 
   /*
@@ -593,7 +559,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getPluginList = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    const pluginNames = $tw.utils.getPluginInfo();
+    const pluginNames = $tw.ServerSide.getViewablePluginsList(data);
     const fields = {
       title: '$:/Bob/AvailablePluginList',
       list: $tw.utils.stringifyList(Object.keys(pluginNames))
@@ -614,7 +580,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getThemeList = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    const themeNames = $tw.utils.getThemeInfo();
+    const themeNames = ServerSide.getViewableThemesList(data);
     const fields = {
       title: '$:/Bob/AvailableThemeList',
       list: $tw.utils.stringifyList(Object.keys(themeNames))
@@ -1029,7 +995,6 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
 
     function thisCallback(prefix, filteredItems, urlPath) {
-      wikiName = wikiName || '';
       data.tiddler = data.tiddler || path.join('$:/state/fileList/', data.wiki, $tw.settings.fileURLPrefix, urlPath);
       data.field = data.field || 'list';
 
@@ -1218,7 +1183,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // Access is controlled by the listProfile function, it checks each profile
     // to see if the logged in person can view it.
-    const profiles = request.wiki.tw.ServerSide.listProfiles(data);
+    const profiles = $tw.ServerSide.listProfiles(data);
     const message = {
       type: "profileList",
       profiles: profiles

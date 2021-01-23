@@ -1,7 +1,7 @@
 title: $:/plugins/OokTech/Bob/Wiki Listing
 caption: Wiki Listing
 
-\define thisWikiListingMakeURL() /$(WikiName)$
+\define thisWikiListingMakeURL() /$(PROXYPREFIX)$$(WikiName)$
 
 \define thisWikiListingMakeWikiListingTab()
 <$action-setfield
@@ -59,6 +59,9 @@ caption: Wiki Listing
 
 ---
 
+<$vars
+  PROXYPREFIX={{{ [[$:/ServerIP]get[proxyprefix]addsuffix[/]minlength[2]] }}}
+>
 <$list
   filter='[[$:/settings/Bob/ListInSidebar]has[folding]get[folding]!prefix[true]limit[1]]'
   prefix='true'
@@ -92,6 +95,7 @@ caption: Wiki Listing
     </li>
   </$list>
 </$list>
+</$vars>
 \end
 
 <<makeWikiListing>>

@@ -4,7 +4,7 @@ tags: $:/tags/Macro
 
 \define thisFoldingWikiListingMakeState() $:/state/FoldingWikiList/$(currentTiddler)$/$(WikiPrefix)$$(WikiName)$
 
-\define thisFoldingWikiListingMakeURL() /$(WikiPrefix)$$(WikiName)$
+\define thisFoldingWikiListingMakeURL() /$(PROXYPREFIX)$$(WikiPrefix)$$(WikiName)$
 
 \define thisFoldingWikiListingMakeWikiListingTab()
 <$action-setfield
@@ -149,6 +149,7 @@ tags: $:/tags/Macro
 <$vars
   InputList=<<__source__>>
   Sep=<<__sep__>>
+  PROXYPREFIX={{{ [[$:/ServerIP]get[proxyprefix]addsuffix[/]minlength[2]] }}}
 >
   <ul
     class='folding-list'

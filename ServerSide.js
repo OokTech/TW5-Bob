@@ -778,7 +778,7 @@ ServerSide.getViewableEditionsList = function (data) {
 ServerSide.getViewableLanguagesList = function (data) {
   data = data || {};
   const viewableLanguages = {};
-  const languageList =  $tw.utils.getEditionInfo();
+  const languageList =  $tw.utils.getLanguageInfo();
   Object.keys(languageList).forEach(function(languageName) {
     if($tw.Bob.AccessCheck(languageName, {"decoded": data.decoded}, 'view', 'edition')) {
       Object.keys(languageList).forEach(function(index) {
@@ -1144,7 +1144,7 @@ ServerSide.deleteWiki = function(data, cb) {
   const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete', 'wiki');
   // Make sure that the wiki exists and is listed
   if($tw.ServerSide.existsListed(data.deleteWiki) && authorised) {
-    $tw.stopFileWatchers(data.deleteWiki)
+    $tw.Bob.unloadWiki(data.deleteWiki);
     const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
     if(data.deleteChildren === 'yes') {
       deleteDirectory(wikiPath).then(function() {
@@ -1347,7 +1347,7 @@ ServerSide.renameWiki = function(data, cb) {
   const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
   if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
     // Unload the old wiki
-    $tw.nodeMessageHandlers.unloadWiki({wikiName: data.oldWiki});
+    $tw.Bob.unloadWiki(data.oldWiki);
     const basePath = $tw.ServerSide.getBasePath();
     const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
     const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
@@ -1426,17 +1426,35 @@ ServerSide.createWiki = function(data, cb) {
   if(authorised && quotasOk) {
     const fs = require("fs"),
       path = require("path");
+    $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
     // if we are using namespaced wikis prepend the logged in profiles name to
     // the wiki name.
     const name = ($tw.settings.namespacedWikis === 'yes') ? GetWikiName((data.decoded.name || 'imaginaryPerson') + '/' + (data.wikiName || data.newWiki || 'NewWiki')) : GetWikiName(data.wikiName || data.newWiki);
+    const basePath = data.basePath || $tw.ServerSide.getBasePath();
+    const destination = path.resolve(basePath, $tw.settings.wikisPath, name);
+    $tw.utils.createDirectory(path.join(basePath, $tw.settings.wikisPath));
     if(data.nodeWikiPath) {
       // This is just adding an existing node wiki to the listing
       addListing(name, data.nodeWikiPath);
       data.fromServer = true;
       $tw.nodeMessageHandlers.saveSettings(data);
+      finish();
     } else if(data.tiddlers || data.externalTiddlers) {
+      data.tiddlers = data.tiddlers || data.externalTiddlers;
       // Create a wiki using tiddlers sent from the browser, this is what is
       // used to create wikis from existing html files.
+      // Start with an empty edition
+      const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
+      const editionPath = $tw.findLibraryItem('empty',searchPaths);
+      const err = $tw.ServerSide.specialCopy(editionPath, destination, true);
+      $tw.utils.createDirectory(path.join(basePath, $tw.settings.wikisPath, name));
+      for(let i = 0; i < data.tiddlers.length; i++) {
+        $tw.syncadaptor.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), name,
+        function(err,fileInfo) {
+          $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(data.tiddlers[i]), fileInfo)
+        })
+      }
+      finish();
     } else if(data.fromWiki) {
       // Duplicate a wiki
       // Make sure that the wiki to duplicate exists and that the target wiki
@@ -1445,8 +1463,6 @@ ServerSide.createWiki = function(data, cb) {
         // Get the paths for the source and destination
         $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
         const source = $tw.ServerSide.getWikiPath(data.fromWiki);
-        const basePath = $tw.ServerSide.getBasePath();
-        const destination = path.resolve(basePath, $tw.settings.wikisPath, name);
         data.copyChildren = data.copyChildren || 'no';
         const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
         // Make the duplicate
@@ -1456,52 +1472,30 @@ ServerSide.createWiki = function(data, cb) {
           data.saveSettings = 'true';
           $tw.ServerSide.updateWikiListing(data);
           $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', name, {level: 2})
-          cb();
+          finish();
         });
       }
     } else {
       // Paths are relative to the root wiki path
-      $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
-      data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
-      // If no basepath is given than the default is to place the folder in the
-      // default wikis folder
-      const basePath = data.basePath || $tw.ServerSide.getBasePath();
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath
       // data.wikisFolder is an optional sub-folder to use. If it is set to
       // Wikis than wikis created will be in the basepath/Wikis/relativePath
       // folder I need better names here.
-      $tw.utils.createDirectory(path.join(basePath, data.wikisFolder));
-      const fullPath = path.join(basePath, data.wikisFolder, name)
       // For now we only support creating wikis with one edition, multi edition
       // things like in the normal init command can come later.
       const editionName = data.edition?data.edition:"empty";
       const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
-      let editionPath = $tw.findLibraryItem(editionName,searchPaths);
-      if(!fs.existsSync(editionPath) && false) {
-        editionPath = undefined
-        editionPath = path.resolve(__dirname, "./editions", "./" + editionName);
-        if(fs.existsSync(editionPath)) {
-          try {
-            $tw.ServerSide.specialCopy(editionPath, fullPath);
-            $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-          } catch (e) {
-            $tw.Bob.logger.error('error copying edition ', editionName, e, {level:1});
-          }
-        } else {
-          $tw.Bob.logger.error("Edition not found ", editionName, {level:1});
-        }
+      const editionPath = $tw.findLibraryItem(editionName,searchPaths);
+      // Copy the edition content
+      const err = $tw.ServerSide.specialCopy(editionPath, destination, true);
+      if(!err) {
+        $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + destination + "\n", {level:2});
       } else {
-        // Copy the edition content
-        const err = $tw.ServerSide.specialCopy(editionPath, fullPath, true);
-        if(!err) {
-          $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + fullPath + "\n", {level:2});
-        } else {
-          $tw.Bob.logger.error(err, {level:1});
-        }
+        $tw.Bob.logger.error(err, {level:1});
       }
       // Tweak the tiddlywiki.info to remove any included wikis
-      const packagePath = path.join(fullPath, "tiddlywiki.info");
+      const packagePath = path.join(destination, "tiddlywiki.info");
       let packageJson = {};
       try {
         packageJson = JSON.parse(fs.readFileSync(packagePath));
@@ -1514,26 +1508,29 @@ ServerSide.createWiki = function(data, cb) {
       } catch (e) {
         $tw.Bob.logger.error('failed to write tiddlywiki.info ', e, {level:1})
       }
+      finish();
+    }
 
+    function finish() {
       // This is here as a hook for an external server. It is defined by the
       // external server and shouldn't be defined here or it will break
       // If you are not using an external server than this does nothing
       if($tw.ExternalServer) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
-          const relativePath = path.relative(path.join(basePath, data.wikisFolder),fullPath);
+          const relativePath = path.relative(path.join(basePath, data.wikisFolder),destination);
           $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
         }
       }
-    }
 
-    setTimeout(function() {
-      data.update = 'true';
-      data.saveSettings = 'true';
-      $tw.ServerSide.updateWikiListing(data);
-      if(typeof cb === 'function') {
-        setTimeout(cb, 1500);
-      }
-    }, 1000);
+      setTimeout(function() {
+        data.update = 'true';
+        data.saveSettings = 'true';
+        $tw.ServerSide.updateWikiListing(data);
+        if(typeof cb === 'function') {
+          setTimeout(cb, 1500);
+        }
+      }, 1000);
+    }
   }
 }
 
@@ -1675,23 +1672,40 @@ $tw.Bob.DisconnectWiki = function (wiki) {
   })
 }
 
-/*
-    This checks to see if a wiki has no connected sockets and if not it unloads
-    the wiki.
-  */
-  $tw.Bob.PruneConnections = function () {
-    if($tw.settings.autoUnloadWikis === "true") {
-      $tw.connections.forEach(function(connection) {
-        if(connection.socket !== undefined) {
-          if(connection.socket.readyState !== 1) {
-            //$tw.nodeMessageHandlers.unloadWiki({wikiName: connection.wiki});
-            connection.socket.terminate();
-            connection.socket = undefined;
-          }
-        }
-      })
+$tw.Bob.unloadWiki = function(wikiName) {
+  if(wikiName) {
+    $tw.Bob.logger.log('Unload wiki ', wikiName, {level:1});
+    $tw.stopFileWatchers(wikiName);
+    // Make sure that the wiki is loaded
+    if($tw.Bob.Wikis[wikiName]) {
+      if($tw.Bob.Wikis[wikiName].State === 'loaded') {
+        // If so than unload the wiki
+        // This removes the information about the wiki and the wiki object
+        delete $tw.Bob.Wikis[wikiName];
+        // This removes all the info about the files for the wiki
+        delete $tw.Bob.Files[wikiName];
+      }
     }
+    $tw.Bob.DisconnectWiki(wikiName);
   }
+}
+
+/*
+  This checks to see if a wiki has no connected sockets and if not it unloads
+  the wiki.
+*/
+$tw.Bob.PruneConnections = function () {
+  if($tw.settings.autoUnloadWikis === "true") {
+    $tw.connections.forEach(function(connection) {
+      if(connection.socket !== undefined) {
+        if(connection.socket.readyState !== 1) {
+          connection.socket.terminate();
+          connection.socket = undefined;
+        }
+      }
+    })
+  }
+}
 
 module.exports = ServerSide
 

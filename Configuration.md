@@ -18,6 +18,7 @@ marked in the explanations below.
   "pluginsPath": "./Plugins",
   "themesPath": "./Themes"
   "wikisPath": "./Wikis",
+  "proxyprefix": "wiki"
   "wikiPathBase": "cwd",
   "includePluginList": [],
   "excludePluginList": [],

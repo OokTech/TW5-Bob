@@ -33,6 +33,8 @@
     and any conflicts are handled like browser-server conflicts.
     - If there is security than the initiating server needs to get an access
       token from the other server.
-      - Syncing should be pretty much the same as when a browser reconnects otherwise. The local server logs into the remote server to get a token, then sends over the changes in the syncChanges message and the remote server then sends any new things to the local server. The conflicts are handled the same way as browser-server conflicts.
-- Add `@iarna/toml` as an external library and use toml instead of json for
-  configuration. (this doesn't work with the sandbox)
+      - Syncing should be pretty much the same as when a browser reconnects
+        otherwise. The local server logs into the remote server to get a token,
+        then sends over the changes in the syncChanges message and the remote
+        server then sends any new things to the local server. The conflicts are
+        handled the same way as browser-server conflicts.

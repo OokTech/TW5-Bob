@@ -1,5 +1,16 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.7.2 Puppies and Kittens
+
+* Put the proxyprefix setting back in so that links to other wikis are generated correctly when using a reverse proxy
+* Removed the ability to create wikis in arbitrary locations for security reasons
+* Make sure wikis in the browser are disconnected if the wiki is deleted from the server
+* Fix a bug that didn't properly parse variables in a macro
+* Use the proper function to find available languages
+* Re-add the ability to create a wiki from a single file wiki, at some point it was removed
+* Update where the wiki looks for the host to determine if the wikis are shared on the local network or not
+* Fix a bug introduced into action-updatesetting that broke a lot of things
+
 !! Version 1.7.1 Leftover Christmas Cookies
 
 * Clean up code to make the changes for using the external server work with normal Bob/BobEXE
