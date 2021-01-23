@@ -10,6 +10,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Re-add the ability to create a wiki from a single file wiki, at some point it was removed
 * Update where the wiki looks for the host to determine if the wikis are shared on the local network or not
 * Fix a bug introduced into action-updatesetting that broke a lot of things
+* Update the http api documentation
+* update the http api paths to make them more consistent
 
 !! Version 1.7.1 Leftover Christmas Cookies
 

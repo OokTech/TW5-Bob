@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-push
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-tiddlers-push
 tags: [[HTTP API]]
 verb: POST
 route: /api/tiddlers/push/:wikiname
@@ -10,3 +10,28 @@ This pushes tiddlers to a wiki.
 
 The wiki is selected by setting the `:wikiname` part of the url.
 The body of the post holds tiddlers is json format.
+
+Example:
+```
+/api/tiddlers/push/some/wiki
+```
+
+the POST body should be in the form:
+
+```
+[
+  {
+    fields: {
+      "title": "a title",
+      "other_field": "value"
+    }
+  },
+  {
+    fields: {
+      "tile": "other title",
+      "field": "value"
+    }
+  },
+  ...
+]
+```

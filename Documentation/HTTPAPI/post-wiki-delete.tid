@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/delete-wiki
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-wiki-delete
 tags: [[HTTP API]]
 verb: POST
 route: /api/wiki/delete/:wikiname
@@ -6,5 +6,12 @@ description: Delete a wiki
 
 This deletes the wiki `:wikiname` given in the URL.
 
-If the header `x-delete-children` is set to `yes` then any child wikis are also
+If the `deletechildren` parameter is set to `yes` then any child wikis are also
 deleted.
+
+
+Examples:
+```
+/api/wiki/delete/some/wiki
+/api/wiki/delete/awiki?deletechildren=yes
+```

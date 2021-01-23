@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-list-wikis
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-wikis-list
 tags: [[HTTP API]]
 verb: GET
 route: /api/wikis/list

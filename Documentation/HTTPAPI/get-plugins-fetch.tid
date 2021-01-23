@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/fetch-plugin
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-plugins-fetch
 tags: [[HTTP API]]
 verb: GET
 route: /api/plugins/fetch/:plugin

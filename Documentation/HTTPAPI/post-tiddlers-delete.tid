@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/delete-tiddler
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-tiddlers-delete
 tags: [[HTTP API]]
 verb: POST
 route: /api/tiddlers/delete/:wikiname

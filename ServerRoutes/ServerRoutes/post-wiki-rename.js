@@ -3,7 +3,7 @@ title: $:/plugins/OokTech/Bob/ServerRoutes/post-wiki-rename.js
 type: application/javascript
 module-type: serverroute
 
-POST /^\/api\/rename\/wiki\/<<wikiname>>\/?$/
+POST /^\/api\/wiki\/rename\/<<wikiname>>\/?$/
 
 Rename or move a wiki
 

@@ -12,3 +12,8 @@ This renames a wiki.
 new name.
 
 Anything in the POST body will be ignored.
+
+Examples
+```
+/api/wiki/rename/some/wiki?newname=ANewName
+```

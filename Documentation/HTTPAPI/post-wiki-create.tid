@@ -1,7 +1,7 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-create-wiki
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/post-wiki-create
 tags: [[HTTP API]]
 verb: POST
-route: /api/create/wiki/:wikiname
+route: /api/wiki/create/:wikiname
 response:
 parameters: name edition
 description: create a new wiki called :wikiname
@@ -14,17 +14,20 @@ wiki methods are supported.
 There are two options on the method used, create the wiki using an existing
 edition or duplicate an existing wiki.
 
-If you put a header called `x-edition` set to the edition you want to use it
-will create a new wiki using that edition.
+The edition to use when creating the new wiki, or the existing wiki to
+duplicate, are added as query parameters to the URL.
 
-If you put a header called `x-duplicate` set to a wiki name it will duplicate
-the listed wiki.
+the `edition` parameter will create a new wiki using the listed edition.
 
-The `duplicate` header overrules the `edition` header if they are both present.
-If there isn't either header a new wiki is created using the `empty` edition.
+the `duplicate` parameter will duplicate the listed wiki.
+
+The `duplicate` parameter overrules the `edition` header if they are both
+present.
+If there isn't either parameter a new wiki is created using the `empty` edition.
 
 Example:
 
 ```
-/api/create/wiki/my/wiki/name
+/api/create/wiki/my/wiki/name?edition=empty
+/api/create/wiki/my/wiki/name?duplicate=SomeWikiName
 ```

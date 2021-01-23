@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-list-files
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-files-list
 tags: [[HTTP API]]
 verb: GET
 route: /api/files/list /api/files/list/path/:prefix /api/files/list/wiki/:wikiname

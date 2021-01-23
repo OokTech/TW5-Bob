@@ -1,4 +1,4 @@
-title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-fetch-tiddlers
+title: $:/plugins/OokTech/Bob/Documentation/HTTPAPI/get-tiddlers-fetch
 tags: [[HTTP API]]
 verb: GET
 route: /api/tiddlers/fetch/:wikiname

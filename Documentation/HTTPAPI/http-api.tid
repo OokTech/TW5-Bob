@@ -24,18 +24,18 @@ creating new wikis and renaming wikis.
 The http api has the following routes:
 
 <$list
-  filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]each[verb]get[verb]]'
+  filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]each[verb]get[verb]sort[]]'
   variable='verb'
 >
   <h2>
     <<verb>>
   </h2>
 
----
+<hr>
 
   <ul>
   <$list
-    filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]verb<verb>]'
+    filter='[[$:/plugins/OokTech/Bob]plugintiddlers[]tag[HTTP API]verb<verb>sort[]]'
   >
     <li>
       <$link
@@ -52,44 +52,3 @@ The http api has the following routes:
   </$list>
   </ul>
 </$list>
-
-<!--
-
-!! GET
-
-GET routes are used in normal wiki operation, all parameters are part of the
-URL itself.
-URL parameters that get replaced are shown in the form `:parametername`, so
-everywhere there is `:wikiname` you replace it with the name of the wiki.
-If the wiki name has `/` or spaces they are included unmodified.
-
-* `/` - Load the RootWiki
-* `/favicon.ico` - Get the favicon for the RootWiki
-* `/:wikiname` - Load the wiki `:wikiname`
-* `/:wikiname/favicon.ico` - Load the favicon for the wiki `:wikiname`
-* `/files/:filename` - Load the file `:filename` from the globally available files
-* `/:wikiname/files/:filename` - Load the file `:filename` from the files for the wiki `:wikiname`
-* `/api/status` - get status information from the server
-* `/api/list/files` - get the list of globally available files
-* `/api/list/files/wiki/:wikiname` - get the list of files specific to the wiki `:wikiname`
-* `/api/list/files/path/:prefix` - get the list of files served using the prefix `:prefix`
-* `/api/list/wikis` - list available wikis
-* `/api/plugins/list` - get a list of plugins available on the server
-* `/api/plugins/fetch/:plugin` - fetch a plugin from the server
-* `/api/fetch` - fetch tiddlers from the server using a filter, the results are returned as json
-* `/api/fetch/list` - get a list of the tiddlers from a server using a filter
-* `/api/fetch/html` - fetch rendered html tiddlers from the server
-
-!! POST
-
-POST routes may require authentication and are used for things that aren't
-necessary for normal wiki activity.
-
-* `/api/push` - push tiddlers to a wiki on the server
-* `/api/upload` - upload a file to the server
-* `/api/rename/wiki` - rename/move a wiki
-* `/api/create/wiki` - create a new wiki
-* `/api/delete/wiki` - delete an existing wiki
-* `/api/delete/tiddler` - delete one or more tiddlers from a wiki
-
--->
