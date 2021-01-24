@@ -11,6 +11,9 @@ This is server functions that can be shared between different server types
 /*jslint node: true, browser: true */
 /*global $tw: false */
 
+if($tw.ServerSide) {
+  return $tw.ServerSide;
+} else {
 
 let ServerSide = {};
 
@@ -1708,5 +1711,6 @@ $tw.Bob.PruneConnections = function () {
 }
 
 module.exports = ServerSide
+}
 
 })();

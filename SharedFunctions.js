@@ -12,20 +12,15 @@ This has some functions that are needed by Bob in different places.
   /*global $tw: false */
   "use strict";
 
-  // Export name and synchronous status
-  exports.name = "web-sockets-setup";
-  exports.platforms = ["browser", "node"];
-  exports.after = ["render"];
-  exports.synchronous = true;
-
+$tw.Bob = $tw.Bob || {};
+if(!$tw.Bob.Shared) {
   let Shared = {};
   let idNumber = 0;
-
-  $tw.Bob = $tw.Bob || {};
+  let messageQueueTimer = false;
+  
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
   $tw.settings.advanced = $tw.settings.advanced || {};
-  let messageQueueTimer = false;
 
   /*
     This is used to parse cookie strings, both on the server and in the browser.
@@ -784,5 +779,8 @@ This has some functions that are needed by Bob in different places.
   }
 
   module.exports = Shared;
+} else {
+  return $tw.Bob.Shared;
+}
 
 })();

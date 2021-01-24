@@ -19,7 +19,7 @@ exports.synchronous = true;
 
 exports.startup = function () {
   if($tw.node) {
-    $tw.ServerSide = $tw.ServerSide || require('$:/plugins/OokTech/Bob/ServerSide.js');
+    $tw.ServerSide = require('$:/plugins/OokTech/Bob/ServerSide.js');
     // Make sure that $tw.settings is available.
     // require the fs module if we are running node
     const fs = require("fs");

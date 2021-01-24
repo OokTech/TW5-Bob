@@ -46,7 +46,7 @@ it will overwrite this file.
   $tw.Bob = $tw.Bob || {};
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
-  $tw.Bob.Shared = $tw.Bob.Shared || require('$:/plugins/OokTech/Bob/SharedFunctions.js');
+  $tw.Bob.Shared = require('$:/plugins/OokTech/Bob/SharedFunctions.js');
 	$tw.settings = $tw.settings || {};
 	$tw.settings.heartbeat = $tw.settings.heartbeat || {};
 	$tw.settings.heartbeat.PingTimer = false;
