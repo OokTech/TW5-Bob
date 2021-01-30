@@ -87,7 +87,7 @@ exports.startup = function() {
                     return false;
                   }
                 })[0];
-                if(['.tid', '.meta', '.js', '.css', '.json', '.md'].indexOf(fileExtension) !== -1) {
+                if(['.tid', '.meta', '.js', '.css', '.json', '.txt', '.md'].indexOf(fileExtension) !== -1) {
                   let tiddlerObject = {tiddlers:[{}]}
                   // This try block catches an annoying race condition problem
                   // when the filesystem adaptor deletes a file the file watcher
