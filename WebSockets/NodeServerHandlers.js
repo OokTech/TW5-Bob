@@ -995,6 +995,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
 
     function thisCallback(prefix, filteredItems, urlPath) {
+      const path = require('path');
       data.tiddler = data.tiddler || path.join('$:/state/fileList/', data.wiki, $tw.settings.fileURLPrefix, urlPath);
       data.field = data.field || 'list';
 
