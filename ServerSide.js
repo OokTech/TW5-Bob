@@ -764,7 +764,7 @@ ServerSide.getViewableEditionsList = function (data) {
   }
   data = data || {};
   const viewableEditions = {};
-  const editionList =  $tw.utils.getEditionInfo();
+  const editionList =  $tw.utils.getEditionInfoSafe();
   if($tw.settings.editionLibrary.allPublic === 'yes') {
     return editionList;
   }
