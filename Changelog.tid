@@ -1,6 +1,6 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.7.3 Intense Kitten
+!! Version 1.7.3 BETA Intense Kitten
 
 * Fix an error that caused crashes when a folder didn't exist when expected
 * Fix some file server bugs that prevented it from working in some cases
