@@ -33,6 +33,18 @@ caption: File Server
   />
 \end
 
+\define perWikiFilesCheckActions()
+  <$action-updatesetting
+    perWikiFiles='yes'
+  />
+\end
+
+\define perWikiFilesUncheckActions()
+  <$action-updatesetting
+    perWikiFiles='no'
+  />
+\end
+
 These are options for how to turn on and configure the file server included in
 Bob.
 
@@ -58,6 +70,18 @@ and make Bob available to the local network away from your home network.
   default='no'
 >
   Enable File Server
+</$checkbox>
+
+<$checkbox
+  checkactions=<<perWikiFilesCheckActions>>
+  uncheckactions=<<perWikiFilesUncheckActions>>
+  tiddler='$:/WikiSettings/split'
+  index='perWikiFiles'
+  checked='yes'
+  unchecked='no'
+  default='no'
+>
+  Per-Wiki Files
 </$checkbox>
 
 Files Folder: <<helpButton $:/plugins/OokTech/Bob/AboutFilePathRoot>>

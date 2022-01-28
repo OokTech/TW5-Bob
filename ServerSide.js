@@ -966,7 +966,9 @@ ServerSide.listFiles = function(data, cb) {
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     data.folder = data.folder || $tw.settings.fileURLPrefix;
     data.folder = data.folder.startsWith('/') ? data.folder : '/' + data.folder;
-    const wikiName = data.wiki || $tw.ServerSide.findName(data.folder);
+
+    // if the file is for a specfic wiki this lists the name, otherwise it is ''
+    const wikiName = $tw.ServerSide.findName(data.folder);
     const repRegex = new RegExp(`^\/?.+?\/?${$tw.settings.fileURLPrefix}\/?`)
     const thePath = data.folder.replace(repRegex, '').replace(/^\/*/,'');
     let fileFolder
@@ -1015,15 +1017,13 @@ ServerSide.listFiles = function(data, cb) {
       wikiName = wikiName || '';
       // if the folder listed in data.folder is either a child of the filePathRoot or if it is a child of one of the folders listed in the $tw.settings.servingFiles thing we will continue, otherwise end.
       const filePathRoot = $tw.ServerSide.getFilePathRoot();
-      const usedPaths = Object.values($tw.settings.servingFiles).map(function(item) {
-          return path.resolve($tw.ServerSide.getBasePath(), filePathRoot, item)
-        });
       const resolvedPath = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, folder);
       let match = false;
       if(authorised) {
         const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
+          '.bmp': 'image/bmp',
           '.csv': 'text/csv',
           '.doc': 'application/msword',
           '.epub': 'application/epub+zip',
@@ -1034,14 +1034,18 @@ ServerSide.listFiles = function(data, cb) {
           '.jpg': 'image/jpeg',
           '.jpeg': 'image/jpeg',
           '.mp3': 'audio/mpeg',
+          '.mp4': 'video/mp4',
           '.mpeg': 'video/mpeg',
           '.oga': 'audio/ogg',
           '.ogv': 'video/ogg',
           '.ogx': 'application/ogg',
           '.png': 'image/png',
+          '.pdf': 'application/pdf',
           '.svg': 'image/svg+xml',
+          '.txt': 'text/plain',
           '.weba': 'audio/weba',
           '.webm': 'video/webm',
+          '.webp': 'image/webp',
           '.wav': 'audio/wav'
         };
         const extList = data.mediaTypes || false;
@@ -1068,7 +1072,7 @@ ServerSide.listFiles = function(data, cb) {
             }
             // Reply with the list
             $tw.Bob.logger.log("Scanned ", resolvedPath, " for files, returned ", filteredItems, {level: 3});
-            cb(prefix, filteredItems, urlPath);
+            cb(prefix, filteredItems, urlPath, wikiName);
           }
         });
       }

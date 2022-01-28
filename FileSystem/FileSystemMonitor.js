@@ -74,10 +74,12 @@ exports.startup = function() {
               }
             } else {
               // Item exists
-              // If it is a new folder than watch that folder too
               if(fileStats.isDirectory()) {
+                // If it is a new folder than watch that folder too
                 $tw.Bob.WatchFolder(itemPath, prefix)
               } else if(fileStats.isFile()) {
+                // if it is a file
+                // Find the tiddler that matches the filepath
                 const tiddlerName = Object.keys($tw.Bob.Files[prefix]).filter(function (item) {
                   // This is to handle some edge cases I ran into while making
                   // it.

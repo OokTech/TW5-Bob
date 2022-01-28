@@ -1,5 +1,11 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.7.3 Intense Kitten
+
+* Fix an error that caused crashes when a folder didn't exist when expected
+* Fix some file server bugs that prevented it from working in some cases
+** tweak the way wiki specific files work
+
 !! Version 1.7.2 Puppies and Kittens
 
 * Put the proxyprefix setting back in so that links to other wikis are generated correctly when using a reverse proxy

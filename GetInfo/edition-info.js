@@ -23,24 +23,24 @@ exports.getEditionInfoSafe = function() {
   const editionPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
   editionInfo = {};
   for(let editionIndex=0; editionIndex<editionPaths.length; editionIndex++) {
-    const languagePath = path.resolve(editionPaths[editionIndex]);
+    const editionPath = path.resolve(editionPaths[editionIndex]);
     $tw.Bob.logger.log('Getting info for edition from ', editionPaths[editionIndex], {level:4});
     // Enumerate the folders
     try {
-      const editions = fs.readdirSync(languagePath);
-      editions.forEach(function(language) {
+      const editions = fs.readdirSync(editionPath);
+      editions.forEach(function(edition) {
         // Check if directories have a valid plugin.info
-        if(!editionInfo[language] && $tw.utils.isDirectory(path.resolve(languagePath,language))) {
+        if(!editionInfo[edition] && $tw.utils.isDirectory(path.resolve(editionPath,edition))) {
           let info = false;
           try {
-            info = JSON.parse(fs.readFileSync(path.resolve(languagePath,language,"plugin.info"),"utf8"));
-            $tw.Bob.logger.log('Got info for ', language, {level: 4});
+            info = JSON.parse(fs.readFileSync(path.resolve(editionPath,edition,"tiddlywiki.info"),"utf8"));
+            $tw.Bob.logger.log('Got info for ', edition, {level: 4});
           } catch(ex) {
-            $tw.Bob.logger.error('Reading language info failed ', ex, {level: 3});
-            $tw.Bob.logger.error('Failed to read language ', language, {level:4})
+            $tw.Bob.logger.error('Reading edition info failed ', ex, {level: 3});
+            $tw.Bob.logger.error('Failed to read edition ', edition, {level:4})
           }
           if(info) {
-            editionInfo[language] = info;
+            editionInfo[edition] = info;
           }
         }
       })
