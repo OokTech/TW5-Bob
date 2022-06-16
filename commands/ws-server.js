@@ -610,7 +610,11 @@ if($tw.node) {
     // Get the ip address to display to make it easier for other computers to
     // connect.
     const ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
-    const ipAddress = ip.address();
+    try {
+      var ipAddress = ip.address();
+    } catch (e) {
+      var ipAddress = ""
+    }
     $tw.settings.serverInfo = {
       ipAddress: ipAddress,
       port: port,
