@@ -30,4 +30,4 @@ delete the plugin tiddlers. Deleting the plugin tiddlers for plugins installed
 using this interface will not remove them, they have to be removed using this
 interface.
 
-<<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]]" "$:/plugins/OokTech/Bob/SelectPlugins">>
+<<tabs "[[$:/plugins/OokTech/Bob/SelectPlugins]][[$:/plugins/OokTech/Bob/SelectThemes]][[$:/plugins/OokTech/Bob/SelectLanguages]]" "$:/plugins/OokTech/Bob/SelectPlugins">>

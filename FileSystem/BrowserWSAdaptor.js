@@ -196,7 +196,7 @@ function BrowserWSAdaptor(options) {
 
       // Set available languages
       fields.title = '$:/Bob/AvailableLanguageList';
-      fields.text = $tw.utils.stringifyList(Object.keys(data['available_languages']));
+      fields.text = JSON.stringify(data['available_languages'], "", 2);
       fields.type = 'application/json';
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
 

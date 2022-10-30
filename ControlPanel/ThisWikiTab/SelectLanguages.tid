@@ -1,0 +1,75 @@
+title: $:/plugins/OokTech/Bob/SelectLanguages
+caption: Manage Languages
+
+<$button>
+  Save Language Selection
+  <$action-websocketmessage
+    $type='updateTiddlyWikiInfo'
+    languageList={{$:/Bob/ActiveLanguagesList!!list}}
+  />
+  <$action-websocketmessage
+    $type='unloadWiki'
+    wikiName={{$:/WikiName}}
+  />
+</$button> <<helpButton "$:/plugins/OokTech/Bob/AboutSavePluginSelection">>
+
+<a href='javascript:history.go(0)'>Refresh Page</a> <<helpButton "$:/plugins/OokTech/Bob/AboutRefreshPage">>
+
+<br>
+
+Search: <$edit-text
+  tiddler='$:/state/Bob/SearchLanguages'
+  default=''
+  placeholder='Search Languages'
+  tag='input'
+/>
+
+
+<$list
+  filter='[[$:/Bob/AvailableLanguageList]indexes[]]'
+>
+  <$list
+    filter='[list[$:/Bob/ActiveLanguagesList]match<currentTiddler>]'
+    emptyMessage="""
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+      />
+      <b>
+        <$view
+          field='title'
+        />
+      </b>
+      <$action-listops
+        $tiddler='$:/Bob/ActiveLanguagesList'
+        $subfilter='+[append<currentTiddler>]'
+      />
+    </$button>
+    :
+    <$view tiddler='$:/Bob/AvailableLanguageList' index=<<currentTiddler>>/>
+    <br>"""
+  >
+    <$button
+      class='tc-btn-invisible'
+    >
+      <input
+        type='checkbox'
+        checked
+      />
+      <b>
+        <$view
+          field='title'
+        />
+      </b>
+      <$action-listops
+        $tiddler='$:/Bob/ActiveLanguagesList'
+        $subfilter='+[remove<currentTiddler>]'
+      />
+    </$button>
+    :
+    <$view tiddler='$:/Bob/AvailableLanguageList' index=<<currentTiddler>>/>
+    <br>
+  </$list>
+</$list>
