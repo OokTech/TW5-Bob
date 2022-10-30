@@ -1,0 +1,21 @@
+{
+    "serverName": "Noh Neigh-m",
+    "scripts": {
+      "NewWiki": "tiddlywiki #wikiName --init #editionName"
+    },
+    "wikis": {
+
+    },
+    "ws-server": {
+      "port": 8080,
+      "host": "0.0.0.0",
+      "autoIncrementPort": false
+    },
+    "heartbeat": {
+      "interval": 1000
+    },
+    "wikisPath": "./Wikis",
+    "pluginsPath": "./Plugins",
+    "themesPath": "./Themes",
+    "servingFiles": {}
+  }

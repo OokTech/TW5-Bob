@@ -5,6 +5,10 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Fix an error that caused crashes when a folder didn't exist when expected
 * Fix some file server bugs that prevented it from working in some cases
 ** tweak the way wiki specific files work
+* Fix a problem with http upgrades on some servers
+** Thanks @dunkla!
+* Add Dockerfile
+** also some other additions and updates to support using docker
 
 !! Version 1.7.2 Puppies and Kittens
 

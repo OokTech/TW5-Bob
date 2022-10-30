@@ -306,7 +306,7 @@ if($tw.node) {
       }
     });
     httpServer.on('upgrade', function(request, socket, head) {
-      if(request.headers.upgrade === 'websocket') {
+      if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
         if(request.url === '/') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
