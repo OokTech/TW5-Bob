@@ -17,7 +17,7 @@ if(!$tw.Bob.Shared) {
   let Shared = {};
   let idNumber = 0;
   let messageQueueTimer = false;
-  
+
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
   $tw.settings.advanced = $tw.settings.advanced || {};
@@ -196,7 +196,7 @@ if(!$tw.Bob.Shared) {
         // conditions with the server and which was the last message can
         // get confused and it can even get stuck in infinite update
         // loops.
-        if(messageData.type === 'saveTiddler' && $tw.browser) {
+        if(false && messageData.type === 'saveTiddler' && $tw.browser) {
           // Each tiddler gets a timer invalidate the timer and reset it
           // each time we get a saveTiddler message for a tiddler
           clearTimeout($tw.Bob.Timers[messageData.title]);

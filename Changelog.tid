@@ -3,12 +3,16 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.7.3 BETA Intense Kitten
 
 * Fix an error that caused crashes when a folder didn't exist when expected
+** This should handle the problem where the core would crash if the folder Themes didn't exist
 * Fix some file server bugs that prevented it from working in some cases
 ** tweak the way wiki specific files work
 * Fix a problem with http upgrades on some servers
 ** Thanks @dunkla!
 * Add Dockerfile
 ** also some other additions and updates to support using docker
+* Fix language handling so Bob can actually use different translations
+* Turn off the save throttling in Bob because the core now has improved handling for the task queue so we don't have to work around it anymore.
+** This could still be sped up significantly if we update chooseNextTask in Syncer.js so that it can handle dispatching multiple tasks at once. At the moment it looks like the problem is handling retrying after an error.
 
 !! Version 1.7.2 Puppies and Kittens
 
