@@ -566,6 +566,8 @@ BrowserWSAdaptor.prototype.name = "browserwsadaptor"
 
 BrowserWSAdaptor.prototype.supportsLazyLoading = true
 
+BrowserWSAdaptor.prototype.supportsMultiSave = true
+
 // REQUIRED
 // Tiddler info, can be left like this but must be present
 BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
@@ -607,6 +609,45 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
         handleAck(e.detail)
       })
     }
+  }
+}
+
+// given an array of tiddlers save them all
+// tiddlers - an array of tiddler objects
+BrowserWSAdaptor.prototype.saveTiddlers = function (tiddlers, callback) {
+  const self = this;
+  function handleAck(ackId) {
+    const ind = self.idList.indexOf(ackId);
+    if(ind > -1) {
+      self.idList.splice(ind, 1)
+      callback(null, null)
+    }
+  }
+  const filteredTiddlers = tiddlers.filter(function(tiddler) {
+    return this.shouldSync(tiddler.fields.title);
+  })
+  const preparedTiddlers = filteredTiddlers.map(function(tiddler) {
+    let tempTid = {fields:{}};
+    Object.keys(tiddler.fields).forEach(function (field) {
+      if(field !== 'created' && field !== 'modified') {
+        tempTid.fields[field] = tiddler.fields[field];
+      } else {
+        tempTid.fields[field] = $tw.utils.stringifyDate(tiddler.fields[field]);
+      }
+    });
+    return tempTid;
+  })
+  const message = {
+    type: 'saveTiddlers',
+    tiddlers: preparedTiddlers,
+    wiki: $tw.wikiName
+  }
+  const id = sendToServer(message, callback);
+  if(id) {
+    this.idList.push(id);
+    $tw.rootWidget.addEventListener('handle-ack', function(e) {
+      handleAck(e.detail);
+    })
   }
 }
 

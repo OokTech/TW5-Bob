@@ -1,0 +1,8 @@
+title: $:/plugins/OokTech/Bob/Documentation/WebSocketMessage-saveTiddlers
+tags: [[Websocket Message]]
+caption: saveTiddlers
+description: A message for the backend, not human usable.
+
+A message for the backend, not human usable.
+
+If you use this in normal wikitext than it will probably break things and I will not offer any help fixing it.

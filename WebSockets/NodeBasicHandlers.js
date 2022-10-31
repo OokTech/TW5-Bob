@@ -144,6 +144,50 @@ if($tw.node) {
   }
 
   /*
+    This is the handler for when the browser sends the saveTiddlers message
+  */
+  $tw.nodeMessageHandlers.saveTiddlers = function(data) {
+    // Acknowledge the message
+    $tw.Bob.Shared.sendAck(data);
+    // Make sure there is actually tiddler data
+    if(data.tiddlers && data.tiddlers.length > 0) {
+      const prefix = data.wiki || '';
+      data.tiddlers.forEach(function(tiddler) {
+        $tw.nodeMessageHandlers.cancelEditingTiddler({
+          tiddler:{
+            fields:{
+              title: tiddler.fields.title
+            }
+          },
+          wiki: prefix
+        });
+        if(!$tw.Bob.Files[data.wiki][tiddler.fields.title]) {
+          $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
+        } else {
+          let changed = true;
+          try {
+            let tiddlerObject = {}
+            if(data.tiddler.fields._canonical_uri) {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][tiddler.fields.title].filepath+'.meta');
+            } else {
+              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][tiddler.fields.title].filepath);
+            }
+            // The file has the normal title so use the normal title here.
+            changed = $tw.Bob.Shared.TiddlerHasChanged(tiddler, tiddlerObject);
+          } catch (e) {
+            $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
+          }
+          if(changed) {
+            $tw.syncadaptor.saveTiddler(tiddler, prefix, data.source_connection);
+          }
+        }
+        delete $tw.Bob.EditingTiddlers[data.wiki][tiddler.fields.title];
+      });
+      $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
+    }
+  }
+
+  /*
     This is the handler for when the browser sends the deleteTiddler message.
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
