@@ -13,6 +13,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Fix language handling so Bob can actually use different translations
 * Turn off the save throttling in Bob because the core now has improved handling for the task queue so we don't have to work around it anymore.
 ** This could still be sped up significantly if we update chooseNextTask in Syncer.js so that it can handle dispatching multiple tasks at once. At the moment it looks like the problem is handling retrying after an error.
+* Start the process of adding multi-save ability to the syncadaptor
+* Fix a bug that caused the server to crash when the filePathRoot didn't exist
 
 !! Version 1.7.2 Puppies and Kittens
 

@@ -1055,7 +1055,7 @@ ServerSide.listFiles = function(data, cb) {
         fs.readdir(resolvedPath, function(err, items) {
           if(err || !items) {
             $tw.Bob.logger.error("Can't read files folder ", resolvedPath, " with error ", err, {level: 1});
-            cb(prefix, [], urlPath);
+            cb(prefix, [], urlPath, wikiName);
           } else {
             // filter the list to only include listed mimetypes.
             let filteredItems = items.filter(function(item) {

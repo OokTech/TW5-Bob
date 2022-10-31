@@ -184,7 +184,7 @@ nothing.
 !! Media in the FilePathRoot <<helpButton $:/plugins/OokTech/Bob/AboutListMediaInFilePathRoot>>
 
 <$button>
-  Fetch list of media in the filePathRoot folder
+  Fetch list of media in the <$text text=filePathRoot/> folder
   <$action-websocketmessage
     type='listFiles'
     folder='/files'
@@ -222,6 +222,7 @@ nothing.
 >
   <$list
     filter='[enlist{$:/state/fileList/files!!list}]'
+    emptyMessage="//No Files to Show//"
   >
     <$button>
       <<currentTiddler>>
