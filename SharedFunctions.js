@@ -188,25 +188,7 @@ if(!$tw.Bob.Shared) {
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
       if(!messageData.ack[index] && connection.socket.readyState === 1) {
-        // We have a slight delay before sending saveTiddler messages,
-        // this is because if you send them right away than you have
-        // trouble with fields that are edited outside the tiddler edit
-        // view (like setting the site title or subtitle) because a
-        // message is sent on each key press and it creates race
-        // conditions with the server and which was the last message can
-        // get confused and it can even get stuck in infinite update
-        // loops.
-        if(false && messageData.type === 'saveTiddler' && $tw.browser) {
-          // Each tiddler gets a timer invalidate the timer and reset it
-          // each time we get a saveTiddler message for a tiddler
-          clearTimeout($tw.Bob.Timers[messageData.title]);
-          // then reset the timer
-          $tw.Bob.Timers[messageData.title] = setTimeout(function() {
-            connection.socket.send(JSON.stringify(messageData.message));
-          }, $tw.settings.advanced.saveTiddlerDelay || 200);
-        } else {
-          connection.socket.send(JSON.stringify(messageData.message));
-        }
+        connection.socket.send(JSON.stringify(messageData.message));
       }
     }
   }
