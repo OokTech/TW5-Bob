@@ -18,7 +18,7 @@ exports.after = ["render"];
 exports.synchronous = true;
 
 exports.startup = function() {
-  if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
+  if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.Bob.Federation = $tw.Bob.Federation || {};
     $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
     $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};

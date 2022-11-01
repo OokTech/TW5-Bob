@@ -19,7 +19,7 @@ This has some functions that are needed by Bob in different places.
   exports.synchronous = true;
 
   exports.startup = function() {
-    if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
+    if($tw.node && $tw.settings.enableFederation === 'yes') {
 
       let idNumber = 0;
       let messageQueue = [];

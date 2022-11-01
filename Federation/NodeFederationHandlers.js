@@ -14,7 +14,7 @@ These are basic handlers for federation between different Bob servers.
 exports.platforms = ["node"];
 
 exports.startup = function() {
-  if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
+  if($tw.node && $tw.settings.enableFederation === 'yes') {
     $tw.settings.federation = $tw.settings.federation || {};
     $tw.Bob.Federation = $tw.Bob.Federation || {};
     $tw.Bob.Federation.messageHandlers = $tw.Bob.Federation.messageHandlers || {};

@@ -18,7 +18,7 @@ exports.after = ["websocket-server"];
 exports.synchronous = true;
 
 exports.startup = function() {
-  if(false && $tw.node && $tw.settings.enableFederation === 'yes') {
+  if($tw.node && $tw.settings.enableFederation === 'yes') {
     const dgram = require('dgram');
     const setup = function () {
       $tw.Bob = $tw.Bob || {};

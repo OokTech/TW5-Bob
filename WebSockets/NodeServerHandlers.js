@@ -18,7 +18,6 @@ exports.platforms = ["node"];
 exports.startup = function() {
 if($tw.node) {
   $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
-  if(false) { // disable federation stuff now
   $tw.Bob.Federation = $tw.Bob.Federation || {};
   $tw.Bob.Federation.remoteConnections = $tw.Bob.Federation.remoteConnections || {};
 
@@ -135,7 +134,6 @@ if($tw.node) {
       $tw.Bob.Federation.updateConnectionsInfo();
     }
   }
-  } // disable all federation stuff now
 
   /*
     This lets us shutdown the server from within the wiki.
@@ -349,7 +347,7 @@ if($tw.node) {
     }).map(function(messageData) {
       return messageData.title
     })
-    const excludeFilter = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync') || 
+    const excludeFilter = $tw.Bob.Wikis[data.wiki].wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync') ||
       $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/ExcludeSync')
     const excludeList = $tw.Bob.Wikis[data.wiki].wiki.filterTiddlers(excludeFilter.fields.text)
     const updateTiddlersList = serverTiddlerList.filter(function(tidTitle) {

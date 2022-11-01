@@ -1,6 +1,10 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.7.3 BETA Intense Kitten
+!! Version 1.7.4 Spooky Time
+
+* Reenable federation
+
+!! Version 1.7.3 Intense Kitten
 
 * Fix an error that caused crashes when a folder didn't exist when expected
 ** This should handle the problem where the core would crash if the folder Themes didn't exist
