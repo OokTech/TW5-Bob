@@ -126,7 +126,7 @@ if($tw.node) {
     $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
-    if($tw.node && $tw.settings.enableFederation === 'yes') {
+    if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
       $tw.Bob.Federation.updateConnections();
     }
   }

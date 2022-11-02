@@ -55,11 +55,20 @@ if($tw.node) {
       const WebSocket = require('$:/plugins/OokTech/Bob/External/WS/ws.js');
       if(Object.keys($tw.Bob.Federation.remoteConnections).indexOf(data.url) === -1 || $tw.Bob.Federation.remoteConnections[data.url].socket.readyState === WebSocket.OPEN) {
         try {
+          console.log(1)
           $tw.Bob.Federation.remoteConnections[data.url] = {}
+          console.log(2)
           $tw.Bob.Federation.remoteConnections[data.url].socket = new WebSocket(remoteSocketAddress)
+          console.log(3)
           /* TODO make the openRemoteSocket function authenticate the connection and destroy it if it fails authentication */
+          console.log('typeof openRemoteSocket ', typeof $tw.Bob.Federation.handleMessage)
           $tw.Bob.Federation.remoteConnections[data.url].socket.on('open', openRemoteSocket)
+          console.log(4)
           $tw.Bob.Federation.remoteConnections[data.url].socket.on('message', $tw.Bob.Federation.handleMessage)
+          console.log(5)
+          $tw.Bob.Federation.remoteConnections[data.url].socket.on('error', function something(err) {
+            console.log('there was a websocket error on a federated connection to ', data.url)
+          })
           /* TODO
             add a readable name and something for a key here so that a server
             can change it's url and maintain the same name across different
@@ -166,7 +175,7 @@ if($tw.node) {
     }
     // When the server receives a ping it sends back a pong.
     const response = JSON.stringify(message);
-    $tw.connections[data.source_connection].socket.send(response);
+    $tw.connections[data.source_connection].socket.send(response, function ack(err) {if(err) {console.log(err)}});
     $tw.CreateSettingsTiddlers(data);
   }
 

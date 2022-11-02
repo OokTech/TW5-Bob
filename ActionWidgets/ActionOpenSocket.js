@@ -68,7 +68,9 @@ ActionOpenSocket.prototype.invokeAction = function(triggeringWidget,event) {
 
 function openSocket(event) {
   console.log(event.target)
-  event.target.send('HI!')
+  event.target.send('HI!', function (ack) {
+    console.log('error in sending in openSocket function')
+  })
 }
 
 function parseMessage() {

@@ -166,6 +166,7 @@ exports.startup = function() {
         $tw.Bob.Federation.connections[data._source_info.serverKey].lastupdate = $tw.utils.stringifyDate(new Date());
         $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis = $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis || {};
         $tw.Bob.Federation.connections[data._source_info.serverKey].active = 'yes';
+        console.log('recevied data: ',data)
         data.info.available_wikis.forEach(function(wikiName) {
           if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis).indexOf(wikiName) === -1) {
             $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName] = {
@@ -651,7 +652,7 @@ exports.startup = function() {
         sync_filter: data.sync_filter,
         conflict_type: data.conflict_type
       }
-      remoteServerObject.send(JSON.stringify(message))
+      remoteServerObject.send(JSON.stringify(message), function ack(err) {if(err){console.log(err)}})
     }
     function handleRemoteReply(remoteServerObject, data) {
       if($tw.Bob.Federation.connections[data.remoteUrl].pendingAction == 'none') {

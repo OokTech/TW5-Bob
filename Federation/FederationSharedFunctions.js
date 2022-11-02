@@ -15,7 +15,7 @@ This has some functions that are needed by Bob in different places.
   // Export name and synchronous status
   exports.name = "federation-shared-functions";
   exports.platforms = ["node"];
-  exports.after = ["render"];
+  //exports.after = ["render"];
   exports.synchronous = true;
 
   exports.startup = function() {
@@ -198,17 +198,22 @@ This has some functions that are needed by Bob in different places.
           // Check to see if the token has changed
           messageQueue = removeOldTokenMessages(messageQueue);
           const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
+          console.log('sending the message: ', messageData.message, '\nto: ', messageData._target_info)
           if(messageBuffer.length > 2000) {
             chunkMessage(messageData, messageBuffer);
             checkMessageQueue();
           } else {
-            $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
-              if(err) {
-                $tw.Bob.logger.error(err,{level: 3});
-              } else {
-                checkMessageQueue();
-              }
-            })
+            try {
+              $tw.Bob.Federation.socket.send(messageBuffer, 0, messageBuffer.length, messageData._target_info.port, messageData._target_info.address, function(err) {
+                if(err) {
+                  $tw.Bob.logger.error(err,{level: 3});
+                } else {
+                  checkMessageQueue();
+                }
+              })
+            } catch (e) {
+              console.log('here 1', e)
+            }
           }
         }
       }
@@ -346,11 +351,11 @@ This has some functions that are needed by Bob in different places.
         data = data || {};
         if($tw.browser) {
           const token = localStorage.getItem('ws-token')
-          $tw.Bob.Federation.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}));
+          $tw.Bob.Federation.connections[0].socket.send(JSON.stringify({type: 'ack', id: data.id, token: token, wiki: $tw.wikiName}), function (ack) {if(err) {console.log(err)}});
         } else {
           if(data.id) {
             if(data.source_connection !== undefined && data.source_connection !== -1) {
-              $tw.Bob.Federation.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}));
+              $tw.Bob.Federation.connections[data.source_connection].socket.send(JSON.stringify({type: 'ack', id: data.id}), function ack(err) {if(err){console.log(err)}});
             }
           }
         }

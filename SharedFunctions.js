@@ -188,7 +188,11 @@ if(!$tw.Bob.Shared) {
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
       if(!messageData.ack[index] && connection.socket.readyState === 1) {
-        connection.socket.send(JSON.stringify(messageData.message));
+        connection.socket.send(JSON.stringify(messageData.message), function ack(err) {
+          if(err) {
+            console.log('there was an error sending a websocket message')
+          }
+        });
       }
     }
   }
@@ -747,14 +751,16 @@ if(!$tw.Bob.Shared) {
         id: data.id,
         token: token,
         wiki: $tw.wikiName
-      }));
+      }), function ack(err) {console.log('sending ack failed')});
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
           $tw.connections[data.source_connection].socket.send(JSON.stringify({
             type: 'ack',
             id: data.id
-          }));
+          }), function ack(err) {
+            console.log('sending ack failed')
+          });
         }
       }
     }

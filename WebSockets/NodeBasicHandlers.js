@@ -86,7 +86,7 @@ if($tw.node) {
     }
     // When the server receives a ping it sends back a pong.
     const response = JSON.stringify(message);
-    $tw.connections[data.source_connection].socket.send(response);
+    $tw.connections[data.source_connection].socket.send(response, function ack(err) {if(err) {console.log('failed to send a ping message')}});
   }
 
   /*

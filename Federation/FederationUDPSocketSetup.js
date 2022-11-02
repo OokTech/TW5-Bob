@@ -14,7 +14,7 @@ A module that adds the framework for inter-server communication
 
 exports.name = "federation-websockets-setup";
 exports.platforms = ["node"];
-exports.after = ["websocket-server"];
+//exports.after = ["websocket-server"];
 exports.synchronous = true;
 
 exports.startup = function() {
