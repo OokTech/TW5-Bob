@@ -198,7 +198,7 @@ This has some functions that are needed by Bob in different places.
           // Check to see if the token has changed
           messageQueue = removeOldTokenMessages(messageQueue);
           const messageBuffer = Buffer.from(JSON.stringify(messageData.message));
-          console.log('sending the message: ', messageData.message, '\nto: ', messageData._target_info)
+          console.log('sending ', messageData.message.type, 'to ', messageData._target_info.serverKey)
           if(messageBuffer.length > 2000) {
             chunkMessage(messageData, messageBuffer);
             checkMessageQueue();
@@ -212,7 +212,6 @@ This has some functions that are needed by Bob in different places.
                 }
               })
             } catch (e) {
-              console.log('here 1', e)
             }
           }
         }
@@ -418,6 +417,7 @@ This has some functions that are needed by Bob in different places.
         in the future it may be used for other things.
       */
       $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
+        console.log('try to send to remote server ', serverInfo.serverKey)
         const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
         if(messageData) {
           // This sends the message. The sendMessage function adds the message to

@@ -306,6 +306,7 @@ if($tw.node) {
       }
     });
     httpServer.on('upgrade', function(request, socket, head) {
+      console.log('upgrade request for path ', request.url)
       if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
         if(request.url === '/') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {

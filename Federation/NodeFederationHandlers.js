@@ -166,8 +166,8 @@ exports.startup = function() {
         $tw.Bob.Federation.connections[data._source_info.serverKey].lastupdate = $tw.utils.stringifyDate(new Date());
         $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis = $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis || {};
         $tw.Bob.Federation.connections[data._source_info.serverKey].active = 'yes';
-        console.log('recevied data: ',data)
-        data.info.available_wikis.forEach(function(wikiName) {
+        console.log('recevied server info from ', data._source_info.serverKey)
+        Object.keys(data.info.available_wikis).forEach(function(wikiName) {
           if(Object.keys($tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis).indexOf(wikiName) === -1) {
             $tw.Bob.Federation.connections[data._source_info.serverKey].available_wikis[wikiName] = {
               allows_login: 'no',
