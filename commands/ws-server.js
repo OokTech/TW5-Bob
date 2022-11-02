@@ -308,11 +308,13 @@ if($tw.node) {
     httpServer.on('upgrade', function(request, socket, head) {
       console.log('upgrade request for path ', request.url)
       if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
+        console.log('upgrade at step 2')
         if(request.url === '/') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
           });
         } else if(request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation === 'yes') {
+          console.log('federation path upgrade request')
           $tw.federationWss.handleUpgrade(request, socket, head, function(ws) {
             console.log('WSS federation upgrade')
             $tw.federationWss.emit('connection', ws, request);
