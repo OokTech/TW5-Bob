@@ -134,7 +134,7 @@ if($tw.node) {
 
       client.isAlive = false;
       client.ping();
-    })
+    }, 1000);
     const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
