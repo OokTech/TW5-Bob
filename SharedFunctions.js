@@ -184,6 +184,7 @@ if(!$tw.Bob.Shared) {
 
   function _sendMessage(connection, messageData) {
     const index = connection.index;
+    console.log("_sendMessage: ", messageData.type)
     // Here make sure that the connection is live and hasn't already
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
