@@ -135,7 +135,7 @@ function BrowserWSAdaptor(options) {
       console.log("close WS connection")
       //$tw.connections[0].socket.terminate(); // the writable part of this should emit a 'close' event
       $tw.connections[0].socket.close(); // the writable part of this should emit a 'close' event
-    }, 1000 + 1000);
+    }, 5000 + 1000);
   }
 
   /*
