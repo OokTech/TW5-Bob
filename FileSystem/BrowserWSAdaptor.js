@@ -110,8 +110,10 @@ function BrowserWSAdaptor(options) {
       // TODO: make the onclose handler for the socket handle the disconnection part
       //$tw.connections[connectionIndex].socket.on('open', heartbeat);
       $tw.connections[connectionIndex].socket.addEventListener('ping', heartbeat);
+      //$tw.connections[connectionIndex].socket.onmessage = heartbeat;
       $tw.connections[connectionIndex].socket.onclose = function clear() {
         clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
+        $tw.Bob.setup(true);
         // TODO try and reconnect here!
       };
     } catch (e) {
@@ -321,6 +323,7 @@ function BrowserWSAdaptor(options) {
     than the data is passed to the handler function.
   */
   const parseMessage = function(event) {
+    heartbeat();
     const eventData = JSON.parse(event.data);
     if(eventData.type) {
       if(typeof $tw.browserMessageHandlers[eventData.type] === 'function') {
