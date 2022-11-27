@@ -118,12 +118,23 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
+    function heartbeat() {
+      client.isAlive = true;
+    }
     $tw.Bob.logger.log("new connection", {level:2});
     $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);
+    client.on('pong', heartbeat);
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
-    $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
+    //$tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
+    client.index = Object.keys($tw.connections).length-1;
+    client.timeout = setInterval(function ping() {
+      if (client.isAlive === false) return ws.terminate();
+
+      client.isAlive = false;
+      client.ping();
+    })
     const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
