@@ -130,7 +130,8 @@ function BrowserWSAdaptor(options) {
   function heartbeat() {
     clearTimeout($tw.connections[0].socket.pingTimeout);
     $tw.connections[0].socket.pingTimeout = setTimeout(() => {
-      $tw.connections[0].socket.terminate(); // the writable part of this should emit a 'close' event
+      //$tw.connections[0].socket.terminate(); // the writable part of this should emit a 'close' event
+      $tw.connections[0].socket.close(); // the writable part of this should emit a 'close' event
     }, 1000 + 1000);
   }
 
