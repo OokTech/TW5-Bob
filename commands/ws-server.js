@@ -309,7 +309,9 @@ if($tw.node) {
       console.log('upgrade request for path ', request.url)
       if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
         console.log('upgrade at step 2')
+        console.log(typeof $tw.federationWss, $tw.settings.enableFederation)
         if(request.url === '/') {
+          console.log('normal wiki stuff')
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
           });

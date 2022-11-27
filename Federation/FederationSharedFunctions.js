@@ -417,7 +417,11 @@ This has some functions that are needed by Bob in different places.
         in the future it may be used for other things.
       */
       $tw.Bob.Federation.sendToRemoteServer = function(message, serverInfo, wiki, exclude) {
-        console.log('try to send to remote server ', serverInfo.serverKey)
+        if(serverInfo.serverKey !== 'tribulation') {
+          console.log('try to send to remote server ', serverInfo)
+        } else {
+          console.log('try to send to remote server ', serverInfo.serverKey)
+        }
         const messageData = createRemoteMessageData(message, wiki, serverInfo, exclude);
         if(messageData) {
           // This sends the message. The sendMessage function adds the message to

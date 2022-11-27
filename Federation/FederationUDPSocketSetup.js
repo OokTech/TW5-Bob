@@ -85,13 +85,26 @@ exports.startup = function() {
         $tw.Bob.Federation.updateConnections()
         $tw.Bob.logger.log('listening on udp port', $tw.settings.federation.udpPort, {level: 2})
         if($tw.settings.federation.enableMulticast === 'yes') {
-          $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '224.0.0.114';
+          $tw.settings.federation.multicastAddress = $tw.settings.federation.multicastAddress || '255.255.255.255';
           $tw.Bob.logger.log('using multicast address ', $tw.settings.federation.multicastAddress,{level: 2});
           $tw.Bob.Federation.socket.setTTL(128);
+          /*
           $tw.Bob.Federation.socket.setBroadcast(true);
           $tw.Bob.Federation.socket.setMulticastLoopback(false);
-          $tw.Bob.Federation.socket.setMulticastInterface('0.0.0.0');
-          $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, '0.0.0.0');
+          const interfaces = require('os').networkInterfaces();
+          Object.keys(interfaces).forEach(function(thisInterfaceName) {
+            if(!thisInterfaceName.startsWith('lo')) { // ignore the loopback things
+              const interfaceInfo = interfaces[thisInterfaceName]
+              interfaceInfo.forEach(function(info) {
+                console.log(thisInterfaceName, info.address)
+                if(info.family === 'IPv4') {
+                  $tw.Bob.Federation.socket.setMulticastInterface(info.address);
+                  $tw.Bob.Federation.socket.addMembership($tw.settings.federation.multicastAddress, info.address);
+                }
+              })
+            }
+          })
+          */
 
           // Broadcast a message informing other nodes that this one is on the
           // local net pubKey and signed will be used later, the public key and a
