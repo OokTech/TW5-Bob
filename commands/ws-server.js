@@ -133,6 +133,7 @@ if($tw.node) {
     client.timeout = setInterval(function ping() {
       if (client.isAlive === false) return ws.terminate();
 
+      console.log('here?')
       client.isAlive = false;
       client.ping();
     }, 1000);
