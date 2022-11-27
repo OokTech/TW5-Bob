@@ -160,6 +160,7 @@ function BrowserWSAdaptor(options) {
     fetch('/api/status', {credentials: 'include', headers: {'x-wiki-name': $tw.wikiName}})
     .then(response => response.json())
     .then(function(data) {
+      console.log('get settings thing 1')
       function doThisLevel (inputObject, currentName) {
         let currentLevel = {};
         Object.keys(inputObject).forEach( function (property) {
