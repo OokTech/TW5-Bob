@@ -119,6 +119,7 @@ if($tw.node) {
   */
   function handleConnection(client, request) {
     function heartbeat() {
+      console.log('heartbeat')
       client.isAlive = true;
     }
     $tw.Bob.logger.log("new connection", {level:2});

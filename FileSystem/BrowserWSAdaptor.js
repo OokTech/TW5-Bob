@@ -109,7 +109,7 @@ function BrowserWSAdaptor(options) {
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,''));
       // TODO: make the onclose handler for the socket handle the disconnection part
       //$tw.connections[connectionIndex].socket.on('open', heartbeat);
-      $tw.connections[connectionIndex].socket.addEventListener('ping', heartbeat);
+      $tw.connections[connectionIndex].socket.addEventListener('ping', function() {heartbeat();console.log('received ping');});
       //$tw.connections[connectionIndex].socket.onmessage = heartbeat;
       $tw.connections[connectionIndex].socket.onclose = function clear() {
         clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
