@@ -160,7 +160,6 @@ function BrowserWSAdaptor(options) {
     fetch('/api/status', {credentials: 'include', headers: {'x-wiki-name': $tw.wikiName}})
     .then(response => response.json())
     .then(function(data) {
-      console.log('get settings thing 1')
       function doThisLevel (inputObject, currentName) {
         let currentLevel = {};
         Object.keys(inputObject).forEach( function (property) {
@@ -324,6 +323,7 @@ function BrowserWSAdaptor(options) {
     than the data is passed to the handler function.
   */
   const parseMessage = function(event) {
+    console.log('parse message')
     heartbeat();
     const eventData = JSON.parse(event.data);
     if(eventData.type) {
