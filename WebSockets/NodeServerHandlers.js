@@ -23,7 +23,6 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.openRemoteConnection = function(data) {
     $tw.Bob.logger.log('openRemoteConnection', data, {level: 3})
-    $tw.Bob.Shared.sendAck(data);
     if(data.url) {
       function authenticateMessage() {
         return true
@@ -94,7 +93,6 @@ if($tw.node) {
     }
   */
   $tw.nodeMessageHandlers.sendRemoteMessage = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.$server && data.$message) {
       const newData = {
         type: data.$message
@@ -124,7 +122,6 @@ if($tw.node) {
     sent with the message and it is parsed here.
   */
   $tw.nodeMessageHandlers.updateFederatedConnectionInfo = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.tid_param) {
       $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].available_wikis[data.tid_param.name] || {};
       // $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] = $tw.Bob.Federation.connections[data.tid_param.server_name].availableWikis[data.tid_param.name] || {};
@@ -147,7 +144,6 @@ if($tw.node) {
     $tw.Bob.logger.log('Shutting down server.', {level:0});
     // TODO figure out if there are any cleanup tasks we should do here.
     // Sennd message to parent saying server is shutting down
-    $tw.Bob.Shared.sendAck(data);
     process.exit();
   }
 
@@ -161,7 +157,6 @@ if($tw.node) {
     - add any configuration interface things
   */
   $tw.nodeMessageHandlers.setLoggedIn = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     // Heartbeat. This can be done if the heartbeat is started or not because
     // if an extra heartbeat pong is heard it just shifts the timing.
     let message = {};
@@ -182,7 +177,6 @@ if($tw.node) {
     editors - the list of people who can edit the wiki
   */
   $tw.nodeMessageHandlers.setWikiPermissions = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // If the person doing this is owner of the wiki they can continue
     if($tw.ExternalServer) {
       $tw.ExternalServer.updatePermissions(data);
@@ -220,10 +214,9 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.syncChanges = function(data) {
     // Acknowledge the message.
-    $tw.Bob.Shared.sendAck(data);
     // Make sure that the wiki that the syncing is for is actually loaded
     // TODO make sure that this works for wikis that are under multiple levels
-    $tw.ServerSide.loadWiki(data.wiki);
+    $tw.syncadaptor.loadWiki(data.wiki);
     // Make sure that the server history exists
     $tw.Bob.ServerHistory = $tw.Bob.ServerHistory || {};
     $tw.Bob.ServerHistory[data.wiki] = $tw.Bob.ServerHistory[data.wiki] || [];
@@ -382,7 +375,6 @@ if($tw.node) {
   }
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
     if(data.remove && typeof data.remove === 'string') {
@@ -470,9 +462,10 @@ if($tw.node) {
   /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
+
+    TODO: Move file system things somewhere else
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     if($tw.ExternalServer) {
       // save the settings to the database
       $tw.saveSetting($tw.settings);
@@ -554,7 +547,6 @@ if($tw.node) {
     them. But I don't know how to do that without deleting the tiddlers.
   */
   $tw.nodeMessageHandlers.unloadWiki = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     $tw.Bob.unloadWiki(data.wikiName);
   }
 
@@ -562,7 +554,6 @@ if($tw.node) {
     This sends a list of all available plugins to the wiki
   */
   $tw.nodeMessageHandlers.getPluginList = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const pluginNames = $tw.ServerSide.getViewablePluginsList(data);
     const fields = {
       title: '$:/Bob/AvailablePluginList',
@@ -583,7 +574,6 @@ if($tw.node) {
     This sends a list of all available plugins to the wiki
   */
   $tw.nodeMessageHandlers.getThemeList = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const themeNames = ServerSide.getViewableThemesList(data);
     const fields = {
       title: '$:/Bob/AvailableThemeList',
@@ -603,9 +593,10 @@ if($tw.node) {
   /*
     This loads the tiddlywiki.info and if new versions are given it updates the
     description, list of plugins, themes and languages
+
+    TODO: maybe move file system things somewhere else (may not be able to)
   */
   $tw.nodeMessageHandlers.updateTiddlyWikiInfo = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.wiki) {
       const path = require('path')
       const fs = require('fs')
@@ -642,16 +633,17 @@ if($tw.node) {
 
     But first it checks the plugin version to make sure that it is newer than
     the existing one
+
+    TODO: maybe move file system stuff somewhere else
   */
   $tw.nodeMessageHandlers.savePluginFolder = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.plugin) {
       const fs = require('fs')
       const path = require('path')
       const pluginTiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.plugin)
       if(pluginTiddler) {
         const pluginName = data.plugin.replace(/^\$:\/plugins\//, '')
-        const basePath = $tw.ServerSide.getBasePath()
+        const basePath = $tw.syncadaptor.getBasePath()
         const pluginFolderPath = path.resolve(basePath, $tw.settings.pluginsPath, pluginName)
         const pluginInfoPath = path.join(pluginFolderPath, 'plugin.info')
         let isNewVersion = true
@@ -727,9 +719,10 @@ if($tw.node) {
   /*
     Given a url that points to either github, gitlab or a zip file with a
     plugin this gets the plugin and adds it to the plugins on the server.
+
+    TODO: maybe move file system stuff somewhere else
   */
   $tw.nodeMessageHandlers.getGitPlugin = function(data) {
-    $tw.Bob.Shared.sendAck(data)
     if(data.url) {
       // Special handling for github, we will see about other things later.
       if(!data.url.toLowerCase().endsWith('.zip')) {
@@ -782,7 +775,7 @@ if($tw.node) {
               // Check versions
               exists = true;
             }
-            const basePath = $tw.ServerSide.getBasePath()
+            const basePath = $tw.syncadaptor.getBasePath()
             const pluginsPath = path.resolve(basePath, $tw.settings.pluginsPath);
             // If we don't have the plugin than create the plugin folder, also
             // creating the author folder if we don't have it already.
@@ -844,9 +837,10 @@ if($tw.node) {
     global puts the files in the global folder
     wiki puts the files in the wiki specific folder
 
+    TODO: maybe move file system things somewehre else
+
   */
   $tw.nodeMessageHandlers.makeImagesExternal = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'makeImagesExternal', 'server');
     if(authorised) {
       $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files'
@@ -854,13 +848,13 @@ if($tw.node) {
       const fs = require('fs');
       // Get all the tiddlers that have a media type we care about
       // Get files path
-      const basePath = $tw.ServerSide.getBasePath()
+      const basePath = $tw.syncadaptor.getBasePath()
       let midPath;
       if(data.storeIn !== 'wiki') {
         midPath = path.join($tw.settings.wikisPath, data.wiki);
       } else {
         //midPath = $tw.settings.filePathRoot;
-        midPath = $tw.ServerSide.getFilePathRoot();
+        midPath = $tw.syncadaptor.getFilePathRoot();
       }
       let filesPath;
       if(data.storeIn !== 'wiki') {
@@ -926,8 +920,7 @@ if($tw.node) {
     If the new name is an existing wiki than this won't do anything.
   */
   $tw.nodeMessageHandlers.renameWiki = function(data) {
-    $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.renameWiki(data, function(e) {
+    $tw.syncadaptor.renameWiki(data, function(e) {
       if(!e) {
         const message = {
           alert: 'Renamed ' + data.oldWiki + ' to ' + data.newWiki
@@ -957,8 +950,7 @@ if($tw.node) {
     tiddlers folder is removed.
   */
   $tw.nodeMessageHandlers.deleteWiki = function(data) {
-    $tw.Bob.Shared.sendAck(data)
-    $tw.ServerSide.deleteWiki(data, thisCallback);
+    $tw.syncadaptor.deleteWiki(data, thisCallback);
 
     function thisCallback(err) {
       let message;
@@ -996,7 +988,6 @@ if($tw.node) {
     TODO figure out the authorisation level for this one
   */
   $tw.nodeMessageHandlers.listFiles = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     function thisCallback(prefix, filteredItems, urlPath, wikiName) {
       data.tiddler = data.tiddler || path.join('$:/state/fileList/', wikiName, $tw.settings.fileURLPrefix, urlPath);
@@ -1051,14 +1042,15 @@ if($tw.node) {
     TODO - figure out what permission this one should go with
     TODO - maybe add some check to limit where the folders can be
     TODO - add a flag to add folders to the static file server component
+
+    TODO - figure out if we should move this into a file system specific script
   */
   $tw.nodeMessageHandlers.mediaScan = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     data.prefix = data.prefix || 'prefix';
     const path = require('path');
     const fs = require('fs');
     const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'serverAdmin');
-    const filePathRoot = $tw.ServerSide.getFilePathRoot();
+    const filePathRoot = $tw.syncadaptor.getFilePathRoot();
     $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
     if(authorised) {
       $tw.settings.servingFiles[data.prefix] = data.folder;
@@ -1101,14 +1093,14 @@ if($tw.node) {
           $tw.settings.filePathRoot = './files';
         }
         */
-        const mediaDir = path.resolve($tw.ServerSide.getBasePath(), filePathRoot, data.folder)
+        const mediaDir = path.resolve($tw.syncadaptor.getBasePath(), filePathRoot, data.folder)
         if($tw.utils.isDirectory(mediaDir)) {
           fs.readdir(mediaDir, function(err, files) {
             if(err) {
               $tw.Bob.logger.error('Error scanning folder', data.folder, {level:1});
               return;
             }
-            const uriPrefix = '/' + path.relative($tw.ServerSide.getBasePath(), mediaDir);
+            const uriPrefix = '/' + path.relative($tw.syncadaptor.getBasePath(), mediaDir);
             if(data.keepBroken !== true) {
               // get a list of all tiddlers with _canonical_uri fields that
               // point to this folder.
@@ -1184,7 +1176,6 @@ if($tw.node) {
     List visible profiles
   */
   $tw.nodeMessageHandlers.listProfiles = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // Access is controlled by the listProfile function, it checks each profile
     // to see if the logged in person can view it.
     const profiles = $tw.ServerSide.listProfiles(data);

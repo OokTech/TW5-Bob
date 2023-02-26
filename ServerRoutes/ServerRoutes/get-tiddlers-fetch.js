@@ -50,9 +50,9 @@ exports.handler = function(request,response,state) {
           if($tw.settings.wikis[wikiName] || wikiName === 'RootWiki') {
             // If the wiki isn't loaded than load it
             if(!$tw.Bob.Wikis[wikiName]) {
-              $tw.ServerSide.loadWiki(wikiName);
+              $tw.syncadaptor.loadWiki(wikiName);
             } else if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-              $tw.ServerSide.loadWiki(wikiName);
+              $tw.syncadaptor.loadWiki(wikiName);
             }
             // Make sure that the wiki exists and is loaded
             if($tw.Bob.Wikis[wikiName]) {

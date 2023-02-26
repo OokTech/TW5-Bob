@@ -1,3 +1,5 @@
+const { sendAck } = require("../SharedFunctions");
+
 /*\
 title: $:/plugins/OokTech/Bob/commands/wsserver.js
 type: application/javascript
@@ -23,6 +25,20 @@ if($tw.node) {
   const URL = require("url"),
     path = require("path"),
     http = require("http");
+
+    function getBasePath() {
+      const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+      let basePath = '';
+      $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
+      if($tw.settings.wikiPathBase === 'homedir') {
+        basePath = os.homedir();
+      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+        basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+      } else {
+        basePath = path.resolve(currPath, $tw.settings.wikiPathBase);
+      }
+      return basePath;
+    }
 
   /*
     The websocket components
@@ -86,6 +102,9 @@ if($tw.node) {
           // Check authorisation
           const authorised = authenticateMessage(eventData);
           if(authorised) {
+            if (eventData.type !== 'ack') {
+              $tw.Bob.Shared.sendAck(eventData);
+            }
             eventData.decoded = authorised;
             $tw.nodeMessageHandlers[eventData.type](eventData);
           }
@@ -118,25 +137,12 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
-    function heartbeat() {
-      console.log('heartbeat')
-      client.isAlive = true;
-    }
     $tw.Bob.logger.log("new connection", {level:2});
     $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);
-    client.on('pong', heartbeat);
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
-    //$tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
-    client.index = Object.keys($tw.connections).length-1;
-    client.timeout = setInterval(function ping() {
-      if (client.isAlive === false) return ws.terminate();
-
-      console.log('here?')
-      client.isAlive = false;
-      client.ping();
-    }, 1000);
+    $tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
@@ -319,12 +325,8 @@ if($tw.node) {
       }
     });
     httpServer.on('upgrade', function(request, socket, head) {
-      console.log('upgrade request for path ', request.url)
       if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
-        console.log('upgrade at step 2')
-        console.log(typeof $tw.federationWss, $tw.settings.enableFederation)
         if(request.url === '/') {
-          console.log('normal wiki stuff')
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
             $tw.wss.emit('connection', ws, request);
           });
@@ -556,7 +558,7 @@ if($tw.node) {
       createSaverServer()
     }
 
-    const basePath = $tw.ServerSide.getBasePath();
+    const basePath = getBasePath();
     $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';
     if(typeof $tw.settings.pluginsPath === 'string') {
       const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);

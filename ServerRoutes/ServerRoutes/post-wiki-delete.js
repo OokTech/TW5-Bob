@@ -39,7 +39,7 @@ exports.handler = function(request,response,state) {
         deleteWiki: toDelete,
         deleteChildren: deleteChildren
       }
-      $tw.ServerSide.deleteWiki(data, cb);
+      $tw.syncadaptor.deleteWiki(data, cb);
       function cb(e) {
         if(e) {
           response.writeHead(500, {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true", "Access-Control-Allow-Headers": "*"});

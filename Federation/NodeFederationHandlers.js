@@ -37,7 +37,7 @@ exports.startup = function() {
         let output = []
         Object.keys(obj).forEach(function(item) {
           if(typeof obj[item] === 'string') {
-            if($tw.ServerSide.existsListed(prefix+item)) {
+            if($tw.syncadaptor.existsListed(prefix+item)) {
               if(item == '__path') {
                 if(prefix.endsWith('/')) {
                   output.push(prefix.slice(0,-1));
@@ -244,7 +244,7 @@ exports.startup = function() {
         }, 10000);
         // Ask for hashes for the wikis
         // Request the hashes
-        const test = $tw.ServerSide.loadWiki(data.tid_param.name);
+        const test = $tw.syncadaptor.loadWiki(data.tid_param.name);
         if(!test) {
           $tw.Bob.logger.log('no wiki?', data, {level: 3});
           return;
@@ -277,7 +277,7 @@ exports.startup = function() {
       if(data.hashes && data.fromWiki) {
         const tiddlersToRequest = [];
         const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.fromWiki].local_name || data.fromWiki;
-        const test = $tw.ServerSide.loadWiki(localName);
+        const test = $tw.syncadaptor.loadWiki(localName);
         if(!test) {
           const wikiData = {
             wikiName: localName
@@ -287,7 +287,7 @@ exports.startup = function() {
           nextBit();
         }
         function nextBit() {
-          const test = $tw.ServerSide.loadWiki(localName);
+          const test = $tw.syncadaptor.loadWiki(localName);
           Object.keys(data.hashes).forEach(function(rawTitle) {
             const tidTitle = decodeURIComponent(rawTitle);
             if(typeof tidTitle !== 'string') {
@@ -340,7 +340,7 @@ exports.startup = function() {
       $tw.Bob.logger.log('receive sendTiddlers', {level: 4})
       if(typeof data.tiddlers === 'object') {
         const localName = $tw.Bob.Federation.connections[data.serverName].available_wikis[data.wikiName].local_name || data.wikiName;
-        $tw.ServerSide.loadWiki(localName, function() {
+        $tw.syncadaptor.loadWiki(localName, function() {
           Object.values(data.tiddlers).forEach(function(tidFields) {
             if(!tidFields) {
               return;

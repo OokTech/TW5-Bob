@@ -71,7 +71,6 @@ if($tw.node) {
     }
   }
   $tw.nodeMessageHandlers.runScript = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     if(data.name) {
       if($tw.settings.scripts) {
@@ -120,7 +119,6 @@ if($tw.node) {
   }
   // Stop any currently running script queues
   $tw.nodeMessageHandlers.stopScripts = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     data.queue = data.queue || 0;
     clearQueue(data.queue);
     const message = {

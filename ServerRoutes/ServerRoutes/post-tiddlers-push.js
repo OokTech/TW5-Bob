@@ -38,8 +38,8 @@ exports.handler = function(request,response,state) {
       request.on('end', function() {
         try {
           const bodyData = JSON.parse(body)
-          if($tw.ServerSide.existsListed(request.params[0])) {
-            $tw.ServerSide.loadWiki(request.params[0]);
+          if($tw.syncadaptor.existsListed(request.params[0])) {
+            $tw.syncadaptor.loadWiki(request.params[0]);
             // Make sure that the wiki exists and is loaded
             if($tw.Bob.Wikis[request.params[0]]) {
               if($tw.Bob.Wikis[request.params[0]].State === 'loaded') {

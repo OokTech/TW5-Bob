@@ -3,6 +3,9 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.7.4 Spooky Time
 
 * Reenable federation
+* Remove some redundant checks for if a tiddler has changed before saving it
+* simplify how acks are sent
+* (in progress) move all filesystem access into the syncadaptor to make alternate storage methods (like databases) simpler
 
 !! Version 1.7.3 Intense Kitten
 

@@ -41,10 +41,10 @@ exports.handler = function(request,response,state) {
 		console.log(params)
 		const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
 		// make sure that the wiki exists
-		const exists = $tw.ServerSide.existsListed(wikiName);
+		const exists = $tw.syncadaptor.existsListed(wikiName);
 		const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view', 'wiki');
 		if(exists && authorised) {
-			$tw.ServerSide.loadWiki(wikiName);
+			$tw.syncadaptor.loadWiki(wikiName);
 			const tiddler = $tw.Bob.Wikis[wikiName].wiki.getTiddler(params['tiddler']);
 			if(tiddler) {
 				let renderType = tiddler.getFieldString("_render_type"),

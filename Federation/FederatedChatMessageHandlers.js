@@ -61,7 +61,6 @@ exports.startup = function() {
       It combines the local messages with the received messages.
     */
     $tw.Bob.Federation.messageHandlers.chatHistory = function(data) {
-      //$tw.Bob.Shared.sendAck(data);
       const conversationTiddler = data.conversation || 'DefaultChat'
       if(data.conversation && data.messages) {
         // Get the history tiddler

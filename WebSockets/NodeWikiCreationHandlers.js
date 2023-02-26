@@ -36,12 +36,11 @@ if($tw.node) {
       that will be run in that wiki and any returned tiddlers will be included in the output html file.
   */
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const path = require('path');
     const fs = require('fs');
     let wikiPath, fullName, excludeList = [];
     if(data.buildWiki) {
-      const exists = $tw.ServerSide.loadWiki(data.buildWiki);
+      const exists = $tw.syncadaptor.loadWiki(data.buildWiki);
       if(exists) {
         wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
@@ -127,7 +126,6 @@ if($tw.node) {
   $tw.nodeMessageHandlers.newWikiFromTiddlers = function (data) {
     // send ack first because otherwise it often takes too long to run this
     // command and the message is sent again.
-    $tw.Bob.Shared.sendAck(data);
     // Do nothing unless there is an input file path given
     if(data.tiddlers || data.externalTiddlers) {
       const path = require('path');
@@ -138,19 +136,19 @@ if($tw.node) {
       if(data.wikiName) {
         if(data.overwrite !== 'yes') {
           // If a name is given use it
-          wikiName = GetWikiName(data.wikiName);
+          wikiName = $tw.ServerSide.GetWikiName(data.wikiName);
         } else {
           wikiName = data.wikiName;
         }
       } else {
         // Otherwise create a new wikiname
-        wikiName = GetWikiName();
+        wikiName = $tw.ServerSide.GetWikiName();
       }
       // If there is no output path given use a default one
       if(data.wikisPath) {
         basePath = data.wikisPath;
       } else {
-        basePath = $tw.ServerSide.getBasePath()
+        basePath = $tw.syncadaptor.getBasePath()
       }
 
       // even if overwrite is set to true we need to make sure the wiki already
@@ -158,7 +156,7 @@ if($tw.node) {
       let exists = false;
       const wikiPath = path.join(basePath, wikiFolder, wikiName)
       if(data.overwrite === 'true') {
-        exists = $tw.ServerSide.loadWiki(wikiName)
+        exists = $tw.syncadaptor.loadWiki(wikiName)
       }
 
       // If we aren't overwriting or it doesn't already exist than make the new
@@ -176,7 +174,7 @@ if($tw.node) {
           "decoded": data.decoded,
           "fromServer": true
         };
-        $tw.ServerSide.createWiki(params, nextPart);
+        $tw.syncadaptor.createWiki(params, nextPart);
         // Get the folder for the wiki tiddlers
         wikiTiddlersPath = path.join(basePath, wikiFolder, wikiName, 'tiddlers');
         // Make sure tiddlers folder exists
@@ -191,7 +189,7 @@ if($tw.node) {
       }
       function nextPart() {
         // Load the empty wiki
-        $tw.ServerSide.loadWiki(wikiName)
+        $tw.syncadaptor.loadWiki(wikiName)
         // Add all the received tiddlers to the loaded wiki
         let count = 0;
         $tw.utils.each(data.tiddlers,function(tiddler) {
@@ -225,7 +223,7 @@ if($tw.node) {
           $tw.Bob.Wikis[wikiName].modified = true;
           data.update = 'true';
           data.saveSettings = 'true';
-          $tw.ServerSide.updateWikiListing(data);
+          $tw.syncadaptor.updateWikiListing(data);
         }, 1000);
       }
     } else {
@@ -257,7 +255,7 @@ if($tw.node) {
         Object.keys(externalData).forEach(function(wikiTitle) {
           const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view', 'wiki');
           if(allowed) {
-            const exists = $tw.ServerSide.loadWiki(wikiTitle);
+            const exists = $tw.syncadaptor.loadWiki(wikiTitle);
             if(exists) {
               const includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
               includeList.forEach(function(tiddlerTitle) {
@@ -291,7 +289,7 @@ if($tw.node) {
     is created.
     If on name is given it defualts to NewWiki
   */
-  function GetWikiName (wikiName, count, wikiObj, fullName) {
+  /*function GetWikiName (wikiName, count, wikiObj, fullName) {
     let updatedName;
     count = count || 0;
     wikiName = wikiName || ''
@@ -336,7 +334,7 @@ if($tw.node) {
     } else {
       return undefined
     }
-  }
+  }*/
 
   function addListing(wikiName, wikiPath, overwrite) {
     const pieces = wikiName.split('/');
@@ -358,8 +356,7 @@ if($tw.node) {
   */
   // This is just a copy of the init command modified to work in this context
   $tw.nodeMessageHandlers.createNewWiki = function (data, cb) {
-    $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.createWiki(data, callback);
+    $tw.syncadaptor.createWiki(data, callback);
 
     function callback(err) {
       if(err) {
@@ -385,7 +382,6 @@ if($tw.node) {
     downloads that wiki instead.
   */
   $tw.nodeMessageHandlers.downloadHTMLFile = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.wiki) {
       const downloadWiki = data.forWiki || data.wiki;
       const allowed = $tw.Bob.AccessCheck(downloadWiki, {"decoded":data.decoded}, 'view', 'wiki');
@@ -422,7 +418,6 @@ if($tw.node) {
         - force - all imported tiddlers are saved regardelss of conflicts
   */
   $tw.nodeMessageHandlers.internalFetch = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // Make sure that the person has access to the wiki
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'view', 'wiki');
     if(authorised) {
@@ -517,7 +512,6 @@ if($tw.node) {
     is used.
   */
   $tw.nodeMessageHandlers.duplicateWiki = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     if(typeof data.fromWiki === 'undefined') {
       return;
     }
@@ -526,22 +520,22 @@ if($tw.node) {
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate', 'wiki');
-    if($tw.ServerSide.existsListed(data.fromWiki) && authorised) {
-      const wikiName = GetWikiName(data.newWiki);
+    if($tw.syncadaptor.existsListed(data.fromWiki) && authorised) {
+      const wikiName = $tw.ServerSide.GetWikiName(data.newWiki);
       // Get the paths for the source and destination
       $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
       data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;
-      const source = $tw.ServerSide.getWikiPath(data.fromWiki);
-      const basePath = $tw.ServerSide.getBasePath();
+      const source = $tw.syncadaptor.getWikiPath(data.fromWiki);
+      const basePath = $tw.syncadaptor.getBasePath();
       const destination = path.resolve(basePath, $tw.settings.wikisPath, wikiName);
       data.copyChildren = data.copyChildren || 'no';
       const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
       // Make the duplicate
-      $tw.ServerSide.specialCopy(source, destination, copyChildren, function() {
+      $tw.syncadaptor.specialCopy(source, destination, copyChildren, function() {
         // Refresh wiki listing
         data.update = 'true';
         data.saveSettings = 'true';
-        $tw.ServerSide.updateWikiListing(data);
+        $tw.syncadaptor.updateWikiListing(data);
         const message = {
           alert: 'Created wiki ' + wikiName,
           connections: [data.source_connection]

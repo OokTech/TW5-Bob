@@ -68,7 +68,6 @@ it will overwrite this file.
     }
   */
   $tw.browserMessageHandlers.saveTiddler = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // Ignore the message if it isn't for this wiki
     if(data.wiki === $tw.wikiName) {
       if(data.tiddler) {
@@ -110,7 +109,6 @@ it will overwrite this file.
     It is handled by the syncadaptor.
   */
   $tw.browserMessageHandlers.skinnyTiddlers = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const skinnyTiddlers = new CustomEvent('skinny-tiddlers', {bubbles: true, detail: data.tiddlers || []})
     $tw.rootWidget.dispatchEvent(skinnyTiddlers)
   }
@@ -121,7 +119,6 @@ it will overwrite this file.
     It is handled by the syncadaptor.
   */
   $tw.browserMessageHandlers.loadTiddler = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     const loadedTiddler = new CustomEvent('loaded-tiddler', {bubbles: true, detail: data.tiddler || {}})
     $tw.rootWidget.dispatchEvent(loadedTiddler)
   }
@@ -131,7 +128,6 @@ it will overwrite this file.
     special handler to support multi-wikis.
   */
   $tw.browserMessageHandlers.updateEditingTiddlers = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     // make sure there is actually a list sent
     if(data.list) {
         const listField = $tw.utils.stringifyList(data.list);
@@ -155,7 +151,6 @@ it will overwrite this file.
     deleting the tiddler.
   */
   $tw.browserMessageHandlers.deleteTiddler = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.wiki === $tw.wikiName) {
       data.tiddler = data.tiddler || {};
       data.tiddler.fields = data.tiddler.fields || {};
@@ -173,7 +168,6 @@ it will overwrite this file.
     system or if you only want a sub-set of existing tiddlers in the browser.
   */
   $tw.browserMessageHandlers.listTiddlers = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // This is an array of tiddler titles, each title is a string.
     const response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
@@ -194,7 +188,6 @@ it will overwrite this file.
     version with the prefix $:/state/Bob/Conflicts/
   */
   $tw.browserMessageHandlers.conflict = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.tiddler) {
       if(data.tiddler.fields) {
         data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
@@ -227,7 +220,6 @@ it will overwrite this file.
     using the wiki
   */
   $tw.browserMessageHandlers.import = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     console.log('import', data.tiddler.fields.title, {level:2})
     data.tiddler.fields.created = $tw.utils.stringifyDate(new Date(data.tiddler.fields.created))
     data.tiddler.fields.modified = $tw.utils.stringifyDate(new Date(data.tiddler.fields.modified))
@@ -353,7 +345,6 @@ it will overwrite this file.
     Download the file in the message data
   */
   $tw.browserMessageHandlers.downloadFile = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data) {
       const text = $tw.wiki.renderTiddler("text/plain", "$:/core/save/all", {});
       let a = document.createElement('a');
@@ -370,7 +361,6 @@ it will overwrite this file.
     Set the viewable wikis
   */
   $tw.browserMessageHandlers.setViewableWikis = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.list) {
       const fields = {
         title: '$:/state/ViewableWikis',
@@ -385,7 +375,6 @@ it will overwrite this file.
     And appends it to a message history list.
   */
   $tw.browserMessageHandlers.browserAlert = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     const serverMessagesTid = $tw.wiki.getTiddler('$:/settings/Bob/ServerMessageHistoryLimit');
     let hideAlerts = false;
     if(serverMessagesTid) {
@@ -431,7 +420,6 @@ it will overwrite this file.
     These are used to pick which server to send messages to.
   */
   $tw.browserMessageHandlers.updateConnections = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     if(data.connections) {
       const fields = {
         title: '$:/Bob/ActiveConnections',
@@ -488,7 +476,6 @@ it will overwrite this file.
 		The server tells the browser to check if there are new settings
 	*/
 	$tw.browserMessageHandlers.updateSettings = function(data) {
-		$tw.Bob.Shared.sendAck(data);
 		$tw.Bob.getSettings();
 	}
 
@@ -496,7 +483,6 @@ it will overwrite this file.
 		Receive a list of visible profiles from the server
 	*/
 	$tw.browserMessageHandlers.profileList = function(data) {
-		$tw.Bob.Shared.sendAck(data);
 		console.log(data)
 	}
 

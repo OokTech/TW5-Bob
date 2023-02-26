@@ -25,7 +25,7 @@ module.exports = function(fullName) {
       const authorised = $tw.Bob.AccessCheck(fullName, token, 'view', 'wiki');
       if(authorised) {
         // Load the wiki
-        const exists = $tw.ServerSide.loadWiki(fullName);
+        const exists = $tw.syncadaptor.loadWiki(fullName);
         let buffer = ''
         if(exists) {
           response.writeHead(200, {"Content-Type": "image/x-icon"});

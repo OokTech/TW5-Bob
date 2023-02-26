@@ -29,17 +29,15 @@ if($tw.node) {
     // Save the list of tiddlers in the browser as part of the $tw object so it
     // can be used elsewhere.
     $tw.BrowserTiddlerList[data.source_connection] = data.titles;
-    $tw.Bob.Shared.sendAck(data);
   }
 
   /*
     For a lazily loaded wiki this gets the skinny tiddler list.
   */
   $tw.nodeMessageHandlers.getSkinnyTiddlers = function(data) {
-    $tw.Bob.Shared.sendAck(data);
     // We need at least the name of the wiki
     if(data.wiki) {
-      $tw.ServerSide.loadWiki(data.wiki);
+      $tw.syncadaptor.loadWiki(data.wiki);
       // Get the skinny tiddlers
       const tiddlers = []
       $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
@@ -59,8 +57,7 @@ if($tw.node) {
     For lazy loading this gets a full tiddler
   */
   $tw.nodeMessageHandlers.getFullTiddler = function(data) {
-    $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.loadWiki(data.wiki);
+    $tw.syncadaptor.loadWiki(data.wiki);
     const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
     const message = {
       type: 'loadTiddler',
@@ -97,7 +94,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.saveTiddler = function(data) {
     // Acknowledge the message.
-    $tw.Bob.Shared.sendAck(data);
     // Make sure there is actually a tiddler sent
     if(data.tiddler) {
       // Make sure that the tiddler that is sent has fields
@@ -128,7 +124,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.saveTiddlers = function(data) {
     // Acknowledge the message
-    $tw.Bob.Shared.sendAck(data);
     // Make sure there is actually tiddler data
     if(data.tiddlers && data.tiddlers.length > 0) {
       const prefix = data.wiki || '';
@@ -153,13 +148,12 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.deleteTiddler = function(data) {
     // Acknowledge the message.
-    $tw.Bob.Shared.sendAck(data);
     $tw.Bob.logger.log('Node Delete Tiddler', {level: 4});
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;
     if(title) {
-      // Delete the tiddler file from the file system
+      // Delete the tiddler from the local store (e.g. filesystem, database, etc.)
       $tw.syncadaptor.deleteTiddler(title, {wiki: data.wiki});
       // Remove the tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
@@ -175,7 +169,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.editingTiddler = function(data) {
     // Acknowledge the message.
-    $tw.Bob.Shared.sendAck(data);
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;
@@ -191,7 +184,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.cancelEditingTiddler = function(data) {
     // Acknowledge the message.
-    $tw.Bob.Shared.sendAck(data);
     data.tiddler = data.tiddler || {};
     data.tiddler.fields = data.tiddler.fields || {};
     let title = data.tiddler.fields.title;
@@ -212,7 +204,6 @@ if($tw.node) {
     This updates what wikis are being served and where they are being served
   */
   $tw.nodeMessageHandlers.updateRoutes = function (data) {
-    $tw.Bob.Shared.sendAck(data);
     // Then clear all the routes to the non-root wiki
     $tw.httpServer.clearRoutes();
     // The re-add all the routes from the settings
@@ -225,7 +216,6 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getViewableWikiList = function (data) {
     data = data || {};
-    $tw.Bob.Shared.sendAck(data);
     const viewableWikis = $tw.ServerSide.getViewableWikiList(data);
     // Send viewableWikis back to the browser
     const message = {
@@ -245,8 +235,7 @@ if($tw.node) {
   */
 
   $tw.nodeMessageHandlers.findAvailableWikis = function (data) {
-    $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.updateWikiListing(data);
+    $tw.syncadaptor.updateWikiListing(data);
   }
 
 

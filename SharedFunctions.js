@@ -184,7 +184,6 @@ if(!$tw.Bob.Shared) {
 
   function _sendMessage(connection, messageData) {
     const index = connection.index;
-    console.log("_sendMessage: ", messageData.type)
     // Here make sure that the connection is live and hasn't already
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
@@ -317,7 +316,7 @@ if(!$tw.Bob.Shared) {
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
     if($tw.node && messageData.message.wiki) {
-      $tw.ServerSide.loadWiki(messageData.message.wiki, nextBit());
+      $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit());
     } else {
       nextBit();
     }
@@ -466,7 +465,7 @@ if(!$tw.Bob.Shared) {
       const enqueuedIndex = Object.keys($tw.Bob.MessageQueue).findIndex(function(enqueuedMessageData) {
         return enqueuedMessageData.id === messageData.id;
       });
-      if(enqueuedIndex !== -1) {
+      if(enqueuedIndex !== -1 && !$tw.Bob.MessageQueue[enqueuedIndex].ack[connectionIndex]) {
         $tw.Bob.MessageQueue[enqueuedIndex].ack[connectionIndex] = false;
       } else {
         // If the message isn't in the queue set the ack status for the current
