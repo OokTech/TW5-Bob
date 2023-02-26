@@ -116,27 +116,7 @@ if($tw.node) {
         });
         // If we are not expecting a save tiddler event than save the
         // tiddler normally.
-        if(!$tw.Bob.Files[data.wiki][data.tiddler.fields.title]) {
-          $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
-        } else {
-          // If changed send tiddler
-          let changed = true;
-          try {
-            let tiddlerObject = {}
-            if(data.tiddler.fields._canonical_uri) {
-              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath+'.meta');
-            } else {
-              tiddlerObject = $tw.loadTiddlersFromFile($tw.Bob.Files[prefix][data.tiddler.fields.title].filepath);
-            }
-            // The file has the normal title so use the normal title here.
-            changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, tiddlerObject);
-          } catch (e) {
-            $tw.Bob.logger.log('Save tiddler error: ', e, {level: 3});
-          }
-          if(changed) {
-            $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
-          }
-        }
+        $tw.syncadaptor.saveTiddler(data.tiddler, prefix, data.source_connection);
         delete $tw.Bob.EditingTiddlers[data.wiki][data.tiddler.fields.title];
         $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
       }
