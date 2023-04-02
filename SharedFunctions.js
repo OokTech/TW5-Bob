@@ -122,7 +122,9 @@ if(!$tw.Bob.Shared) {
       time: Date.now(),
       type: message.type,
       title: title,
-      ack: {},
+      ack: {
+        tries: 0
+      },
       wiki: message.wiki
     };
     return messageData;
@@ -188,6 +190,7 @@ if(!$tw.Bob.Shared) {
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
       if(!messageData.ack[index] && connection.socket.readyState === 1) {
+        messageData.ack.tries += 1
         connection.socket.send(JSON.stringify(messageData.message), function ack(err) {
           if(err) {
             console.log('there was an error sending a websocket message')
@@ -593,6 +596,8 @@ if(!$tw.Bob.Shared) {
         } else {
           return true;
         }
+      } else if (messageData.ack.tries > ($tw.settings.retries || 5)) {
+        return false;
       } else {
         return true;
       }

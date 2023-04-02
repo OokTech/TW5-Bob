@@ -52,6 +52,15 @@ it will overwrite this file.
 	$tw.settings.heartbeat.PingTimer = false;
 
   /*
+    there was an error on the receiving side, so the browser gets a message to let it know
+  */
+ $tw.browserMessageHandlers.error = function(data) {
+  // TODO: make this useful?
+  console.log(data)
+  alert(`Error handling: ${data.for}\nwith message: ${data.explain}`)
+ }
+
+  /*
     TODO - determine if we should sanitise the tiddler titles and field names
 
     This message handler takes care of saveTiddler messages going to the
