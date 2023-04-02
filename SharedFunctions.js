@@ -751,7 +751,11 @@ if(!$tw.Bob.Shared) {
         id: data.id,
         token: token,
         wiki: $tw.wikiName
-      }), function ack(err) {console.log('sending ack failed')});
+      }), function ack(err) {
+        if(err) {
+          console.log('sending ack failed: ', err, data)
+        }
+      });
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
@@ -759,7 +763,9 @@ if(!$tw.Bob.Shared) {
             type: 'ack',
             id: data.id
           }), function ack(err) {
-            console.log('sending ack failed')
+            if(err) {
+              console.log('sending ack failed: ', err, data)
+            }
           });
         }
       }

@@ -1524,7 +1524,7 @@ ServerSide.createWiki = function(data, cb) {
       // If you are not using an external server than this does nothing
       if($tw.ExternalServer) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
-          const relativePath = path.relative(path.join(basePath, data.wikisFolder),destination);
+          const relativePath = path.relative(path.join(basePath, data.wikisFolder || $tw.settings.wikisPath),destination);
           $tw.ExternalServer.initialiseWikiSettings(relativePath, data);
         }
       }
