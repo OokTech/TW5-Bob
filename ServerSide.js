@@ -1352,6 +1352,7 @@ ServerSide.renameWiki = function(data, cb) {
   const path = require('path')
   const fs = require('fs')
   const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
+  console.log(authorised)
   if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
     // Unload the old wiki
     $tw.Bob.unloadWiki(data.oldWiki);
@@ -1370,6 +1371,20 @@ ServerSide.renameWiki = function(data, cb) {
         cb();
       }
     })
+  } else {
+    if(!authorised) {
+      // send message about not being authorised
+      data.explain = "Unauthorized"
+      $tw.nodeMessageHandlers.unauthorizedRequest(data)
+    } else if (!$tw.ServerSide.existsListed(data.oldWiki)) {
+      // send message about the wiki not existing
+      data.explain = `the wiki ${data.oldWiki} doesn't exist`
+      $tw.nodeMessageHandlers.unauthorizedRequest(data)
+    } else if ($tw.ServerSide.existsListed(data.newWiki)) {
+      // send message about a wiki with that name already existing
+      data.explain = `the destination wiki ${data.newWiki} already exists`
+      $tw.nodeMessageHandlers.unauthorizedRequest(data)
+    }
   }
 }
 

@@ -282,12 +282,10 @@ if($tw.node) {
 
     This walks though subfolders too.
   */
-  /*
   $tw.nodeMessageHandlers.findAvailableWikis = function (data) {
     $tw.Bob.Shared.sendAck(data);
     $tw.ServerSide.updateWikiListing(data);
   }
-  */
 
   /*
     This handles ack messages.

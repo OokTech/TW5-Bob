@@ -3,6 +3,8 @@ caption: People
 
 Manage your relationships with people.
 
+(**IN DEVELOPMENT**)
+
 !! People Listing
 
 These are the people on the server with profiles visible to you.
@@ -18,7 +20,10 @@ These are the people on the server with profiles visible to you.
       Level
     </th>
     <th>
-      About
+      Visibility
+    </th>
+    <th>
+      More Info
     </th>
   </tr>
   <$list
@@ -32,8 +37,29 @@ These are the people on the server with profiles visible to you.
         {{!!level}}
       </td>
       <td>
-        <$link to=<<currentTiddler>>>About</$link>
+        {{!!visibility}}
+      </td>
+      <td>
+        <$list filter='[<currentTiddler>addprefix[$:/state/showabout/]!text[show]]' variable=unused>
+          <$button class='tc-btn-invisible' style='width:100%;height:100%;'>
+            Show {{$:/core/images/right-arrow}}
+            <$action-setfield $tiddler= {{{ [<currentTiddler>addprefix[$:/state/showabout/]] }}} text='show'/>
+          </$button>
+        </$list>
+        <$list filter='[<currentTiddler>addprefix[$:/state/showabout/]text[show]]' variable=unused>
+          <$button class='tc-btn-invisible' style='width:100%;height:100%;'>
+            Show {{$:/core/images/down-arrow}}
+            <$action-setfield $tiddler= {{{ [<currentTiddler>addprefix[$:/state/showabout/]] }}} text='hide'/>
+          </$button>
+        </$list>
       </td>
     </tr>
+    <$list filter='[<currentTiddler>addprefix[$:/state/showabout/]text[show]]' variable=unused>
+    <tr>
+      <td colspan=4>
+        {{!!text}}
+      </td>
+    </tr>
+    </$list>
   </$list>
 </table>
