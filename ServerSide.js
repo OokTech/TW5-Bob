@@ -703,12 +703,14 @@ ServerSide.getViewableWikiList = function (data) {
   }
   // Get the wiki list of wiki names from the settings object
   const wikiList = getList($tw.settings.wikis, '');
+  console.log($tw.settings.wikis['inmysocks']['blorp'])
   const viewableWikis = [];
   wikiList.forEach(function(wikiName) {
     if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view', 'wiki')) {
       viewableWikis.push(wikiName);
     }
   });
+  console.log(viewableWikis)
   const tempObj = {};
   for (let i = 0; i < viewableWikis.length; i++) {
     tempObj[viewableWikis[i]] = ['view'];
@@ -717,6 +719,7 @@ ServerSide.getViewableWikiList = function (data) {
       tempObj[viewableWikis[i]].push('edit');
     }
   }
+  console.log(tempObj)
   return tempObj;
 }
 
