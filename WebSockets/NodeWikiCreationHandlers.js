@@ -359,7 +359,16 @@ if($tw.node) {
   // This is just a copy of the init command modified to work in this context
   $tw.nodeMessageHandlers.createNewWiki = function (data, cb) {
     $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.createWiki(data, callback);
+    if($tw.Bob.CheckQuotas(data, 'wiki')) {
+      $tw.ServerSide.createWiki(data, callback);
+    } else {
+      // send a message saying that the quota is full
+      const message = {
+        alert: 'Quota Full',
+        connections: [data.source_connection]
+      }
+      $tw.ServerSide.sendBrowserAlert(message)
+    }
 
     function callback(err) {
       if(err) {

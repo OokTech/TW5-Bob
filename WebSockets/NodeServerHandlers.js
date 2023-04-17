@@ -926,7 +926,6 @@ if($tw.node) {
     If the new name is an existing wiki than this won't do anything.
   */
   $tw.nodeMessageHandlers.renameWiki = function(data) {
-    console.log('rename?')
     $tw.Bob.Shared.sendAck(data);
     $tw.ServerSide.renameWiki(data, function(e) {
       if(!e) {

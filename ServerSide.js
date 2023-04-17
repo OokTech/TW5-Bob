@@ -703,14 +703,12 @@ ServerSide.getViewableWikiList = function (data) {
   }
   // Get the wiki list of wiki names from the settings object
   const wikiList = getList($tw.settings.wikis, '');
-  console.log($tw.settings.wikis['inmysocks']['blorp'])
   const viewableWikis = [];
   wikiList.forEach(function(wikiName) {
     if($tw.Bob.AccessCheck(wikiName, {"decoded": data.decoded}, 'view', 'wiki')) {
       viewableWikis.push(wikiName);
     }
   });
-  console.log(viewableWikis)
   const tempObj = {};
   for (let i = 0; i < viewableWikis.length; i++) {
     tempObj[viewableWikis[i]] = ['view'];
@@ -719,7 +717,6 @@ ServerSide.getViewableWikiList = function (data) {
       tempObj[viewableWikis[i]].push('edit');
     }
   }
-  console.log(tempObj)
   return tempObj;
 }
 
@@ -1299,26 +1296,26 @@ ServerSide.updateWikiListing = function(data) {
   }
   if(data.update.toLowerCase() === 'true') {
     wikisToAdd.forEach(function (wikiName) {
-      if($tw.ExternalServer) {
+      // putting this part here sometimes makes new wikis come out with no owners
+      /*if($tw.ExternalServer) {
         if(typeof $tw.ExternalServer.initialiseWikiSettings === 'function') {
           // This adds unlisted wikis as private and without giving them an
           // owner, so an admin needs to set the owner and stuff.
           $tw.ExternalServer.initialiseWikiSettings(wikiName, {});
         }
-      } else {
-        const nameParts = wikiName.split('/');
-        let settingsObj = $tw.settings.wikis;
-        let i;
-        for (i = 0; i < nameParts.length; i++) {
-          if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
-            settingsObj = settingsObj[nameParts[i]];
-          } else if(i < nameParts.length - 1) {
-            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-            settingsObj = settingsObj[nameParts[i]]
-          } else {
-            settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
-            settingsObj[nameParts[i]].__path = nameParts.join('/');
-          }
+      }*/
+      const nameParts = wikiName.split('/');
+      let settingsObj = $tw.settings.wikis;
+      let i;
+      for (i = 0; i < nameParts.length; i++) {
+        if(typeof settingsObj[nameParts[i]] === 'object' && i < nameParts.length - 1) {
+          settingsObj = settingsObj[nameParts[i]];
+        } else if(i < nameParts.length - 1) {
+          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+          settingsObj = settingsObj[nameParts[i]]
+        } else {
+          settingsObj[nameParts[i]] = settingsObj[nameParts[i]] || {};
+          settingsObj[nameParts[i]].__path = nameParts.join('/');
         }
       }
     })
@@ -1354,8 +1351,8 @@ $tw.stopFileWatchers = function(wikiName) {
 ServerSide.renameWiki = function(data, cb) {
   const path = require('path')
   const fs = require('fs')
-  const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
-  console.log(authorised)
+  const authorised = $tw.Bob.AccessCheck(data.oldWiki, {"decoded":data.decoded}, 'renameWiki', 'wiki', data);
+  // TODO put a check here to enforce namespaces when renaming wikis
   if($tw.ServerSide.existsListed(data.oldWiki) && !$tw.ServerSide.existsListed(data.newWiki) && authorised) {
     // Unload the old wiki
     $tw.Bob.unloadWiki(data.oldWiki);
@@ -1371,6 +1368,13 @@ ServerSide.renameWiki = function(data, cb) {
         data.update = 'true';
         data.saveSettings = 'true';
         $tw.ServerSide.updateWikiListing(data);
+        // TODO make this update the info in the database too
+        if($tw.ExternalServer) {
+          // update the database
+          if(typeof $tw.ExternalServer.renameWikiSettings === 'function') {
+            $tw.ExternalServer.renameWikiSettings(data.oldWiki, data.newWiki);
+          }
+        }
         cb();
       }
     })
