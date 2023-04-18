@@ -1171,6 +1171,10 @@ ServerSide.deleteWiki = function(data, cb) {
         } else {
           // Delete the tiddlers folder (if any)
           deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
+            removeWikiSettings(data.deleteWiki)
+            /*if ($tw.ExternalServer && $tw.ExternalServer.removeWikiSettings) {
+              $tw.ExternalServer.removeWikiSettings(data.deleteWiki)
+            }*/
             $tw.utils.deleteEmptyDirs(wikiPath,function() {
               cb();
             });
@@ -1182,6 +1186,21 @@ ServerSide.deleteWiki = function(data, cb) {
         }
       })
     }
+  }
+}
+
+function removeWikiSettings(wikiName) {
+  const wikiPermissionsObject = $tw.settings
+  const nameParts = wikiName.split('/')
+  let intermediate = wikiPermissionsObject.wikis
+  for (let i = 0; i < nameParts.length; i++) {
+    intermediate[nameParts[i]] = intermediate[nameParts[i]] || {}
+    intermediate = intermediate[nameParts[i]]
+  }
+  delete intermediate.__path
+  delete intermediate.__permissions
+  if ($tw.ExternalServer && $tw.ExternalServer.removeWikiSettings) {
+    $tw.ExternalServer.removeWikiSettings(wikiName)
   }
 }
 
