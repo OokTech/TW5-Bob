@@ -48,7 +48,7 @@ exports.handler = function(request,response,state) {
             return;
           }
         }
-        const filesPath = path.resolve($tw.ServerSide.getWikiPath(bodyData.wiki), 'files');
+        const filesPath = path.resolve($tw.syncadaptor.getWikiPath(bodyData.wiki), 'files');
         $tw.utils.createDirectory(filesPath);
         const buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
         fs.writeFile(path.join(filesPath, bodyData.tiddler.fields.title), buf, function(error) {

@@ -49,7 +49,7 @@ exports.startup = function() {
     */
     if($tw.settings.logger.useFileLogging === 'yes') {
       // Output gets written to a file
-      const basePath = $tw.ServerSide.getBasePath();
+      const basePath = $tw.syncadaptor.getBasePath();
       const outputFolder = $tw.settings.logger.outputFolder || './logs';
       const outputBaseFileName = $tw.settings.logger.outputBaseFileName || 'Log';
       const { Console } = require('console');

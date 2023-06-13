@@ -39,7 +39,7 @@ exports.handler = function(request,response,state) {
         oldWiki: fromName,
         newWiki: toName
       };
-      $tw.ServerSide.renameWiki(data, cb);
+      $tw.syncadaptor.renameWiki(data, cb);
       function cb(e) {
         if(e) {
           console.log(e)

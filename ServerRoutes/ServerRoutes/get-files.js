@@ -32,7 +32,7 @@ exports.path = pathRegExp;
 
 exports.handler = function(request,response,state) {
   if($tw.settings.enableFileServer === 'yes') {
-    const filePathRoot = $tw.ServerSide.getFilePathRoot();
+    const filePathRoot = $tw.syncadaptor.getFilePathRoot();
     $tw.settings.servingFiles = $tw.settings.servingFiles || {};
     const path = require('path');
     const fs = require('fs');
@@ -78,10 +78,10 @@ exports.handler = function(request,response,state) {
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
     const authorised = $tw.Bob.AccessCheck(wikiName, token, 'view', 'wiki');
     if(authorised && ok) {
-      const basePath = $tw.ServerSide.getBasePath();
+      const basePath = $tw.syncadaptor.getBasePath();
       let pathRoot = path.resolve(basePath,filePathRoot);
       if(typeof wikiName === 'string' && wikiName !== '') {
-        pathRoot = path.resolve($tw.ServerSide.getWikiPath(wikiName), 'files');
+        pathRoot = path.resolve($tw.syncadaptor.getWikiPath(wikiName), 'files');
       }
       const pathname = path.resolve(pathRoot, secondPathPart, filePath);
       // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.

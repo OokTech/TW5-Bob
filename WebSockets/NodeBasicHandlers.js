@@ -39,7 +39,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // We need at least the name of the wiki
     if(data.wiki) {
-      $tw.ServerSide.loadWiki(data.wiki);
+      $tw.syncadaptor.loadWiki(data.wiki);
       // Get the skinny tiddlers
       const tiddlers = []
       $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
@@ -60,7 +60,7 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getFullTiddler = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.loadWiki(data.wiki);
+    $tw.syncadaptor.loadWiki(data.wiki);
     const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
     const message = {
       type: 'loadTiddler',
@@ -159,7 +159,7 @@ if($tw.node) {
     data.tiddler.fields = data.tiddler.fields || {};
     const title = data.tiddler.fields.title;
     if(title) {
-      // Delete the tiddler file from the file system
+      // Delete the tiddler from the local store (e.g. filesystem, database, etc.)
       $tw.syncadaptor.deleteTiddler(title, {wiki: data.wiki});
       // Remove the tiddler from the list of tiddlers being edited.
       if($tw.Bob.EditingTiddlers[data.wiki][title]) {
@@ -246,7 +246,7 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.findAvailableWikis = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    $tw.ServerSide.updateWikiListing(data);
+    $tw.syncadaptor.updateWikiListing(data);
   }
 
 

@@ -130,13 +130,13 @@ if($tw.node) {
     // browser currently has to initialise everything.
     //$tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     client.index = Object.keys($tw.connections).length-1;
-    client.timeout = setInterval(function ping() {
+    /*client.timeout = setInterval(function ping() {
       if (client.isAlive === false) return ws.terminate();
 
       console.log('here?')
       client.isAlive = false;
       client.ping();
-    }, 1000);
+    }, 1000);*/
     const message = {type: 'listTiddlers'}
     $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
@@ -556,7 +556,7 @@ if($tw.node) {
       createSaverServer()
     }
 
-    const basePath = $tw.ServerSide.getBasePath();
+    const basePath = $tw.syncadaptor.getBasePath();
     $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';
     if(typeof $tw.settings.pluginsPath === 'string') {
       const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);

@@ -317,7 +317,7 @@ if(!$tw.Bob.Shared) {
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
     if($tw.node && messageData.message.wiki) {
-      $tw.ServerSide.loadWiki(messageData.message.wiki, nextBit());
+      $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit());
     } else {
       nextBit();
     }
@@ -520,11 +520,13 @@ if(!$tw.Bob.Shared) {
   */
   Shared.handleAck = function (data) {
     if($tw.browser) {
+      console.log('a')
       // Events to let the syncadaptor work in the browser
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: data.id})
       $tw.rootWidget.dispatchEvent(receivedAck)
     }
     if(data.id) {
+      console.log('b')
       // a quick hack to make this work
       if($tw.browser) {
         // The source connection is always 0 in the browser
@@ -534,6 +536,7 @@ if(!$tw.Bob.Shared) {
         return messageData.id === data.id;
       })
       if($tw.Bob.MessageQueue[index]) {
+        console.log('c')
         // Set the message as acknowledged.
         $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
         // Check if all the expected acks have been received
@@ -542,6 +545,7 @@ if(!$tw.Bob.Shared) {
         }) === -1;
         // If acks have been received from all connections than set the ctime.
         if(complete && !$tw.Bob.MessageQueue[index].ctime) {
+          console.log('d')
           $tw.Bob.MessageQueue[index].ctime = Date.now();
         }
       }
@@ -754,8 +758,11 @@ if(!$tw.Bob.Shared) {
         wiki: $tw.wikiName
       }), function ack(err) {console.log('sending ack failed')});
     } else {
+      console.log(1)
       if(data.id) {
+        console.log(2)
         if(data.source_connection !== undefined && data.source_connection !== -1) {
+          console.log(3)
           $tw.connections[data.source_connection].socket.send(JSON.stringify({
             type: 'ack',
             id: data.id

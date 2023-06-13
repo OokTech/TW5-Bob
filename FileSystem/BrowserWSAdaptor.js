@@ -762,6 +762,9 @@ BrowserWSAdaptor.prototype.getUpdatedTiddlers = function() {
 // being run so its value can change over time.
 BrowserWSAdaptor.prototype.isReady = function() {
   const tid = $tw.wiki.getTiddler('$:/state/EditableWikis');
+  if(!tid) { // TODO maybe figure this out...
+    return true;
+  }
   if(tid.fields.list.indexOf($tw.wikiName) > -1) {
     return true;
   } else {

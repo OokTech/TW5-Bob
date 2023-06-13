@@ -3,6 +3,12 @@ title: $:/plugins/OokTech/Bob/Changelog
 !! Version 1.7.4 Spooky Time
 
 * Reenable federation
+* Remove some redundant checks for if a tiddler has changed before saving it
+* Move more functions into the syncadaptor to enable different saver back-ends
+** loading plugins
+** handling file paths
+** loading wikis
+** creating and deleting wikis
 
 !! Version 1.7.3 Intense Kitten
 

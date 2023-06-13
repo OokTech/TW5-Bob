@@ -41,7 +41,7 @@ exports.handler = function(request,response,state) {
         newWiki: request.params[0]
 
       };
-      $tw.ServerSide.createWiki(data, cb);
+      $tw.syncadaptor.createWiki(data, cb);
       function cb(e) {
         if(e) {
           console.log(e)

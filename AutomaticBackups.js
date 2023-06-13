@@ -62,7 +62,7 @@ exports.startup = function () {
       }
 
       function saveWikiBackup(wikiName) {
-        const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
+        const folder = path.resolve($tw.syncadaptor.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
         const filePath = path.join(folder, 'backup-' + $tw.utils.stringifyDate(new Date()) + '.html');
         $tw.utils.createDirectory(folder);
         fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName, 'no', 'no'), function(err) {
@@ -95,7 +95,7 @@ exports.startup = function () {
       }
 
       function saveSettingsBackup() {
-        const folder = path.resolve($tw.ServerSide.getBasePath(), $tw.settings.backups.backupFolder, 'settings');
+        const folder = path.resolve($tw.syncadaptor.getBasePath(), $tw.settings.backups.backupFolder, 'settings');
         const filePath = path.join(folder, 'settings-backup-' + $tw.utils.stringifyDate(new Date()) + '.json');
         $tw.utils.createDirectory(folder);
         fs.writeFile(filePath, JSON.stringify($tw.settings, "", 2), function(err) {
