@@ -138,13 +138,13 @@ if($tw.node) {
       if(data.wikiName) {
         if(data.overwrite !== 'yes') {
           // If a name is given use it
-          wikiName = GetWikiName(data.wikiName);
+          wikiName = $tw.syncadaptor.GetWikiName(data.wikiName);
         } else {
           wikiName = data.wikiName;
         }
       } else {
         // Otherwise create a new wikiname
-        wikiName = GetWikiName();
+        wikiName = $tw.syncadaptor.GetWikiName();
       }
       // If there is no output path given use a default one
       if(data.wikisPath) {
@@ -291,6 +291,7 @@ if($tw.node) {
     is created.
     If on name is given it defualts to NewWiki
   */
+ /*
   function GetWikiName (wikiName, count, wikiObj, fullName) {
     let updatedName;
     count = count || 0;
@@ -337,6 +338,7 @@ if($tw.node) {
       return undefined
     }
   }
+  */
 
   function addListing(wikiName, wikiPath, overwrite) {
     const pieces = wikiName.split('/');
@@ -527,7 +529,7 @@ if($tw.node) {
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate', 'wiki');
     if($tw.syncadaptor.existsListed(data.fromWiki) && authorised) {
-      const wikiName = GetWikiName(data.newWiki);
+      const wikiName = $tw.syncadaptor.GetWikiName(data.newWiki);
       // Get the paths for the source and destination
       $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
       data.wikisFolder = data.wikisFolder || $tw.settings.wikisPath;

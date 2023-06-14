@@ -1047,7 +1047,7 @@ if($tw.node) {
       mediaTypes: [things listed in the mimemap],
       prefix: 'docs'
     }
-    Folder paths are either absolute or relative to $tw.Bob.getBasePath()
+    Folder paths are either absolute or relative to $tw.syncadaptor.getBasePath()
 
     folder - the folder to scan
     ignoreExisting -

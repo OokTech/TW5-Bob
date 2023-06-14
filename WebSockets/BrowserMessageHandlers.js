@@ -271,7 +271,7 @@ it will overwrite this file.
     // If this pong is part of a heartbeat than use a setTimeout to send
     // another beat in the interval defined in $tw.settings.heartbeat.interval
     // the timeout id is stored in $tw.settings.heartbeat.timeoutid
-    if(data.heartbeat) {
+    if(data.heartbeat || true) {
       if($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
         $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Server Warning');
       }
@@ -290,13 +290,18 @@ it will overwrite this file.
       clearTimeout($tw.settings.heartbeat.retry);
 			clearTimeout($tw.settings.heartbeat.PingTimer);
       $tw.settings.heartbeat.PingTimer = setTimeout(function () {
-        const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
-        $tw.connections[0].socket.send(JSON.stringify({
-          type: 'ping',
-          heartbeat: true,
-          token: token,
-          wiki: $tw.wikiName
-        }));
+        try {
+          const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
+          $tw.connections[0].socket.send(JSON.stringify({
+            type: 'ping',
+            heartbeat: true,
+            token: token,
+            wiki: $tw.wikiName
+          }));
+        } catch (e)  {
+          console.log('connection error', e)
+          checkDisconnected();
+        }
       }, $tw.settings.heartbeat.interval);
       $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
     }

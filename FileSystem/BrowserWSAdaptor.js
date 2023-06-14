@@ -12,7 +12,6 @@ A sync adaptor for syncing changes using websockets with Bob
 /*global $tw: false */
 "use strict";
 
-const delayRecord = {};
 
 const sendToServer = function (message, callback) {
   const connectionIndex = 0;
@@ -108,9 +107,7 @@ function BrowserWSAdaptor(options) {
       const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,''));
       // TODO: make the onclose handler for the socket handle the disconnection part
-      //$tw.connections[connectionIndex].socket.on('open', heartbeat);
-      $tw.connections[connectionIndex].socket.addEventListener('ping', function() {heartbeat();console.log('received ping');});
-      //$tw.connections[connectionIndex].socket.onmessage = heartbeat;
+      sendToServer({type: 'ping', heartbeat:true})
       $tw.connections[connectionIndex].socket.onclose = function clear() {
         clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
         $tw.Bob.setup(true);
@@ -129,16 +126,6 @@ function BrowserWSAdaptor(options) {
     }
   }
 
-  function heartbeat() {
-    console.log('heartbeat')
-    clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
-    $tw.connections[connectionIndex].socket.pingTimeout = setTimeout(() => {
-      console.log("close WS connection")
-      //$tw.connections[0].socket.terminate(); // the writable part of this should emit a 'close' event
-      $tw.connections[connectionIndex].socket.close(); // the writable part of this should emit a 'close' event
-    }, 5000 + 1000);
-  }
-
   /*
     When the socket is opened the heartbeat process starts. This lets us know
     if the connection to the server gets interrupted.
@@ -146,7 +133,6 @@ function BrowserWSAdaptor(options) {
   const openSocket = function() {
     console.log('Opened socket');
     // Login with whatever credentials you have
-    heartbeat();
     const data = {
       type: 'setLoggedIn',
       wiki: $tw.wikiName//,
@@ -324,8 +310,6 @@ function BrowserWSAdaptor(options) {
     than the data is passed to the handler function.
   */
   const parseMessage = function(event) {
-    console.log('parse message')
-    heartbeat();
     const eventData = JSON.parse(event.data);
     if(eventData.type) {
       if(typeof $tw.browserMessageHandlers[eventData.type] === 'function') {

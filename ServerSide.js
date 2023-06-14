@@ -79,7 +79,7 @@ ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
       return pluginTiddler.replace(/^\$:\/plugins\//, '')
     });
     if(missingPlugins.length > 0) {
-      $tw.syncapdaptor.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, fullName);
+      $tw.syncadaptor.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, fullName);
     }
     // This makes the wikiTiddlers variable a filter that lists all the
     // tiddlers for this wiki.
@@ -613,59 +613,6 @@ ServerSide.listFiles = function(data, cb) {
     }
   } else {
     cb("", [], "");
-  }
-}
-
-/*
-  This ensures that the wikiName used is unique by appending a number to the
-  end of the name and incrementing the number if needed until an unused name
-  is created.
-  If on name is given it defualts to NewWiki
-*/
-function GetWikiName (wikiName, count, wikiObj, fullName) {
-  let updatedName;
-  count = count || 0;
-  wikiName = wikiName || ''
-  if(wikiName.trim() === '') {
-    wikiName = 'NewWiki'
-  }
-  fullName = fullName || wikiName || 'NewWiki';
-  wikiObj = wikiObj || $tw.settings.wikis;
-  const nameParts = wikiName.split('/');
-  if(nameParts.length === 1) {
-    updatedName = nameParts[0];
-    if(wikiObj[updatedName]) {
-      if(wikiObj[updatedName].__path) {
-        count = count + 1;
-        while (wikiObj[updatedName + String(count)]) {
-          if(wikiObj[updatedName + String(count)].__path) {
-            count = count + 1;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    if(count > 0) {
-      return fullName + String(count);
-    } else {
-      return fullName;
-    }
-  } else if(!wikiObj[nameParts[0]]) {
-    if(count > 0) {
-      return fullName + String(count);
-    } else {
-      return fullName;
-    }
-  }
-  if(nameParts.length > 1) {
-    if(wikiObj[nameParts[0]]) {
-      return GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
-    } else {
-      return fullName;
-    }
-  } else {
-    return undefined
   }
 }
 

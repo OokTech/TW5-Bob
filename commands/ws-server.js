@@ -121,6 +121,8 @@ if($tw.node) {
     function heartbeat() {
       console.log('heartbeat')
       client.isAlive = true;
+      console.log('send ping')
+      $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], {type: 'ping'})
     }
     $tw.Bob.logger.log("new connection", {level:2});
     $tw.connections.push({'socket':client, 'wiki': undefined});
@@ -128,17 +130,10 @@ if($tw.node) {
     client.on('pong', heartbeat);
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
-    //$tw.connections[Object.keys($tw.connections).length-1].index = Object.keys($tw.connections).length-1;
     client.index = Object.keys($tw.connections).length-1;
-    /*client.timeout = setInterval(function ping() {
-      if (client.isAlive === false) return ws.terminate();
-
-      console.log('here?')
-      client.isAlive = false;
-      client.ping();
-    }, 1000);*/
     const message = {type: 'listTiddlers'}
-    $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], message);
+    $tw.Bob.SendToBrowser(client.index, message);
+    $tw.Bob.SendToBrowser(client.index, {type: 'ping', heartbeat: true})
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
       $tw.Bob.Federation.updateConnections();
     }

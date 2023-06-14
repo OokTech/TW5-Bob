@@ -310,7 +310,7 @@ if($tw.node) {
     if(existsListed(data.oldWiki) && !existsListed(data.newWiki) && authorised) {
       // Unload the old wiki
       $tw.Bob.unloadWiki(data.oldWiki);
-      const basePath = getBasePath();
+      const basePath = $tw.syncadaptor.getBasePath();
       const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
       const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
       fs.rename(oldWikiPath, newWikiPath, function(e) {
@@ -321,7 +321,7 @@ if($tw.node) {
           // Refresh wiki listing
           data.update = 'true';
           data.saveSettings = 'true';
-          updateWikiListing(data);
+          $tw.syncadaptor.updateWikiListing(data);
           cb();
         }
       })
@@ -341,7 +341,7 @@ if($tw.node) {
         }).catch(function(e) {
           cb(e);
         }).finally(function() {
-          updateWikiListing();
+          $tw.syncadaptor.updateWikiListing();
         })
       } else {
         // Delete the tiddlywiki.info file
@@ -349,7 +349,7 @@ if($tw.node) {
           if(e) {
             $tw.Bob.logger.error('failed to delete tiddlywiki.info',e, {level:1});
             cb(e);
-            updateWikiListing();
+            $tw.syncadaptor.updateWikiListing();
           } else {
             // Delete the tiddlers folder (if any)
             deleteDirectory(path.join(wikiPath, 'tiddlers')).then(function() {
@@ -359,7 +359,7 @@ if($tw.node) {
             }).catch(function(e){
               cb(e);
             }).finally(function() {
-              updateWikiListing();
+              $tw.syncadaptor.updateWikiListing();
             })
           }
         })
@@ -372,7 +372,7 @@ if($tw.node) {
   function deleteFile(dir, file) {
     return new Promise(function (resolve, reject) {
       //Check to make sure that dir is in the place we expect
-      if(dir.startsWith(getBasePath())) {
+      if(dir.startsWith($tw.syncadaptor.getBasePath())) {
         const filePath = path.join(dir, file);
         fs.lstat(filePath, function (err, stats) {
           if(err) {
@@ -398,7 +398,7 @@ if($tw.node) {
   function deleteDirectory(dir) {
     return new Promise(function (resolve, reject) {
       // Check to make sure that dir is in the place we expect
-      if(dir.startsWith(getBasePath())) {
+      if(dir.startsWith($tw.syncadaptor.getBasePath())) {
         fs.access(dir, function (err) {
           if(err) {
             if(err.code === 'ENOENT') {
@@ -503,7 +503,7 @@ const getDirectories = function(source) {
             //Recurse!! Because it is a folder.
             // But make sure it is a directory first.
             if(fs.statSync(path.join(source, item)).isDirectory() && (!fs.existsSync(path.join(source, item, 'tiddlywiki.info')) || copyChildren)) {
-              MultiWikiAdaptor.specialCopy(path.join(source, item), path.join(destination, item), copyChildren);
+              $tw.syncadaptor.specialCopy(path.join(source, item), path.join(destination, item), copyChildren);
             }
           }
         });
@@ -566,7 +566,7 @@ const getDirectories = function(source) {
     Given a wiki name this generates the path for the wiki.
   */
   function generateWikiPath(wikiName) {
-      const basePath = getBasePath();
+      const basePath = $tw.syncadaptor.getBasePath();
       $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
       return path.resolve(basePath, $tw.settings.wikisPath, wikiName);
     }
@@ -943,7 +943,7 @@ const getDirectories = function(source) {
     }
     const fs = require('fs');
     const path = require('path');
-    const basePath = getBasePath();
+    const basePath = $tw.syncadaptor.getBasePath();
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     let wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
     // Make sure that the wikiFolderPath exists
@@ -1029,6 +1029,59 @@ const getDirectories = function(source) {
     }
   }
   
+  /*
+    This ensures that the wikiName used is unique by appending a number to the
+    end of the name and incrementing the number if needed until an unused name
+    is created.
+    If on name is given it defualts to NewWiki
+  */
+  MultiWikiAdaptor.prototype.GetWikiName = function (wikiName, count, wikiObj, fullName) {
+    let updatedName;
+    count = count || 0;
+    wikiName = wikiName || ''
+    if(wikiName.trim() === '') {
+      wikiName = 'NewWiki'
+    }
+    fullName = fullName || wikiName || 'NewWiki';
+    wikiObj = wikiObj || $tw.settings.wikis;
+    const nameParts = wikiName.split('/');
+    if(nameParts.length === 1) {
+      updatedName = nameParts[0];
+      if(wikiObj[updatedName]) {
+        if(wikiObj[updatedName].__path) {
+          count = count + 1;
+          while (wikiObj[updatedName + String(count)]) {
+            if(wikiObj[updatedName + String(count)].__path) {
+              count = count + 1;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+      if(count > 0) {
+        return fullName + String(count);
+      } else {
+        return fullName;
+      }
+    } else if(!wikiObj[nameParts[0]]) {
+      if(count > 0) {
+        return fullName + String(count);
+      } else {
+        return fullName;
+      }
+    }
+    if(nameParts.length > 1) {
+      if(wikiObj[nameParts[0]]) {
+        return $tw.syncadaptor.GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
+      } else {
+        return fullName;
+      }
+    } else {
+      return undefined
+    }
+  }
+
   MultiWikiAdaptor.prototype.createWiki = function(data, cb) {
     const authorised = $tw.Bob.AccessCheck('create/wiki', {"decoded": data.decoded}, 'create/wiki', 'server');
     const quotasOk = $tw.Bob.CheckQuotas(data, 'wiki');
@@ -1038,8 +1091,8 @@ const getDirectories = function(source) {
       $tw.settings.wikisPath = $tw.settings.wikisPath || 'Wikis';
       // if we are using namespaced wikis prepend the logged in profiles name to
       // the wiki name.
-      const name = ($tw.settings.namespacedWikis === 'yes') ? GetWikiName((data.decoded.name || 'imaginaryPerson') + '/' + (data.wikiName || data.newWiki || 'NewWiki')) : GetWikiName(data.wikiName || data.newWiki);
-      const basePath = data.basePath || getBasePath();
+      const name = ($tw.settings.namespacedWikis === 'yes') ? $tw.syncadaptor.GetWikiName((data.decoded.name || 'imaginaryPerson') + '/' + (data.wikiName || data.newWiki || 'NewWiki')) : $tw.syncadaptor.GetWikiName(data.wikiName || data.newWiki);
+      const basePath = data.basePath || $tw.syncadaptor.getBasePath();
       const destination = path.resolve(basePath, $tw.settings.wikisPath, name);
       $tw.utils.createDirectory(path.join(basePath, $tw.settings.wikisPath));
       if(data.nodeWikiPath) {
@@ -1055,7 +1108,7 @@ const getDirectories = function(source) {
         // Start with an empty edition
         const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
         const editionPath = $tw.findLibraryItem('empty',searchPaths);
-        const err = MultiWikiAdaptor.specialCopy(editionPath, destination, true);
+        const err = $tw.syncadaptor.specialCopy(editionPath, destination, true);
         $tw.utils.createDirectory(path.join(basePath, $tw.settings.wikisPath, name));
         for(let i = 0; i < data.tiddlers.length; i++) {
           $tw.syncadaptor.getTiddlerFileInfo(new $tw.Tiddler(tiddler.fields), name,
@@ -1075,11 +1128,11 @@ const getDirectories = function(source) {
           data.copyChildren = data.copyChildren || 'no';
           const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
           // Make the duplicate
-          MultiWikiAdaptor.specialCopy(source, destination, copyChildren, function() {
+          $tw.syncadaptor.specialCopy(source, destination, copyChildren, function() {
             // Refresh wiki listing
             data.update = 'true';
             data.saveSettings = 'true';
-            updateWikiListing(data);
+            $tw.syncadaptor.updateWikiListing(data);
             $tw.Bob.logger.log('Duplicated wiki', data.fromWiki, 'as', name, {level: 2})
             finish();
           });
@@ -1097,7 +1150,7 @@ const getDirectories = function(source) {
         const searchPaths = $tw.getLibraryItemSearchPaths($tw.config.editionsPath,$tw.config.editionsEnvVar);
         const editionPath = $tw.findLibraryItem(editionName,searchPaths);
         // Copy the edition content
-        const err = MultiWikiAdaptor.specialCopy(editionPath, destination, true);
+        const err = $tw.syncadaptor.specialCopy(editionPath, destination, true);
         if(!err) {
           $tw.Bob.logger.log("Copied edition '" + editionName + "' to " + destination + "\n", {level:2});
         } else {
@@ -1134,7 +1187,7 @@ const getDirectories = function(source) {
         setTimeout(function() {
           data.update = 'true';
           data.saveSettings = 'true';
-          updateWikiListing(data);
+          $tw.syncadaptor.updateWikiListing(data);
           if(typeof cb === 'function') {
             setTimeout(cb, 1500);
           }
