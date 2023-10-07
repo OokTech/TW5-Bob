@@ -9,6 +9,8 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** handling file paths
 ** loading wikis
 ** creating and deleting wikis
+* Add a maximum number of retries for sending messages before they are just failed
+** I should make this configurable and make some indicator of what has failed
 
 !! Version 1.7.3 Intense Kitten
 

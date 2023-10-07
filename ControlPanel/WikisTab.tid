@@ -302,7 +302,7 @@ Click on a field to edit it.
             set=<<viewersEditState>>
             setTo=yes
           >
-            <$text text={{{ [has[viewers]get[viewers]enlist[]else[No Viewers]] }}}/>
+            <$list filter='[<currentTiddler>get[viewers]enlist-input[]else[No Viewers]]'><$view field='title'/> </$list>
           </$button>
         </$reveal>
         <$reveal
@@ -310,30 +310,41 @@ Click on a field to edit it.
           text=yes
           state=<<viewersEditState>>
         >
+          <$select
+            tiddler={{{ [<currentTiddler>addprefix[$:/state/Bob/AddViewers/]] }}}
+          >
+            <option value=''>--</option>
+            <$list filter='[removeprefix[$:/status/VisibleProfile/]] -[<currentTiddler>get[viewers]enlist-input[]]'>
+              <option><$view field='title'/></option>
+            </$list>
+          </$select>
           <$button
-            style='width:100%;height:100%;'
+            set=<<viewersEditState>>
+            setTo=no
+          >
+            Add Viewer
+            <$action-listops $tiddler=<<wikiTid>> $field=viewers $subfilter='[<currentTiddler>addprefix[$:/state/Bob/AddViewers/]get[text]]'/>
+            <$action-setfield $tiddler={{{ [<currentTiddler>addprefix[$:/state/Bob/AddViewers/]] }}} text=''/>
+          </$button>
+          <$set name=wikiTid value=<<currentTiddler>>>
+            <$list filter='[<currentTiddler>get[viewers]enlist-input[]]'>
+              {{||$:/plugins/OokTech/Bob/WikisTab/ViewerPillDisplayTemplate}}
+            </$list>
+          </$set>
+          <$button
             class='tc-btn-invisible'
             set=<<viewersEditState>>
-            setTo=no
+            setTo="no"
           >
-            __something here__
+            <$action-websocketmessage $type=setViewers forWiki={{{ [<currentTiddler>removeprefix[$:/Bob/OwnedWikis/]] }}} viewers={{{ [<currentTiddler>get[viewers]] }}}/>
+            {{$:/core/images/save-button}}
           </$button>
           <$button
+            class='tc-btn-invisible'
             set=<<viewersEditState>>
-            setTo=no
+            setTo="no"
           >
-            Ok
-            <$action-websocketmessage
-              $type='setVisibility'
-              wikiName={{{ [<currentTiddler>removeprefix[$:/Bob/OwnedWikis/]] }}}
-              visibility={{{ [[$:/temp/Bob/WikiVisibility/]addsuffix<currentTiddler>get[text]] }}}
-            />
-          </$button>
-          <$button
-            set=<<viewersEditState>>
-            setTo=no
-          >
-            Cancel
+            {{$:/core/images/cancel-button}}
           </$button>
         </$reveal>
       </td>
@@ -360,7 +371,7 @@ Click on a field to edit it.
             set=<<editorsEditState>>
             setTo="yes"
           >
-            <$text text={{{ [has[editors]get[editors]enlist[]else[No Editors]] }}}/>
+            <$list filter='[<currentTiddler>get[editors]enlist-input[]else[No Editors]]'><$view field='title'/> </$list>
           </$button>
         </$reveal>
         <$reveal
@@ -368,13 +379,38 @@ Click on a field to edit it.
           text=yes
           state=<<editorsEditState>>
         >
+          <$select
+            tiddler={{{ [<currentTiddler>addprefix[$:/state/Bob/AddEditors/]] }}}
+          >
+            <option value=''>--</option>
+            <$list filter='[removeprefix[$:/status/VisibleProfile/]] -[<currentTiddler>get[editors]enlist-input[]]'>
+              <option><$view field='title'/></option>
+            </$list>
+          </$select>
+          <$button>
+            Add Editor
+            <$action-listops $tiddler=<<wikiTid>> $field=editors $subfilter='[<currentTiddler>addprefix[$:/state/Bob/AddEditors/]get[text]]'/>
+            <$action-setfield $tiddler={{{ [<currentTiddler>addprefix[$:/state/Bob/AddEditors/]] }}} text=''/>
+          </$button>
+          <$set name=wikiTid value=<<currentTiddler>>>
+            <$list filter='[<currentTiddler>get[editors]enlist-input[]]'>
+              {{||$:/plugins/OokTech/Bob/WikisTab/EditorPillDisplayTemplate}}
+            </$list>
+          </$set>
           <$button
-            style='width:100%;height:100%;'
             class='tc-btn-invisible'
             set=<<editorsEditState>>
             setTo="no"
           >
-            __something here__
+            <$action-websocketmessage $type=setEditors forWiki={{{ [<currentTiddler>removeprefix[$:/Bob/OwnedWikis/]] }}} editors={{{ [<currentTiddler>get[editors]] }}}/>
+            {{$:/core/images/save-button}}
+          </$button>
+          <$button
+            class='tc-btn-invisible'
+            set=<<editorsEditState>>
+            setTo="no"
+          >
+            {{$:/core/images/cancel-button}}
           </$button>
         </$reveal>
       </td>
@@ -442,7 +478,15 @@ access again.
         Yes
       </td>
       <td>
-        <$list filter='[[$:/state/EditableWikis]contains:list<currentTiddler>]'>Yes</$list>
+        <$list filter='[[$:/state/EditableWikis]contains:list<currentTiddler>]' emptyMessage='No'>Yes</$list>
+      </td>
+      <td>
+        <$list
+          filter='[[$:/state/OwnedWikis/]addsuffix{$:/status/UserName}addsuffix[/]addsuffix<currentTiddler>has[wiki_name]]'
+          emptyMessage='No'
+        >
+          Yes
+        </$list>
       </td>
     </tr>
   </$list>

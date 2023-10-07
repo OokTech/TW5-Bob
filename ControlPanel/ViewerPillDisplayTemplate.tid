@@ -1,0 +1,13 @@
+title: $:/plugins/OokTech/Bob/WikisTab/ViewerPillDisplayTemplate
+
+<span
+    style='position:relative;padding:10px;background-color:pink;border-radius:20px'
+>
+    {{!!title}}
+    <$button
+        class='tc-btn-invisible'
+    >
+        {{$:/core/images/cancel-button}}
+        <$action-listops $tiddler=<<wikiTid>> $field=viewers $subfilter='-[<currentTiddler>]'/>
+    </$button>
+</span>

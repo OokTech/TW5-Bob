@@ -36,6 +36,15 @@ if($tw.node) {
   $tw.nodeMessageHandlers.test = function(data) {
     $tw.Bob.logger.log(data, {level:0});
   }
+
+  /*
+    If a logged in person tries to do something they aren't authorized to do this handles the reply
+  */
+  $tw.nodeMessageHandlers.unauthorizedRequest = function (data) {
+    // for now just send a simple error message
+    $tw.Bob.Shared.sendAck(data)
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], {type: 'error', for: data.type, explain: data.explain})
+  }
 }
 }
 })()

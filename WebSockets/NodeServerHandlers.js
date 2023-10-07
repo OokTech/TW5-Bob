@@ -974,7 +974,7 @@ if($tw.node) {
       let message;
       if(err) {
         message = {
-          alert: 'Error trying to delete wiki ' + e
+          alert: 'Error trying to delete wiki ' + err
         };
       } else {
         if(data.deleteChildren === 'yes') {
