@@ -23,7 +23,7 @@ exports.handler = function(request,response,state) {
   const path = require('path')
   const buffer = require('buffer')
   $tw.settings.API = $tw.settings.API || {};
-  const authorised = $tw.Bob.AccessCheck(request.headers['x-wiki-name'], response, 'upload', 'wiki');
+  const authorised = $tw.Bob.AccessCheck(decodeURIComponent(request.headers['x-wiki-name']), response, 'upload', 'wiki');
   if (authorised) {
     let body = ''
     request.on('data', function(chunk){
@@ -41,7 +41,7 @@ exports.handler = function(request,response,state) {
     request.on('end', function() {
       try {
         let bodyData = JSON.parse(body)
-        if(bodyData.wiki !== request.headers['x-wiki-name']) {
+        if(bodyData.wiki !== decodeURIComponent(request.headers['x-wiki-name'])) {
           if(!$tw.Bob.AccessCheck(bodyData.wiki, response, 'upload', 'wiki')) {
             request.writeHead(400).end();
             $tw.Bob.logger.log("Missing permissions to upload a file.", {level: 3});

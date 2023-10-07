@@ -20,6 +20,7 @@ if(!$tw.Bob.Shared) {
 
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
   $tw.connections = $tw.connections || [];
+  $tw.settings = $tw.settings || {};
   $tw.settings.advanced = $tw.settings.advanced || {};
 
   /*

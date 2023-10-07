@@ -15,8 +15,6 @@ A sync adaptor module for synchronising multiple wikis
 exports.platforms = ["node"];
 
 if($tw.node) {
-  console.log('IT IS HERE')
-
   // Get a reference to the file system
   const fs = require("fs"),
     path = require("path");

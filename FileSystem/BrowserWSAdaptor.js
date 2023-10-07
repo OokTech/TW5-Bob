@@ -144,7 +144,7 @@ function BrowserWSAdaptor(options) {
 
   $tw.Bob.getSettings = function() {
     // Ask the server for its status
-    fetch('/api/status', {credentials: 'include', headers: {'x-wiki-name': $tw.wikiName}})
+    fetch('/api/status', {credentials: 'include', headers: {'x-wiki-name': encodeURIComponent($tw.wikiName)}})
     .then(response => response.json())
     .then(function(data) {
       function doThisLevel (inputObject, currentName) {
@@ -520,7 +520,7 @@ function BrowserWSAdaptor(options) {
             tiddler: tiddler,
             wiki: $tw.wiki.getTiddlerText('$:/WikiName')
           }
-          request.setRequestHeader('x-wiki-name',wikiPrefix);
+          request.setRequestHeader('x-wiki-name',encodeURIComponent(wikiPrefix));
           request.onreadystatechange = function() {
             if(request.readyState === XMLHttpRequest.DONE) {
               if(request.status === 200) {
