@@ -68,7 +68,13 @@ function BrowserWSAdaptor(options) {
   const connectionIndex = 0;
 
   // Do all actions on startup.
-  $tw.Bob.setup = function(reconnect) {
+  const setupWSAdaptor = function(reconnect) {
+    /*if ($tw.connections[connectionIndex]) {
+      if ($tw.connections[connectionIndex].socket) {
+        console.log($tw.connections[connectionIndex].socket)
+        if($tw.connections[connectionIndex].socket.readyState < 2) {
+      return
+    }}}*/
     $tw.setcookie = function(cookieName, cookieValue) {
       if(cookieName && cookieValue) {
         document.cookie = cookieName + "=" + cookieValue;
@@ -102,15 +108,15 @@ function BrowserWSAdaptor(options) {
 
     $tw.connections = $tw.connections || [];
     $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
-    $tw.connections[connectionIndex].index = connectionIndex;
     try{
+      $tw.connections[connectionIndex].index = connectionIndex;
       const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,''));
       // TODO: make the onclose handler for the socket handle the disconnection part
       sendToServer({type: 'ping', heartbeat:true})
       $tw.connections[connectionIndex].socket.onclose = function clear() {
         clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
-        $tw.Bob.setup(true);
+        setupWSAdaptor(true);
         // TODO try and reconnect here!
       };
     } catch (e) {
@@ -384,7 +390,7 @@ function BrowserWSAdaptor(options) {
 
     $tw.Bob.Reconnect = function (sync) {
       if($tw.connections[0].socket.readyState !== 1) {
-        $tw.Bob.setup();
+        setupWSAdaptor();
         if(sync) {
           $tw.Bob.syncToServer();
         }
@@ -396,25 +402,23 @@ function BrowserWSAdaptor(options) {
         setTimeout($tw.Bob.syncToServer, 100)
         console.log('waiting')
       } else {
-        /*
         // The process here should be:
+        //  Send the full list of changes from the browser to the server in a
+        //  special message
+        //  The server determines if any conflicts exist and marks the tiddlers as appropriate
+        //  If there are no conflicts than it just applies the changes from the browser/server
+        //  If there are than it marks the tiddler as needing resolution and both versions are made available
+        //  All connected browsers now see the tiddlers marked as in conflict and resolution is up to the people
 
-          Send the full list of changes from the browser to the server in a
-          special message
-          The server determines if any conflicts exist and marks the tiddlers as appropriate
-          If there are no conflicts than it just applies the changes from the browser/server
-          If there are than it marks the tiddler as needing resolution and both versions are made available
-          All connected browsers now see the tiddlers marked as in conflict and resolution is up to the people
+        //  This message is sent to the server, once the server receives it it respons with a special ack for it, when the browser receives that it deletes the unsent tiddler
 
-          This message is sent to the server, once the server receives it it respons with a special ack for it, when the browser receives that it deletes the unsent tiddler
+        //  What is a conflict?
 
-          What is a conflict?
-
-          If both sides say to delete the same tiddler there is no conflict
-          If one side says save and the othre delete there is a conflict
-          if both sides say save there is a conflict if the two saved versions
-          aren't the same.
-        */
+        //  If both sides say to delete the same tiddler there is no conflict
+        //  If one side says save and the othre delete there is a conflict
+        //  if both sides say save there is a conflict if the two saved versions
+        //  aren't the same.
+        //
         // Get the tiddler with the info about local changes
         const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
         let tiddlerHashes = {};
@@ -563,7 +567,8 @@ function BrowserWSAdaptor(options) {
   // Only set up the websockets if we aren't in an iframe or opened as a file.
   if(window.location === window.parent.location && window.location.hostname) {
     // Send the message to node using the websocket
-    $tw.Bob.setup();
+    // Somehow having this not set to reconnect makes it not send updates to the browser when a wiki is created, renamed or deleted
+    setupWSAdaptor();
   }
 }
 

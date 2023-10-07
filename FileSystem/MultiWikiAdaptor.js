@@ -305,11 +305,11 @@ if($tw.node) {
 
   MultiWikiAdaptor.prototype.renameWiki = function(data, cb) {
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
-    if(existsListed(data.oldWiki) && !existsListed(data.newWiki) && authorised) {
+    if($tw.syncadaptor.existsListed(data.oldWiki) && !$tw.syncadaptor.existsListed(data.newWiki) && authorised) {
       // Unload the old wiki
       $tw.Bob.unloadWiki(data.oldWiki);
       const basePath = $tw.syncadaptor.getBasePath();
-      const oldWikiPath = $tw.ServerSide.getWikiPath(data.oldWiki);
+      const oldWikiPath = $tw.syncadaptor.getWikiPath(data.oldWiki);
       const newWikiPath = path.resolve(basePath, $tw.settings.wikisPath, data.newWiki);
       fs.rename(oldWikiPath, newWikiPath, function(e) {
         if(e) {
@@ -330,9 +330,9 @@ if($tw.node) {
   MultiWikiAdaptor.prototype.deleteWiki = function(data, cb) {
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete', 'wiki');
     // Make sure that the wiki exists and is listed
-    if(existsListed(data.deleteWiki) && authorised) {
+    if($tw.syncadaptor.existsListed(data.deleteWiki) && authorised) {
       $tw.Bob.unloadWiki(data.deleteWiki);
-      const wikiPath = $tw.ServerSide.getWikiPath(data.deleteWiki);
+      const wikiPath = $tw.syncadaptor.getWikiPath(data.deleteWiki);
       if(data.deleteChildren === 'yes') {
         deleteDirectory(wikiPath).then(function() {
           cb();
@@ -1014,6 +1014,8 @@ const getDirectories = function(source) {
       $tw.nodeMessageHandlers.saveSettings(data);
       $tw.nodeMessageHandlers.updateRoutes(data);
     }
+    const message = {type: 'updateSettings'};
+    $tw.Bob.SendToBrowsers(message);
   }
     
   $tw.stopFileWatchers = function(wikiName) {
@@ -1119,10 +1121,10 @@ const getDirectories = function(source) {
         // Duplicate a wiki
         // Make sure that the wiki to duplicate exists and that the target wiki
         // name isn't in use
-        if(existsListed(data.fromWiki)) {
+        if($tw.syncadaptor.existsListed(data.fromWiki)) {
           // Get the paths for the source and destination
           $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-          const source = $tw.ServerSide.getWikiPath(data.fromWiki);
+          const source = $tw.syncadaptor.getWikiPath(data.fromWiki);
           data.copyChildren = data.copyChildren || 'no';
           const copyChildren = data.copyChildren.toLowerCase() === 'yes'?true:false;
           // Make the duplicate

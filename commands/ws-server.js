@@ -118,14 +118,18 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
+    // make sure that this connection doesn't already exist!
+    if ($tw.connections.filter(function(conn) {return conn.socket == client}).length > 0) {
+      return
+    }
+    $tw.Bob.logger.log("new connection", {level:2});
+    $tw.connections.push({'socket':client, 'wiki': undefined, 'index': Object.keys($tw.connections).length});
     function heartbeat() {
       console.log('heartbeat')
       client.isAlive = true;
       console.log('send ping')
-      $tw.Bob.SendToBrowser($tw.connections[Object.keys($tw.connections).length-1], {type: 'ping'})
+      $tw.Bob.SendToBrowser($tw.connections[client.index], {type: 'ping'})
     }
-    $tw.Bob.logger.log("new connection", {level:2});
-    $tw.connections.push({'socket':client, 'wiki': undefined});
     client.on('message', $tw.Bob.handleMessage);
     client.on('pong', heartbeat);
     // Respond to the initial connection with a request for the tiddlers the

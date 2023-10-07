@@ -388,7 +388,7 @@ it will overwrite this file.
     if(data.list) {
       const fields = {
         title: '$:/state/ViewableWikis',
-        list: data.list
+        list: Object.keys(data.list)
       }
       $tw.wiki.addTiddler(new $tw.Tiddler(fields));
     }
