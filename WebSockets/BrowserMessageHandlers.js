@@ -187,12 +187,21 @@ it will overwrite this file.
     const response = $tw.wiki.allTitles();
     // Send the response JSON as a string.
     //const token = localStorage.getItem('ws-token')
-    $tw.connections[0].socket.send(JSON.stringify({
+    /*$tw.connections[0].socket.send(JSON.stringify({
       type: 'browserTiddlerList',
       titles: response,
       //token: token,
-      wiki: $tw.wiki.getTiddlerText('$:/WikiName')
-    }));
+      wiki: $tw.wiki.getTiddlerText('$:/WikiName'),
+      sessionId: sessionStorage.getItem('sessionId')
+    }));*/
+    const message = {
+      type: 'browserTiddlerList',
+      titles: response,
+      //token: token,
+      wiki: $tw.wiki.getTiddlerText('$:/WikiName'),
+      sessionId: sessionStorage.getItem('sessionId')
+    };
+    $tw.Bob.Shared.sendMessage(message, 0);
   }
 
   /*
@@ -265,11 +274,9 @@ it will overwrite this file.
     })
     message.type = 'pong';
     message.token = token;
-    message.wiki = $tw.wikiName;
-    // The message is just the message type
-    const response = JSON.stringify(message);
-    // Send the response
-    $tw.connections[0].socket.send(response);
+    message.wiki = encodeURIComponent($tw.wikiName);
+    message.sessionId = sessionStorage.getItem('sessionId')
+    $tw.Bob.Shared.sendMessage(message, 0);
   }
 
   /*
@@ -280,87 +287,7 @@ it will overwrite this file.
     // If this pong is part of a heartbeat than use a setTimeout to send
     // another beat in the interval defined in $tw.settings.heartbeat.interval
     // the timeout id is stored in $tw.settings.heartbeat.timeoutid
-    if(data.heartbeat || true) {
-      if($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
-        $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Server Warning');
-      }
-
-      $tw.settings.heartbeat = $tw.settings.heartbeat || {};
-
-      if(!$tw.settings.heartbeat.interval) {
-        const heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
-        const heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
-        $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
-        $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
-      }
-      // Clear the time to live timeout.
-      clearTimeout($tw.settings.heartbeat.TTLID);
-      // Clear the retry timeout.
-      clearTimeout($tw.settings.heartbeat.retry);
-			clearTimeout($tw.settings.heartbeat.PingTimer);
-      $tw.settings.heartbeat.PingTimer = setTimeout(function () {
-        try {
-          const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
-          $tw.connections[0].socket.send(JSON.stringify({
-            type: 'ping',
-            heartbeat: true,
-            token: token,
-            wiki: $tw.wikiName
-          }));
-        } catch (e)  {
-          console.log('connection error', e)
-          checkDisconnected();
-        }
-      }, $tw.settings.heartbeat.interval);
-      $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
-    }
-  }
-
-  function checkDisconnected() {
-    if($tw.connections[0].socket.readyState !== 1) {
-      handleDisconnected();
-    } else {
-      const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
-      $tw.connections[0].socket.send(JSON.stringify({
-        type: 'ping',
-        heartbeat: true,
-        token: token,
-        wiki: $tw.wikiName
-      }));
-    }
-  }
-
-  /*
-    This is what happens when the browser detects that it isn't connected to
-    the server anymore.
-  */
-  function handleDisconnected() {
-    console.log('Disconnected from server', {level:0});
-    const text = "<div style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: You are no longer connected to the server.''<$button style='color:black;'>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
-    const tiddler = {
-      title: '$:/plugins/OokTech/Bob/Server Warning',
-      text: text,
-      tags: '$:/tags/PageTemplate'
-    };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
-    $tw.settings.heartbeat.retry = setInterval(function () {
-      if($tw.connections[0].socket.readyState === 1) {
-        const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
-        $tw.connections[0].socket.send(JSON.stringify({
-          type: 'ping',
-          heartbeat: true,
-          token: token,
-          wiki: $tw.wikiName
-        }));
-      }
-    }, $tw.settings.heartbeat.interval);
-    const tiddler2 = {
-      title: '$:/plugins/OokTech/Bob/Unsent',
-      text: JSON.stringify($tw.Bob.MessageQueue, '', 2),
-      type: 'application/json',
-      start: Date.now()-Number($tw.settings.heartbeat.timeout)
-    };
-    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
+    $tw.syncadaptor.setConnected()
   }
 
   /*

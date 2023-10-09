@@ -162,6 +162,15 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.setLoggedIn = function (data) {
     $tw.Bob.Shared.sendAck(data);
+    // make sure that the wiki is actually loaded!
+    data.wiki = decodeURIComponent(data.wiki)
+    const exists = $tw.syncadaptor.loadWiki(data.wiki);
+    if (!exists) {
+      console.log(data)
+      console.log($tw.connections[data.sessionId])
+      console.log("This wiki doesn't exist!")
+      return
+    }
     // Heartbeat. This can be done if the heartbeat is started or not because
     // if an extra heartbeat pong is heard it just shifts the timing.
     let message = {};

@@ -19,7 +19,7 @@ if(!$tw.Bob.Shared) {
   let messageQueueTimer = false;
 
   $tw.Bob.MessageQueue = $tw.Bob.MessageQueue || [];
-  $tw.connections = $tw.connections || [];
+  $tw.connections = $tw.connections || {};
   $tw.settings = $tw.settings || {};
   $tw.settings.advanced = $tw.settings.advanced || {};
 
@@ -168,9 +168,9 @@ if(!$tw.Bob.Shared) {
       oldMessages.forEach(function (messageData) {
         // If we are in the browser there is only one connection, but
         // everything here is the same.
-        const targetConnections = $tw.node?(messageData.wiki?$tw.connections.filter(function(item) {
+        const targetConnections = $tw.node?(messageData.wiki?Object.values($tw.connections).filter(function(item) {
           return item.wiki === messageData.wiki && !messageData.ack[item.socket.index]
-        }):[]):[$tw.connections[0]];
+        }):[]):[Object.values($tw.connections)[0]];
         targetConnections.forEach(function(connection) {
           _sendMessage(connection, messageData)
         });
@@ -337,7 +337,7 @@ if(!$tw.Bob.Shared) {
       // Only send things if the message is meant for the wiki or if the browser
       // is sending a message to the server. No wiki listed in the message means
       // it is a general message from the browser to all wikis.
-      if(messageData.message.wiki === $tw.connections[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
+      if(messageData.message.wiki === Object.values($tw.connections)[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
         let ignore = false;
         // Ignore saveTiddler, deleteTiddler and editingTiddler messages for
         // tiddlers that are listed by the sync exclude filter.
@@ -477,7 +477,7 @@ if(!$tw.Bob.Shared) {
         messageData.ack[connectionIndex] = false;
         $tw.Bob.MessageQueue.push(messageData);
       }
-      _sendMessage($tw.connections[connectionIndex], messageData)
+      _sendMessage(Object.values($tw.connections)[connectionIndex], messageData)
     } else if($tw.browser) {
       // If we are not sending the message then we have to emit the 'received-ack' event so that the syncer thinks it is finished.
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})
@@ -752,11 +752,12 @@ if(!$tw.Bob.Shared) {
     data = data || {};
     if($tw.browser) {
       const token = $tw.Bob.Shared.getMessageToken();
-      $tw.connections[0].socket.send(JSON.stringify({
+      Object.values($tw.connections)[0].socket.send(JSON.stringify({
         type: 'ack',
         id: data.id,
         token: token,
-        wiki: $tw.wikiName
+        wiki: $tw.wikiName,
+        sessionId: sessionStorage.getItem('sessionId')
       }), function ack(err) {
         if(err) {
           console.log('sending ack failed: ', err, data)
@@ -765,7 +766,8 @@ if(!$tw.Bob.Shared) {
     } else {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {
-          $tw.connections[data.source_connection].socket.send(JSON.stringify({
+          //Object.values($tw.connections)[data.source_connection].socket.send(JSON.stringify({
+            $tw.connections[data.source_connection].socket.send(JSON.stringify({
             type: 'ack',
             id: data.id
           }), function ack(err) {

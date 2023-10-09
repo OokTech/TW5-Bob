@@ -28,7 +28,7 @@ if($tw.node) {
     The websocket components
   */
   const WebSocketServer = require('$:/plugins/OokTech/Bob/External/WS/ws.js').Server;
-  $tw.connections = $tw.connections || [];
+  $tw.connections = $tw.connections || {};
   $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
   $tw.wss = new WebSocketServer({noServer: true});
   // Set the onconnection function
@@ -55,9 +55,10 @@ if($tw.node) {
     $tw.Bob.logger.log('Received websocket message ', event, {level:4});
     let self = this;
     // Determine which connection the message came from
-    const thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
+    //let thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
     try {
       let eventData = JSON.parse(event);
+      let thisIndex = eventData.sessionId;
       // Add the source to the eventData object so it can be used later.
       eventData.source_connection = thisIndex;
       // If the wiki on this connection hasn't been determined yet, take it
@@ -70,6 +71,7 @@ if($tw.node) {
       // This is really only a concern for the secure server, in that case
       // you authenticate the token and it only works if the wiki matches
       // and the token has access to that wiki.
+      eventData.wiki = decodeURIComponent(eventData.wiki)
       if(eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
         $tw.connections[thisIndex].wiki = eventData.wiki;
         // Make sure that the new connection has the correct list of tiddlers
@@ -118,26 +120,27 @@ if($tw.node) {
     }
   */
   function handleConnection(client, request) {
-    // make sure that this connection doesn't already exist!
-    if ($tw.connections.filter(function(conn) {return conn.socket == client}).length > 0) {
+    const wikiName = decodeURIComponent(client.sessionId.slice(0,-6))
+    const exists = $tw.syncadaptor.loadWiki(wikiName);
+    if (!exists) {
+      // don't make connections for wikis that don't exist
+      console.log("Trying to log into a wiki that doesn't exist!")
       return
     }
-    $tw.Bob.logger.log("new connection", {level:2});
-    $tw.connections.push({'socket':client, 'wiki': undefined, 'index': Object.keys($tw.connections).length});
-    function heartbeat() {
-      console.log('heartbeat')
-      client.isAlive = true;
-      console.log('send ping')
-      $tw.Bob.SendToBrowser($tw.connections[client.index], {type: 'ping'})
+    // make sure that this connection doesn't already exist!
+    if ($tw.connections[client.sessionId]) {
+      $tw.connections[client.sessionId].socket = client
+    } else {
+      $tw.Bob.logger.log("new connection", {level:2});
+      $tw.connections[client.sessionId] = {'socket':client, 'wiki': decodeURIComponent(client.sessionId.slice(0,-6)), 'sessionId': client.sessionId, 'index': Object.keys($tw.connections).length}
     }
     client.on('message', $tw.Bob.handleMessage);
-    client.on('pong', heartbeat);
     // Respond to the initial connection with a request for the tiddlers the
     // browser currently has to initialise everything.
     client.index = Object.keys($tw.connections).length-1;
     const message = {type: 'listTiddlers'}
-    $tw.Bob.SendToBrowser(client.index, message);
-    $tw.Bob.SendToBrowser(client.index, {type: 'ping', heartbeat: true})
+    $tw.Bob.SendToBrowser(client, message);
+    $tw.Bob.SendToBrowser(client, {type: 'ping', heartbeat: true})
     if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
       $tw.Bob.Federation.updateConnections();
     }
@@ -319,8 +322,9 @@ if($tw.node) {
     });
     httpServer.on('upgrade', function(request, socket, head) {
       if(request.headers.upgrade.toLocaleLowerCase() === 'websocket') {
-        if(request.url === '/') {
+        if(request.url.slice(0,2) === '/?') {
           $tw.wss.handleUpgrade(request, socket, head, function(ws) {
+            ws.sessionId = request.url.slice(2)
             $tw.wss.emit('connection', ws, request);
           });
         } else if(request.url === '/api/federation/socket' && $tw.federationWss && $tw.settings.enableFederation === 'yes') {

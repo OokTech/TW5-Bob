@@ -12,48 +12,6 @@ A sync adaptor for syncing changes using websockets with Bob
 /*global $tw: false */
 "use strict";
 
-
-const sendToServer = function (message, callback) {
-  const connectionIndex = 0;
-  // If the connection is open, send the message
-  if($tw.connections[connectionIndex].socket.readyState === 1 && $tw.readOnly !== 'yes') {
-    const messageData = $tw.Bob.Shared.sendMessage(message, 0);
-    return messageData.id;
-  } else {
-    // If the connection is not open than store the message in the queue
-    const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
-    let queue = [];
-    let start = Date.now();
-    if(tiddler) {
-      if(typeof tiddler.fields.text === 'string') {
-        queue = JSON.parse(tiddler.fields.text);
-      }
-      if(tiddler.fields.start) {
-        start = tiddler.fields.start;
-      }
-    }
-    // Check to make sure that the current message is eligible to be saved
-    const messageData = $tw.Bob.Shared.createMessageData(message)
-    if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
-      // Prune the queue and check if the current message makes any enqueued
-      // messages redundant or overrides old messages
-      queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
-      // Don't save any messages that are about the unsent list or you get
-      // infinite loops of badness.
-      if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
-        queue.push(messageData);
-      }
-      const tiddler2 = {
-        title: '$:/plugins/OokTech/Bob/Unsent',
-        text: JSON.stringify(queue, '', 2),
-        type: 'application/json',
-        start: start
-      };
-      $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
-    }
-  }
-}
-
 function BrowserWSAdaptor(options) {
   this.wiki = options.wiki;
   this.idList = [];
@@ -69,12 +27,6 @@ function BrowserWSAdaptor(options) {
 
   // Do all actions on startup.
   const setupWSAdaptor = function(reconnect) {
-    /*if ($tw.connections[connectionIndex]) {
-      if ($tw.connections[connectionIndex].socket) {
-        console.log($tw.connections[connectionIndex].socket)
-        if($tw.connections[connectionIndex].socket.readyState < 2) {
-      return
-    }}}*/
     $tw.setcookie = function(cookieName, cookieValue) {
       if(cookieName && cookieValue) {
         document.cookie = cookieName + "=" + cookieValue;
@@ -102,6 +54,9 @@ function BrowserWSAdaptor(options) {
       $tw.wikiName = '';
     }
 
+    if (!sessionStorage.sessionId) {
+      sessionStorage.setItem('sessionId', encodeURIComponent($tw.wikiName + $tw.utils.pad(Math.floor(Math.random()*999999), 6)))
+    }
     const IPAddress = window.location.hostname;
     const WSSPort = window.location.port;
     const WSScheme = window.location.protocol=="https:"?"wss://":"ws://";
@@ -111,9 +66,8 @@ function BrowserWSAdaptor(options) {
     try{
       $tw.connections[connectionIndex].index = connectionIndex;
       const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
-      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,''));
+      $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,'') + '?' + sessionStorage.getItem('sessionId'));
       // TODO: make the onclose handler for the socket handle the disconnection part
-      sendToServer({type: 'ping', heartbeat:true})
       $tw.connections[connectionIndex].socket.onclose = function clear() {
         clearTimeout($tw.connections[connectionIndex].socket.pingTimeout);
         setupWSAdaptor(true);
@@ -130,7 +84,143 @@ function BrowserWSAdaptor(options) {
     if(!reconnect) {
       addHooks();
     }
+    // send a ping to start communication with the server
+    _sendToServer({'type': 'ping'});
+
   }
+
+
+  const _sendToServer = function (message, callback) {
+    const connectionIndex = 0;
+    message.sessionId = sessionStorage.getItem('sessionId')
+    message.wiki = encodeURIComponent($tw.wikiName)
+    // If the connection is open, send the message
+    if($tw.connections[connectionIndex].socket.readyState === 1 && $tw.readOnly !== 'yes') {
+      const messageData = $tw.Bob.Shared.sendMessage(message, 0);
+      return messageData.id;
+    } else {
+      // If the connection is not open than store the message in the queue
+      const tiddler = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob/Unsent');
+      let queue = [];
+      let start = Date.now();
+      if(tiddler) {
+        if(typeof tiddler.fields.text === 'string') {
+          queue = JSON.parse(tiddler.fields.text);
+        }
+        if(tiddler.fields.start) {
+          start = tiddler.fields.start;
+        }
+      }
+      // Check to make sure that the current message is eligible to be saved
+      const messageData = $tw.Bob.Shared.createMessageData(message)
+      if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
+        // Prune the queue and check if the current message makes any enqueued
+        // messages redundant or overrides old messages
+        queue = $tw.Bob.Shared.removeRedundantMessages(messageData, queue);
+        // Don't save any messages that are about the unsent list or you get
+        // infinite loops of badness.
+        if(messageData.title !== '$:/plugins/OokTech/Bob/Unsent') {
+          queue.push(messageData);
+        }
+        const tiddler2 = {
+          title: '$:/plugins/OokTech/Bob/Unsent',
+          text: JSON.stringify(queue, '', 2),
+          type: 'application/json',
+          start: start
+        };
+        $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
+      }
+    }
+  }
+
+  BrowserWSAdaptor.prototype.sendToServer = _sendToServer
+
+
+  BrowserWSAdaptor.prototype.setConnected = function() {
+    if($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {
+      $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Server Warning');
+    }
+
+    $tw.settings.heartbeat = $tw.settings.heartbeat || {};
+
+    if(!$tw.settings.heartbeat.interval) {
+      const heartbeatTiddler = $tw.wiki.getTiddler("$:/WikiSettings/split/heartbeat") || {fields:{text: "{}"}};
+      const heartbeat = JSON.parse(heartbeatTiddler.fields.text) || {};
+      $tw.settings.heartbeat["interval"] = heartbeat.interval || 1000;
+      $tw.settings.heartbeat["timeout"] = heartbeat.timeout || 5000;
+    }
+    // Clear the time to live timeout.
+    clearTimeout($tw.settings.heartbeat.TTLID);
+    // Clear the retry timeout.
+    clearTimeout($tw.settings.heartbeat.retry);
+    clearTimeout($tw.settings.heartbeat.PingTimer);
+    $tw.settings.heartbeat.PingTimer = setTimeout(function () {
+      try {
+        const token = $tw.Bob.Shared.getMessageToken();
+        $tw.connections[0].socket.send(JSON.stringify({
+          type: 'ping',
+          heartbeat: true,
+          token: token,
+          wiki: $tw.wikiName,
+          sessionId: sessionStorage.getItem('sessionId')
+        }));
+      } catch (e)  {
+        console.log('connection error', e)
+        checkDisconnected();
+      }
+    }, $tw.settings.heartbeat.interval);
+    $tw.settings.heartbeat.TTLID = setTimeout(checkDisconnected, Number($tw.settings.heartbeat.timeout));
+  }
+
+  function checkDisconnected() {
+    if($tw.connections[0].socket.readyState !== 1) {
+      handleDisconnected();
+    } else {
+      const token = $tw.Bob.Shared.getMessageToken();
+      $tw.connections[0].socket.send(JSON.stringify({
+        type: 'ping',
+        heartbeat: true,
+        token: token,
+        wiki: $tw.wikiName,
+        sessionId: sessionStorage.getItem('sessionId')
+      }));
+    }
+  }
+
+  /*
+    This is what happens when the browser detects that it isn't connected to
+    the server anymore.
+  */
+  function handleDisconnected() {
+    console.log('Disconnected from server', {level:0});
+    const text = "<div style='position:fixed;top:0px;width:100%;background-color:red;height:1.5em;max-height:100px;text-align:center;vertical-align:center;color:white;'>''WARNING: You are no longer connected to the server.''<$button style='color:black;'>Reconnect<$action-reconnectwebsocket/><$action-navigate $to='$:/plugins/Bob/ConflictList'/></$button></div>";
+    const tiddler = {
+      title: '$:/plugins/OokTech/Bob/Server Warning',
+      text: text,
+      tags: '$:/tags/PageTemplate'
+    };
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler));
+    $tw.settings.heartbeat.retry = setInterval(function () {
+      if($tw.connections[0].socket.readyState === 1) {
+        const token = $tw.Bob.Shared.getMessageToken();//localStorage.getItem('ws-token')
+        $tw.connections[0].socket.send(JSON.stringify({
+          type: 'ping',
+          heartbeat: true,
+          token: token,
+          wiki: $tw.wikiName,
+          sessionId: sessionStorage.getItem('sessionId')
+        }));
+      }
+    }, $tw.settings.heartbeat.interval);
+    const tiddler2 = {
+      title: '$:/plugins/OokTech/Bob/Unsent',
+      text: JSON.stringify($tw.Bob.MessageQueue, '', 2),
+      type: 'application/json',
+      start: Date.now()-Number($tw.settings.heartbeat.timeout)
+    };
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddler2));
+  }
+
 
   /*
     When the socket is opened the heartbeat process starts. This lets us know
@@ -144,7 +234,7 @@ function BrowserWSAdaptor(options) {
       wiki: $tw.wikiName//,
       //heartbeat: true
     };
-    sendToServer(data);
+    $tw.syncadaptor.sendToServer(data);
     $tw.Bob.getSettings();
   }
 
@@ -352,7 +442,7 @@ function BrowserWSAdaptor(options) {
                 },
                 wiki: $tw.wikiName
               };
-              sendToServer(message);
+              $tw.syncadaptor.sendToServer(message);
             }
           }
         }, 200, event.tiddlerTitle)
@@ -366,7 +456,7 @@ function BrowserWSAdaptor(options) {
         },
         wiki: $tw.wikiName
       };
-      sendToServer(message);
+      $tw.syncadaptor.sendToServer(message);
       // do the normal editing actions for the event
       return true;
     });
@@ -383,7 +473,7 @@ function BrowserWSAdaptor(options) {
         },
         wiki: $tw.wikiName
       };
-      sendToServer(message);
+      $tw.syncadaptor.sendToServer(message);
       // Do the normal handling
       return event;
     });
@@ -439,7 +529,7 @@ function BrowserWSAdaptor(options) {
           hashes: tiddlerHashes,
           wiki: $tw.wikiName
         };
-        sendToServer(message);
+        $tw.syncadaptor.sendToServer(message);
         $tw.wiki.deleteTiddler('$:/plugins/OokTech/Bob/Unsent')
       }
     }
@@ -614,7 +704,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
       tiddler: tempTid,
       wiki: $tw.wikiName
     };
-    const id = sendToServer(message, callback);
+    const id = $tw.syncadaptor.sendToServer(message, callback);
     if(id) {
       this.idList.push(id)
       $tw.rootWidget.addEventListener('handle-ack', function(e) {
@@ -654,7 +744,7 @@ BrowserWSAdaptor.prototype.saveTiddlers = function (tiddlers, callback) {
     tiddlers: preparedTiddlers,
     wiki: $tw.wikiName
   }
-  const id = sendToServer(message, callback);
+  const id = $tw.syncadaptor.sendToServer(message, callback);
   if(id) {
     this.idList.push(id);
     $tw.rootWidget.addEventListener('handle-ack', function(e) {
@@ -678,7 +768,7 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
       title: title,
       wiki: $tw.wikiName
     }
-    const id = sendToServer(message)
+    const id = $tw.syncadaptor.sendToServer(message)
     $tw.rootWidget.addEventListener('loaded-tiddler', function(e) {
       handleLoadedTiddler(e.detail)
     })
@@ -712,7 +802,7 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
       },
       wiki: $tw.wikiName
     };
-    const id = sendToServer(message);
+    const id = $tw.syncadaptor.sendToServer(message);
     this.idList.push(id)
     $tw.rootWidget.addEventListener('handle-ack', function(e) {
       handleAck(e.detail)
@@ -803,7 +893,7 @@ function setupSkinnyTiddlerLoading() {
             setTimeout(function() {
               if($tw.connections) {
                 if($tw.connections[0].socket.readyState === 1) {
-                  id = sendToServer(message)
+                  id = $tw.syncadaptor.sendToServer(message)
                   $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
                     handleSkinnyTiddlers(e.detail)
                   })
@@ -817,7 +907,7 @@ function setupSkinnyTiddlerLoading() {
           }
           if($tw.connections) {
             if($tw.connections[0].socket.readyState === 1) {
-              id = sendToServer(message)
+              id = $tw.syncadaptor.sendToServer(message)
               $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
                 handleSkinnyTiddlers(e.detail)
               })

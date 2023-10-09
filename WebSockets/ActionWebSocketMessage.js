@@ -73,7 +73,9 @@ Invoke the action associated with this widget
 */
 ActionWebSocketMessage.prototype.invokeAction = function(triggeringWidget,event) {
   // Create the empty message object
-  let message = {};
+  let message = {
+    'sessionId': sessionStorage.getItem('sessionId')
+  };
   // Add in the message type and param, if they exist
   message.type = this.type;
   message.param = this.param;

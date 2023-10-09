@@ -160,7 +160,7 @@ ServerSide.sendBrowserAlert = function(input) {
       let authenticationsList = false;
       if(input.connections.length > 0) {
         connectionsList = [];
-        $tw.connections.forEach(function(connection) {
+        Object.values($tw.connections).forEach(function(connection) {
           if(input.connections.indexOf(connection.index) !== -1) {
             connectionsList.push(connection.index);
           }
@@ -168,7 +168,7 @@ ServerSide.sendBrowserAlert = function(input) {
       }
       if(input.wikis.length > 0) {
         wikisList = [];
-        $tw.connections.forEach(function(connection) {
+        Object.values($tw.connections).forEach(function(connection) {
           if(input.wikis.indexOf(connection.wiki) !== -1) {
             wikisList.push(connection.index);
           }
@@ -197,8 +197,8 @@ ServerSide.sendBrowserAlert = function(input) {
           intersection = new Set([...intersection].filter(x => authenticationsSet.has(x)));
         }
         intersection.forEach(function(index) {
-          message.wiki = $tw.connections.wiki
-          $tw.Bob.SendToBrowser($tw.connections[index], message);
+          message.wiki = Object.values($tw.connections).wiki
+          $tw.Bob.SendToBrowser(Object.values($tw.connections)[index], message);
         });
       } else {
         $tw.Bob.logger.log('send message to all browsers', {level: 4})
@@ -708,7 +708,7 @@ $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
   $tw.Bob.UpdateHistory(message);
   const messageData = $tw.Bob.Shared.createMessageData(message);
 
-  $tw.connections.forEach(function (connection, ind) {
+  Object.values($tw.connections).forEach(function (connection, ind) {
     if((ind !== excludeConnection) && connection.socket) {
       if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
         $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
@@ -727,13 +727,11 @@ $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
   connection has a list of message ids that are still waiting for acks.
 */
 $tw.Bob.SendToBrowser = function (connection, message) {
-  if(connection) {
+  if(connection && connection.socket) {
     $tw.Bob.UpdateHistory(message);
     const messageData = $tw.Bob.Shared.createMessageData(message);
-    if(connection.socket) {
-      if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-        $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
-      }
+    if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
+      $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
     }
   }
 }
@@ -744,7 +742,7 @@ $tw.Bob.SendToBrowser = function (connection, message) {
   with a disconnected wiki.
 */
 $tw.Bob.DisconnectWiki = function (wiki) {
-  $tw.connections.forEach(function(connectionIndex) {
+  Object.values($tw.connections).forEach(function(connectionIndex) {
     if(connectionIndex.wiki === wiki) {
       if(connectionIndex.socket !== undefined) {
         // Close the websocket connection
@@ -778,7 +776,7 @@ $tw.Bob.unloadWiki = function(wikiName) {
 */
 $tw.Bob.PruneConnections = function () {
   if($tw.settings.autoUnloadWikis === "true") {
-    $tw.connections.forEach(function(connection) {
+    Object.values($tw.connections).forEach(function(connection) {
       if(connection.socket !== undefined) {
         if(connection.socket.readyState !== 1) {
           connection.socket.terminate();

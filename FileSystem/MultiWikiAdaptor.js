@@ -316,6 +316,7 @@ if($tw.node) {
           $tw.Bob.logger.log('failed to rename wiki',e,{level:1});
           cb(e);
         } else {
+          removeOldConnections(data.oldWiki);
           // Refresh wiki listing
           data.update = 'true';
           data.saveSettings = 'true';
@@ -327,11 +328,21 @@ if($tw.node) {
   }
 
 
+  function removeOldConnections(wikiName) {
+    // remove all of the connections to the renamed wiki
+    const connectionsToRemove = Object.keys($tw.connections).filter(function(thisSessionId) {return $tw.connections[thisSessionId].wiki == wikiName});
+    connectionsToRemove.forEach(function(thisSessionId) {
+      delete $tw.connections[thisSessionId];
+    })
+  }
+
+
   MultiWikiAdaptor.prototype.deleteWiki = function(data, cb) {
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete', 'wiki');
     // Make sure that the wiki exists and is listed
     if($tw.syncadaptor.existsListed(data.deleteWiki) && authorised) {
       $tw.Bob.unloadWiki(data.deleteWiki);
+      removeOldConnections(data.deleteWiki)
       const wikiPath = $tw.syncadaptor.getWikiPath(data.deleteWiki);
       if(data.deleteChildren === 'yes') {
         deleteDirectory(wikiPath).then(function() {
@@ -428,8 +439,8 @@ if($tw.node) {
 
   /*
   Determine which sub-folders are in the current folder
-*/
-const getDirectories = function(source) {
+  */
+  const getDirectories = function(source) {
     try {
       return fs.readdirSync(source).map(function(name) {
         return path.join(source,name)
@@ -476,44 +487,44 @@ const getDirectories = function(source) {
     isn't called for any of the recursive calls used for sub-directories.
   */
   MultiWikiAdaptor.prototype.specialCopy = function(source, destination, copyChildren, cb) {
-      let err = undefined;
-      // Check to make sure inputs are what we expect
-      if(typeof source !== 'string' || typeof destination !== 'string') {
-        cb('The source or destination given is not a string.')
-        return;
-      }
-      if(typeof copyChildren === 'function') {
-        cb = copyChildren;
-        copyChildren = false;
-      } else if(typeof copyChildren === 'string') {
-        copyChildren = (copyChildren==='true' || copyChildren === 'yes')?true:false;
-      } else if(copyChildren !== true) {
-        copyChildren = false;
-      }
-      try {
-        fs.mkdirSync(destination, {recursive: true});
-        const currentDir = fs.readdirSync(source)
-        currentDir.forEach(function (item) {
-          if(fs.statSync(path.join(source, item)).isFile()) {
-            const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
-            fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
-          } else {
-            //Recurse!! Because it is a folder.
-            // But make sure it is a directory first.
-            if(fs.statSync(path.join(source, item)).isDirectory() && (!fs.existsSync(path.join(source, item, 'tiddlywiki.info')) || copyChildren)) {
-              $tw.syncadaptor.specialCopy(path.join(source, item), path.join(destination, item), copyChildren);
-            }
-          }
-        });
-      } catch (e) {
-        err = e;
-      }
-      if(typeof cb === 'function') {
-        cb(err, source, destination, copyChildren)
-      } else {
-        return err;
-      }
+    let err = undefined;
+    // Check to make sure inputs are what we expect
+    if(typeof source !== 'string' || typeof destination !== 'string') {
+      cb('The source or destination given is not a string.')
+      return;
     }
+    if(typeof copyChildren === 'function') {
+      cb = copyChildren;
+      copyChildren = false;
+    } else if(typeof copyChildren === 'string') {
+      copyChildren = (copyChildren==='true' || copyChildren === 'yes')?true:false;
+    } else if(copyChildren !== true) {
+      copyChildren = false;
+    }
+    try {
+      fs.mkdirSync(destination, {recursive: true});
+      const currentDir = fs.readdirSync(source)
+      currentDir.forEach(function (item) {
+        if(fs.statSync(path.join(source, item)).isFile()) {
+          const fd = fs.readFileSync(path.join(source, item), {encoding: 'utf8'});
+          fs.writeFileSync(path.join(destination, item), fd, {encoding: 'utf8'});
+        } else {
+          //Recurse!! Because it is a folder.
+          // But make sure it is a directory first.
+          if(fs.statSync(path.join(source, item)).isDirectory() && (!fs.existsSync(path.join(source, item, 'tiddlywiki.info')) || copyChildren)) {
+            $tw.syncadaptor.specialCopy(path.join(source, item), path.join(destination, item), copyChildren);
+          }
+        }
+      });
+    } catch (e) {
+      err = e;
+    }
+    if(typeof cb === 'function') {
+      cb(err, source, destination, copyChildren)
+    } else {
+      return err;
+    }
+  }
   
     /*
     Given a wiki name this gets the wiki path if one is listed, if the wiki isn't
@@ -521,205 +532,205 @@ const getDirectories = function(source) {
     This can be used to determine if a wiki is listed or not.
   */
   MultiWikiAdaptor.prototype.getWikiPath = function(wikiName) {
-      let wikiPath = undefined;
-      if(wikiName === 'RootWiki') {
-        wikiPath = path.resolve($tw.boot.wikiPath);
-      } else if(wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) {
-        if(typeof $tw.settings.wikis[wikiName] === 'string') {
-          wikiPath = $tw.settings.wikis[wikiName];
-        } else if(typeof $tw.settings.wikis[wikiName].__path === 'string') {
-          wikiPath = $tw.settings.wikis[wikiName].__path;
-        }
-      } else {
-        const parts = wikiName.split('/');
-        let obj = $tw.settings.wikis;
-        for (let i = 0; i < parts.length; i++) {
-          if(obj[parts[i]]) {
-            if(i === parts.length - 1) {
-              if(typeof obj[parts[i]] === 'string') {
-                wikiPath = obj[parts[i]];
-              } else if(typeof obj[parts[i]] === 'object') {
-                if(typeof obj[parts[i]].__path === 'string') {
-                  wikiPath = obj[parts[i]].__path;
-                }
+    let wikiPath = undefined;
+    if(wikiName === 'RootWiki') {
+      wikiPath = path.resolve($tw.boot.wikiPath);
+    } else if(wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) {
+      if(typeof $tw.settings.wikis[wikiName] === 'string') {
+        wikiPath = $tw.settings.wikis[wikiName];
+      } else if(typeof $tw.settings.wikis[wikiName].__path === 'string') {
+        wikiPath = $tw.settings.wikis[wikiName].__path;
+      }
+    } else {
+      const parts = wikiName.split('/');
+      let obj = $tw.settings.wikis;
+      for (let i = 0; i < parts.length; i++) {
+        if(obj[parts[i]]) {
+          if(i === parts.length - 1) {
+            if(typeof obj[parts[i]] === 'string') {
+              wikiPath = obj[parts[i]];
+            } else if(typeof obj[parts[i]] === 'object') {
+              if(typeof obj[parts[i]].__path === 'string') {
+                wikiPath = obj[parts[i]].__path;
               }
-            } else {
-              obj = obj[parts[i]];
             }
           } else {
-            break;
+            obj = obj[parts[i]];
           }
+        } else {
+          break;
         }
       }
-      // If the wikiPath exists convert it to an absolute path
-      if(typeof wikiPath !== 'undefined') {
-        $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-        const basePath = $tw.syncadaptor.getBasePath()
-        wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiPath);
-      }
-      return wikiPath;
     }
+    // If the wikiPath exists convert it to an absolute path
+    if(typeof wikiPath !== 'undefined') {
+      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+      const basePath = $tw.syncadaptor.getBasePath()
+      wikiPath = path.resolve(basePath, $tw.settings.wikisPath, wikiPath);
+    }
+    return wikiPath;
+  }
   
-    /*
+  /*
     Given a wiki name this generates the path for the wiki.
   */
   function generateWikiPath(wikiName) {
-      const basePath = $tw.syncadaptor.getBasePath();
-      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
-      return path.resolve(basePath, $tw.settings.wikisPath, wikiName);
-    }
-    
-    /*
-      This checks to make sure there is a tiddlwiki.info file in a wiki folder
-    */
-    function wikiExists(wikiFolder) {
-      let exists = false;
-      // Make sure that the wiki actually exists
-      if(wikiFolder) {
-        $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
-        const basePath = $tw.syncadaptor.getBasePath()
-        // This is a bit hacky to get around problems with loading the root wiki
-        // This tests if the wiki is the root wiki and ignores the other pathing
-        // bits
-        if(wikiFolder === $tw.boot.wikiPath) {
-          wikiFolder = path.resolve($tw.boot.wikiPath)
-        } else {
-          // Get the correct path to the tiddlywiki.info file
-          wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
-          // Make sure it exists
-        }
-        exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
-      }
-      return exists;
-    }
+    const basePath = $tw.syncadaptor.getBasePath();
+    $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
+    return path.resolve(basePath, $tw.settings.wikisPath, wikiName);
+  }
   
-    /*
+  /*
+    This checks to make sure there is a tiddlwiki.info file in a wiki folder
+  */
+  function wikiExists(wikiFolder) {
+    let exists = false;
+    // Make sure that the wiki actually exists
+    if(wikiFolder) {
+      $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis'
+      const basePath = $tw.syncadaptor.getBasePath()
+      // This is a bit hacky to get around problems with loading the root wiki
+      // This tests if the wiki is the root wiki and ignores the other pathing
+      // bits
+      if(wikiFolder === $tw.boot.wikiPath) {
+        wikiFolder = path.resolve($tw.boot.wikiPath)
+      } else {
+        // Get the correct path to the tiddlywiki.info file
+        wikiFolder = path.resolve(basePath, $tw.settings.wikisPath, wikiFolder);
+        // Make sure it exists
+      }
+      exists = fs.existsSync(path.resolve(wikiFolder, 'tiddlywiki.info'));
+    }
+    return exists;
+  }
+  
+  /*
     Return the resolved filePathRoot
   */
   MultiWikiAdaptor.prototype.getFilePathRoot= function() {
-      const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
-      let basePath = '';
-      $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
-      if($tw.settings.filePathRoot === 'cwd') {
-        basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
-      } else if($tw.settings.filePathRoot === 'homedir') {
-        basePath = os.homedir();
-      } else {
-        basePath = path.resolve(currPath, $tw.settings.filePathRoot);
-      }
-      return basePath;
+    const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    let basePath = '';
+    $tw.settings.filePathRoot = $tw.settings.filePathRoot || './files';
+    if($tw.settings.filePathRoot === 'cwd') {
+      basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    } else if($tw.settings.filePathRoot === 'homedir') {
+      basePath = os.homedir();
+    } else {
+      basePath = path.resolve(currPath, $tw.settings.filePathRoot);
     }
+    return basePath;
+  }
     
-    /*
-      Return the resolved basePath
-    */
-    MultiWikiAdaptor.prototype.getBasePath = function() {
-      const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
-      let basePath = '';
-      $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
-      if($tw.settings.wikiPathBase === 'homedir') {
-        basePath = os.homedir();
-      } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
-        basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
-      } else {
-        basePath = path.resolve(currPath, $tw.settings.wikiPathBase);
-      }
-      return basePath;
+  /*
+    Return the resolved basePath
+  */
+  MultiWikiAdaptor.prototype.getBasePath = function() {
+    const currPath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    let basePath = '';
+    $tw.settings.wikiPathBase = $tw.settings.wikiPathBase || 'cwd';
+    if($tw.settings.wikiPathBase === 'homedir') {
+      basePath = os.homedir();
+    } else if($tw.settings.wikiPathBase === 'cwd' || !$tw.settings.wikiPathBase) {
+      basePath = path.parse(process.argv[0]).name !== 'node' ? path.dirname(process.argv[0]) : process.cwd();
+    } else {
+      basePath = path.resolve(currPath, $tw.settings.wikiPathBase);
     }
-  
-    /*
+    return basePath;
+  }
+
+  /*
     This checks to make sure that a wiki exists
   */
   MultiWikiAdaptor.prototype.existsListed = function (wikiName) {
-      if(typeof wikiName !== 'string') {
-        return false;
-      }
-      let exists = false;
-      // First make sure that the wiki is listed
-      const wikiPath = $tw.syncadaptor.getWikiPath(wikiName);
-      // Make sure that the wiki actually exists
-      exists = wikiExists(wikiPath);
-      if(exists) {
-        return wikiPath;
-      } else {
-        return exists;
-      }
+    if(typeof wikiName !== 'string') {
+      return false;
     }
-  
-    /*
+    let exists = false;
+    // First make sure that the wiki is listed
+    const wikiPath = $tw.syncadaptor.getWikiPath(wikiName);
+    // Make sure that the wiki actually exists
+    exists = wikiExists(wikiPath);
+    if(exists) {
+      return wikiPath;
+    } else {
+      return exists;
+    }
+  }
+
+  /*
     This function loads a wiki that has a route listed.
   */
   MultiWikiAdaptor.prototype.loadWiki = function (wikiName, cb) {
-      const wikiFolder = $tw.syncadaptor.existsListed(wikiName);
-      // Add tiddlers to the node process
-      if(wikiFolder) {
-        $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
-        $tw.Bob = $tw.Bob || {};
-        $tw.Bob.Wikis = $tw.Bob.Wikis || {};
-        $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
-        $tw.Bob.Files[wikiName] = $tw.Bob.Files[wikiName] || {};
-        $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
-        // Make sure it isn't loaded already
-        if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-          // If the wiki isn't loaded yet set the wiki as loaded
-          $tw.Bob.Wikis[wikiName].State = 'loaded';
-          // Save the wiki path and tiddlers path
-          $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
-          $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
-    
-    
-          // Make sure that the tiddlers folder exists
-          const error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
-          // Recursively build the folder tree structure
-          $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
-          if($tw.settings.disableFileWatchers !== 'yes') {
-            // Watch the root tiddlers folder for chanegs
-            $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
-          }
-    
-          // Add tiddlers to the node process
-          // Create a wiki object for this wiki
-          $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
-          // Load the boot tiddlers
-          $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
-            $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
-          });
-          // Load the core tiddlers
-          if(!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
-            $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
-          }
-          // Add tiddlers to the wiki
-          const wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
-          $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
-          // Unpack plugin tiddlers
-          $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
-          $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-    
-          // Add plugins, themes and languages
-          $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
-          $tw.syncadaptor.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, wikiName);
-          $tw.syncadaptor.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, wikiName);
-          // Get the list of tiddlers for this wiki
-          $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
-          $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
-            return '$:/plugins/' + name;
-          });
-          $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
-            return '$:/themes/' + name;
-          });
-          $tw.hooks.invokeHook('wiki-loaded', wikiName);
+    const wikiFolder = $tw.syncadaptor.existsListed(wikiName);
+    // Add tiddlers to the node process
+    if(wikiFolder) {
+      $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
+      $tw.Bob = $tw.Bob || {};
+      $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+      $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
+      $tw.Bob.Files[wikiName] = $tw.Bob.Files[wikiName] || {};
+      $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
+      // Make sure it isn't loaded already
+      if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+        // If the wiki isn't loaded yet set the wiki as loaded
+        $tw.Bob.Wikis[wikiName].State = 'loaded';
+        // Save the wiki path and tiddlers path
+        $tw.Bob.Wikis[wikiName].wikiPath = wikiFolder;
+        $tw.Bob.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+  
+  
+        // Make sure that the tiddlers folder exists
+        const error = $tw.utils.createDirectory($tw.Bob.Wikis[wikiName].wikiTiddlersPath);
+        // Recursively build the folder tree structure
+        $tw.Bob.Wikis[wikiName].FolderTree = buildTree('.', $tw.Bob.Wikis[wikiName].wikiTiddlersPath, {});
+        if($tw.settings.disableFileWatchers !== 'yes') {
+          // Watch the root tiddlers folder for chanegs
+          $tw.Bob.WatchAllFolders($tw.Bob.Wikis[wikiName].FolderTree, wikiName);
         }
-        const fields = {
-          title: '$:/WikiName',
-          text: wikiName
-        };
-        $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-        if(typeof cb === 'function') {
-          setTimeout(cb, 1000)
+  
+        // Add tiddlers to the node process
+        // Create a wiki object for this wiki
+        $tw.Bob.Wikis[wikiName].wiki = new $tw.Wiki();
+        // Load the boot tiddlers
+        $tw.utils.each($tw.loadTiddlersFromPath($tw.boot.bootPath),function(tiddlerFile) {
+          $tw.Bob.Wikis[wikiName].wiki.addTiddlers(tiddlerFile.tiddlers);
+        });
+        // Load the core tiddlers
+        if(!$tw.Bob.Wikis[wikiName].wiki.getTiddler('$:/core')) {
+          $tw.Bob.Wikis[wikiName].wiki.addTiddler($tw.loadPluginFolder($tw.boot.corePath));
         }
+        // Add tiddlers to the wiki
+        const wikiInfo = loadWikiTiddlers($tw.Bob.Wikis[wikiName].wikiPath, {prefix: wikiName});
+        $tw.Bob.Wikis[wikiName].wiki.registerPluginTiddlers("plugin",$tw.safeMode ? ["$:/core"] : undefined);
+        // Unpack plugin tiddlers
+        $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
+        $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
+  
+        // Add plugins, themes and languages
+        $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
+        $tw.syncadaptor.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, wikiName);
+        $tw.syncadaptor.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, wikiName);
+        // Get the list of tiddlers for this wiki
+        $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
+        $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+          return '$:/plugins/' + name;
+        });
+        $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+          return '$:/themes/' + name;
+        });
+        $tw.hooks.invokeHook('wiki-loaded', wikiName);
       }
-      return wikiFolder;
+      const fields = {
+        title: '$:/WikiName',
+        text: wikiName
+      };
+      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+      if(typeof cb === 'function') {
+        setTimeout(cb, 1000)
+      }
     }
+    return wikiFolder;
+  }
   
     /*
   path: path of wiki directory
@@ -1197,34 +1208,34 @@ const getDirectories = function(source) {
   }
 
   /*
-plugins: Array of names of plugins (eg, "tiddlywiki/filesystemadaptor")
-libraryPath: Path of library folder for these plugins (relative to core path)
-envVar: Environment variable name for these plugins
-*/
-MultiWikiAdaptor.prototype.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
-  if(plugins) {
-    const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
-    for(let t=0; t<plugins.length; t++) {
-      if(plugins[t] !== 'tiddlywiki/filesystem' && plugins[t] !== 'tiddlywiki/tiddlyweb') {
-        loadPlugin(plugins[t],pluginPaths, wikiName);
+  plugins: Array of names of plugins (eg, "tiddlywiki/filesystemadaptor")
+  libraryPath: Path of library folder for these plugins (relative to core path)
+  envVar: Environment variable name for these plugins
+  */
+  MultiWikiAdaptor.prototype.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
+    if(plugins) {
+      const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
+      for(let t=0; t<plugins.length; t++) {
+        if(plugins[t] !== 'tiddlywiki/filesystem' && plugins[t] !== 'tiddlywiki/tiddlyweb') {
+          loadPlugin(plugins[t],pluginPaths, wikiName);
+        }
       }
     }
-  }
-};
+  };
 
-/*
-name: Name of the plugin to load
-paths: array of file paths to search for it
-*/
-function loadPlugin(name, paths, wikiName) {
-  const pluginPath = $tw.findLibraryItem(name,paths);
-  if(pluginPath) {
-    const pluginFields = $tw.loadPluginFolder(pluginPath);
-    if(pluginFields) {
-      $tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
+  /*
+  name: Name of the plugin to load
+  paths: array of file paths to search for it
+  */
+  function loadPlugin(name, paths, wikiName) {
+    const pluginPath = $tw.findLibraryItem(name,paths);
+    if(pluginPath) {
+      const pluginFields = $tw.loadPluginFolder(pluginPath);
+      if(pluginFields) {
+        $tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
+      }
     }
-  }
-};
+  };
 
   if($tw.node) {
     exports.adaptorClass = MultiWikiAdaptor;
