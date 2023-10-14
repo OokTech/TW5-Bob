@@ -33,7 +33,7 @@ if($tw.node) {
       type: 'saveTiddler',
       wiki: data.wiki
     };
-    message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
+    message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo?.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo?.host}};
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
 
     let wikiInfo = undefined

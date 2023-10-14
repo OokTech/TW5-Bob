@@ -159,7 +159,7 @@ if(!$tw.Bob.Shared) {
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
       const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if((Date.now() - messageData.time > $tw.settings.advanced.localMessageQueueTimeout || 500) && !messageData.ctime) {
+        if((Date.now() - messageData.time > $tw.settings.advanced?.localMessageQueueTimeout || 500) && !messageData.ctime) {
           return true;
         } else {
           return false;
@@ -170,7 +170,7 @@ if(!$tw.Bob.Shared) {
         // everything here is the same.
         const targetConnections = $tw.node?(messageData.wiki?Object.values($tw.connections).filter(function(item) {
           return item.wiki === messageData.wiki && !messageData.ack[item.socket.index]
-        }):[]):[Object.values($tw.connections)[0]];
+        }):[]):[Object.values($tw.connections)[0]].filter(function(item){!messageData.ack[item.socket.index]});
         targetConnections.forEach(function(connection) {
           _sendMessage(connection, messageData)
         });
@@ -178,7 +178,7 @@ if(!$tw.Bob.Shared) {
       if(messageQueueTimer) {
         clearTimeout(messageQueueTimer);
       }
-      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced?.localMessageQueueTimeout || 500);
     } else {
       clearTimeout(messageQueueTimer);
       messageQueueTimer = false;
@@ -320,7 +320,7 @@ if(!$tw.Bob.Shared) {
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
     if($tw.node && messageData.message.wiki) {
-      $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit());
+      $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit);
     } else {
       nextBit();
     }
@@ -351,7 +351,7 @@ if(!$tw.Bob.Shared) {
               // TODO fix this terrible workaround
               list = []
             } else {
-              list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+              list = $tw.Bob.Wikis[messageData.message.wiki].wiki?.filterTiddlers($tw.Bob.ExcludeFilter);
             }
           } else {
             list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
@@ -457,7 +457,6 @@ if(!$tw.Bob.Shared) {
       if(messageData.message.tiddler) {
         messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler);
       }
-
       // Remove any messages made redundant by this message
       $tw.Bob.MessageQueue = Shared.removeRedundantMessages(messageData, $tw.Bob.MessageQueue);
       if($tw.browser) {
@@ -484,7 +483,7 @@ if(!$tw.Bob.Shared) {
       $tw.rootWidget.dispatchEvent(receivedAck)
     }
     clearTimeout(messageQueueTimer);
-    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
+    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced?.localMessageQueueTimeout || 500);
     return messageData;
   }
 
@@ -541,7 +540,7 @@ if(!$tw.Bob.Shared) {
         $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
         // Check if all the expected acks have been received
         const complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
-          return $tw.Bob.MessageQueue[index].ack[value] !== true;
+          return value !== 'tries' && $tw.Bob.MessageQueue[index].ack[value] !== true;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
         if(complete && !$tw.Bob.MessageQueue[index].ctime) {
@@ -765,9 +764,12 @@ if(!$tw.Bob.Shared) {
       });
     } else {
       if(data.id) {
-        if(data.source_connection !== undefined && data.source_connection !== -1) {
-          //Object.values($tw.connections)[data.source_connection].socket.send(JSON.stringify({
-            $tw.connections[data.source_connection].socket.send(JSON.stringify({
+        if(data.source_connection !== undefined && data.source_connection !== -1) {// && $tw.connections[data.source_connection]) {
+          if(!$tw.connections[data.source_connection]) {
+            //console.log('it hit here!')
+            return
+          }
+          $tw.connections[data.source_connection].socket.send(JSON.stringify({
             type: 'ack',
             id: data.id
           }), function ack(err) {

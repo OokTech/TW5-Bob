@@ -739,143 +739,143 @@ if($tw.node) {
     readOnly: true if the tiddler file paths should not be retained
   */
   function loadWikiTiddlers(wikiPath,options) {
-      options = options || {};
-      options.prefix = options.prefix || '';
-      const parentPaths = options.parentPaths || [];
-      const wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo);
-      let wikiInfo;
-      let pluginFields;
-      // Bail if we don't have a wiki info file
-      if(fs.existsSync(wikiInfoPath)) {
-        try {
-          wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
-        } catch (e) {
-          $tw.Bob.logger.error('Error reading wiki info', e, {level:1});
-        }
-      } else {
-        return null;
+    options = options || {};
+    options.prefix = options.prefix || '';
+    const parentPaths = options.parentPaths || [];
+    const wikiInfoPath = path.resolve(wikiPath,$tw.config.wikiInfo);
+    let wikiInfo;
+    let pluginFields;
+    // Bail if we don't have a wiki info file
+    if(fs.existsSync(wikiInfoPath)) {
+      try {
+        wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+      } catch (e) {
+        $tw.Bob.logger.error('Error reading wiki info', e, {level:1});
       }
-      // Load any parent wikis
-      if(wikiInfo.includeWikis) {
-        $tw.Bob.logger.error('Bob error: includeWikis is not supported yet!', {level:1});
-        /*
-        parentPaths = parentPaths.slice(0);
-        parentPaths.push(wikiPath);
-        $tw.utils.each(wikiInfo.includeWikis,function(info) {
-          if(typeof info === "string") {
-            info = {path: info};
-          }
-          var resolvedIncludedWikiPath = path.resolve(wikiPath,info.path);
-          if(parentPaths.indexOf(resolvedIncludedWikiPath) === -1) {
-            var subWikiInfo = loadWikiTiddlers(resolvedIncludedWikiPath,{
-              parentPaths: parentPaths,
-              readOnly: info["read-only"]
-            });
-            // Merge the build targets
-            wikiInfo.build = $tw.utils.extend([],subWikiInfo.build,wikiInfo.build);
-          } else {
-            $tw.utils.error("Cannot recursively include wiki " + resolvedIncludedWikiPath);
-          }
-        });
-        */
-      }
-      // Load any plugins, themes and languages listed in the wiki info file
-      $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, options.prefix);
-      $tw.syncadaptor.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, options.prefix);
-      $tw.syncadaptor.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, options.prefix);
-      // Load the wiki files, registering them as writable
-      const resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
-      function getTheseTiddlers() {
-        let out = [];
-        try {
-          out = $tw.loadTiddlersFromPath(resolvedWikiPath);
-        } catch(e) {
-          $tw.Bob.logger.error(e, {level:1});
+    } else {
+      return null;
+    }
+    // Load any parent wikis
+    if(wikiInfo.includeWikis) {
+      $tw.Bob.logger.error('Bob error: includeWikis is not supported yet!', {level:1});
+      /*
+      parentPaths = parentPaths.slice(0);
+      parentPaths.push(wikiPath);
+      $tw.utils.each(wikiInfo.includeWikis,function(info) {
+        if(typeof info === "string") {
+          info = {path: info};
         }
-        return out;
-      }
-      $tw.utils.each(
-        getTheseTiddlers(), function(tiddlerFile) {
-          let use = true;
-          if(!options.readOnly && tiddlerFile.filepath) {
-            $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
-              $tw.Bob.Files[options.prefix][tiddler.title] = {
-                filepath: tiddlerFile.filepath,
-                type: tiddlerFile.type,
-                hasMetaFile: tiddlerFile.hasMetaFile
-              };
-              if(['$:/plugins/tiddlywiki/tiddlyweb', '$:/plugins/tiddlywiki/filesystem'].indexOf(tiddler.title) !== -1) {
-                use = false;
-              }
-            });
-          }
-          if(use) {
-            $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
-          }
+        var resolvedIncludedWikiPath = path.resolve(wikiPath,info.path);
+        if(parentPaths.indexOf(resolvedIncludedWikiPath) === -1) {
+          var subWikiInfo = loadWikiTiddlers(resolvedIncludedWikiPath,{
+            parentPaths: parentPaths,
+            readOnly: info["read-only"]
+          });
+          // Merge the build targets
+          wikiInfo.build = $tw.utils.extend([],subWikiInfo.build,wikiInfo.build);
+        } else {
+          $tw.utils.error("Cannot recursively include wiki " + resolvedIncludedWikiPath);
         }
-      );
-      // Save the original tiddler file locations if requested
-      const config = wikiInfo.config || {};
-      if(config["retain-original-tiddler-path"]) {
-        let output = {};
-        for(let title in $tw.Bob.Files[options.prefix]) {
-          output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
-        }
-        $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
+      });
+      */
+    }
+    // Load any plugins, themes and languages listed in the wiki info file
+    $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, options.prefix);
+    $tw.syncadaptor.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, options.prefix);
+    $tw.syncadaptor.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, options.prefix);
+    // Load the wiki files, registering them as writable
+    const resolvedWikiPath = path.resolve(wikiPath,$tw.config.wikiTiddlersSubDir);
+    function getTheseTiddlers() {
+      let out = [];
+      try {
+        out = $tw.loadTiddlersFromPath(resolvedWikiPath);
+      } catch(e) {
+        $tw.Bob.logger.error(e, {level:1});
       }
-      // Save the path to the tiddlers folder for the filesystemadaptor
-      $tw.Bob.Wikis = $tw.Bob.Wikis || {};
-      $tw.Bob.Wikis[options.prefix] = $tw.Bob.Wikis[options.prefix] || {};
-      $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
-      // Load any plugins within the wiki folder
-      const wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
-      if(fs.existsSync(wikiPluginsPath)) {
-        try {
-          const pluginFolders = fs.readdirSync(wikiPluginsPath);
-          for(let t=0; t<pluginFolders.length; t++) {
-            pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
-            if(pluginFields) {
-              $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+      return out;
+    }
+    $tw.utils.each(
+      getTheseTiddlers(), function(tiddlerFile) {
+        let use = true;
+        if(!options.readOnly && tiddlerFile.filepath) {
+          $tw.utils.each(tiddlerFile.tiddlers,function(tiddler) {
+            $tw.Bob.Files[options.prefix][tiddler.title] = {
+              filepath: tiddlerFile.filepath,
+              type: tiddlerFile.type,
+              hasMetaFile: tiddlerFile.hasMetaFile
+            };
+            if(['$:/plugins/tiddlywiki/tiddlyweb', '$:/plugins/tiddlywiki/filesystem'].indexOf(tiddler.title) !== -1) {
+              use = false;
             }
-          }
-        } catch (e) {
-          $tw.Bob.logger.error('error loading plugin folder', e, {level:2});
+          });
+        }
+        if(use) {
+          $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(tiddlerFile.tiddlers);
         }
       }
-      // Load any themes within the wiki folder
-      const wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
-      if(fs.existsSync(wikiThemesPath)) {
-        try {
-          const themeFolders = fs.readdirSync(wikiThemesPath);
-          for(let t=0; t<themeFolders.length; t++) {
-            pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
-            if(pluginFields) {
-              $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
-            }
-          }
-        } catch (e) {
-          $tw.Bob.logger.error('error loading theme folder', e, {level:2});
-        }
+    );
+    // Save the original tiddler file locations if requested
+    const config = wikiInfo.config || {};
+    if(config["retain-original-tiddler-path"]) {
+      let output = {};
+      for(let title in $tw.Bob.Files[options.prefix]) {
+        output[title] = path.relative(resolvedWikiPath,$tw.Bob.Files[options.prefix][title].filepath);
       }
-      // Load any languages within the wiki folder
-      const wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
-      if(fs.existsSync(wikiLanguagesPath)) {
-        try {
-          const languageFolders = fs.readdirSync(wikiLanguagesPath);
-          for(let t=0; t<languageFolders.length; t++) {
-            pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
-            if(pluginFields) {
-              $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
-            }
+      $tw.Bob.Wikis[options.prefix].wiki.addTiddlers(new $tw.Tiddler({title: "$:/config/OriginalTiddlerPaths", type: "application/json", text: JSON.stringify(output)}));
+    }
+    // Save the path to the tiddlers folder for the filesystemadaptor
+    $tw.Bob.Wikis = $tw.Bob.Wikis || {};
+    $tw.Bob.Wikis[options.prefix] = $tw.Bob.Wikis[options.prefix] || {};
+    $tw.Bob.Wikis[options.prefix].wikiTiddlersPath = path.resolve(wikiPath, config["default-tiddler-location"] || $tw.config.wikiTiddlersSubDir);
+    // Load any plugins within the wiki folder
+    const wikiPluginsPath = path.resolve(wikiPath,$tw.config.wikiPluginsSubDir);
+    if(fs.existsSync(wikiPluginsPath)) {
+      try {
+        const pluginFolders = fs.readdirSync(wikiPluginsPath);
+        for(let t=0; t<pluginFolders.length; t++) {
+          pluginFields = $tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]));
+          if(pluginFields) {
+            $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
           }
-        } catch (e) {
-          $tw.Bob.logger.error('Error loading language folder', e, {level:2});
         }
+      } catch (e) {
+        $tw.Bob.logger.error('error loading plugin folder', e, {level:2});
       }
-      return wikiInfo;
-    };
-  
-    /*
+    }
+    // Load any themes within the wiki folder
+    const wikiThemesPath = path.resolve(wikiPath,$tw.config.wikiThemesSubDir);
+    if(fs.existsSync(wikiThemesPath)) {
+      try {
+        const themeFolders = fs.readdirSync(wikiThemesPath);
+        for(let t=0; t<themeFolders.length; t++) {
+          pluginFields = $tw.loadPluginFolder(path.resolve(wikiThemesPath,"./" + themeFolders[t]));
+          if(pluginFields) {
+            $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+          }
+        }
+      } catch (e) {
+        $tw.Bob.logger.error('error loading theme folder', e, {level:2});
+      }
+    }
+    // Load any languages within the wiki folder
+    const wikiLanguagesPath = path.resolve(wikiPath,$tw.config.wikiLanguagesSubDir);
+    if(fs.existsSync(wikiLanguagesPath)) {
+      try {
+        const languageFolders = fs.readdirSync(wikiLanguagesPath);
+        for(let t=0; t<languageFolders.length; t++) {
+          pluginFields = $tw.loadPluginFolder(path.resolve(wikiLanguagesPath,"./" + languageFolders[t]));
+          if(pluginFields) {
+            $tw.Bob.Wikis[options.prefix].wiki.addTiddler(pluginFields);
+          }
+        }
+      } catch (e) {
+        $tw.Bob.logger.error('Error loading language folder', e, {level:2});
+      }
+    }
+    return wikiInfo;
+  };
+
+  /*
     This updates the server wiki listing, it is just the server task that checks
     to see if there are any unlisted wikis and that the currently listed wikis
     edist, so it doesn't need any authentication.
@@ -1236,6 +1236,106 @@ if($tw.node) {
       }
     }
   };
+
+  MultiWikiAdaptor.prototype.CreateSettingsTiddlers = function (data) {
+    data = data || {}
+    data.wiki = data.wiki || 'RootWiki'
+
+    const fs = require('fs');
+    const path = require('path');
+    // Create the $:/ServerIP tiddler
+    const message = {
+      type: 'saveTiddler',
+      wiki: data.wiki
+    };
+    message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
+    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+
+    let wikiInfo = undefined
+    try {
+      // Save the lists of plugins, languages and themes in tiddlywiki.info
+      const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
+      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    } catch(e) {
+      console.log(e)
+    }
+    if(typeof wikiInfo === 'object') {
+      // Get plugin list
+      const fieldsPluginList = {
+        title: '$:/Bob/ActivePluginList',
+        list: $tw.utils.stringifyList(wikiInfo.plugins)
+      }
+      message.tiddler = {fields: fieldsPluginList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+      const fieldsThemesList = {
+        title: '$:/Bob/ActiveThemesList',
+        list: $tw.utils.stringifyList(wikiInfo.themes)
+      }
+      message.tiddler = {fields: fieldsThemesList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+      const fieldsLanguagesList = {
+        title: '$:/Bob/ActiveLanguagesList',
+        list: $tw.utils.stringifyList(wikiInfo.languages)
+      }
+      message.tiddler = {fields: fieldsLanguagesList};
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
+    }
+  }
+
+
+  MultiWikiAdaptor.prototype.saveSettings = function(data) {
+    const path = require('path');
+    const fs = require('fs');
+    // Save the updated settings
+    const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
+    if(!fs.existsSync(userSettingsFolder)) {
+      // Create the settings folder
+      fs.mkdirSync(userSettingsFolder);
+    }
+    // This should prevent an empty string from ever being given
+    fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
+      if(err) {
+        const message = {
+          alert: 'Error saving settings:' + err,
+          connections: [data.source_connection]
+        };
+        $tw.ServerSide.sendBrowserAlert(message);
+        $tw.Bob.logger.error(err, {level:1});
+      } else {
+        $tw.Bob.logger.log('Wrote settings file', {level:1})
+      }
+    });
+  }
+
+  MultiWikiAdaptor.prototype.updateTiddlyWikiInfo = function(data) {
+    const path = require('path')
+    const fs = require('fs')
+    const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
+    let wikiInfo = {}
+    try {
+      wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
+    } catch(e) {
+      $tw.Bob.logger.error(e, {level:1})
+    }
+    if(data.description || data.description === "") {
+      wikiInfo.description = data.description;
+    }
+    if(data.pluginList || data.pluginList === "") {
+      wikiInfo.plugins = $tw.utils.parseStringArray(data.pluginList);
+    }
+    if(data.themeList || data.themeList === "") {
+      wikiInfo.themes = $tw.utils.parseStringArray(data.themeList);
+    }
+    if(data.languageList || data.languageList === "") {
+      wikiInfo.languages = $tw.utils.parseStringArray(data.languageList);
+    }
+    try {
+      fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
+    } catch (e) {
+      $tw.Bob.logger.error(e, {level:1})
+    }
+  }
 
   if($tw.node) {
     exports.adaptorClass = MultiWikiAdaptor;

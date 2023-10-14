@@ -54,7 +54,7 @@ function BrowserWSAdaptor(options) {
       $tw.wikiName = '';
     }
 
-    if (!sessionStorage.sessionId) {
+    if (!sessionStorage.sessionId || !sessionStorage.sessionId.startsWith($tw.wikiName)) {
       sessionStorage.setItem('sessionId', encodeURIComponent($tw.wikiName + $tw.utils.pad(Math.floor(Math.random()*999999), 6)))
     }
     const IPAddress = window.location.hostname;
@@ -840,6 +840,7 @@ BrowserWSAdaptor.prototype.getUpdatedTiddlers = function() {
 // This can be updated at any time, it gets checked when a syncing task is
 // being run so its value can change over time.
 BrowserWSAdaptor.prototype.isReady = function() {
+  //return true;
   const tid = $tw.wiki.getTiddler('$:/state/EditableWikis');
   if(!tid) { // TODO maybe figure this out...
     return true;

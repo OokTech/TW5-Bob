@@ -34,6 +34,8 @@ if($tw.node) {
     About externalTiddlers:
       Each key is a the name of a wiki served by Bob, the value is a filter
       that will be run in that wiki and any returned tiddlers will be included in the output html file.
+    
+      TODO: move into syncadaptor
   */
   $tw.nodeMessageHandlers.buildHTMLWiki = function (data) {
     $tw.Bob.Shared.sendAck(data);
@@ -123,6 +125,8 @@ if($tw.node) {
     already have a wiki called MyWiki and give MyWiki as the wikiName parameter
     than a number will be appended to the end of the name to make it unique,
     similarly to how new tiddler titles are made unique.
+
+    TODO: move into syncadaptor
   */
   $tw.nodeMessageHandlers.newWikiFromTiddlers = function (data) {
     // send ack first because otherwise it often takes too long to run this
@@ -517,6 +521,8 @@ if($tw.node) {
     If no fromWiki is given, or the name doesn't match an existing wiki, than
     the empty edition is used, if no newWiki is given than the default new name
     is used.
+
+    TODO: move into the syncadaptor
   */
   $tw.nodeMessageHandlers.duplicateWiki = function(data) {
     $tw.Bob.Shared.sendAck(data);
@@ -524,7 +530,6 @@ if($tw.node) {
       return;
     }
     const path = require('path');
-    const fs = require('fs');
     // Make sure that the wiki to duplicate exists and that the target wiki
     // name isn't in use
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'duplicate', 'wiki');

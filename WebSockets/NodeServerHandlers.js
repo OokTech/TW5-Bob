@@ -166,9 +166,7 @@ if($tw.node) {
     data.wiki = decodeURIComponent(data.wiki)
     const exists = $tw.syncadaptor.loadWiki(data.wiki);
     if (!exists) {
-      console.log(data)
-      console.log($tw.connections[data.sessionId])
-      console.log("This wiki doesn't exist!")
+      console.log("This wiki doesn't exist!", data.sessionId)
       return
     }
     // Heartbeat. This can be done if the heartbeat is started or not because
@@ -181,7 +179,9 @@ if($tw.node) {
     // When the server receives a ping it sends back a pong.
     const response = JSON.stringify(message);
     $tw.connections[data.source_connection].socket.send(response, function ack(err) {if(err) {console.log(err)}});
-    $tw.CreateSettingsTiddlers(data);
+    $tw.syncadaptor.CreateSettingsTiddlers(data);
+    // make sure that the newly logged in wiki has the correct list of tiddlers being edited
+    $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
   }
 
   /*
@@ -392,8 +392,6 @@ if($tw.node) {
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    const path = require('path');
-    const fs = require('fs');
     if(data.remove && typeof data.remove === 'string') {
       // Remove settings
       const pieces = data.remove.split('.');
@@ -420,7 +418,7 @@ if($tw.node) {
           }
         }
       }
-      $tw.CreateSettingsTiddlers(data);
+      $tw.syncadaptor.CreateSettingsTiddlers(data);
       const message = {
         alert: 'Updated 1 wiki settings.'
       };
@@ -460,13 +458,13 @@ if($tw.node) {
         $tw.updateSettings($tw.settings, updatesObject);
       }
       if(!failed) {
-        $tw.CreateSettingsTiddlers(data);
+        $tw.syncadaptor.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Updated ' + Object.keys(updatesObject).length + ' wiki settings.'
         };
         $tw.ServerSide.sendBrowserAlert(message);
       } else {
-        $tw.CreateSettingsTiddlers(data);
+        $tw.syncadaptor.CreateSettingsTiddlers(data);
         const message = {
           alert: 'Failed to update settings with error: ' + error
         };
@@ -488,37 +486,16 @@ if($tw.node) {
       // save the settings to the database
       $tw.saveSetting($tw.settings);
     } else {
-      const path = require('path');
-      const fs = require('fs');
-      let settings = JSON.stringify($tw.settings, "", 2);
+      //let settings = JSON.stringify($tw.settings, "", 2);
       if(data.fromServer !== true && data.settingsString) {
         // Get first tiddler to start out
-        settings = data.settingsString;
+        const settings = data.settingsString;
 
         // Update the $tw.settings object
         // Put the updated version in.
         $tw.updateSettings($tw.settings, JSON.parse(settings));
       }
-      // Save the updated settings
-      const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-      const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
-      if(!fs.existsSync(userSettingsFolder)) {
-        // Create the settings folder
-        fs.mkdirSync(userSettingsFolder);
-      }
-      // This should prevent an empty string from ever being given
-      fs.writeFile(userSettingsPath, JSON.stringify($tw.settings, "", 2), {encoding: "utf8"}, function (err) {
-        if(err) {
-          const message = {
-            alert: 'Error saving settings:' + err,
-            connections: [data.source_connection]
-          };
-          $tw.ServerSide.sendBrowserAlert(message);
-          $tw.Bob.logger.error(err, {level:1});
-        } else {
-          $tw.Bob.logger.log('Wrote settings file', {level:1})
-        }
-      });
+      $tw.syncadaptor.saveSettings(data);
     }
     try {
       // Update the settings tiddler in the wiki.
@@ -538,16 +515,8 @@ if($tw.node) {
     } catch (e) {
       // something?
     }
-    /*
-    if(typeof data.settingsString === "string") {
-      try {
-        $tw.updateSettings($tw.settings, JSON.parse(data.settingsString));
-      } catch (e) {
-        // nothing
-      }
-    }
-    */
-    $tw.CreateSettingsTiddlers(data);
+
+    $tw.syncadaptor.CreateSettingsTiddlers(data);
     const message = {
       alert: 'Saved wiki settings.',
       wikis: [data.wiki]
@@ -614,38 +583,11 @@ if($tw.node) {
   /*
     This loads the tiddlywiki.info and if new versions are given it updates the
     description, list of plugins, themes and languages
-
-    TODO: maybe move file system things somewhere else (may not be able to)
   */
   $tw.nodeMessageHandlers.updateTiddlyWikiInfo = function (data) {
     $tw.Bob.Shared.sendAck(data);
     if(data.wiki) {
-      const path = require('path')
-      const fs = require('fs')
-      const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
-      let wikiInfo = {}
-      try {
-        wikiInfo = JSON.parse(fs.readFileSync(wikiInfoPath,"utf8"));
-      } catch(e) {
-        $tw.Bob.logger.error(e, {level:1})
-      }
-      if(data.description || data.description === "") {
-        wikiInfo.description = data.description;
-      }
-      if(data.pluginList || data.pluginList === "") {
-        wikiInfo.plugins = $tw.utils.parseStringArray(data.pluginList);
-      }
-      if(data.themeList || data.themeList === "") {
-        wikiInfo.themes = $tw.utils.parseStringArray(data.themeList);
-      }
-      if(data.languageList || data.languageList === "") {
-        wikiInfo.languages = $tw.utils.parseStringArray(data.languageList);
-      }
-      try {
-        fs.writeFileSync(wikiInfoPath, JSON.stringify(wikiInfo, null, 4))
-      } catch (e) {
-        $tw.Bob.logger.error(e, {level:1})
-      }
+      $tw.syncadaptor.updateTiddlyWikiInfo(data);
     }
   }
 

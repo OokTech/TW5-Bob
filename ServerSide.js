@@ -18,7 +18,7 @@ if($tw.ServerSide) {
 let ServerSide = {};
 
 const path = require('path');
-const fs = require('fs');
+//const fs = require('fs');
 const os = require('os');
 
 // A polyfilL to make this work with older node installs
@@ -211,6 +211,11 @@ ServerSide.sendBrowserAlert = function(input) {
 ServerSide.getViewableWikiList = function (data) {
   data = data || {};
   function getList(obj, prefix) {
+    if($tw.syncadaptor.name === 'WikiDBAdaptor') {
+      // TODO make this less terrible, it shouldn't be a workaround specific to one adaptor, so make the adaptor give what this expects
+      // this is not a trivial update so it may be a while.
+      return obj.map(a => a.title)
+    }
     let output = [];
     let ownedWikis = {};
     Object.keys(obj).forEach(function(item) {
@@ -256,6 +261,7 @@ ServerSide.getViewableWikiList = function (data) {
 
 ServerSide.getViewablePluginsList = function (data) {
   data = data || {};
+  $tw.settings.pluginLibrary = $tw.settings.pluginLibrary || {};
   const viewablePlugins = [];
   const pluginList = $tw.utils.getPluginInfo();
   if($tw.settings.pluginLibrary.allPublic === 'yes') {
@@ -271,6 +277,7 @@ ServerSide.getViewablePluginsList = function (data) {
 
 ServerSide.getViewableThemesList = function (data) {
   data = data || {};
+  $tw.settings.themeLibrary = $tw.settings.themeLibrary || {};
   const viewableThemes = [];
   const themeList = $tw.utils.getThemeInfo();
   if($tw.settings.themeLibrary.allPublic === 'yes') {
@@ -297,6 +304,7 @@ ServerSide.getViewableEditionsList = function (data) {
     }
   }
   data = data || {};
+  $tw.settings.editionLibrary = $tw.settings.editionLibrary || {};
   const viewableEditions = {};
   const editionList =  $tw.utils.getEditionInfoSafe();
   if($tw.settings.editionLibrary.allPublic === 'yes') {

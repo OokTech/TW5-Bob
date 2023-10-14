@@ -59,12 +59,8 @@ if($tw.node) {
     try {
       let eventData = JSON.parse(event);
       let thisIndex = eventData.sessionId;
-      // Add the source to the eventData object so it can be used later.
+      // Add the source to the eventData object so it can be used later. The source is the sessionId so the server can respond to the same wiki easily
       eventData.source_connection = thisIndex;
-      // If the wiki on this connection hasn't been determined yet, take it
-      // from the first message that lists the wiki.
-      // After that the wiki can't be changed. It isn't a good security
-      // measure but this part doesn't have real security anyway.
       // TODO figure out if this is actually a security problem.
       // We may have to add a check to the token before sending outgoing
       // messages.
@@ -72,7 +68,8 @@ if($tw.node) {
       // you authenticate the token and it only works if the wiki matches
       // and the token has access to that wiki.
       eventData.wiki = decodeURIComponent(eventData.wiki)
-      if(eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+      if(false && eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
+        // TODO - this needs to be put into handleConnection
         $tw.connections[thisIndex].wiki = eventData.wiki;
         // Make sure that the new connection has the correct list of tiddlers
         // being edited.
@@ -131,7 +128,7 @@ if($tw.node) {
     if ($tw.connections[client.sessionId]) {
       $tw.connections[client.sessionId].socket = client
     } else {
-      $tw.Bob.logger.log("new connection", {level:2});
+      $tw.Bob.logger.log("new connection from ", wikiName, {level:2});
       $tw.connections[client.sessionId] = {'socket':client, 'wiki': decodeURIComponent(client.sessionId.slice(0,-6)), 'sessionId': client.sessionId, 'index': Object.keys($tw.connections).length}
     }
     client.on('message', $tw.Bob.handleMessage);
@@ -406,10 +403,33 @@ if($tw.node) {
         $tw.httpServer.addRoute(routeDefinition);
       }
     });
-    addRoutesThing($tw.settings.wikis, '');
+    if(typeof $tw.syncadaptor.loadSettings === 'function') {
+      $tw.syncadaptor.loadSettings(bob);
+    } else {
+      addRoutesThing($tw.settings.wikis, '');
+    }
+  }
+
+  function bob() {
+    addRoutesThing2($tw.settings.wikis.map(x => x.title))
   }
 
 
+  function addRoutesThing2(inputObject) {
+    inputObject.forEach(function (fullName) {
+      $tw.modules.forEachModuleOfType('wikiroute', function(title, routeDefinition) {
+        if(typeof routeDefinition === 'function') {
+          $tw.httpServer.addRoute(routeDefinition(fullName));
+        }
+      });
+      $tw.modules.forEachModuleOfType('fileroute', function(title, routeDefinition) {
+        if(typeof routeDefinition === 'function') {
+          $tw.httpServer.addRoute(routeDefinition(fullName));
+        }
+      });
+      console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
+    })
+  }
 
   function addRoutesThing(inputObject, prefix) {
     if(typeof inputObject === 'object') {
