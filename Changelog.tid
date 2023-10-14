@@ -13,6 +13,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** I should make this configurable and make some indicator of what has failed
 * Make session management easier by using locally unique session ids instead of adding each new connection to a append-only array
 ** This is a big change in the code, it may have caused many unexpected bugs that I haven't found yet.
+* Move more components into the syncaadaptor in preparation to work with the WikiDBAdaptor as well as the MultiWikiAdaptor
 
 !! Version 1.7.3 Intense Kitten
 

@@ -159,7 +159,7 @@ if(!$tw.Bob.Shared) {
       // not received the acks expected.
       // These are assumed to have been lost and need to be resent
       const oldMessages = $tw.Bob.MessageQueue.filter(function(messageData) {
-        if((Date.now() - messageData.time > $tw.settings.advanced?.localMessageQueueTimeout || 500) && !messageData.ctime) {
+        if((Date.now() - messageData.time > $tw.settings.advanced.localMessageQueueTimeout || 500) && !messageData.ctime) {
           return true;
         } else {
           return false;
@@ -178,7 +178,7 @@ if(!$tw.Bob.Shared) {
       if(messageQueueTimer) {
         clearTimeout(messageQueueTimer);
       }
-      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced?.localMessageQueueTimeout || 500);
+      messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     } else {
       clearTimeout(messageQueueTimer);
       messageQueueTimer = false;
@@ -351,7 +351,8 @@ if(!$tw.Bob.Shared) {
               // TODO fix this terrible workaround
               list = []
             } else {
-              list = $tw.Bob.Wikis[messageData.message.wiki].wiki?.filterTiddlers($tw.Bob.ExcludeFilter);
+              $tw.Bob.Wikis[messageData.message.wiki].wiki = $tw.Bob.Wikis[messageData.message.wiki].wiki || {};
+              list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
             }
           } else {
             list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
@@ -483,7 +484,8 @@ if(!$tw.Bob.Shared) {
       $tw.rootWidget.dispatchEvent(receivedAck)
     }
     clearTimeout(messageQueueTimer);
-    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced?.localMessageQueueTimeout || 500);
+    $tw.settings.advanced = $tw.settings.advanced || {};
+    messageQueueTimer = setTimeout(checkMessageQueue, $tw.settings.advanced.localMessageQueueTimeout || 500);
     return messageData;
   }
 

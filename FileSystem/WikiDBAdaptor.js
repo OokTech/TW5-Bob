@@ -633,7 +633,8 @@ A sync adaptor module for synchronising multiple wikis
         type: 'saveTiddler',
         wiki: data.wiki
       };
-      message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo?.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo?.host}};
+      $tw.settings.serverInfo = $tw.settings.serverInfo || {}
+      message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
       // load the wikiInfo and then make the settings tiddlers
       // save $tw.settings to the __settings database
