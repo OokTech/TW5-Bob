@@ -90,12 +90,12 @@ ActionUpdateSetting.prototype.invokeAction = function(triggeringWidget,event) {
       }
     }
   });
-  console.log(update)
   const message = {
     "type": "updateSetting",
     "updateString": update,
     "remove": remove,
-    "wiki": wikiName
+    "wiki": wikiName,
+    "sessionId": sessionStorage.getItem('sessionId')
   };
   $tw.Bob.Shared.sendMessage(message, 0);
   return true; // Action was invoked

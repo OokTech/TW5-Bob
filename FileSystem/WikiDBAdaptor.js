@@ -14,7 +14,7 @@ A sync adaptor module for synchronising multiple wikis
   
   exports.platforms = ["node"];
 
-  if(false && $tw.node) {
+  if($tw.node) {
     $tw.Bob = $tw.Bob || {};
     $tw.Bob.Files = $tw.Bob.Files || {};
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
@@ -56,6 +56,12 @@ A sync adaptor module for synchronising multiple wikis
       });
     }
 
+    WikiDBAdaptor.prototype.getTiddlerInfo = function() {
+      
+    }
+
+    $tw.stopFileWatchers = () => {}
+
     /*
       TODO Create a message that lets us set excluded tiddlers from inside the wikis
       A per-wiki exclude list would be best but that is going to have annoying
@@ -78,10 +84,6 @@ A sync adaptor module for synchronising multiple wikis
       // we need to either change how adaptors work so they can use promises or just leave it like this.
       return true;
     };
-
-    WikiDBAdaptor.prototype.getTiddlerInfo = function() {
-      
-    }
 
     /*
       Load settings
@@ -110,20 +112,7 @@ A sync adaptor module for synchronising multiple wikis
         $tw.syncadaptor.updateWikiListing(cb);
       });
     }
-    
-    /*
-    Given a list of filters, apply every one in turn to source, and return the first result of the first filter with non-empty result.
-    */
-    WikiDBAdaptor.prototype.findFirstFilter = function(filters,source) {
-      for(let i=0; i<filters.length; i++) {
-        const result = this.wiki.filterTiddlers(filters[i],null,source);
-        if(result.length > 0) {
-          return result[0];
-        }
-      }
-      return null;
-    };
-  
+      
     /*
     Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
     */
@@ -325,15 +314,132 @@ A sync adaptor module for synchronising multiple wikis
       }
     };
   
-    // TODO - this
-    WikiDBAdaptor.prototype.renameWiki = function() {
-      // rename the database for the wiki
-      
+    WikiDBAdaptor.prototype.renameWiki = function(data, cb) {
+      const authorised = $tw.Bob.AccessCheck(data.oldWiki, {"decoded":data.decoded}, 'rename', 'wiki');
+      if (authorised) {
+        $tw.Bob.unloadWiki(data.oldWiki)
+        // rename the database for the wiki
+        const body = JSON.stringify({
+          db: data.oldWiki,
+          newDB: data.newWiki
+        });
+        const options = {
+          hostname: '127.0.0.1',
+          port: 9999,
+          path: '/renamedb',
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body)
+          }
+        }
+        httpRequest(options, body)
+        .then((response) => {
+          // update the __wikiInfo listing
+          const body2 = JSON.stringify({
+            db: "__wikiInfo",
+            title: data.oldWiki,
+            newTitle: data.newWiki
+          })
+          const options2 = {
+            hostname: '127.0.0.1',
+            port: 9999,
+            path: '/renamedoc',
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(body2)
+            }
+          }
+          return httpRequest(options2, body2)
+        })
+        .then((response)=>{
+          removeOldConnections(data.oldWiki);
+          // Refresh wiki listing
+          data.update = 'true';
+          data.saveSettings = 'true';
+          $tw.syncadaptor.updateWikiListing(cb);
+        })
+        .catch(err => {
+          console.log(err)
+          $tw.syncadaptor.updateWikiListing(cb);
+          //return cb(err)
+        });
+      }
     }
 
-    // TODO - this
-    WikiDBAdaptor.prototype.deleteWiki = function() {
+    // TODO move this into some other file, probably the ws-server.js file
+    function removeOldConnections(wikiName) {
+      // remove all of the connections to the renamed wiki
+      const connectionsToRemove = Object.keys($tw.connections).filter(function(thisSessionId) {return $tw.connections[thisSessionId].wiki == wikiName});
+      connectionsToRemove.forEach(function(thisSessionId) {
+        delete $tw.connections[thisSessionId];
+      })
+    }
+
+    WikiDBAdaptor.prototype.deleteWiki = function(data, cb) {
       // delete the database for the wiki
+      // remove the wiki database
+      // remove the __wikiInfo document
+      // remove old connections
+      if(data.deleteWiki == 'RootWiki') {
+        cb()
+      } else {
+        const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.deleteWiki}, 'delete', 'wiki');
+        if (authorised) {
+          $tw.Bob.unloadWiki(data.deleteWiki)
+          // rename the database for the wiki
+          const body = JSON.stringify({
+            db: data.deleteWiki
+          });
+          const options = {
+            hostname: '127.0.0.1',
+            port: 9999,
+            path: '/deletedb',
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(body)
+            }
+          }
+          httpRequest(options, body)
+          .then((response) => {
+            // update the __wikiInfo listing
+            const body2 = JSON.stringify({
+              db: "__wikiInfo",
+              filter: `[[${data.deleteWiki}]]`
+            })
+            const options2 = {
+              hostname: '127.0.0.1',
+              port: 9999,
+              path: '/deletedoc',
+              method: 'POST',
+              mode: 'cors',
+              headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body2)
+              }
+            }
+            return httpRequest(options2, body2)
+          })
+          .then((response)=>{
+            removeOldConnections(data.oldWiki);
+            // Refresh wiki listing
+            data.update = 'true';
+            data.saveSettings = 'true';
+            removeOldConnections();
+            $tw.syncadaptor.updateWikiListing(cb);
+          })
+          .catch(err => {
+            console.log(err)
+            removeOldConnections();
+            $tw.syncadaptor.updateWikiListing(cb);
+          });
+        }
+      }
     }
 
     // TODO - this, probably just delete it
@@ -422,9 +528,15 @@ A sync adaptor module for synchronising multiple wikis
         })
         .then((response)=>{
           wikiInfo = response[0]
-          wikiInfo.plugins = wikiInfo.plugins ? JSON.parse(wikiInfo.plugins) : [];
-          wikiInfo.themes = wikiInfo.themes ? JSON.parse(wikiInfo.themes) : [];
-          wikiInfo.languages = wikiInfo.languages ? JSON.parse(wikiInfo.languages) : [];
+          try {
+            wikiInfo.plugins = wikiInfo.plugins ? JSON.parse(wikiInfo.plugins) : [];
+            wikiInfo.themes = wikiInfo.themes ? JSON.parse(wikiInfo.themes) : [];
+            wikiInfo.languages = wikiInfo.languages ? JSON.parse(wikiInfo.languages) : [];
+          } catch (e) {
+            wikiInfo.plugins = wikiInfo.plugins ? $tw.utils.parseStringArray(wikiInfo.plugins) : [];
+            wikiInfo.themes = wikiInfo.themes ? $tw.utils.parseStringArray(wikiInfo.themes) : [];
+            wikiInfo.languages = wikiInfo.languages ? $tw.utils.parseStringArray(wikiInfo.languages) : [];
+          }
           // make sure the plugins, themes and languages are loaded from the appropriate databases
           const thisBody = JSON.stringify({
             db: '__themes',
@@ -498,14 +610,13 @@ A sync adaptor module for synchronising multiple wikis
         })
         .then((response) => {
           theBootTiddlers = response
-          addEverything(theTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers)
-          cb()
+          addEverything(theTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers, cb)
         });
       } else {
-        cb();
+        cb(true);
       }
       
-      function addEverything(wikiTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers) {
+      function addEverything(wikiTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers, cb) {
         // If the wiki isn't loaded yet set the wiki as loaded
         $tw.Bob.Wikis[wikiName].State = 'loaded';
         // Save the wiki path and tiddlers path
@@ -537,21 +648,23 @@ A sync adaptor module for synchronising multiple wikis
         const notTheCore = thePlugins.filter(a => a.name !== 'Core')
         // TODO: make a setting that toggles this
         // this is needed for development!
-        $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
-        // Get the list of tiddlers for this wiki
-        $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
-        $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
-          return '$:/plugins/' + name;
+        $tw.syncadaptor.loadPlugins(wikiInfo.plugins, $tw.config.pluginsPath, $tw.config.pluginsEnvVar, wikiName, function() {
+          // Get the list of tiddlers for this wiki
+          $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
+          $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+            return '$:/plugins/' + name;
+          });
+          $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+            return '$:/themes/' + name;
+          });
+          $tw.hooks.invokeHook('wiki-loaded', wikiName);
+          const fields = {
+            title: '$:/WikiName',
+            text: wikiName
+          };
+          $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+          cb(true)
         });
-        $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
-          return '$:/themes/' + name;
-        });
-        $tw.hooks.invokeHook('wiki-loaded', wikiName);
-        const fields = {
-          title: '$:/WikiName',
-          text: wikiName
-        };
-        $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
       }
       return true
     }
@@ -583,44 +696,151 @@ A sync adaptor module for synchronising multiple wikis
       });
     }
 
-    // TODO - figure out if we need this still
-    WikiDBAdaptor.prototype.GetWikiName = function() {
-
-    }
-
-    // TODO - this
-    WikiDBAdaptor.prototype.createWiki = function() {
-      // Create a new wiki database
-    }
-
-
-    // TODO - this
-    WikiDBAdaptor.prototype.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
-      if(plugins) {
-        const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
-        for(let t=0; t<plugins.length; t++) {
-          if(plugins[t] !== 'tiddlywiki/filesystem' && plugins[t] !== 'tiddlywiki/tiddlyweb') {
-            loadPlugin(plugins[t],pluginPaths, wikiName);
+    WikiDBAdaptor.prototype.GetWikiName = function (wikiName, count, wikiObj, fullName) {
+      let updatedName;
+      count = count || 0;
+      wikiName = wikiName || ''
+      if(wikiName.trim() === '') {
+        wikiName = 'NewWiki'
+      }
+      fullName = fullName || wikiName || 'NewWiki';
+      wikiObj = wikiObj || $tw.settings.wikis;
+      const nameParts = wikiName.split('/');
+      if(nameParts.length === 1) {
+        updatedName = nameParts[0];
+        if(wikiObj[updatedName]) {
+          if(wikiObj[updatedName].__path) {
+            count = count + 1;
+            while (wikiObj[updatedName + String(count)]) {
+              if(wikiObj[updatedName + String(count)].__path) {
+                count = count + 1;
+              } else {
+                break;
+              }
+            }
           }
         }
-      }
-    };
-    /*WikiDBAdaptor.prototype.loadPlugins = function() {
-      // load plugins from their databases, or from the file system
-    }*/
-    /*
-    name: Name of the plugin to load
-    paths: array of file paths to search for it
-
-    TODO - this
-    */
-    function loadPlugin(name, paths, wikiName) {
-      const pluginPath = $tw.findLibraryItem(name,paths);
-      if(pluginPath) {
-        const pluginFields = $tw.loadPluginFolder(pluginPath);
-        if(pluginFields) {
-          $tw.Bob.Wikis[wikiName].wiki.addTiddler(pluginFields);
+        if(count > 0) {
+          return fullName + String(count);
+        } else {
+          return fullName;
         }
+      } else if(!wikiObj[nameParts[0]]) {
+        if(count > 0) {
+          return fullName + String(count);
+        } else {
+          return fullName;
+        }
+      }
+      if(nameParts.length > 1) {
+        if(wikiObj[nameParts[0]]) {
+          return $tw.syncadaptor.GetWikiName(nameParts.slice(1).join('/'), count, wikiObj[nameParts[0]], fullName);
+        } else {
+          return fullName;
+        }
+      } else {
+        return undefined
+      }
+    }
+
+    WikiDBAdaptor.prototype.createWiki = function(data, cb) {
+      // Create a new wiki database
+      const authorised = $tw.Bob.AccessCheck(data.oldWiki, {"decoded":data.decoded}, 'create', 'wiki');
+      const quotasOk = $tw.Bob.CheckQuotas(data, 'wiki');
+      if(authorised && quotasOk) {
+        const name = ($tw.settings.namespacedWikis === 'yes') ? $tw.syncadaptor.GetWikiName((data.decoded.name || 'imaginaryPerson') + '/' + (data.wikiName || data.newWiki || 'NewWiki')) : $tw.syncadaptor.GetWikiName(data.wikiName || data.newWiki);
+        const body = JSON.stringify({
+          db: name,
+        });
+        const options = {
+          hostname: '127.0.0.1',
+          port: 9999,
+          path: '/create',
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body)
+          }
+        }
+        const emptyInfo = JSON.stringify({
+          "title": name,
+          "description": "This is the demo edition for the Bob plugin created by OokTech",
+          "plugins": JSON.stringify(["OokTech/Bob"]),
+          "themes": JSON.stringify(["tiddlywiki/vanilla","tiddlywiki/snowwhite"]),
+          "build": JSON.stringify({"index": ["--rendertiddler","$:/core/save/all","index.html","text/plain"]})
+        })        
+        httpRequest(options, body)
+        .then((response) => {
+          // update the __wikiInfo listing
+          const body2 = JSON.stringify({
+            db: "__wikiInfo",
+            docs: [emptyInfo],
+          })
+          const options2 = {
+            hostname: '127.0.0.1',
+            port: 9999,
+            path: '/store',
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(body2)
+            }
+          }
+          return httpRequest(options2, body2)
+        })
+        .then((response)=>{
+          // Refresh wiki listing
+          data.update = 'true';
+          data.saveSettings = 'true';
+          $tw.syncadaptor.updateWikiListing(cb);
+          data.fromServer = true;
+          $tw.nodeMessageHandlers.updateRoutes(data);
+        })
+        .catch(err => {
+          console.log(err)
+          $tw.syncadaptor.updateWikiListing(cb);
+          data.fromServer = true;
+          $tw.nodeMessageHandlers.updateRoutes(data);
+        });
+      }
+    }
+
+
+    // TODO - this
+    WikiDBAdaptor.prototype.loadPlugins = function(plugins,libraryPath,envVar, wikiName, cb) {
+      if(typeof cb !== 'function') {
+        cb = () => {}
+      }
+      if(plugins) {
+        const body = JSON.stringify({
+          db: '__plugins',
+          filter: plugins.map(a => '[[$:/plugins/' + a + ']]').join('')
+        });
+        const options = {
+          hostname: '127.0.0.1',
+          port: 9999,
+          path: '/fetch',
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body)
+          }
+        }       
+        httpRequest(options, body)
+        .then((response) => {
+          response.forEach(function(thisPlugin) {
+            $tw.Bob.Wikis[wikiName].wiki.addTiddler(thisPlugin);
+          });
+        })
+        .catch(err => {
+          console.log(err)
+        })
+        .finally(function() {
+          cb()
+        })
       }
     };
 
@@ -640,7 +860,7 @@ A sync adaptor module for synchronising multiple wikis
       // save $tw.settings to the __settings database
       const body = JSON.stringify({
         db: '__settings',
-        docs: $tw.settings,
+        docs: [$tw.settings],
         overwrite: true
       });
       const options = {

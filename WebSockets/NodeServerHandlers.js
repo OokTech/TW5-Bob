@@ -391,6 +391,7 @@ if($tw.node) {
   }
 
   $tw.nodeMessageHandlers.updateSetting = function(data) {
+    console.log('updateSetting', data)
     $tw.Bob.Shared.sendAck(data);
     if(data.remove && typeof data.remove === 'string') {
       // Remove settings

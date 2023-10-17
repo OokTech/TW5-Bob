@@ -707,26 +707,40 @@ if($tw.node) {
         $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
   
         // Add plugins, themes and languages
-        $tw.syncadaptor.loadPlugins(wikiInfo.plugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, wikiName);
-        $tw.syncadaptor.loadPlugins(wikiInfo.themes,$tw.config.themesPath,$tw.config.themesEnvVar, wikiName);
-        $tw.syncadaptor.loadPlugins(wikiInfo.languages,$tw.config.languagesPath,$tw.config.languagesEnvVar, wikiName);
-        // Get the list of tiddlers for this wiki
-        $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
-        $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
-          return '$:/plugins/' + name;
+        $tw.syncadaptor.loadPlugins(wikiInfo.plugins, $tw.config.pluginsPath, $tw.config.pluginsEnvVar, wikiName, function() {
+          $tw.syncadaptor.loadPlugins(wikiInfo.themes, $tw.config.themesPath, $tw.config.themesEnvVar, wikiName, function() {
+            $tw.syncadaptor.loadPlugins(wikiInfo.languages, $tw.config.languagesPath, $tw.config.languagesEnvVar, wikiName, function() {
+              // Get the list of tiddlers for this wiki
+              $tw.Bob.Wikis[wikiName].tiddlers = $tw.Bob.Wikis[wikiName].wiki.allTitles();
+              $tw.Bob.Wikis[wikiName].plugins = wikiInfo.plugins.map(function(name) {
+                return '$:/plugins/' + name;
+              });
+              $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
+                return '$:/themes/' + name;
+              });
+              $tw.hooks.invokeHook('wiki-loaded', wikiName);
+
+              const fields = {
+                title: '$:/WikiName',
+                text: wikiName
+              };
+              $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+              console.log($tw.Bob.Wiki[wikiName].wiki.allTitles())
+              if(typeof cb === 'function') {
+                setTimeout(cb, 1000, true)
+              }
+            });
+          });
         });
-        $tw.Bob.Wikis[wikiName].themes = wikiInfo.themes.map(function(name) {
-          return '$:/themes/' + name;
-        });
-        $tw.hooks.invokeHook('wiki-loaded', wikiName);
-      }
-      const fields = {
-        title: '$:/WikiName',
-        text: wikiName
-      };
-      $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-      if(typeof cb === 'function') {
-        setTimeout(cb, 1000)
+      } else {
+        const fields = {
+          title: '$:/WikiName',
+          text: wikiName
+        };
+        $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
+        if(typeof cb === 'function') {
+          setTimeout(cb, 1000, true)
+        }
       }
     }
     return wikiFolder;

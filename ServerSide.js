@@ -41,7 +41,8 @@ $tw.Bob = $tw.Bob || {};
 $tw.Bob.Files = $tw.Bob.Files || {};
 $tw.Bob.EditingTiddlers = $tw.Bob.EditingTiddlers || {};
 
-ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
+ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes', cb) {
+  if (typeof cb !== 'function') {cb = () => {}}
   // Only rebuild the wiki if there have been changes since the last time it
   // was built, otherwise use the cached version.
   if(typeof $tw.Bob.Wikis[fullName].modified === 'undefined' || $tw.Bob.Wikis[fullName].modified === true || typeof $tw.Bob.Wikis[fullName].cached !== 'string') {
@@ -79,35 +80,43 @@ ServerSide.prepareWiki = function (fullName, servePlugin, cache='yes') {
       return pluginTiddler.replace(/^\$:\/plugins\//, '')
     });
     if(missingPlugins.length > 0) {
-      $tw.syncadaptor.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, fullName);
-    }
-    // This makes the wikiTiddlers variable a filter that lists all the
-    // tiddlers for this wiki.
-    const wikiName = fullName;
-    const options = {
-      variables: {
-        wikiTiddlers:
-          $tw.Bob.Wikis[fullName].wiki.allTitles().concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
-            if(servePlugin === 'no' && tidInfo === '$:/plugins/OokTech/Bob') {
-              return '';
-            } else {
-              return '[[' + tidInfo + ']]';
-            }
-          }).join(' '),
-        wikiName: wikiName
-      }
-    };
-    $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
-    const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
-    // Only cache the wiki if it isn't too big.
-    if(text.length < 10*1024*1024 && cache !== 'no') {
-      $tw.Bob.Wikis[fullName].cached = text;
-      $tw.Bob.Wikis[fullName].modified = false;
+      $tw.syncadaptor.loadPlugins(missingPlugins,$tw.config.pluginsPath,$tw.config.pluginsEnvVar, fullName, finish);
     } else {
-      return text;
+      finish()
     }
+
+    function finish() {
+      // This makes the wikiTiddlers variable a filter that lists all the
+      // tiddlers for this wiki.
+      const wikiName = fullName;
+      const options = {
+        variables: {
+          wikiTiddlers:
+            $tw.Bob.Wikis[fullName].wiki.allTitles().concat($tw.Bob.Wikis[fullName].plugins.concat($tw.Bob.Wikis[fullName].themes)).map(function(tidInfo) {
+              if(servePlugin === 'no' && tidInfo === '$:/plugins/OokTech/Bob') {
+                return '';
+              } else {
+                return '[[' + tidInfo + ']]';
+              }
+            }).join(' '),
+          wikiName: wikiName
+        }
+      };
+      $tw.Bob.Wikis[fullName].wiki.addTiddler(new $tw.Tiddler({title: '$:/WikiName', text: fullName}))
+      const text = $tw.Bob.Wikis[fullName].wiki.renderTiddler("text/plain", $tw.settings['ws-server'].rootTiddler || "$:/core/save/all", options);
+      // Only cache the wiki if it isn't too big.
+      if(text.length < 10*1024*1024 && cache !== 'no') {
+        $tw.Bob.Wikis[fullName].cached = text;
+        $tw.Bob.Wikis[fullName].modified = false;
+        cb($tw.Bob.Wikis[fullName].cached);
+      } else {
+        cb(text);
+        return text;
+      }
+    }
+  } else {
+    cb($tw.Bob.Wikis[fullName].cached);
   }
-  return $tw.Bob.Wikis[fullName].cached;
 }
 
 /*
@@ -212,9 +221,12 @@ ServerSide.getViewableWikiList = function (data) {
   data = data || {};
   function getList(obj, prefix) {
     if($tw.syncadaptor.name === 'WikiDBAdaptor') {
+      if(!Array.isArray(obj)) {
+        return []
+      }
       // TODO make this less terrible, it shouldn't be a workaround specific to one adaptor, so make the adaptor give what this expects
       // this is not a trivial update so it may be a while.
-      return obj.map(a => a.title)
+      return obj?obj.map(a => a.title):[]
     }
     let output = [];
     let ownedWikis = {};
@@ -637,25 +649,27 @@ ServerSide.listFiles = function(data, cb) {
 */
 ServerSide.UpdateEditingTiddlers = function (tiddler, wikiName) {
   // Make sure that the wiki is loaded
-  const exists = $tw.syncadaptor.loadWiki(wikiName);
+  $tw.syncadaptor.loadWiki(wikiName, finish);
   // This should never be false, but then this shouldn't every have been a
   // problem to start.
-  if(exists) {
-    // Check if a tiddler title was passed as input and that the tiddler isn't
-    // already listed as being edited.
-    // If there is a title and it isn't being edited add it to the list.
-    if(tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
-      $tw.Bob.EditingTiddlers[wikiName][tiddler] = true;
-    }
-    Object.keys($tw.connections).forEach(function(index) {
-      if($tw.connections[index].wiki === wikiName) {
-        $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
-        const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
-        const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
-        $tw.Bob.SendToBrowser($tw.connections[index], message);
-        $tw.Bob.logger.log('Update Editing Tiddlers', {level: 4})
+  function finish(exists) {
+    if(exists) {
+      // Check if a tiddler title was passed as input and that the tiddler isn't
+      // already listed as being edited.
+      // If there is a title and it isn't being edited add it to the list.
+      if(tiddler && !$tw.Bob.EditingTiddlers[wikiName][tiddler]) {
+        $tw.Bob.EditingTiddlers[wikiName][tiddler] = true;
       }
-    });
+      Object.keys($tw.connections).forEach(function(index) {
+        if($tw.connections[index].wiki === wikiName) {
+          $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
+          const list = Object.keys($tw.Bob.EditingTiddlers[wikiName]);
+          const message = {type: 'updateEditingTiddlers', list: list, wiki: wikiName};
+          $tw.Bob.SendToBrowser($tw.connections[index], message);
+          $tw.Bob.logger.log('Update Editing Tiddlers', {level: 4})
+        }
+      });
+    }
   }
 }
 /*

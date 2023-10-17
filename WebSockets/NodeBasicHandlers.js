@@ -39,19 +39,20 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // We need at least the name of the wiki
     if(data.wiki) {
-      $tw.syncadaptor.loadWiki(data.wiki);
-      // Get the skinny tiddlers
-      const tiddlers = []
-      $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
-        if(title.slice(0,3) !== '$:/') {
-          tiddlers.push($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']}))
+      $tw.syncadaptor.loadWiki(data.wiki, function() {
+        // Get the skinny tiddlers
+        const tiddlers = []
+        $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
+          if(title.slice(0,3) !== '$:/') {
+            tiddlers.push($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']}))
+          }
+        })
+        const message = {
+          type: 'skinnyTiddlers',
+          tiddlers: tiddlers
         }
-      })
-      const message = {
-        type: 'skinnyTiddlers',
-        tiddlers: tiddlers
-      }
-      $tw.Bob.Shared.sendMessage(message, data.source_connection)
+        $tw.Bob.Shared.sendMessage(message, data.source_connection)
+      });
     }
   }
 
@@ -60,13 +61,14 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getFullTiddler = function(data) {
     $tw.Bob.Shared.sendAck(data);
-    $tw.syncadaptor.loadWiki(data.wiki);
-    const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
-    const message = {
-      type: 'loadTiddler',
-      tiddler: tiddler || {}
-    }
-    $tw.Bob.Shared.sendMessage(message, data.source_connection)
+    $tw.syncadaptor.loadWiki(data.wiki, function() {
+      const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
+      const message = {
+        type: 'loadTiddler',
+        tiddler: tiddler || {}
+      }
+      $tw.Bob.Shared.sendMessage(message, data.source_connection)
+    });
   }
 
   /*
