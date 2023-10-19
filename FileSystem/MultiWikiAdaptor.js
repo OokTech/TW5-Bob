@@ -705,7 +705,6 @@ if($tw.node) {
         // Unpack plugin tiddlers
         $tw.Bob.Wikis[wikiName].wiki.readPluginInfo();
         $tw.Bob.Wikis[wikiName].wiki.unpackPluginTiddlers();
-  
         // Add plugins, themes and languages
         $tw.syncadaptor.loadPlugins(wikiInfo.plugins, $tw.config.pluginsPath, $tw.config.pluginsEnvVar, wikiName, function() {
           $tw.syncadaptor.loadPlugins(wikiInfo.themes, $tw.config.themesPath, $tw.config.themesEnvVar, wikiName, function() {
@@ -725,7 +724,6 @@ if($tw.node) {
                 text: wikiName
               };
               $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-              console.log($tw.Bob.Wiki[wikiName].wiki.allTitles())
               if(typeof cb === 'function') {
                 setTimeout(cb, 1000, true)
               }
@@ -746,9 +744,9 @@ if($tw.node) {
     return wikiFolder;
   }
   
-    /*
-  path: path of wiki directory
-  options:
+  /*
+    path: path of wiki directory
+    options:
     parentPaths: array of parent paths that we mustn't recurse into
     readOnly: true if the tiddler file paths should not be retained
   */
@@ -1036,8 +1034,9 @@ if($tw.node) {
     // browser and update the list of available wikis
     if(data.saveSettings) {
       data.fromServer = true;
-      $tw.nodeMessageHandlers.saveSettings(data);
-      $tw.nodeMessageHandlers.updateRoutes(data);
+      $tw.syncadaptor.saveSettings(data)
+      $tw.httpServer.clearRoutes();
+      $tw.httpServer.addOtherRoutes();
     }
     const message = {type: 'updateSettings'};
     $tw.Bob.SendToBrowsers(message);
@@ -1226,7 +1225,10 @@ if($tw.node) {
   libraryPath: Path of library folder for these plugins (relative to core path)
   envVar: Environment variable name for these plugins
   */
-  MultiWikiAdaptor.prototype.loadPlugins = function(plugins,libraryPath,envVar, wikiName) {
+  MultiWikiAdaptor.prototype.loadPlugins = function(plugins, libraryPath, envVar, wikiName, cb) {
+    if(typeof cb !== 'function') {
+      cb = () => {};
+    }
     if(plugins) {
       const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
       for(let t=0; t<plugins.length; t++) {
@@ -1235,6 +1237,7 @@ if($tw.node) {
         }
       }
     }
+    cb();
   };
 
   /*
@@ -1322,6 +1325,66 @@ if($tw.node) {
     });
   }
 
+  MultiWikiAdaptor.prototype.loadSettings = function(cb) {
+    if(typeof cb !== 'function') {
+      cb = () => {};
+    }
+    // The user settings path
+    const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+    $tw.settings = JSON.parse($tw.wiki.getTiddler('$:/plugins/OokTech/Bob/DefaultSettings').fields.text);
+    let newSettings;
+    if(typeof $tw.ExternalServer !== 'undefined') {
+      newSettings = require(path.join(process.cwd(),'LoadConfig.js')).settings;
+      $tw.updateSettings(settings,newSettings);
+    } else {
+      if($tw.node && !fs) {
+        const fs = require('fs')
+      }
+      let rawSettings;
+      const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
+      // try/catch in case defined path is invalid.
+      try {
+        rawSettings = fs.readFileSync(userSettingsPath);
+      } catch (err) {
+        console.log('NodeSettings - No settings file, creating one with default values.');
+        rawSettings = '{}';
+      }
+
+      // Try to parse the JSON after loading the file.
+      try {
+        newSettings = JSON.parse(rawSettings);
+        console.log('NodeSettings - Parsed raw settings.');
+      } catch (err) {
+        console.log('NodeSettings - Malformed settings. Using empty default.');
+        console.log('NodeSettings - Check settings. Maybe comma error?');
+        // Create an empty default settings.
+        newSettings = {};
+      }
+      $tw.updateSettings($tw.settings,newSettings);
+    }
+    $tw.syncadaptor.updateWikiListing()
+    updateSettingsWikiPaths($tw.settings.wikis);
+    cb();
+  }
+
+  /*
+    This allows people to add wikis using name: path in the settings.json and
+    still have them work correctly with the name: {__path: path} setup.
+
+    It takes the wikis section of the settings and changes any entries that are
+    in the form name: path and puts them in the form name: {__path: path}, and
+    recursively walks through all the wiki entries.
+  */
+    function updateSettingsWikiPaths(inputObj) {
+      Object.keys(inputObj).forEach(function(entry) {
+        if(typeof inputObj[entry] === 'string' && entry !== '__path') {
+          inputObj[entry] = {'__path': inputObj[entry]}
+        } else if(typeof inputObj[entry] === 'object' && entry !== '__permissions') {
+          updateSettingsWikiPaths(inputObj[entry])
+        }
+      })
+    }
+
   MultiWikiAdaptor.prototype.updateTiddlyWikiInfo = function(data) {
     const path = require('path')
     const fs = require('fs')
@@ -1350,6 +1413,32 @@ if($tw.node) {
       $tw.Bob.logger.error(e, {level:1})
     }
   }
+
+  /*
+    Add the update settings function to the $tw object.
+    TODO figure out if there is a more appropriate place for it. I don't think so
+    it doesn't fit with the rest of what is in $tw.utils and I can't think of
+    another place to put it.
+
+    Given a local and a global settings, this returns the global settings but with
+    any properties that are also in the local settings changed to the values given
+    in the local settings.
+    Changes to the settings are later saved to the local settings.
+  */
+    $tw.updateSettings = function (globalSettings, localSettings) {
+      //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
+      Object.keys(localSettings).forEach(function(key,index){
+        if(typeof localSettings[key] === 'object') {
+          if(!globalSettings[key]) {
+            globalSettings[key] = {};
+          }
+          //do this again!
+          $tw.updateSettings(globalSettings[key], localSettings[key]);
+        } else {
+          globalSettings[key] = localSettings[key];
+        }
+      });
+    }
 
   if($tw.node) {
     exports.adaptorClass = MultiWikiAdaptor;

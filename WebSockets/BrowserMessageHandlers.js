@@ -97,7 +97,8 @@ it will overwrite this file.
                 $tw.syncer.tiddlerInfo[data.tiddler.fields.title] = {
 									changeCount: $tw.wiki.getChangeCount(data.tiddler.fields.title),
 									adaptorInfo: "",
-									revision: undefined
+									//revision: undefined
+                  revision: ""
 								}
               }
             }

@@ -472,6 +472,8 @@ if($tw.node) {
         $tw.ServerSide.sendBrowserAlert(message);
       }
     }
+    console.log($tw.settings['ws-server'])
+    console.log("Here at save settings")
     $tw.nodeMessageHandlers.saveSettings({fromServer: true, wiki: data.wiki})
   }
 

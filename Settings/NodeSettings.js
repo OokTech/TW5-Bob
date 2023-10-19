@@ -18,12 +18,13 @@ exports.platforms = ["node"];
 exports.after = ["load-modules"];
 exports.synchronous = true;
 // Initialise the $tw.settings object
-$tw.settings = $tw.settings || {};
-$tw.settings.wikis = $tw.settings.wikis || {};
+//$tw.settings = $tw.settings || {};
+//$tw.settings.wikis = $tw.settings.wikis || {};
 
 if($tw.node) {
-  const fs = require("fs");
-  const path = require("path");
+  //const fs = require("fs");
+  //const path = require("path");
+  /*
   $tw.CreateSettingsTiddlers = function (data) {
     data = data || {}
     data.wiki = data.wiki || 'RootWiki'
@@ -66,12 +67,12 @@ if($tw.node) {
       message.tiddler = {fields: fieldsLanguagesList};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     }
-  }
+  }*/
 }
 
 if($tw.node && !$tw.ExternalServer) {
-  const fs = require("fs");
-  const path = require("path");
+  //const fs = require("fs");
+  //const path = require("path");
   /*
     Only load the settings if you are running node
   */
@@ -91,6 +92,7 @@ if($tw.node && !$tw.ExternalServer) {
     in the form name: path and puts them in the form name: {__path: path}, and
     recursively walks through all the wiki entries.
   */
+  /*
   function updateSettingsWikiPaths(inputObj) {
     Object.keys(inputObj).forEach(function(entry) {
       if(typeof inputObj[entry] === 'string' && entry !== '__path') {
@@ -100,6 +102,7 @@ if($tw.node && !$tw.ExternalServer) {
       }
     })
   }
+  */
 
   /*
     Parse the default settings file and the normal user settings file
@@ -107,10 +110,13 @@ if($tw.node && !$tw.ExternalServer) {
     This function modifies the input settings object with the properties in the
     json file at newSettingsPath
   */
+ /*
   $tw.loadSettings = function(settings, newSettingsPath) {
+    return
     let newSettings;
     if(typeof $tw.ExternalServer !== 'undefined') {
       newSettings = require(path.join(process.cwd(),'LoadConfig.js')).settings;
+      $tw.updateSettings(settings,newSettings);
     } else {
       if($tw.node && !fs) {
         const fs = require('fs')
@@ -135,10 +141,10 @@ if($tw.node && !$tw.ExternalServer) {
         // Create an empty default settings.
         newSettings = {};
       }
+      $tw.updateSettings(settings,newSettings);
     }
-
-    $tw.updateSettings(settings,newSettings);
   }
+  */
 
   // Modify according to settings tiddlers
   /*
@@ -156,6 +162,7 @@ if($tw.node && !$tw.ExternalServer) {
     in the local settings.
     Changes to the settings are later saved to the local settings.
   */
+ /*
   $tw.updateSettings = function (globalSettings, localSettings) {
     //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
     Object.keys(localSettings).forEach(function(key,index){
@@ -170,8 +177,8 @@ if($tw.node && !$tw.ExternalServer) {
       }
     });
   }
-
-  startup();
+  */
+  //startup();
 }
 
 })();

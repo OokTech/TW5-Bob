@@ -186,6 +186,10 @@ if(!$tw.Bob.Shared) {
   }
 
   function _sendMessage(connection, messageData) {
+    if(typeof connection == 'undefined') {
+      console.log(messageData)
+      return
+    }
     const index = connection.index;
     // Here make sure that the connection is live and hasn't already
     // sent an ack for the current message.
@@ -334,10 +338,12 @@ if(!$tw.Bob.Shared) {
       if(messageData.type === 'saveTiddler') {
         messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
       }
+      //console.log('d', $tw.connections[connectionIndex])
       // Only send things if the message is meant for the wiki or if the browser
       // is sending a message to the server. No wiki listed in the message means
       // it is a general message from the browser to all wikis.
-      if(messageData.message.wiki === Object.values($tw.connections)[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
+      const hasThing = Object.keys($tw.connections).indexOf(connectionIndex) > -1;
+      if(hasThing || messageData.message.wiki === Object.values($tw.connections)[connectionIndex].wiki || $tw.browser || !messageData.message.wiki) {
         let ignore = false;
         // Ignore saveTiddler, deleteTiddler and editingTiddler messages for
         // tiddlers that are listed by the sync exclude filter.
@@ -477,7 +483,11 @@ if(!$tw.Bob.Shared) {
         messageData.ack[connectionIndex] = false;
         $tw.Bob.MessageQueue.push(messageData);
       }
-      _sendMessage(Object.values($tw.connections)[connectionIndex], messageData)
+      if (Object.keys($tw.connections).indexOf(connectionIndex) > -1) {
+        _sendMessage($tw.connections[connectionIndex], messageData)
+      } else {
+        _sendMessage(Object.values($tw.connections)[connectionIndex], messageData)
+      }
     } else if($tw.browser) {
       // If we are not sending the message then we have to emit the 'received-ack' event so that the syncer thinks it is finished.
       const receivedAck = new CustomEvent('handle-ack', {bubbles: true, detail: messageData.id})

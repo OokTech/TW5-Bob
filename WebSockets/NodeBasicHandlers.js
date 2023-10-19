@@ -49,7 +49,8 @@ if($tw.node) {
         })
         const message = {
           type: 'skinnyTiddlers',
-          tiddlers: tiddlers
+          tiddlers: tiddlers,
+          wiki: data.wiki
         }
         $tw.Bob.Shared.sendMessage(message, data.source_connection)
       });
@@ -60,6 +61,7 @@ if($tw.node) {
     For lazy loading this gets a full tiddler
   */
   $tw.nodeMessageHandlers.getFullTiddler = function(data) {
+    console.log('getFullTiddler', data.title)
     $tw.Bob.Shared.sendAck(data);
     $tw.syncadaptor.loadWiki(data.wiki, function() {
       const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)

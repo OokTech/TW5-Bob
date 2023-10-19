@@ -23,6 +23,8 @@ if($tw.node) {
   const URL = require("url"),
     path = require("path"),
     http = require("http");
+  $tw.settings = $tw.settings || {};
+  $tw.settings.wikis = $tw.settings.wikis || {};
 
   /*
     The websocket components
@@ -403,8 +405,8 @@ if($tw.node) {
         $tw.httpServer.addRoute(routeDefinition);
       }
     });
-    if(typeof $tw.syncadaptor.loadSettings === 'function') {
-      $tw.syncadaptor.loadSettings(bob);
+    if($tw.syncadaptor.name === 'WikiDBAdaptor') {
+      bob()
     } else {
       addRoutesThing($tw.settings.wikis, '');
     }
@@ -549,116 +551,119 @@ if($tw.node) {
     if(!$tw.boot.wikiTiddlersPath) {
       $tw.utils.warning("Warning: Wiki folder '" + $tw.boot.wikiPath + "' does not exist or is missing a tiddlywiki.info file");
     }
-    const port = $tw.settings['ws-server'].port || "8080",
-      rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/all",
-      renderType = $tw.settings['ws-server'].renderType || "text/plain",
-      serveType = $tw.settings['ws-server'].serveType || "text/html",
-      username = $tw.settings['ws-server'].username,
-      password = $tw.settings['ws-server'].password,
-      host = $tw.settings['ws-server'].host || "127.0.0.1",
-      pathprefix = $tw.settings['ws-server'].pathprefix;
-    $tw.httpServer.set({
-      rootTiddler: rootTiddler,
-      renderType: renderType,
-      serveType: serveType,
-      username: username,
-      password: password,
-      pathprefix: pathprefix,
-      "tiddler-render-type": "text/html",
-    	"tiddler-render-template": "$:/core/templates/server/static.tiddler.html",
-    	"system-tiddler-render-type": "text/plain",
-    	"system-tiddler-render-template": "$:/core/templates/wikified-tiddler"
-    });
+    $tw.syncadaptor.loadSettings(function() {
+      const port = $tw.settings['ws-server'].port || "8080",
+        rootTiddler = $tw.settings['ws-server'].rootTiddler || "$:/core/save/all",
+        renderType = $tw.settings['ws-server'].renderType || "text/plain",
+        serveType = $tw.settings['ws-server'].serveType || "text/html",
+        username = $tw.settings['ws-server'].username,
+        password = $tw.settings['ws-server'].password,
+        host = $tw.settings['ws-server'].host || "127.0.0.1",
+        pathprefix = $tw.settings['ws-server'].pathprefix;
+      $tw.httpServer.set({
+        rootTiddler: rootTiddler,
+        renderType: renderType,
+        serveType: serveType,
+        username: username,
+        password: password,
+        pathprefix: pathprefix,
+        "tiddler-render-type": "text/html",
+        "tiddler-render-template": "$:/core/templates/server/static.tiddler.html",
+        "system-tiddler-render-type": "text/plain",
+        "system-tiddler-render-template": "$:/core/templates/wikified-tiddler"
+      });
 
-    if($tw.settings.enableBobSaver !== 'no') {
-      // Create single file saver server
-      createSaverServer()
-    }
-
-    const basePath = $tw.syncadaptor.getBasePath();
-    $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';
-    if(typeof $tw.settings.pluginsPath === 'string') {
-      const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);
-      if(process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
-        process.env["TIDDLYWIKI_PLUGIN_PATH"] = process.env["TIDDLYWIKI_PLUGIN_PATH"] + path.delimiter + resolvedpluginspath;
-      } else {
-        process.env["TIDDLYWIKI_PLUGIN_PATH"] = resolvedpluginspath;
+      if($tw.settings.enableBobSaver !== 'no') {
+        // Create single file saver server
+        createSaverServer()
       }
-    }
-    $tw.settings.themesPath = $tw.settings.themesPath || './Themes';
-    if(typeof $tw.settings.themesPath === 'string') {
-      const resolvedthemespath = path.resolve(basePath, $tw.settings.themesPath);
-      if(process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
-        process.env["TIDDLYWIKI_THEME_PATH"] = process.env["TIDDLYWIKI_THEME_PATH"] + path.delimiter + resolvedthemespath;
-      } else {
-        process.env["TIDDLYWIKI_THEME_PATH"] = resolvedthemespath;
+
+      const basePath = $tw.syncadaptor.getBasePath();
+      $tw.settings.pluginsPath = $tw.settings.pluginsPath || './Plugins';
+      if(typeof $tw.settings.pluginsPath === 'string') {
+        const resolvedpluginspath = path.resolve(basePath, $tw.settings.pluginsPath);
+        if(process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
+          process.env["TIDDLYWIKI_PLUGIN_PATH"] = process.env["TIDDLYWIKI_PLUGIN_PATH"] + path.delimiter + resolvedpluginspath;
+        } else {
+          process.env["TIDDLYWIKI_PLUGIN_PATH"] = resolvedpluginspath;
+        }
       }
-    }
-    $tw.settings.editionsPath = $tw.settings.editionsPath || './Editions';
-    if(typeof $tw.settings.editionsPath === 'string') {
-      const resolvededitionspath = path.resolve(basePath, $tw.settings.editionsPath)
-      if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
-      } else {
-        process.env["TIDDLYWIKI_EDITION_PATH"] = resolvededitionspath;
+      $tw.settings.themesPath = $tw.settings.themesPath || './Themes';
+      if(typeof $tw.settings.themesPath === 'string') {
+        const resolvedthemespath = path.resolve(basePath, $tw.settings.themesPath);
+        if(process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
+          process.env["TIDDLYWIKI_THEME_PATH"] = process.env["TIDDLYWIKI_THEME_PATH"] + path.delimiter + resolvedthemespath;
+        } else {
+          process.env["TIDDLYWIKI_THEME_PATH"] = resolvedthemespath;
+        }
       }
-    }
-    $tw.settings.languagesPath = $tw.settings.languagesPath || './Languages';
-    if(typeof $tw.settings.languagesPath === 'string') {
-      const resolvedlanguagespath = path.resolve(basePath, $tw.settings.languagesPath)
-      if(process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== undefined && process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== '') {
-        process.env["TIDDLYWIKI_LANGUAGE_PATH"] = process.env["TIDDLYWIKI_LANGUAGE_PATH"] + path.delimiter + resolvedlanguagespath;
-      } else {
-        process.env["TIDDLYWIKI_LANGUAGE_PATH"] = resolvedlanguagespath;
+      $tw.settings.editionsPath = $tw.settings.editionsPath || './Editions';
+      if(typeof $tw.settings.editionsPath === 'string') {
+        const resolvededitionspath = path.resolve(basePath, $tw.settings.editionsPath)
+        if(process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+          process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
+        } else {
+          process.env["TIDDLYWIKI_EDITION_PATH"] = resolvededitionspath;
+        }
       }
-    }
+      $tw.settings.languagesPath = $tw.settings.languagesPath || './Languages';
+      if(typeof $tw.settings.languagesPath === 'string') {
+        const resolvedlanguagespath = path.resolve(basePath, $tw.settings.languagesPath)
+        if(process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== undefined && process.env["TIDDLYWIKI_LANGUAGE_PATH"] !== '') {
+          process.env["TIDDLYWIKI_LANGUAGE_PATH"] = process.env["TIDDLYWIKI_LANGUAGE_PATH"] + path.delimiter + resolvedlanguagespath;
+        } else {
+          process.env["TIDDLYWIKI_LANGUAGE_PATH"] = resolvedlanguagespath;
+        }
+      }
 
-    const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
-    $tw.Bob.version = bobVersion;
-    //$tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level:0})
-    console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
+      const bobVersion = $tw.wiki.getTiddler('$:/plugins/OokTech/Bob').fields.version
+      $tw.Bob.version = bobVersion;
+      //$tw.Bob.logger.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion, {level:0})
+      console.log('TiddlyWiki version', $tw.version, 'with Bob version', bobVersion)
 
-    /*
-      This function checks to see if the current action is allowed with the
-      access level given by the supplied token
+      /*
+        This function checks to see if the current action is allowed with the
+        access level given by the supplied token
 
-      If access controls are not enabled than this just returns true and
-      everything is allowed.
+        If access controls are not enabled than this just returns true and
+        everything is allowed.
 
-      If access controls are enabled than this needs to check the token to get
-      the list of wikis and actions that are allowed to it and if the action is
-      allowed for the wiki return true, otherwise false.
-    */
-    $tw.Bob.AccessCheck = function(fullName, token, action, category) {
-      return true;
-    }
-    /*
-      This function checks to see if creating a wiki or uploading a file is
-      allowed based on server quotas.
-      Using the normal Bob server you have no quotas so this always says it is
-      allowed.
-    */
-    $tw.Bob.CheckQuotas = function(data) {
-      return true;
-    }
+        If access controls are enabled than this needs to check the token to get
+        the list of wikis and actions that are allowed to it and if the action is
+        allowed for the wiki return true, otherwise false.
+      */
+      $tw.Bob.AccessCheck = function(fullName, token, action, category) {
+        return true;
+      }
+      /*
+        This function checks to see if creating a wiki or uploading a file is
+        allowed based on server quotas.
+        Using the normal Bob server you have no quotas so this always says it is
+        allowed.
+      */
+      $tw.Bob.CheckQuotas = function(data) {
+        return true;
+      }
 
-    const nodeServer = $tw.httpServer.listen(port,host);
+      const nodeServer = $tw.httpServer.listen(port,host);
 
-    // Get the ip address to display to make it easier for other computers to
-    // connect.
-    const ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
-    try {
-      var ipAddress = ip.address();
-    } catch (e) {
-      var ipAddress = ""
-    }
-    $tw.settings.serverInfo = {
-      ipAddress: ipAddress,
-      port: port,
-      host: host
-    };
-
-    $tw.hooks.invokeHook("th-server-command-post-start",$tw.httpServer,nodeServer,"tiddlywiki");
+      // Get the ip address to display to make it easier for other computers to
+      // connect.
+      const ip = require('$:/plugins/OokTech/Bob/External/IP/ip.js');
+      try {
+        var ipAddress = ip.address();
+      } catch (e) {
+        var ipAddress = ""
+      }
+      $tw.settings.serverInfo = {
+        ipAddress: ipAddress,
+        port: port,
+        host: host
+      };
+      //$tw.Bob.logger.log('Server Info: ', $tw.settings.serverInfo, {level: 3})
+      $tw.hooks.invokeHook("th-server-command-post-start",$tw.httpServer,nodeServer,"tiddlywiki");
+      return null;
+    })
     return null;
   };
 

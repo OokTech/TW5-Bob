@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/WikiDBAdaptor.js
 type: application/javascript
-module-type: syncadaptor
+module-type: asyncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -79,6 +79,8 @@ A sync adaptor module for synchronising multiple wikis
   
     WikiDBAdaptor.prototype.name = "WikiDBAdaptor";
   
+    WikiDBAdaptor.prototype.supportsLazyLoading = true
+
     WikiDBAdaptor.prototype.isReady = function() {
       // this should check to see if the database is ready, but because javascript refuses to have blocking calls we can't have that
       // we need to either change how adaptors work so they can use promises or just leave it like this.
@@ -108,11 +110,44 @@ A sync adaptor module for synchronising multiple wikis
       };
       httpRequest(options, body)
       .then((response)=>{
-        $tw.settings = response;
+        Object.keys(response[0]).forEach((key) => {
+          try {
+            $tw.settings[key] = JSON.parse(response[0][key])
+          } catch (e) {
+            $tw.settings[key] = response[0][key]
+          }
+        })
         $tw.syncadaptor.updateWikiListing(cb);
       });
     }
-      
+
+    /*
+      Add the update settings function to the $tw object.
+      TODO figure out if there is a more appropriate place for it. I don't think so
+      it doesn't fit with the rest of what is in $tw.utils and I can't think of
+      another place to put it.
+
+      Given a local and a global settings, this returns the global settings but with
+      any properties that are also in the local settings changed to the values given
+      in the local settings.
+      Changes to the settings are later saved to the local settings.
+    */
+    $tw.updateSettings = function (globalSettings, localSettings) {
+      //Walk though the properties in the localSettings, for each property set the global settings equal to it, but only for singleton properties. Don't set something like GlobalSettings.Accelerometer = localSettings.Accelerometer, set globalSettings.Accelerometer.Controller = localSettings.Accelerometer.Contorller
+      Object.keys(localSettings).forEach(function(key,index){
+        if(typeof localSettings[key] === 'object') {
+          if(!globalSettings[key]) {
+            globalSettings[key] = {};
+          }
+          //do this again!
+          $tw.updateSettings(globalSettings[key], localSettings[key]);
+        } else {
+          globalSettings[key] = localSettings[key];
+        }
+      });
+    }
+
+
     /*
     Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
     */
@@ -242,10 +277,8 @@ A sync adaptor module for synchronising multiple wikis
       }
       httpRequest(options, body)
       .then((response)=>{
-        console.log(response)
+        callback(null, response[0])
       });
-
-      callback(null,null);
     };
   
     /*
@@ -853,6 +886,12 @@ A sync adaptor module for synchronising multiple wikis
         type: 'saveTiddler',
         wiki: data.wiki
       };
+      const tmpSettings = {};
+      Object.keys($tw.settings).forEach((thisKey) => {
+        if(['wikis'].indexOf(thisKey) == -1) {
+          tmpSettings[thisKey] = $tw.settings[thisKey];
+        }
+      })
       $tw.settings.serverInfo = $tw.settings.serverInfo || {}
       message.tiddler = {fields: {title: "$:/ServerIP", text: $tw.settings.serverInfo.ipAddress, port: $tw.httpServerPort, host: $tw.settings.serverInfo.host}};
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
@@ -860,7 +899,8 @@ A sync adaptor module for synchronising multiple wikis
       // save $tw.settings to the __settings database
       const body = JSON.stringify({
         db: '__settings',
-        docs: [$tw.settings],
+        //docs: [$tw.settings],
+        docs: [tmpSettings],
         overwrite: true
       });
       const options = {
@@ -903,6 +943,7 @@ A sync adaptor module for synchronising multiple wikis
     }
 
     WikiDBAdaptor.prototype.saveSettings = function(data, cb) {
+      console.log('at syncadaptor saveSettings')
       // update settings in the DB
       if (typeof cb !== 'function') {
         cb = () => {}
@@ -910,7 +951,7 @@ A sync adaptor module for synchronising multiple wikis
       // save $tw.settings to the __settings database
       const body = JSON.stringify({
         db: '__settings',
-        docs: $tw.settings,
+        docs: [$tw.settings],
         overwrite: true
       });
       const options = {
@@ -930,6 +971,7 @@ A sync adaptor module for synchronising multiple wikis
         cb()
       })
       .catch((err) => {
+        console.log(err)
         $tw.Bob.logger.log('Error saving settings to DB', {level:1})
       });
     }
