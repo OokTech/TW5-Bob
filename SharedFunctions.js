@@ -106,9 +106,8 @@ if(!$tw.Bob.Shared) {
     for the ackObject the index is the connection index and ackReceived is a
     boolean indicating if the ack has been received yet or not.
   */
-  Shared.createMessageData = function (message) {
-    const id = message.id || makeId();
-    //const id = makeId()
+  Shared.createMessageData = function (message, sessionId) {
+    const id = makeId()//message.id || makeId();
     message.id = id;
     message.token = $tw.Bob.Shared.getMessageToken();
     let title = undefined;
@@ -126,7 +125,8 @@ if(!$tw.Bob.Shared) {
       ack: {
         tries: 0
       },
-      wiki: message.wiki
+      wiki: message.wiki,
+      sessionId: sessionId
     };
     return messageData;
   }
@@ -187,7 +187,6 @@ if(!$tw.Bob.Shared) {
 
   function _sendMessage(connection, messageData) {
     if(typeof connection == 'undefined') {
-      console.log(messageData)
       return
     }
     const index = connection.index;
@@ -211,8 +210,8 @@ if(!$tw.Bob.Shared) {
     server have an idea that starts with s.
   */
   function makeId() {
-    idNumber = idNumber + 1;
-    const newId = ($tw.browser?'b':'s') + idNumber;
+    idNumber += 1;
+    let newId = ($tw.browser?'b':'s') + idNumber;
     return newId;
   }
 
@@ -338,7 +337,6 @@ if(!$tw.Bob.Shared) {
       if(messageData.type === 'saveTiddler') {
         messageData.message.tiddler = $tw.Bob.Shared.normalizeTiddler(messageData.message.tiddler)
       }
-      //console.log('d', $tw.connections[connectionIndex])
       // Only send things if the message is meant for the wiki or if the browser
       // is sending a message to the server. No wiki listed in the message means
       // it is a general message from the browser to all wikis.
@@ -357,7 +355,7 @@ if(!$tw.Bob.Shared) {
               // TODO fix this terrible workaround
               list = []
             } else {
-              if(Object.keys($tw.Bob.Wikis).indexOf(messageData.message.wiki) > -1) {
+              if(Object.keys($tw.Bob.Wikis).indexOf(messageData.message.wiki) === -1) {
                 ignore = true;
               } else {
                 list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
@@ -413,7 +411,7 @@ if(!$tw.Bob.Shared) {
           // both messages.
           if(messageData.type === 'saveTiddler') {
             queue.forEach(function(message, messageIndex) {
-              if(message.type === 'saveTiddler' && message.title === messageData.title) {
+              if(message.type === 'saveTiddler' && messageData.sessionId === queue[messageIndex].sessionId) {
                 if(!$tw.Bob.Shared.TiddlerHasChanged(messageData.message.tiddler, queue[messageIndex].message.tiddler)) {
                   ignore = true;
                 }
@@ -458,8 +456,8 @@ if(!$tw.Bob.Shared) {
 
     This modifies $tw.Bob.MessageQueue as a side effect
   */
-  Shared.sendMessage = function(message, connectionIndex, messageData) {
-    messageData = messageData || Shared.createMessageData(message)
+  Shared.sendMessage = function(message, connectionIndex) {
+    let messageData = Shared.createMessageData(message, connectionIndex)
     if(Shared.messageIsEligible(messageData, connectionIndex, $tw.Bob.MessageQueue)) {
       $tw.Bob.Timers = $tw.Bob.Timers || {};
       connectionIndex = connectionIndex || 0;
@@ -780,7 +778,6 @@ if(!$tw.Bob.Shared) {
       if(data.id) {
         if(data.source_connection !== undefined && data.source_connection !== -1) {// && $tw.connections[data.source_connection]) {
           if(!$tw.connections[data.source_connection]) {
-            //console.log('it hit here!')
             return
           }
           $tw.connections[data.source_connection].socket.send(JSON.stringify({

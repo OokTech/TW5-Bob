@@ -728,12 +728,10 @@ $tw.Bob.UpdateHistory = function(message) {
 */
 $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
   $tw.Bob.UpdateHistory(message);
-  const messageData = $tw.Bob.Shared.createMessageData(message);
-
   Object.values($tw.connections).forEach(function (connection, ind) {
     if((ind !== excludeConnection) && connection.socket) {
       if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-        $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
+        $tw.Bob.Shared.sendMessage(message, connection.sessionId);
       }
     }
   })
@@ -751,9 +749,8 @@ $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
 $tw.Bob.SendToBrowser = function (connection, message) {
   if(connection && connection.socket) {
     $tw.Bob.UpdateHistory(message);
-    const messageData = $tw.Bob.Shared.createMessageData(message);
     if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-      $tw.Bob.Shared.sendMessage(message, connection.index, messageData);
+      $tw.Bob.Shared.sendMessage(message, connection.sessionId);
     }
   }
 }

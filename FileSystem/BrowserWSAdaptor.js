@@ -112,7 +112,7 @@ function BrowserWSAdaptor(options) {
         }
       }
       // Check to make sure that the current message is eligible to be saved
-      const messageData = $tw.Bob.Shared.createMessageData(message)
+      const messageData = $tw.Bob.Shared.createMessageData(message, 0)
       if($tw.Bob.Shared.messageIsEligible(messageData, 0, queue)) {
         // Prune the queue and check if the current message makes any enqueued
         // messages redundant or overrides old messages
@@ -709,11 +709,14 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
         }
       }
     );
-    const theHash = $tw.Bob.Shared.getTiddlerHash(tiddler);
-    if(Object.keys(tempTid.fields).indexOf('revision')) {
-      tempTid.fields._revision = tempTid.fields.revision;
+    if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+      const theHash = $tw.Bob.Shared.getTiddlerHash(tiddler);
+      if(Object.keys(tempTid.fields).indexOf('revision')) {
+        tempTid.fields._revision = tempTid.fields.revision;
+      }
+      tempTid.fields.revision = theHash;
     }
-    tempTid.fields.revision = theHash;
+
     const message = {
       type: 'saveTiddler',
       tiddler: tempTid,
