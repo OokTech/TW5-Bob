@@ -672,8 +672,18 @@ BrowserWSAdaptor.prototype.supportsMultiSave = true
 
 // REQUIRED
 // Tiddler info, can be left like this but must be present
-BrowserWSAdaptor.prototype.getTiddlerInfo = function() {
+BrowserWSAdaptor.prototype.getTiddlerInfo = function(title) {
   return {}
+}
+
+BrowserWSAdaptor.prototype.getTiddlerRevision = function(title) {
+  // use tiddler hash
+  const tiddler = $tw.wiki.getTiddler(title);
+  if(tiddler.fields.revision) {
+    return tiddler.fields.revision + ""
+  } 
+  const theHash = $tw.Bob.Shared.getTiddlerHash(tiddler);
+  return theHash + ""
 }
 
 // REQUIRED
@@ -699,6 +709,11 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
         }
       }
     );
+    const theHash = $tw.Bob.Shared.getTiddlerHash(tiddler);
+    if(Object.keys(tempTid.fields).indexOf('revision')) {
+      tempTid.fields._revision = tempTid.fields.revision;
+    }
+    tempTid.fields.revision = theHash;
     const message = {
       type: 'saveTiddler',
       tiddler: tempTid,

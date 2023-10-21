@@ -164,7 +164,7 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that the wiki is actually loaded!
     data.wiki = decodeURIComponent(data.wiki)
-    const exists = $tw.syncadaptor.loadWiki(data.wiki);
+    const exists = $tw.syncadaptor.loadWiki(data.wiki, (result) => {return result});
     if (!exists) {
       console.log("This wiki doesn't exist!", data.sessionId)
       return

@@ -324,9 +324,9 @@ if(!$tw.Bob.Shared) {
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
     if($tw.node && messageData.message.wiki) {
-      $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit);
+      return $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit);
     } else {
-      nextBit();
+      return nextBit();
     }
     function nextBit() {
       // Make sure that the connectionIndex and queue exist. This may be over
@@ -357,8 +357,11 @@ if(!$tw.Bob.Shared) {
               // TODO fix this terrible workaround
               list = []
             } else {
-              $tw.Bob.Wikis[messageData.message.wiki].wiki = $tw.Bob.Wikis[messageData.message.wiki].wiki || {};
-              list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+              if(Object.keys($tw.Bob.Wikis).indexOf(messageData.message.wiki) > -1) {
+                ignore = true;
+              } else {
+                list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
+              }
             }
           } else {
             list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
@@ -424,7 +427,6 @@ if(!$tw.Bob.Shared) {
       }
       return send;
     }
-    return send;
   }
 
   /*

@@ -110,13 +110,15 @@ A sync adaptor module for synchronising multiple wikis
       };
       httpRequest(options, body)
       .then((response)=>{
-        Object.keys(response[0]).forEach((key) => {
-          try {
-            $tw.settings[key] = JSON.parse(response[0][key])
-          } catch (e) {
-            $tw.settings[key] = response[0][key]
-          }
-        })
+        if(response.length > 0) {
+          Object.keys(response[0]).forEach((key) => {
+            try {
+              $tw.settings[key] = JSON.parse(response[0][key])
+            } catch (e) {
+              $tw.settings[key] = response[0][key]
+            }
+          })
+        }
         $tw.syncadaptor.updateWikiListing(cb);
       });
     }
@@ -516,6 +518,7 @@ A sync adaptor module for synchronising multiple wikis
 
       // Make sure it isn't loaded already
       if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+        $tw.Bob.Wikis[wikiName].State = 'loaded'
         let theTiddlers = [];
         let wikiInfo = [];
         let theThemes = [];
@@ -560,6 +563,11 @@ A sync adaptor module for synchronising multiple wikis
           return httpRequest(options2, body2);
         })
         .then((response)=>{
+          if(response.length == 0) {
+            // there isn't any document in the __wikiInfo database for this wiki
+            cb()
+            return
+          }
           wikiInfo = response[0]
           try {
             wikiInfo.plugins = wikiInfo.plugins ? JSON.parse(wikiInfo.plugins) : [];
@@ -609,7 +617,7 @@ A sync adaptor module for synchronising multiple wikis
           theLanguages = response
           const thisBody = JSON.stringify({
             db: '__plugins',
-            filter: "[[$:/core]][[$:/plugins/OokTech/Bob]]" + wikiInfo.plugins.map(b => `[[$:/plugins/${b}]]`).join("")
+            filter: "[[$:/core]][[$:/plugins/OokTech/Bob]]" + wikiInfo.plugins.map(b => `[[$:/plugins/${b}]]`).join("") + "+[unique[]]"
           })
           return httpRequest({
             hostname: '127.0.0.1',

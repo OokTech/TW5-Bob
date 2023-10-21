@@ -88,19 +88,23 @@ it will overwrite this file.
             // different than the existing one.
             const changed = $tw.Bob.Shared.TiddlerHasChanged(data.tiddler, $tw.wiki.getTiddler(data.tiddler.fields.title));
             if(changed) {
-              $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
               // Set the change count in the syncer so that the syncer doesn't save the tiddler again.
               if($tw.syncer.tiddlerInfo[data.tiddler.fields.title]) {
                 $tw.syncer.tiddlerInfo[data.tiddler.fields.title].changeCount = $tw.wiki.getChangeCount(data.tiddler.fields.title);
 								$tw.syncer.tiddlerInfo[data.tiddler.fields.title].timestampLastSaved = new Date();
+                $tw.syncer.tiddlerInfo[data.tiddler.fields.title].revision = data.tiddler.fields.revision
               } else {
                 $tw.syncer.tiddlerInfo[data.tiddler.fields.title] = {
 									changeCount: $tw.wiki.getChangeCount(data.tiddler.fields.title),
 									adaptorInfo: "",
-									//revision: undefined
-                  revision: ""
+                  revision: data.tiddler.fields.revision
 								}
               }
+              if(data.tiddler.fields._revision) {
+                data.tiddler.fields.revision = data.tiddler.fields._revision;
+                delete data.tiddler.fields._revision;
+              }
+              $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
             }
           } else {
             console.log('Invalid tiddler title');

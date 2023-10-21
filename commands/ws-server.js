@@ -120,7 +120,7 @@ if($tw.node) {
   */
   function handleConnection(client, request) {
     const wikiName = decodeURIComponent(client.sessionId.slice(0,-6))
-    const exists = $tw.syncadaptor.loadWiki(wikiName);
+    const exists = $tw.syncadaptor.loadWiki(wikiName, (result) => {return result});
     if (!exists) {
       // don't make connections for wikis that don't exist
       console.log("Trying to log into a wiki that doesn't exist!")
@@ -406,7 +406,7 @@ if($tw.node) {
       }
     });
     if($tw.syncadaptor.name === 'WikiDBAdaptor') {
-      bob()
+      $tw.syncadaptor.loadSettings(bob)
     } else {
       addRoutesThing($tw.settings.wikis, '');
     }

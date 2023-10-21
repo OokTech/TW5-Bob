@@ -53,7 +53,6 @@ module.exports = function (fullName) {
         } else {
           // Make sure we have loaded the wiki tiddlers.
           // This does nothing if the wiki is already loaded.
-          //const exists = $tw.syncadaptor.loadWiki(fullName, function(exists) {
           $tw.syncadaptor.loadWiki(fullName, function(exists) { 
             if(exists) {
               // Check if the external server exists, if so check if there is a

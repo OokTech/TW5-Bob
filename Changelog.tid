@@ -15,6 +15,9 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** This is a big change in the code, it may have caused many unexpected bugs that I haven't found yet.
 * Move more components into the syncaadaptor in preparation to work with the WikiDBAdaptor as well as the MultiWikiAdaptor
 * Fix the action-updatesetting widget
+* Improve lazyLoading, it may actually work with Bob now
+** There is a problem where overwritten shadow tiddlers that don't start with $:/ aren't loaded. I hope that is a rare enough case I don't have to worry about it.
+* Improvements to the wiki loading code to hopefully make it easier to maintain and faster.
 
 !! Version 1.7.3 Intense Kitten
 

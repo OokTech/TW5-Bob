@@ -41,15 +41,19 @@ if($tw.node) {
     if(data.wiki) {
       $tw.syncadaptor.loadWiki(data.wiki, function() {
         // Get the skinny tiddlers
-        const tiddlers = []
+        const skinny_tiddlers = []
         $tw.Bob.Wikis[data.wiki].wiki.allTitles().forEach(function(title) {
           if(title.slice(0,3) !== '$:/') {
-            tiddlers.push($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']}))
+            const theTid = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(title).getFieldStrings({exclude:['text']})
+            if(!theTid.revision) {
+              theTid.revision = $tw.Bob.Shared.getTiddlerHash($tw.Bob.Wikis[data.wiki].wiki.getTiddler(title));
+            }
+            skinny_tiddlers.push(theTid)
           }
         })
         const message = {
           type: 'skinnyTiddlers',
-          tiddlers: tiddlers,
+          tiddlers: skinny_tiddlers,
           wiki: data.wiki
         }
         $tw.Bob.Shared.sendMessage(message, data.source_connection)

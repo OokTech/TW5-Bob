@@ -43,7 +43,7 @@ if($tw.node) {
     const fs = require('fs');
     let wikiPath, fullName, excludeList = [];
     if(data.buildWiki) {
-      const exists = $tw.syncadaptor.loadWiki(data.buildWiki);
+      const exists = $tw.syncadaptor.loadWiki(data.buildWiki, (result) => {return result});
       if(exists) {
         wikiPath = $tw.Bob.Wikis[data.buildWiki].wikiPath || undefined;
         fullName = data.buildWiki;
@@ -162,12 +162,12 @@ if($tw.node) {
       let exists = false;
       const wikiPath = path.join(basePath, wikiFolder, wikiName)
       if(data.overwrite === 'true') {
-        exists = $tw.syncadaptor.loadWiki(wikiName)
+        exists = $tw.syncadaptor.loadWiki(wikiName, (result) => {return result})
       }
 
       // If we aren't overwriting or it doesn't already exist than make the new
       // wiki and load it
-      if(!(typeof exists === 'string') || data.overwrite !== 'true') {
+      if(!exists || data.overwrite !== 'true') {
         // First copy the empty edition to the wikiPath to make the
         // tiddlywiki.info
         const params = {
@@ -261,7 +261,7 @@ if($tw.node) {
         Object.keys(externalData).forEach(function(wikiTitle) {
           const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view', 'wiki');
           if(allowed) {
-            const exists = $tw.syncadaptor.loadWiki(wikiTitle);
+            const exists = $tw.syncadaptor.loadWiki(wikiTitle, (result) => {return result});
             if(exists) {
               const includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
               includeList.forEach(function(tiddlerTitle) {

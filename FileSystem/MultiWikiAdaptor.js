@@ -725,7 +725,7 @@ if($tw.node) {
               };
               $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
               if(typeof cb === 'function') {
-                setTimeout(cb, 1000, true)
+                return cb(true)
               }
             });
           });
@@ -737,11 +737,12 @@ if($tw.node) {
         };
         $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
         if(typeof cb === 'function') {
-          setTimeout(cb, 1000, true)
+          return cb(true)
         }
       }
+    } else {
+      return cb(false)
     }
-    return wikiFolder;
   }
   
   /*
@@ -816,6 +817,15 @@ if($tw.node) {
               type: tiddlerFile.type,
               hasMetaFile: tiddlerFile.hasMetaFile
             };
+            // this part is for lazyLoading
+            if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+              
+              if(Object.keys(tiddler).indexOf('text') > -1) {
+                // if the tiddler has a text field set the revision and _is_skinny fields
+                tiddler.revision = $tw.Bob.Shared.getTiddlerHash({fields:tiddler})
+                tiddler._is_skinny = ''
+              }
+            }
             if(['$:/plugins/tiddlywiki/tiddlyweb', '$:/plugins/tiddlywiki/filesystem'].indexOf(tiddler.title) !== -1) {
               use = false;
             }
