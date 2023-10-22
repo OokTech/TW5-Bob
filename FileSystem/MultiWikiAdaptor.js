@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/MultiWikiAdaptor.js
 type: application/javascript
-module-type: syncadaptor
+module-type: asyncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -187,14 +187,31 @@ if($tw.node) {
             internalSave(tiddler, prefix, connectionInd);
             $tw.Bob.Wikis[prefix].modified = true;
             $tw.Bob.logger.log('Save Tiddler ', tiddler.fields.title, {level:2});
+
+            if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+              if(tiddler.fields.revision) {
+                delete tiddler.fields.revision
+              }
+              if(tiddler.fields._revision) {
+                delete tiddler.fields._revision
+              }
+              if(tiddler.fields._is_skinny) {
+                delete tiddler.fields._is_skinny
+              }
+            }
+
             try {
               $tw.utils.saveTiddlerToFileSync(new $tw.Tiddler(tiddler.fields), fileInfo)
               $tw.hooks.invokeHook('wiki-modified', prefix);
+              callback(null)
             } catch (e) {
                 $tw.Bob.logger.log('Error Saving Tiddler ', tiddler.fields.title, e, {level:1});
+                callback(e)
             }
           }
         });
+      } else {
+        callback(e)
       }
     }
   };
@@ -224,6 +241,7 @@ if($tw.node) {
 
   We don't need to implement loading for the file system adaptor, because all the tiddler files will have been loaded during the boot process.
   */
+ /*
   MultiWikiAdaptor.prototype.loadTiddler = function(title,callback) {
     if(!callback) {
       callback = function () {
@@ -232,6 +250,7 @@ if($tw.node) {
     }
     callback(null,null);
   };
+  */
 
   /*
   Delete a tiddler and invoke the callback with (err)
@@ -820,7 +839,7 @@ if($tw.node) {
             // this part is for lazyLoading
             if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
               
-              if(Object.keys(tiddler).indexOf('text') > -1) {
+              if(Object.keys(tiddler).indexOf('text') > -1 && !tiddler.title.startsWith('$:/')) {
                 // if the tiddler has a text field set the revision and _is_skinny fields
                 tiddler.revision = $tw.Bob.Shared.getTiddlerHash({fields:tiddler})
                 tiddler._is_skinny = ''

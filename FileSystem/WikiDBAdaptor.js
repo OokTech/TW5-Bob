@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/WikiDBAdaptor.js
 type: application/javascript
-module-type: asyncadaptor
+module-type: syncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -118,8 +118,13 @@ A sync adaptor module for synchronising multiple wikis
               $tw.settings[key] = response[0][key]
             }
           })
+        } else {
+          $tw.syncadaptor.saveSettings();
         }
         $tw.syncadaptor.updateWikiListing(cb);
+      })
+      .catch((e) => {
+        console.log(e)
       });
     }
 
@@ -197,6 +202,18 @@ A sync adaptor module for synchronising multiple wikis
         if(tiddler && $tw.Bob.Wikis[prefix].wiki.filterTiddlers($tw.Bob.ExcludeFilter).indexOf(tiddler.fields.title) === -1) {
           // Make sure that the tiddler has actually changed before saving it
           if($tw.Bob.Shared.TiddlerHasChanged(tiddler, $tw.Bob.Wikis[prefix].wiki.getTiddler(tiddler.fields.title))) {
+            // remove skinny tiddler things
+            if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+              if(tiddler.fields.revision) {
+                delete tiddler.fields.revision
+              }
+              if(tiddler.fields._revision) {
+                delete tiddler.fields._revision
+              }
+              if(tiddler.fields._is_skinny) {
+                delete tiddler.fields._is_skinny
+              }
+            }
             // Save the tiddler in memory.
             internalSave(tiddler, prefix, connectionInd);
             $tw.Bob.Wikis[prefix].modified = true;
@@ -228,6 +245,8 @@ A sync adaptor module for synchronising multiple wikis
               return callback(err);
             });
           }
+        } else {
+          return callback(null)
         }
       }
     };
@@ -259,6 +278,7 @@ A sync adaptor module for synchronising multiple wikis
 
     TODO: finish this
     */
+   /*
     WikiDBAdaptor.prototype.loadTiddler = function(title, prefix, callback) {
       if(!callback) {callback = function () {}}
 
@@ -281,7 +301,7 @@ A sync adaptor module for synchronising multiple wikis
       .then((response)=>{
         callback(null, response[0])
       });
-    };
+    };*/
   
     /*
     Delete a tiddler and invoke the callback with (err)
@@ -478,11 +498,6 @@ A sync adaptor module for synchronising multiple wikis
     }
 
     // TODO - this, probably just delete it
-    WikiDBAdaptor.prototype.specialCopy = function() {
-
-    }
-
-    // TODO - this, probably just delete it
     WikiDBAdaptor.prototype.getWikiPath = function() {
 
     }
@@ -518,7 +533,6 @@ A sync adaptor module for synchronising multiple wikis
 
       // Make sure it isn't loaded already
       if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
-        $tw.Bob.Wikis[wikiName].State = 'loaded'
         let theTiddlers = [];
         let wikiInfo = [];
         let theThemes = [];
@@ -559,14 +573,23 @@ A sync adaptor module for synchronising multiple wikis
 
         httpRequest(options, body)
         .then((response)=>{
+          // this part is for lazyLoading
+          if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+            response.forEach(function(tiddler) {
+              if(Object.keys(tiddler).indexOf('text') > -1 && !tiddler.title.startsWith('$:/')) {
+                // if the tiddler has a text field set the revision and _is_skinny fields
+                tiddler.revision = $tw.Bob.Shared.getTiddlerHash({fields:tiddler})
+                tiddler._is_skinny = ''
+              }
+            })
+          }
           theTiddlers = response;
           return httpRequest(options2, body2);
         })
         .then((response)=>{
           if(response.length == 0) {
             // there isn't any document in the __wikiInfo database for this wiki
-            cb()
-            return
+            return cb(false)
           }
           wikiInfo = response[0]
           try {
@@ -654,7 +677,7 @@ A sync adaptor module for synchronising multiple wikis
           addEverything(theTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers, cb)
         });
       } else {
-        cb(true);
+        return cb(true);
       }
       
       function addEverything(wikiTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers, cb) {
@@ -704,7 +727,7 @@ A sync adaptor module for synchronising multiple wikis
             text: wikiName
           };
           $tw.Bob.Wikis[wikiName].wiki.addTiddler(new $tw.Tiddler(fields));
-          cb(true)
+          return cb(true)
         });
       }
       return true
@@ -730,6 +753,11 @@ A sync adaptor module for synchronising multiple wikis
       }
       httpRequest(options, body)
       .then((response)=>{
+        response.forEach(item => {
+          item.plugins = JSON.parse(item.plugins)
+          item.build = JSON.parse(item.build)
+          item.themes = JSON.parse(item.themes)
+        })
         $tw.settings.wikis = response;
         const message = {type: 'updateSettings'};
         $tw.Bob.SendToBrowsers(message);

@@ -15,7 +15,8 @@ A sync adaptor for syncing changes using websockets with Bob
 function BrowserWSAdaptor(options) {
   this.wiki = options.wiki;
   this.idList = [];
-
+  this.hooksReady = false;
+  
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
   // Ensure that the needed objects exist
   $tw.Bob = $tw.Bob || {};
@@ -25,6 +26,7 @@ function BrowserWSAdaptor(options) {
   // In the browser there is only one connection, so set the connection index
   const connectionIndex = 0;
 
+  let self = this;
   // Do all actions on startup.
   const setupWSAdaptor = function(reconnect) {
     $tw.setcookie = function(cookieName, cookieValue) {
@@ -86,6 +88,9 @@ function BrowserWSAdaptor(options) {
     }
     // send a ping to start communication with the server
     _sendToServer({'type': 'ping'});
+
+    // the syncadaptor has to wait until the hooks are added before it can be ready, so we use this flag.
+    self.hooksReady = true;
 
   }
 
@@ -858,12 +863,16 @@ BrowserWSAdaptor.prototype.getUpdatedTiddlers = function() {
 // This can be updated at any time, it gets checked when a syncing task is
 // being run so its value can change over time.
 BrowserWSAdaptor.prototype.isReady = function() {
-  //return true;
-  const tid = $tw.wiki.getTiddler('$:/state/EditableWikis');
-  if(!tid) { // TODO maybe figure this out...
-    return true;
+  if(!this.hooksReady) {
+    // if the syncer dispatches any tasks before the hooks have been added the task(s) get stuck because the handlers are part of the hooks
+    return false
   }
-  if(tid.fields.list.indexOf($tw.wikiName) > -1) {
+  const tid = $tw.wiki.getTiddler('$:/state/EditableWikis');
+  if(!tid) {
+    // this is a way to check to make sure that the setLoggedIn message has been sent and handled.
+    // this is a better check than using $:/status/IsLoggedIn because you can be logged into a read-only wiki.
+    return false;
+  } else if(tid.fields.list.indexOf($tw.wikiName) > -1) {
     return true;
   } else {
     return false;
