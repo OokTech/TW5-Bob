@@ -16,7 +16,7 @@ function BrowserWSAdaptor(options) {
   this.wiki = options.wiki;
   this.idList = [];
   this.hooksReady = false;
-  
+
   $tw.browserMessageHandlers = $tw.browserMessageHandlers || {};
   // Ensure that the needed objects exist
   $tw.Bob = $tw.Bob || {};
@@ -714,13 +714,6 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
         }
       }
     );
-    if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
-      const theHash = $tw.Bob.Shared.getTiddlerHash(tiddler);
-      if(Object.keys(tempTid.fields).indexOf('revision')) {
-        tempTid.fields._revision = tempTid.fields.revision;
-      }
-      tempTid.fields.revision = theHash;
-    }
 
     const message = {
       type: 'saveTiddler',

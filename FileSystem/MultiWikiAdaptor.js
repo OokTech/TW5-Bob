@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/MultiWikiAdaptor.js
 type: application/javascript
-module-type: asyncadaptor
+module-type: syncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -38,6 +38,8 @@ if($tw.node) {
   })
 
   MultiWikiAdaptor.prototype.name = "MultiWikiAdaptor";
+
+  MultiWikiAdaptor.prototype.supportsLazyLoading = true
 
   MultiWikiAdaptor.prototype.isReady = function() {
     // The file system adaptor is always ready
