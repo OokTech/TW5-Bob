@@ -685,7 +685,7 @@ if($tw.node) {
     const wikiFolder = $tw.syncadaptor.existsListed(wikiName);
     // Add tiddlers to the node process
     if(wikiFolder) {
-      $tw.settings['ws-server'] = $tw.settings['ws-server'] || {}
+      $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
       $tw.Bob = $tw.Bob || {};
       $tw.Bob.Wikis = $tw.Bob.Wikis || {};
       $tw.Bob.Wikis[wikiName] = $tw.Bob.Wikis[wikiName] || {};
@@ -1406,15 +1406,15 @@ if($tw.node) {
     in the form name: path and puts them in the form name: {__path: path}, and
     recursively walks through all the wiki entries.
   */
-    function updateSettingsWikiPaths(inputObj) {
-      Object.keys(inputObj).forEach(function(entry) {
-        if(typeof inputObj[entry] === 'string' && entry !== '__path') {
-          inputObj[entry] = {'__path': inputObj[entry]}
-        } else if(typeof inputObj[entry] === 'object' && entry !== '__permissions') {
-          updateSettingsWikiPaths(inputObj[entry])
-        }
-      })
-    }
+  function updateSettingsWikiPaths(inputObj) {
+    Object.keys(inputObj).forEach(function(entry) {
+      if(typeof inputObj[entry] === 'string' && entry !== '__path') {
+        inputObj[entry] = {'__path': inputObj[entry]}
+      } else if(typeof inputObj[entry] === 'object' && entry !== '__permissions') {
+        updateSettingsWikiPaths(inputObj[entry])
+      }
+    })
+  }
 
   MultiWikiAdaptor.prototype.updateTiddlyWikiInfo = function(data) {
     const path = require('path')

@@ -278,10 +278,8 @@ A sync adaptor module for synchronising multiple wikis
 
     TODO: finish this
     */
-   /*
     WikiDBAdaptor.prototype.loadTiddler = function(title, prefix, callback) {
       if(!callback) {callback = function () {}}
-
       const body = JSON.stringify({
         db: prefix,
         filter: '[['+title+']]'
@@ -301,7 +299,7 @@ A sync adaptor module for synchronising multiple wikis
       .then((response)=>{
         callback(null, response[0])
       });
-    };*/
+    };
   
     /*
     Delete a tiddler and invoke the callback with (err)
@@ -532,7 +530,15 @@ A sync adaptor module for synchronising multiple wikis
       $tw.Bob.EditingTiddlers[wikiName] = $tw.Bob.EditingTiddlers[wikiName] || {};
 
       // Make sure it isn't loaded already
-      if($tw.Bob.Wikis[wikiName].State !== 'loaded') {
+      if($tw.Bob.Wikis[wikiName].State !== 'loaded' && $tw.Bob.Wikis[wikiName].State !== 'loading') {
+        $tw.Bob.Wikis[wikiName].State = 'loading'
+        let tiddlerFilter, imagesFilter;
+        if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all') {
+          tiddlerFilter = '[all[]!is[image]]'
+          imagesFilter = '[is[image]]'
+        } else {
+          tiddlerFilter = '[all[]]'
+        }
         let theTiddlers = [];
         let wikiInfo = [];
         let theThemes = [];
@@ -541,7 +547,7 @@ A sync adaptor module for synchronising multiple wikis
         let theBootTiddlers = [];
         const body = JSON.stringify({
           db: wikiName,
-          filter: '[all[]]'
+          filter: tiddlerFilter
         });
         const options = {
           hostname: '127.0.0.1',
@@ -552,6 +558,22 @@ A sync adaptor module for synchronising multiple wikis
           headers: {
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(body)
+          }
+        }
+
+        const imageBody = JSON.stringify({
+          db: wikiName,
+          filter: imagesFilter
+        })
+        const imageOptions = {
+          hostname: '127.0.0.1',
+          port: 9999,
+          path: '/skinny',
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(imageBody)
           }
         }
 
@@ -570,7 +592,6 @@ A sync adaptor module for synchronising multiple wikis
             'Content-Length': Buffer.byteLength(body2)
           }
         }
-
         httpRequest(options, body)
         .then((response)=>{
           // this part is for lazyLoading
@@ -584,7 +605,20 @@ A sync adaptor module for synchronising multiple wikis
             })
           }
           theTiddlers = response;
-          return httpRequest(options2, body2);
+          if (imagesFilter !== undefined) {
+            return httpRequest(imageOptions, imageBody)
+            .then(function(imageResponse) {
+              imageResponse.forEach(function(tiddler) {
+                // here we unconditionally add the fields because the tiddlers are lazily loaded from the database, so they are all skinny
+                tiddler.revision = $tw.Bob.Shared.getTiddlerHash({fields:tiddler})
+                tiddler._is_skinny = ''
+              })
+              theTiddlers = theTiddlers.concat(imageResponse)
+              return httpRequest(options2, body2);
+            })
+          } else {
+            return httpRequest(options2, body2);
+          }
         })
         .then((response)=>{
           if(response.length == 0) {
@@ -675,8 +709,11 @@ A sync adaptor module for synchronising multiple wikis
         .then((response) => {
           theBootTiddlers = response
           addEverything(theTiddlers, wikiInfo, thePlugins, theThemes, theLanguages, theBootTiddlers, cb)
+        })
+        .catch((e) => {
+          console.log(e)
         });
-      } else {
+      } else if($tw.Bob.Wikis[wikiName].State === "loaded") {
         return cb(true);
       }
       
@@ -730,7 +767,6 @@ A sync adaptor module for synchronising multiple wikis
           return cb(true)
         });
       }
-      return true
     }
 
     WikiDBAdaptor.prototype.updateWikiListing = function(cb) {
@@ -979,7 +1015,6 @@ A sync adaptor module for synchronising multiple wikis
     }
 
     WikiDBAdaptor.prototype.saveSettings = function(data, cb) {
-      console.log('at syncadaptor saveSettings')
       // update settings in the DB
       if (typeof cb !== 'function') {
         cb = () => {}

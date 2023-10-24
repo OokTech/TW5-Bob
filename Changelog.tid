@@ -18,6 +18,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 * Improve lazyLoading, it may actually work with Bob now
 ** There is a problem where overwritten shadow tiddlers that don't start with $:/ aren't loaded. I hope that is a rare enough case I don't have to worry about it.
 * Improvements to the wiki loading code to hopefully make it easier to maintain and faster.
+** Removed a lot of redundant calls to load a wiki that was in the process of loading
 * Fix a rather serious problem that prevented Bob from updating its settings
 * Play better with the core scheduler for saving tasks to fix a regression that made editing a tiddler multiple times very quickly break things
 

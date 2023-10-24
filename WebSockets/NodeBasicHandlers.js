@@ -69,11 +69,34 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     $tw.syncadaptor.loadWiki(data.wiki, function() {
       const tiddler = $tw.Bob.Wikis[data.wiki].wiki.getTiddler(data.title)
-      const message = {
-        type: 'loadTiddler',
-        tiddler: tiddler || {}
+      if($tw.settings['ws-server'].rootTiddler === '$:/core/save/lazy-all' && tiddler && tiddler.fields && tiddler.fields.type && tiddler.fields.type.startsWith("image/")) {
+        // if we are lazy-loading and it is am image tiddler the text part isn't loaded on the back-end so we
+        // load the full tiddler from the database
+        $tw.syncadaptor.loadTiddler(data.title, data.wiki, function(err, theTid) {
+          if (err) {
+            console.log(err)
+          }
+          theTid.revision = $tw.Bob.Shared.getTiddlerHash({fields: theTid})
+          if($tw.syncadaptor.name === "WikiDBAdaptor" && theTid.type && theTid.type.startsWith("image/")) {
+            // THIS IS VERY IMPORTANT! We need the skinny tiddler list to show the same revision on the image tiddler as is in the browser
+            // but the server doesn't have the image so we have to set the revision manually here.
+            // this should probably only be done for image tiddlers when the WikiDBAdaptor is used
+            $tw.Bob.Wikis[data.wiki].wiki.setText(data.title, 'revision', undefined, theTid.revision)
+          }
+        
+          const message = {
+            type: 'loadTiddler',
+            tiddler: {fields:theTid} || {}
+          }
+          $tw.Bob.Shared.sendMessage(message, data.source_connection)  
+        })
+      } else {
+        const message = {
+          type: 'loadTiddler',
+          tiddler: tiddler || {}
+        }
+        $tw.Bob.Shared.sendMessage(message, data.source_connection)
       }
-      $tw.Bob.Shared.sendMessage(message, data.source_connection)
     });
   }
 
