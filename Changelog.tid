@@ -1,5 +1,9 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.7.5 Version Mismatch
+
+* This is here because there was a mixup with version numbers
+
 !! Version 1.7.4 Spooky Time
 
 * Reenable federation
