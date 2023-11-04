@@ -247,7 +247,10 @@ if($tw.node) {
     externalTiddlers - a json object that lists the wikis and filters
     token - the access token, if any
   */
-  function GatherTiddlers (wiki, externalTiddlers, transformFilters, transformFilter, decodedToken) {
+  function GatherTiddlers (wiki, externalTiddlers, transformFilters, transformFilter, decodedToken, cb) {
+    if(typeof cb !== 'funciton') {
+      cb = () => {};
+    }
     if(externalTiddlers) {
       try {
         let externalData = externalTiddlers
@@ -261,32 +264,36 @@ if($tw.node) {
         Object.keys(externalData).forEach(function(wikiTitle) {
           const allowed = $tw.Bob.AccessCheck(wikiTitle, {"decoded": decodedToken}, 'view', 'wiki');
           if(allowed) {
-            const exists = $tw.syncadaptor.loadWiki(wikiTitle, (result) => {return result});
-            if(exists) {
-              const includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
-              includeList.forEach(function(tiddlerTitle) {
-                let tiddler = $tw.Bob.Wikis[wikiTitle].wiki.getTiddler(tiddlerTitle)
-                // Transform the tiddler title if a transfom filter is given
-                let txformFilter = transformFilter
-                if(transformFilters) {
-                  txformFilter = transformFilters[wikiTitle] || transformFilter;
-                }
-                if(txformFilter) {
-                  const transformedTitle = ($tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(txformFilter, null, $tw.Bob.Wikis[wikiTitle].wiki.makeTiddlerIterator([tiddlerTitle])) || [""])[0];
-                  if(transformedTitle) {
-                    tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
+            $tw.syncadaptor.loadWiki(wikiTitle, (exists) => {
+              if(exists) {
+                const includeList = $tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(externalData[wikiTitle]);
+                includeList.forEach(function(tiddlerTitle) {
+                  let tiddler = $tw.Bob.Wikis[wikiTitle].wiki.getTiddler(tiddlerTitle)
+                  // Transform the tiddler title if a transfom filter is given
+                  let txformFilter = transformFilter
+                  if(transformFilters) {
+                    txformFilter = transformFilters[wikiTitle] || transformFilter;
                   }
-                }
-                wiki.addTiddler(tiddler);
-              })
-            }
+                  if(txformFilter) {
+                    const transformedTitle = ($tw.Bob.Wikis[wikiTitle].wiki.filterTiddlers(txformFilter, null, $tw.Bob.Wikis[wikiTitle].wiki.makeTiddlerIterator([tiddlerTitle])) || [""])[0];
+                    if(transformedTitle) {
+                      tiddler = new $tw.Tiddler(tiddler,{title: transformedTitle});
+                    }
+                  }
+                  wiki.addTiddler(tiddler);
+                })
+              }
+            });
           }
         });
       } catch (e) {
         $tw.Bob.logger.log("Couldn't parse externalTiddlers input:", e, {level:1});
       }
+      return cb(wiki)
+    } else {
+      // this should have some error here
+      return cb(wiki);
     }
-    return wiki;
   }
 
   /*

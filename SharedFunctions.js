@@ -122,11 +122,15 @@ if(!$tw.Bob.Shared) {
       time: Date.now(),
       type: message.type,
       title: title,
-      ack: {
-        tries: 0
-      },
+      ack: {},
+      //  tries: 0
+      //},
       wiki: message.wiki,
       sessionId: sessionId
+    };
+    messageData.ack[sessionId] = {
+      tries: 0,
+      received: false
     };
     return messageData;
   }
@@ -169,7 +173,7 @@ if(!$tw.Bob.Shared) {
         // If we are in the browser there is only one connection, but
         // everything here is the same.
         const targetConnections = $tw.node?(messageData.wiki?Object.values($tw.connections).filter(function(item) {
-          return item.wiki === messageData.wiki && !messageData.ack[item.socket.index]
+          return item.wiki === messageData.wiki && !messageData.ack[item.socket.index].received
         }):[]):[Object.values($tw.connections)[0]].filter(function(item){!messageData.ack[item.socket.index]});
         targetConnections.forEach(function(connection) {
           _sendMessage(connection, messageData)
@@ -193,8 +197,8 @@ if(!$tw.Bob.Shared) {
     // Here make sure that the connection is live and hasn't already
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
-      if(!messageData.ack[index] && connection.socket.readyState === 1) {
-        messageData.ack.tries += 1
+      if(!messageData.ack[index].received && connection.socket.readyState === 1) {
+        messageData.ack[index].tries += 1
         connection.socket.send(JSON.stringify(messageData.message), function ack(err) {
           if(err) {
             console.log('there was an error sending a websocket message')
@@ -293,7 +297,6 @@ if(!$tw.Bob.Shared) {
       } else {
         return true
       }
-      return duplicateIndicies.indexOf(index) < 0;
     });
     // return the new queue
     return outQueue;
@@ -322,12 +325,8 @@ if(!$tw.Bob.Shared) {
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
-    if($tw.node && messageData.message.wiki) {
-      return $tw.syncadaptor.loadWiki(messageData.message.wiki, nextBit);
-    } else {
-      return nextBit();
-    }
-    function nextBit() {
+    if($tw.browser || ($tw.node && messageData.message.wiki && $tw.Bob.Wikis[messageData.message.Wiki] && $tw.Bob.Wikis[messageData.message.Wiki].State === 'Loaded')) {
+      // we shouldn't ever need to load a wiki here, any wiki we send to has to have a connection and when a connection is made the wiki is loaded
       // Make sure that the connectionIndex and queue exist. This may be over
       // paranoid
       connectionIndex = connectionIndex || 0;
@@ -351,16 +350,7 @@ if(!$tw.Bob.Shared) {
         let list = [];
         if(['deleteTiddler', 'saveTiddler', 'editingTiddler'].indexOf(messageData.type) !== -1) {
           if($tw.node) {
-            if(!messageData.message.wiki) {
-              // TODO fix this terrible workaround
-              list = []
-            } else {
-              if(Object.keys($tw.Bob.Wikis).indexOf(messageData.message.wiki) === -1) {
-                ignore = true;
-              } else {
-                list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
-              }
-            }
+            list = $tw.Bob.Wikis[messageData.message.wiki].wiki.filterTiddlers($tw.Bob.ExcludeFilter);
           } else {
             list = $tw.wiki.filterTiddlers($tw.Bob.ExcludeFilter);
           }
@@ -476,11 +466,11 @@ if(!$tw.Bob.Shared) {
         return enqueuedMessageData.id === messageData.id;
       });
       if(enqueuedIndex !== -1) {
-        $tw.Bob.MessageQueue[enqueuedIndex].ack[connectionIndex] = false;
+        $tw.Bob.MessageQueue[enqueuedIndex].ack[connectionIndex] = {tries: 0, received: false};
       } else {
         // If the message isn't in the queue set the ack status for the current
         // connectionIndex and enqueue the message
-        messageData.ack[connectionIndex] = false;
+        messageData.ack[connectionIndex] = {tries:0, received:false};
         $tw.Bob.MessageQueue.push(messageData);
       }
       if (Object.keys($tw.connections).indexOf(connectionIndex) > -1) {
@@ -549,10 +539,10 @@ if(!$tw.Bob.Shared) {
       })
       if($tw.Bob.MessageQueue[index]) {
         // Set the message as acknowledged.
-        $tw.Bob.MessageQueue[index].ack[data.source_connection] = true;
+        $tw.Bob.MessageQueue[index].ack[data.source_connection].received = true;
         // Check if all the expected acks have been received
         const complete = Object.keys($tw.Bob.MessageQueue[index].ack).findIndex(function(value){
-          return value !== 'tries' && $tw.Bob.MessageQueue[index].ack[value] !== true;
+          return $tw.Bob.MessageQueue[index].ack[value].received !== true;
         }) === -1;
         // If acks have been received from all connections than set the ctime.
         if(complete && !$tw.Bob.MessageQueue[index].ctime) {
@@ -608,13 +598,21 @@ if(!$tw.Bob.Shared) {
         } else {
           return true;
         }
-      } else if (messageData.ack.tries > ($tw.settings.retries || 5)) {
+      } else if (allOutOfTries(messageData)) {
         return false;
       } else {
         return true;
       }
     })
     return outQueue;
+  }
+
+  function allOutOfTries(messageData) {
+    return Object.keys(messageData.ack).map((thisKey) => {
+      return messageData.ack[thisKey].tries >= ($tw.settings.retries || 5)
+    }).some((x) => {
+      return !x
+    })
   }
 
   /*

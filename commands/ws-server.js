@@ -55,7 +55,6 @@ if($tw.node) {
   */
   $tw.Bob.handleMessage = function(event) {
     $tw.Bob.logger.log('Received websocket message ', event, {level:4});
-    let self = this;
     // Determine which connection the message came from
     //let thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
     try {
@@ -70,13 +69,6 @@ if($tw.node) {
       // you authenticate the token and it only works if the wiki matches
       // and the token has access to that wiki.
       eventData.wiki = decodeURIComponent(eventData.wiki)
-      if(false && eventData.wiki && eventData.wiki !== $tw.connections[thisIndex].wiki && !$tw.connections[thisIndex].wiki) {
-        // TODO - this needs to be put into handleConnection
-        $tw.connections[thisIndex].wiki = eventData.wiki;
-        // Make sure that the new connection has the correct list of tiddlers
-        // being edited.
-        $tw.ServerSide.UpdateEditingTiddlers(false, eventData.wiki);
-      }
       // Make sure that the connection is from the wiki the message is for.
       // This may not be a necessary security measure.
       // I don't think that not having this would open up any exploits but I am not sure.
@@ -120,29 +112,30 @@ if($tw.node) {
   */
   function handleConnection(client, request) {
     const wikiName = decodeURIComponent(client.sessionId.slice(0,-6))
-    const exists = $tw.syncadaptor.loadWiki(wikiName, (result) => {return result});
-    if (!exists) {
-      // don't make connections for wikis that don't exist
-      console.log("Trying to log into a wiki that doesn't exist!")
-      return
-    }
-    // make sure that this connection doesn't already exist!
-    if ($tw.connections[client.sessionId]) {
-      $tw.connections[client.sessionId].socket = client
-    } else {
-      $tw.Bob.logger.log("new connection from ", wikiName, {level:2});
-      $tw.connections[client.sessionId] = {'socket':client, 'wiki': decodeURIComponent(client.sessionId.slice(0,-6)), 'sessionId': client.sessionId, 'index': Object.keys($tw.connections).length}
-    }
-    client.on('message', $tw.Bob.handleMessage);
-    // Respond to the initial connection with a request for the tiddlers the
-    // browser currently has to initialise everything.
-    client.index = Object.keys($tw.connections).length-1;
-    const message = {type: 'listTiddlers'}
-    $tw.Bob.SendToBrowser(client, message);
-    $tw.Bob.SendToBrowser(client, {type: 'ping', heartbeat: true})
-    if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
-      $tw.Bob.Federation.updateConnections();
-    }
+    $tw.syncadaptor.loadWiki(wikiName, (exists) => {
+      if (!exists) {
+        // don't make connections for wikis that don't exist
+        console.log("Trying to log into a wiki that doesn't exist!")
+        return
+      }
+      // make sure that this connection doesn't already exist!
+      if ($tw.connections[client.sessionId]) {
+        $tw.connections[client.sessionId].socket = client
+      } else {
+        $tw.Bob.logger.log("new connection from ", wikiName, {level:2});
+        $tw.connections[client.sessionId] = {'socket':client, 'wiki': decodeURIComponent(client.sessionId.slice(0,-6)), 'sessionId': client.sessionId, 'index': Object.keys($tw.connections).length}
+      }
+      client.on('message', $tw.Bob.handleMessage);
+      // Respond to the initial connection with a request for the tiddlers the
+      // browser currently has to initialise everything.
+      client.index = Object.keys($tw.connections).length-1;
+      const message = {type: 'listTiddlers'}
+      $tw.Bob.SendToBrowser(client, message);
+      $tw.Bob.SendToBrowser(client, {type: 'ping', heartbeat: true})
+      if($tw.node && $tw.settings.enableFederation === 'yes' && typeof $tw.Bob.Federation.updateConnections === 'function') {
+        $tw.Bob.Federation.updateConnections();
+      }
+    });
   }
 
   /*
@@ -239,8 +232,6 @@ if($tw.node) {
     }
     // Compose the state object
     let self = this;
-    //request.wiki = self.wiki;
-    //request.server = self;
     request.urlInfo = URL.parse(request.url);
     request.settings = $tw.settings;
     // Find the route that matches this path
@@ -337,32 +328,6 @@ if($tw.node) {
     });
     return httpServer;
   };
-
-  function findName(url) {
-    const pieces = url.split('/')
-    let name = ''
-    let settingsObj = $tw.settings.wikis[pieces[0]]
-    if(settingsObj) {
-      name = pieces[0]
-    }
-    for(let i = 1; i < pieces.length; i++) {
-      if(settingsObj) {
-        if(typeof settingsObj[pieces[i]] === 'object') {
-          name = name + '/' + pieces[i]
-          settingsObj = settingsObj[pieces[i]]
-        } else if(typeof settingsObj[pieces[i]] === 'string') {
-          name = name + '/' + pieces[i]
-          break
-        } else {
-          break
-        }
-      }
-    }
-    if(name === '') {
-      //name = 'RootWiki'
-    }
-    return name
-  }
 
   const Command = function(params,commander,callback) {
     this.params = params;

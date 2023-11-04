@@ -25,6 +25,20 @@
       }
     },
     {
+      "file": "package.json",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/WS/package.json"
+      }
+    },
+    {
+      "file": "SECURITY.md",
+      "fields": {
+        "type": "text/plain",
+        "title": "$:/plugins/OokTech/Bob/External/WS/SECURITY.md"
+      }
+    },
+    {
       "file": "lib/buffer-util.js",
       "fields": {
         "type": "application/javascript",
@@ -65,6 +79,16 @@
       "suffix": "})();"
     },
     {
+      "file": "lib/limiter.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/limiter.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
       "file": "lib/permessage-deflate.js",
       "fields": {
         "type": "application/javascript",
@@ -89,6 +113,26 @@
       "fields": {
         "type": "application/javascript",
         "title": "$:/plugins/OokTech/Bob/External/WS/lib/sender.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/stream.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/stream.js",
+        "module-type": "library"
+      },
+      "prefix": "(function(){\n",
+      "suffix": "})();"
+    },
+    {
+      "file": "lib/subprotocol.js",
+      "fields": {
+        "type": "application/javascript",
+        "title": "$:/plugins/OokTech/Bob/External/WS/lib/subprotocol.js",
         "module-type": "library"
       },
       "prefix": "(function(){\n",

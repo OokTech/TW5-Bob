@@ -65,32 +65,34 @@ exports.startup = function () {
         const folder = path.resolve($tw.syncadaptor.getBasePath(), $tw.settings.backups.backupFolder, wikiName);
         const filePath = path.join(folder, 'backup-' + $tw.utils.stringifyDate(new Date()) + '.html');
         $tw.utils.createDirectory(folder);
-        fs.writeFile(filePath, $tw.ServerSide.prepareWiki(wikiName, 'no', 'no'), function(err) {
-          if(err) {
-            $tw.Bob.logger.error('error saving backup:', err, {level: 1});
-          }
-          $tw.Bob.Wikis[wikiName].timer = false;
-          if($tw.settings.backups.maxBackups > 0) {
-            // make sure there are at most maxBackups wikis saved in the folder.
-            fs.readdir(folder, function(err2, filelist) {
-              if(err2) {
-                $tw.Bob.logger.error('error reading backups folder', err2, {level: 1});
-              } else {
-                const backupsList = filelist.filter(function(item) {
-                  return item.startsWith('backup-')
-                }).sort()
-                if(backupsList.length > $tw.settings.backups.maxBackups) {
-                  for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
-                    fs.unlink(path.join(folder,backupsList[i]),function(err3){
-                      if(err3) {
-                        $tw.Bob.logger.error('error removing old backup:',err3)
-                      }
-                    });
+        $tw.ServerSide.prepareWiki(wikiName, 'no', 'no', function(theText) {
+          fs.writeFile(filePath, theText, function(err) {
+            if(err) {
+              $tw.Bob.logger.error('error saving backup:', err, {level: 1});
+            }
+            $tw.Bob.Wikis[wikiName].timer = false;
+            if($tw.settings.backups.maxBackups > 0) {
+              // make sure there are at most maxBackups wikis saved in the folder.
+              fs.readdir(folder, function(err2, filelist) {
+                if(err2) {
+                  $tw.Bob.logger.error('error reading backups folder', err2, {level: 1});
+                } else {
+                  const backupsList = filelist.filter(function(item) {
+                    return item.startsWith('backup-')
+                  }).sort()
+                  if(backupsList.length > $tw.settings.backups.maxBackups) {
+                    for (let i = 0; i < backupsList.length - $tw.settings.backups.maxBackups; i++) {
+                      fs.unlink(path.join(folder,backupsList[i]),function(err3){
+                        if(err3) {
+                          $tw.Bob.logger.error('error removing old backup:',err3)
+                        }
+                      });
+                    }
                   }
                 }
-              }
-            });
-          }
+              });
+            }
+          });
         });
       }
 

@@ -1,5 +1,9 @@
 'use strict';
 
+const { EMPTY_BUFFER } = require('./constants');
+
+const FastBuffer = Buffer[Symbol.species];
+
 /**
  * Merges an array of buffers into a new buffer.
  *
@@ -8,14 +12,21 @@
  * @return {Buffer} The resulting buffer
  * @public
  */
-function concat (list, totalLength) {
-  const target = Buffer.allocUnsafe(totalLength);
-  var offset = 0;
+function concat(list, totalLength) {
+  if (list.length === 0) return EMPTY_BUFFER;
+  if (list.length === 1) return list[0];
 
-  for (var i = 0; i < list.length; i++) {
+  const target = Buffer.allocUnsafe(totalLength);
+  let offset = 0;
+
+  for (let i = 0; i < list.length; i++) {
     const buf = list[i];
-    buf.copy(target, offset);
+    target.set(buf, offset);
     offset += buf.length;
+  }
+
+  if (offset < totalLength) {
+    return new FastBuffer(target.buffer, target.byteOffset, offset);
   }
 
   return target;
@@ -31,8 +42,8 @@ function concat (list, totalLength) {
  * @param {Number} length The number of bytes to mask.
  * @public
  */
-function _mask (source, mask, output, offset, length) {
-  for (var i = 0; i < length; i++) {
+function _mask(source, mask, output, offset, length) {
+  for (let i = 0; i < length; i++) {
     output[offset + i] = source[i] ^ mask[i & 3];
   }
 }
@@ -44,29 +55,77 @@ function _mask (source, mask, output, offset, length) {
  * @param {Buffer} mask The mask to use
  * @public
  */
-function _unmask (buffer, mask) {
-  // Required until https://github.com/nodejs/node/issues/9006 is resolved.
-  const length = buffer.length;
-  for (var i = 0; i < length; i++) {
+function _unmask(buffer, mask) {
+  for (let i = 0; i < buffer.length; i++) {
     buffer[i] ^= mask[i & 3];
   }
 }
 
-try {
-  const bufferUtil = require('bufferutil');
-  const bu = bufferUtil.BufferUtil || bufferUtil;
+/**
+ * Converts a buffer to an `ArrayBuffer`.
+ *
+ * @param {Buffer} buf The buffer to convert
+ * @return {ArrayBuffer} Converted buffer
+ * @public
+ */
+function toArrayBuffer(buf) {
+  if (buf.length === buf.buffer.byteLength) {
+    return buf.buffer;
+  }
 
-  module.exports = {
-    mask (source, mask, output, offset, length) {
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length);
+}
+
+/**
+ * Converts `data` to a `Buffer`.
+ *
+ * @param {*} data The data to convert
+ * @return {Buffer} The buffer
+ * @throws {TypeError}
+ * @public
+ */
+function toBuffer(data) {
+  toBuffer.readOnly = true;
+
+  if (Buffer.isBuffer(data)) return data;
+
+  let buf;
+
+  if (data instanceof ArrayBuffer) {
+    buf = new FastBuffer(data);
+  } else if (ArrayBuffer.isView(data)) {
+    buf = new FastBuffer(data.buffer, data.byteOffset, data.byteLength);
+  } else {
+    buf = Buffer.from(data);
+    toBuffer.readOnly = false;
+  }
+
+  return buf;
+}
+
+module.exports = {
+  concat,
+  mask: _mask,
+  toArrayBuffer,
+  toBuffer,
+  unmask: _unmask
+};
+
+/* istanbul ignore else  */
+if (!process.env.WS_NO_BUFFER_UTIL) {
+  try {
+    const bufferUtil = require('bufferutil');
+
+    module.exports.mask = function (source, mask, output, offset, length) {
       if (length < 48) _mask(source, mask, output, offset, length);
-      else bu.mask(source, mask, output, offset, length);
-    },
-    unmask (buffer, mask) {
+      else bufferUtil.mask(source, mask, output, offset, length);
+    };
+
+    module.exports.unmask = function (buffer, mask) {
       if (buffer.length < 32) _unmask(buffer, mask);
-      else bu.unmask(buffer, mask);
-    },
-    concat
-  };
-} catch (e) /* istanbul ignore next */ {
-  module.exports = { concat, mask: _mask, unmask: _unmask };
+      else bufferUtil.unmask(buffer, mask);
+    };
+  } catch (e) {
+    // Continue regardless of the error.
+  }
 }

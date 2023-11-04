@@ -1,18 +1,14 @@
 'use strict';
 
-//const Limiter = require('async-limiter');
-const Limiter = require('$:/plugins/OokTech/Bob/External/async-limiter/async-limiter.js');
 const zlib = require('zlib');
 
 const bufferUtil = require('./buffer-util');
-const constants = require('./constants');
+const Limiter = require('./limiter');
+const { kStatusCode } = require('./constants');
 
+const FastBuffer = Buffer[Symbol.species];
 const TRAILER = Buffer.from([0x00, 0x00, 0xff, 0xff]);
-const EMPTY_BLOCK = Buffer.from([0x00]);
-
 const kPerMessageDeflate = Symbol('permessage-deflate');
-const kWriteInProgress = Symbol('write-in-progress');
-const kPendingClose = Symbol('pending-close');
 const kTotalLength = Symbol('total-length');
 const kCallback = Symbol('callback');
 const kBuffers = Symbol('buffers');
@@ -34,31 +30,32 @@ class PerMessageDeflate {
   /**
    * Creates a PerMessageDeflate instance.
    *
-   * @param {Object} options Configuration options
-   * @param {Boolean} options.serverNoContextTakeover Request/accept disabling
-   *     of server context takeover
-   * @param {Boolean} options.clientNoContextTakeover Advertise/acknowledge
-   *     disabling of client context takeover
-   * @param {(Boolean|Number)} options.serverMaxWindowBits Request/confirm the
-   *     use of a custom server window size
-   * @param {(Boolean|Number)} options.clientMaxWindowBits Advertise support
+   * @param {Object} [options] Configuration options
+   * @param {(Boolean|Number)} [options.clientMaxWindowBits] Advertise support
    *     for, or request, a custom client window size
-   * @param {Object} options.zlibDeflateOptions Options to pass to zlib on deflate
-   * @param {Object} options.zlibInflateOptions Options to pass to zlib on inflate
-   * @param {Number} options.threshold Size (in bytes) below which messages
-   *     should not be compressed
-   * @param {Number} options.concurrencyLimit The number of concurrent calls to
-   *     zlib
-   * @param {Boolean} isServer Create the instance in either server or client
-   *     mode
-   * @param {Number} maxPayload The maximum allowed message length
+   * @param {Boolean} [options.clientNoContextTakeover=false] Advertise/
+   *     acknowledge disabling of client context takeover
+   * @param {Number} [options.concurrencyLimit=10] The number of concurrent
+   *     calls to zlib
+   * @param {(Boolean|Number)} [options.serverMaxWindowBits] Request/confirm the
+   *     use of a custom server window size
+   * @param {Boolean} [options.serverNoContextTakeover=false] Request/accept
+   *     disabling of server context takeover
+   * @param {Number} [options.threshold=1024] Size (in bytes) below which
+   *     messages should not be compressed if context takeover is disabled
+   * @param {Object} [options.zlibDeflateOptions] Options to pass to zlib on
+   *     deflate
+   * @param {Object} [options.zlibInflateOptions] Options to pass to zlib on
+   *     inflate
+   * @param {Boolean} [isServer=false] Create the instance in either server or
+   *     client mode
+   * @param {Number} [maxPayload=0] The maximum allowed message length
    */
-  constructor (options, isServer, maxPayload) {
+  constructor(options, isServer, maxPayload) {
     this._maxPayload = maxPayload | 0;
     this._options = options || {};
-    this._threshold = this._options.threshold !== undefined
-      ? this._options.threshold
-      : 1024;
+    this._threshold =
+      this._options.threshold !== undefined ? this._options.threshold : 1024;
     this._isServer = !!isServer;
     this._deflate = null;
     this._inflate = null;
@@ -66,17 +63,18 @@ class PerMessageDeflate {
     this.params = null;
 
     if (!zlibLimiter) {
-      const concurrency = this._options.concurrencyLimit !== undefined
-        ? this._options.concurrencyLimit
-        : 10;
-      zlibLimiter = new Limiter({ concurrency });
+      const concurrency =
+        this._options.concurrencyLimit !== undefined
+          ? this._options.concurrencyLimit
+          : 10;
+      zlibLimiter = new Limiter(concurrency);
     }
   }
 
   /**
    * @type {String}
    */
-  static get extensionName () {
+  static get extensionName() {
     return 'permessage-deflate';
   }
 
@@ -86,7 +84,7 @@ class PerMessageDeflate {
    * @return {Object} Extension parameters
    * @public
    */
-  offer () {
+  offer() {
     const params = {};
 
     if (this._options.serverNoContextTakeover) {
@@ -114,7 +112,7 @@ class PerMessageDeflate {
    * @return {Object} Accepted configuration
    * @public
    */
-  accept (configurations) {
+  accept(configurations) {
     configurations = this.normalizeParams(configurations);
 
     this.params = this._isServer
@@ -129,21 +127,24 @@ class PerMessageDeflate {
    *
    * @public
    */
-  cleanup () {
+  cleanup() {
     if (this._inflate) {
-      if (this._inflate[kWriteInProgress]) {
-        this._inflate[kPendingClose] = true;
-      } else {
-        this._inflate.close();
-        this._inflate = null;
-      }
+      this._inflate.close();
+      this._inflate = null;
     }
+
     if (this._deflate) {
-      if (this._deflate[kWriteInProgress]) {
-        this._deflate[kPendingClose] = true;
-      } else {
-        this._deflate.close();
-        this._deflate = null;
+      const callback = this._deflate[kCallback];
+
+      this._deflate.close();
+      this._deflate = null;
+
+      if (callback) {
+        callback(
+          new Error(
+            'The deflate stream was closed while data was being processed'
+          )
+        );
       }
     }
   }
@@ -155,7 +156,7 @@ class PerMessageDeflate {
    * @return {Object} Accepted configuration
    * @private
    */
-  acceptAsServer (offers) {
+  acceptAsServer(offers) {
     const opts = this._options;
     const accepted = offers.find((params) => {
       if (
@@ -206,7 +207,7 @@ class PerMessageDeflate {
    * @return {Object} Accepted configuration
    * @private
    */
-  acceptAsClient (response) {
+  acceptAsClient(response) {
     const params = response[0];
 
     if (
@@ -240,10 +241,10 @@ class PerMessageDeflate {
    * @return {Array} The offers/response with normalized parameters
    * @private
    */
-  normalizeParams (configurations) {
+  normalizeParams(configurations) {
     configurations.forEach((params) => {
       Object.keys(params).forEach((key) => {
-        var value = params[key];
+        let value = params[key];
 
         if (value.length > 1) {
           throw new Error(`Parameter "${key}" must have only a single value`);
@@ -294,15 +295,15 @@ class PerMessageDeflate {
   }
 
   /**
-   * Decompress data. Concurrency limited by async-limiter.
+   * Decompress data. Concurrency limited.
    *
    * @param {Buffer} data Compressed data
    * @param {Boolean} fin Specifies whether or not this is the last fragment
    * @param {Function} callback Callback
    * @public
    */
-  decompress (data, fin, callback) {
-    zlibLimiter.push((done) => {
+  decompress(data, fin, callback) {
+    zlibLimiter.add((done) => {
       this._decompress(data, fin, (err, result) => {
         done();
         callback(err, result);
@@ -311,15 +312,15 @@ class PerMessageDeflate {
   }
 
   /**
-   * Compress data. Concurrency limited by async-limiter.
+   * Compress data. Concurrency limited.
    *
-   * @param {Buffer} data Data to compress
+   * @param {(Buffer|String)} data Data to compress
    * @param {Boolean} fin Specifies whether or not this is the last fragment
    * @param {Function} callback Callback
    * @public
    */
-  compress (data, fin, callback) {
-    zlibLimiter.push((done) => {
+  compress(data, fin, callback) {
+    zlibLimiter.add((done) => {
       this._compress(data, fin, (err, result) => {
         done();
         callback(err, result);
@@ -335,18 +336,20 @@ class PerMessageDeflate {
    * @param {Function} callback Callback
    * @private
    */
-  _decompress (data, fin, callback) {
+  _decompress(data, fin, callback) {
     const endpoint = this._isServer ? 'client' : 'server';
 
     if (!this._inflate) {
       const key = `${endpoint}_max_window_bits`;
-      const windowBits = typeof this.params[key] !== 'number'
-        ? zlib.Z_DEFAULT_WINDOWBITS
-        : this.params[key];
+      const windowBits =
+        typeof this.params[key] !== 'number'
+          ? zlib.Z_DEFAULT_WINDOWBITS
+          : this.params[key];
 
-      this._inflate = zlib.createInflateRaw(
-        Object.assign({}, this._options.zlibInflateOptions, { windowBits })
-      );
+      this._inflate = zlib.createInflateRaw({
+        ...this._options.zlibInflateOptions,
+        windowBits
+      });
       this._inflate[kPerMessageDeflate] = this;
       this._inflate[kTotalLength] = 0;
       this._inflate[kBuffers] = [];
@@ -355,7 +358,6 @@ class PerMessageDeflate {
     }
 
     this._inflate[kCallback] = callback;
-    this._inflate[kWriteInProgress] = true;
 
     this._inflate.write(data);
     if (fin) this._inflate.write(TRAILER);
@@ -375,16 +377,16 @@ class PerMessageDeflate {
         this._inflate[kTotalLength]
       );
 
-      if (
-        (fin && this.params[`${endpoint}_no_context_takeover`]) ||
-        this._inflate[kPendingClose]
-      ) {
+      if (this._inflate._readableState.endEmitted) {
         this._inflate.close();
         this._inflate = null;
       } else {
-        this._inflate[kWriteInProgress] = false;
         this._inflate[kTotalLength] = 0;
         this._inflate[kBuffers] = [];
+
+        if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+          this._inflate.reset();
+        }
       }
 
       callback(null, data);
@@ -394,61 +396,63 @@ class PerMessageDeflate {
   /**
    * Compress data.
    *
-   * @param {Buffer} data Data to compress
+   * @param {(Buffer|String)} data Data to compress
    * @param {Boolean} fin Specifies whether or not this is the last fragment
    * @param {Function} callback Callback
    * @private
    */
-  _compress (data, fin, callback) {
-    if (!data || data.length === 0) {
-      process.nextTick(callback, null, EMPTY_BLOCK);
-      return;
-    }
-
+  _compress(data, fin, callback) {
     const endpoint = this._isServer ? 'server' : 'client';
 
     if (!this._deflate) {
       const key = `${endpoint}_max_window_bits`;
-      const windowBits = typeof this.params[key] !== 'number'
-        ? zlib.Z_DEFAULT_WINDOWBITS
-        : this.params[key];
+      const windowBits =
+        typeof this.params[key] !== 'number'
+          ? zlib.Z_DEFAULT_WINDOWBITS
+          : this.params[key];
 
-      this._deflate = zlib.createDeflateRaw(
-        Object.assign({}, this._options.zlibDeflateOptions, { windowBits })
-      );
+      this._deflate = zlib.createDeflateRaw({
+        ...this._options.zlibDeflateOptions,
+        windowBits
+      });
 
       this._deflate[kTotalLength] = 0;
       this._deflate[kBuffers] = [];
 
-      //
-      // `zlib.DeflateRaw` emits an `'error'` event only when an attempt to use
-      // it is made after it has already been closed. This cannot happen here,
-      // so we only add a listener for the `'data'` event.
-      //
       this._deflate.on('data', deflateOnData);
     }
 
-    this._deflate[kWriteInProgress] = true;
+    this._deflate[kCallback] = callback;
 
     this._deflate.write(data);
     this._deflate.flush(zlib.Z_SYNC_FLUSH, () => {
-      var data = bufferUtil.concat(
+      if (!this._deflate) {
+        //
+        // The deflate stream was closed while data was being processed.
+        //
+        return;
+      }
+
+      let data = bufferUtil.concat(
         this._deflate[kBuffers],
         this._deflate[kTotalLength]
       );
 
-      if (fin) data = data.slice(0, data.length - 4);
+      if (fin) {
+        data = new FastBuffer(data.buffer, data.byteOffset, data.length - 4);
+      }
 
-      if (
-        (fin && this.params[`${endpoint}_no_context_takeover`]) ||
-        this._deflate[kPendingClose]
-      ) {
-        this._deflate.close();
-        this._deflate = null;
-      } else {
-        this._deflate[kWriteInProgress] = false;
-        this._deflate[kTotalLength] = 0;
-        this._deflate[kBuffers] = [];
+      //
+      // Ensure that the callback will not be called again in
+      // `PerMessageDeflate#cleanup()`.
+      //
+      this._deflate[kCallback] = null;
+
+      this._deflate[kTotalLength] = 0;
+      this._deflate[kBuffers] = [];
+
+      if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+        this._deflate.reset();
       }
 
       callback(null, data);
@@ -464,7 +468,7 @@ module.exports = PerMessageDeflate;
  * @param {Buffer} chunk A chunk of data
  * @private
  */
-function deflateOnData (chunk) {
+function deflateOnData(chunk) {
   this[kBuffers].push(chunk);
   this[kTotalLength] += chunk.length;
 }
@@ -475,7 +479,7 @@ function deflateOnData (chunk) {
  * @param {Buffer} chunk A chunk of data
  * @private
  */
-function inflateOnData (chunk) {
+function inflateOnData(chunk) {
   this[kTotalLength] += chunk.length;
 
   if (
@@ -487,7 +491,8 @@ function inflateOnData (chunk) {
   }
 
   this[kError] = new RangeError('Max payload size exceeded');
-  this[kError][constants.kStatusCode] = 1009;
+  this[kError].code = 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH';
+  this[kError][kStatusCode] = 1009;
   this.removeListener('data', inflateOnData);
   this.reset();
 }
@@ -498,12 +503,12 @@ function inflateOnData (chunk) {
  * @param {Error} err The emitted error
  * @private
  */
-function inflateOnError (err) {
+function inflateOnError(err) {
   //
   // There is no need to call `Zlib#close()` as the handle is automatically
   // closed when an error is emitted.
   //
   this[kPerMessageDeflate]._inflate = null;
-  err[constants.kStatusCode] = 1007;
+  err[kStatusCode] = 1007;
   this[kCallback](err);
 }

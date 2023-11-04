@@ -2,7 +2,7 @@
   "title": "$:/plugins/OokTech/Bob",
   "description": "A plugin that real-time syncing between wiki and server, among other things",
   "author": "inmysocks",
-  "version": "1.7.5",
+  "version": "1.7.6b1",
   "core-version": ">=5.2.3",
   "source": "",
   "plugin-type": "plugin",

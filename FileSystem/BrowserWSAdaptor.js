@@ -576,7 +576,6 @@ function BrowserWSAdaptor(options) {
         }
         // Figure out if the thing being imported is something that should be
         // saved on the server.
-        //const mimeMap = $tw.settings.mimeMap || {
         const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',

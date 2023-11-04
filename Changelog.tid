@@ -1,6 +1,13 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
-!! Version 1.7.5 Version Mismatch
+!! Version 1.7.6 Something Wiki This Way Comes
+
+* Update the `ws` external library to [ext[version 8.14.2|https://github.com/websockets/ws/releases/tag/8.14.2]]
+** Remove the `async-limiter` external library, it is no longer a dependency of `ws`
+* Update the `IP` external libarry to [ext[v1.1.8|https://github.com/indutny/node-ip/releases/tag/v1.1.8]]
+* Remove more redundant messages and function calls
+
+!! Version 1.7.5 Missing Numbers
 
 * This is here because there was a mixup with version numbers
 

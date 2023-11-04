@@ -164,24 +164,25 @@ if($tw.node) {
     $tw.Bob.Shared.sendAck(data);
     // make sure that the wiki is actually loaded!
     data.wiki = decodeURIComponent(data.wiki)
-    const exists = $tw.syncadaptor.loadWiki(data.wiki, (result) => {return result});
-    if (!exists) {
-      console.log("This wiki doesn't exist!", data.sessionId)
-      return
-    }
-    // Heartbeat. This can be done if the heartbeat is started or not because
-    // if an extra heartbeat pong is heard it just shifts the timing.
-    let message = {};
-    message.type = 'pong';
-    if(data.heartbeat) {
-      message.heartbeat = true;
-    }
-    // When the server receives a ping it sends back a pong.
-    const response = JSON.stringify(message);
-    $tw.connections[data.source_connection].socket.send(response, function ack(err) {if(err) {console.log(err)}});
-    $tw.syncadaptor.CreateSettingsTiddlers(data);
-    // make sure that the newly logged in wiki has the correct list of tiddlers being edited
-    $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
+    $tw.syncadaptor.loadWiki(data.wiki, (exists) => {
+      if (!exists) {
+        console.log("This wiki doesn't exist!", data.sessionId)
+        return
+      }
+      // Heartbeat. This can be done if the heartbeat is started or not because
+      // if an extra heartbeat pong is heard it just shifts the timing.
+      let message = {};
+      message.type = 'pong';
+      if(data.heartbeat) {
+        message.heartbeat = true;
+      }
+      // When the server receives a ping it sends back a pong.
+      const response = JSON.stringify(message);
+      $tw.connections[data.source_connection].socket.send(response, function ack(err) {if(err) {console.log(err)}});
+      $tw.syncadaptor.CreateSettingsTiddlers(data);
+      // make sure that the newly logged in wiki has the correct list of tiddlers being edited
+      $tw.ServerSide.UpdateEditingTiddlers(false, data.wiki);
+    });
   }
 
   /*

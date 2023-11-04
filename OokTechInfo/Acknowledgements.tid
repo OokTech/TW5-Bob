@@ -2,11 +2,14 @@ title: $:/plugins/OokTech/Bob/Acknowledgements
 
 This plugin was created and is maintained by [[OokTech|$:/plugins/OokTech/OokTechInfo]].
 
-You can support the development of this plugin and others by supporting OokTech on
-
-* [[our patreon page|https://www.patreon.com/OokTech]]
-* [[OokTech LiberaPay Page|https://liberapay.com/OokTech]]
-
 [[Tiddlywiki|http://TiddlyWiki.com]] was originally created by [[Jeremy Ruston|https://github.com/Jermolene/TiddlyWiki5]]. For general ~TiddlyWiki help see [[tiddlywiki.com|http://tiddlywiki.com]] or the [[google group|https://groups.google.com/forum/#!forum/tiddlywiki]].
 
 Thank you to the general TiddlyWiki community for developing and maintaining the tiddlywiki core.
+
+
+This software uses a number of external libarries:
+
+* `WS` a nodejs websocket library [ext[available via npm|https://www.npmjs.com/package/ws]] using an [ext[MIT License|https://github.com/websockets/ws/blob/master/LICENSE]]
+* `IP' internet address utilities for node [ext[available via NPM|https://www.npmjs.com/package/ip]] with an [ext[MIT License|https://github.com/indutny/node-ip]]
+* `jszip` a javascript library for manipulating zip files [ext[available via NPM| https://www.npmjs.com/package/jszip]] with an [ext[MIT License|https://github.com/Stuk/jszip/blob/main/LICENSE.markdown]]
+* `follow-redirects` which allows requests to follow redirects [ext[available via NPM|https://www.npmjs.com/package/follow-redirects]] with an [ext[MIT License|https://github.com/follow-redirects/follow-redirects/blob/main/LICENSE]]
