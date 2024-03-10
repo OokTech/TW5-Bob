@@ -95,6 +95,7 @@ exports.handler = function(request,response,state) {
           const mimeMap = $tw.settings.mimeMap || {
             '.aac': 'audio/aac',
             '.avi': 'video/x-msvideo',
+            '.bmp': 'image/bmp',
             '.csv': 'text/csv',
             '.doc': 'application/msword',
             '.epub': 'application/epub+zip',
@@ -105,17 +106,21 @@ exports.handler = function(request,response,state) {
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
             '.mp3': 'audio/mpeg',
+            '.mp4': 'video/mp4',
             '.mpeg': 'video/mpeg',
             '.oga': 'audio/ogg',
             '.ogv': 'video/ogg',
             '.ogx': 'application/ogg',
-            '.pdf': 'application/pdf',
             '.png': 'image/png',
+            '.pdf': 'application/pdf',
             '.svg': 'image/svg+xml',
+            '.txt': 'text/plain',
             '.weba': 'audio/weba',
             '.webm': 'video/webm',
+            '.webp': 'image/webp',
             '.wav': 'audio/wav',
-            '.md': 'text/markdown'
+            '.jp2': 'image/jpeg',
+            '.heic': 'image/heic'
           };
           // Special handling for streaming video types
           // ref: https://gist.github.com/paolorossi/1993068

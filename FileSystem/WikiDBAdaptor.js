@@ -433,12 +433,15 @@ A sync adaptor module for synchronising multiple wikis
     }
 
     WikiDBAdaptor.prototype.deleteWiki = function(data, cb) {
+      if (!cb || typeof cb !== 'function') {
+        cb = () => {}
+      }
       // delete the database for the wiki
       // remove the wiki database
       // remove the __wikiInfo document
       // remove old connections
       if(data.deleteWiki == 'RootWiki') {
-        cb()
+        cb();
       } else {
         const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.deleteWiki}, 'delete', 'wiki');
         if (authorised) {
@@ -495,9 +498,9 @@ A sync adaptor module for synchronising multiple wikis
       }
     }
 
-    // TODO - this, probably just delete it
-    WikiDBAdaptor.prototype.getWikiPath = function() {
-
+    // This is used to determine where to save files that don't get put into the database, this is used for photo libarry stuff
+    WikiDBAdaptor.prototype.getWikiPath = function(wikiName) {
+      return `./${wikiName}`
     }
 
     // TODO - this, I am not sure if we will keep this or put all the files in the database
@@ -797,7 +800,7 @@ A sync adaptor module for synchronising multiple wikis
         $tw.settings.wikis = response;
         const message = {type: 'updateSettings'};
         $tw.Bob.SendToBrowsers(message);
-        cb()
+        cb();
       });
     }
 
@@ -944,7 +947,7 @@ A sync adaptor module for synchronising multiple wikis
           console.log(err)
         })
         .finally(function() {
-          cb()
+          cb();
         })
       }
     };
@@ -1039,7 +1042,7 @@ A sync adaptor module for synchronising multiple wikis
       httpRequest(options, body)
       .then((response)=>{
         $tw.Bob.logger.log('Saved settings to DB', {level:1})
-        cb()
+        cb();
       })
       .catch((err) => {
         console.log(err)
@@ -1049,9 +1052,7 @@ A sync adaptor module for synchronising multiple wikis
 
     WikiDBAdaptor.prototype.updateTiddlyWikiInfo = function(data) {
       // update the tiddlywiki.info thing in the database
-      if (typeof cb !== 'function') {
-        cb = () => {}
-      }
+      if (typeof cb != 'function') {cb = () => {}}
       // load the current wikiInfo for the wiki
       const body = JSON.stringify({
         db: '__wikiInfo',
@@ -1111,9 +1112,7 @@ A sync adaptor module for synchronising multiple wikis
       });
     }
 
-    if($tw.node) {
-      exports.adaptorClass = WikiDBAdaptor;
-    }
+    exports.adaptorClass = WikiDBAdaptor;
   }
   
   })();

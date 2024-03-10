@@ -28,6 +28,7 @@ exports.handler = function(request,response,state) {
     const params = {};
     if(typeof parsed.query !== 'string') {
       response.writeHead(403).end();
+      return
     }
     parsed.query.split('&').forEach(function(item) {
       const parts = item.split('=');
@@ -35,6 +36,7 @@ exports.handler = function(request,response,state) {
     });
     if(!params['filter']) {
       response.writeHead(403).end();
+      return
     }
     // Make sure that the person has access to the wiki
     const token = $tw.Bob.getCookie(request.headers.cookie, 'token');
@@ -81,6 +83,7 @@ exports.handler = function(request,response,state) {
     }
   } else {
     response.writeHead(403).end();
+    return
   }
 }
 }());

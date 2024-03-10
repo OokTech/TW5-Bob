@@ -1031,6 +1031,7 @@ if($tw.node) {
       const mimeMap = $tw.settings.mimeMap || {
         '.aac': 'audio/aac',
         '.avi': 'video/x-msvideo',
+        '.bmp': 'image/bmp',
         '.csv': 'text/csv',
         '.doc': 'application/msword',
         '.epub': 'application/epub+zip',
@@ -1041,15 +1042,21 @@ if($tw.node) {
         '.jpg': 'image/jpeg',
         '.jpeg': 'image/jpeg',
         '.mp3': 'audio/mpeg',
+        '.mp4': 'video/mp4',
         '.mpeg': 'video/mpeg',
         '.oga': 'audio/ogg',
         '.ogv': 'video/ogg',
         '.ogx': 'application/ogg',
         '.png': 'image/png',
+        '.pdf': 'application/pdf',
         '.svg': 'image/svg+xml',
+        '.txt': 'text/plain',
         '.weba': 'audio/weba',
         '.webm': 'video/webm',
-        '.wav': 'audio/wav'
+        '.webp': 'image/webp',
+        '.wav': 'audio/wav',
+        '.jp2': 'image/jpeg',
+        '.heic': 'image/heic'
       };
       if(typeof data.mediaTypes === 'string') {
         if(data.mediaTypes.length > 0) {

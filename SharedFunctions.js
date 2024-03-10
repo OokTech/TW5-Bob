@@ -123,8 +123,6 @@ if(!$tw.Bob.Shared) {
       type: message.type,
       title: title,
       ack: {},
-      //  tries: 0
-      //},
       wiki: message.wiki,
       sessionId: sessionId
     };
@@ -193,7 +191,7 @@ if(!$tw.Bob.Shared) {
     if(typeof connection == 'undefined') {
       return
     }
-    const index = connection.index;
+    const index = connection.sessionId;
     // Here make sure that the connection is live and hasn't already
     // sent an ack for the current message.
     if(connection.socket !== undefined) {
@@ -325,7 +323,7 @@ if(!$tw.Bob.Shared) {
   */
   Shared.messageIsEligible = function (messageData, connectionIndex, queue) {
     let send = false;
-    if($tw.browser || ($tw.node && messageData.message.wiki && $tw.Bob.Wikis[messageData.message.Wiki] && $tw.Bob.Wikis[messageData.message.Wiki].State === 'Loaded')) {
+    if($tw.browser || ($tw.node && messageData.message.wiki && $tw.Bob.Wikis[messageData.message.wiki] && $tw.Bob.Wikis[messageData.message.wiki].State === 'loaded')) {
       // we shouldn't ever need to load a wiki here, any wiki we send to has to have a connection and when a connection is made the wiki is loaded
       // Make sure that the connectionIndex and queue exist. This may be over
       // paranoid
@@ -538,6 +536,9 @@ if(!$tw.Bob.Shared) {
         return messageData.id === data.id;
       })
       if($tw.Bob.MessageQueue[index]) {
+        if (!$tw.Bob.MessageQueue[index].ack[data.source_connection]) {
+          $tw.Bob.MessageQueue[index].ack[data.source_connection] = {tries:0, received:false};
+        }
         // Set the message as acknowledged.
         $tw.Bob.MessageQueue[index].ack[data.source_connection].received = true;
         // Check if all the expected acks have been received

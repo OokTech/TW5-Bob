@@ -512,6 +512,7 @@ ServerSide.findName = function(url) {
 }
 
 ServerSide.listFiles = function(data, cb) {
+  if (typeof cb != 'function') {cb = () => {}}
   const path = require('path');
   const fs = require('fs');
   const authorised = $tw.Bob.AccessCheck(data.wiki, {"decoded":data.decoded}, 'listFiles', 'wiki');
@@ -600,8 +601,10 @@ ServerSide.listFiles = function(data, cb) {
           '.weba': 'audio/weba',
           '.webm': 'video/webm',
           '.webp': 'image/webp',
-          '.wav': 'audio/wav'
-        };
+          '.wav': 'audio/wav',
+          '.jp2': 'image/jpeg',
+          '.heic': 'image/heic'
+        }
         const extList = data.mediaTypes || false;
         let prefix = path.join(wikiName, $tw.settings.fileURLPrefix, urlPath);
         prefix = prefix.startsWith('/') ? prefix : '/' + prefix;
@@ -731,7 +734,9 @@ $tw.Bob.SendToBrowsers = function (message, excludeConnection) {
   Object.values($tw.connections).forEach(function (connection, ind) {
     if((ind !== excludeConnection) && connection.socket) {
       if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-        $tw.Bob.Shared.sendMessage(message, connection.sessionId);
+        const thisMessage = JSON.parse(JSON.stringify(message));
+        thisMessage.wiki = connection.wiki;
+        $tw.Bob.Shared.sendMessage(thisMessage, connection.sessionId);
       }
     }
   })
@@ -750,7 +755,9 @@ $tw.Bob.SendToBrowser = function (connection, message) {
   if(connection && connection.socket) {
     $tw.Bob.UpdateHistory(message);
     if(connection.socket.readyState === 1 && (connection.wiki === message.wiki || !message.wiki)) {
-      $tw.Bob.Shared.sendMessage(message, connection.sessionId);
+      const thisMessage = JSON.parse(JSON.stringify(message));
+      thisMessage.wiki = connection.wiki;
+      $tw.Bob.Shared.sendMessage(thisMessage, connection.sessionId);
     }
   }
 }

@@ -67,6 +67,7 @@ function BrowserWSAdaptor(options) {
     $tw.connections[connectionIndex] = $tw.connections[connectionIndex] || {};
     try{
       $tw.connections[connectionIndex].index = connectionIndex;
+      $tw.connections[connectionIndex].sessionId = connectionIndex;
       const r = new RegExp("\\/"+ $tw.wikiName + "\\/?$");
       $tw.connections[connectionIndex].socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort + decodeURI(window.location.pathname).replace(r,'') + '?' + sessionStorage.getItem('sessionId'));
       // TODO: make the onclose handler for the socket handle the disconnection part
@@ -560,13 +561,13 @@ function BrowserWSAdaptor(options) {
             } else {
               var percentComplete = -1;
             }
-            console.log(percentComplete);
+            console.log(percentComplete, '% complete');
           } catch (e) {
             console.log("No progress updates!")
           }
         }
         function transferComplete(e) {
-          console.log('Complete!!');
+          console.log('Complete!! ??');
         }
         function transferFailed(e) {
           console.log('Failed!');
@@ -579,6 +580,7 @@ function BrowserWSAdaptor(options) {
         const mimeMap = $tw.settings.mimeMap || {
           '.aac': 'audio/aac',
           '.avi': 'video/x-msvideo',
+          '.bmp': 'image/bmp',
           '.csv': 'text/csv',
           '.doc': 'application/msword',
           '.epub': 'application/epub+zip',
@@ -589,16 +591,21 @@ function BrowserWSAdaptor(options) {
           '.jpg': 'image/jpeg',
           '.jpeg': 'image/jpeg',
           '.mp3': 'audio/mpeg',
+          '.mp4': 'video/mp4',
           '.mpeg': 'video/mpeg',
           '.oga': 'audio/ogg',
           '.ogv': 'video/ogg',
           '.ogx': 'application/ogg',
-          '.pdf': 'application/pdf',
           '.png': 'image/png',
+          '.pdf': 'application/pdf',
           '.svg': 'image/svg+xml',
+          '.txt': 'text/plain',
           '.weba': 'audio/weba',
           '.webm': 'video/webm',
-          '.wav': 'audio/wav'
+          '.webp': 'image/webp',
+          '.wav': 'audio/wav',
+          '.jp2': 'image/jpeg',
+          '.heic': 'image/heic'
         };
         if(Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
           // Check if this is set up to use HTTP post or websockets to save the
@@ -610,8 +617,14 @@ function BrowserWSAdaptor(options) {
           request.upload.addEventListener('abort', transferCanceled);
 
           let wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          const uploadURL = '/api/upload';
-          request.open('POST', uploadURL, true);
+          if($tw.settings.photoThumbnails && tiddler.fields.type.startsWith('image/')) {
+            const photoUploadURL = '/api/upload/photo/';
+            request.open('POST', photoUploadURL, true);
+
+          } else {
+            const uploadURL = '/api/upload';
+            request.open('POST', uploadURL, true);
+          }
           // cookies are sent with the request so the authentication cookie
           // should be there if there is one.
           const thing = {
@@ -640,7 +653,7 @@ function BrowserWSAdaptor(options) {
             }
           }
           request.send(JSON.stringify(thing));
-          // Change the tiddler fields and stuff
+          
           const fields = {};
           wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
           wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
@@ -648,8 +661,22 @@ function BrowserWSAdaptor(options) {
           const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
           fields.title = tiddler.fields.title;
           fields.type = tiddler.fields.type;
-          fields._canonical_uri = uri;
-          return new $tw.Tiddler(fields);
+
+          if($tw.settings.photoThumbnails && tiddler.fields.type.startsWith('image/')) {
+            fields.uri = uri;
+            return new $tw.Tiddler(fields)
+          } else {
+            // Change the tiddler fields and stuff
+            //const fields = {};
+            //wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
+            //wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
+            //$tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
+            //const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
+            //fields.title = tiddler.fields.title;
+            //fields.type = tiddler.fields.type;
+            fields._canonical_uri = uri;
+            return new $tw.Tiddler(fields);
+          }
         } else {
           return tiddler;
         }

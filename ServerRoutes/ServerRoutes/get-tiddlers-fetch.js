@@ -30,8 +30,9 @@ exports.handler = function(request,response,state) {
     const URL = require('url')
     const parsed = URL.parse(request.url);
     const params = {};
-    if(typeof parsed.query !== 'string') {
+    if(typeof parsed.query !== 'string' || !parsed.query) {
       response.writeHead(403).end();
+      return
     }
     parsed.query.split('&').forEach(function(item) {
       const parts = item.split('=');
@@ -82,6 +83,7 @@ exports.handler = function(request,response,state) {
         response.end(data);
       } else {
         response.writeHead(403).end();
+        return
       }
     } catch (e) {
       console.log(e)
@@ -90,6 +92,7 @@ exports.handler = function(request,response,state) {
     }
   } else {
     response.writeHead(403).end();
+    return
   }
 }
 }());

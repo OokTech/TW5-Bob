@@ -47,13 +47,16 @@ exports.handler = function(request,response,state) {
         } catch (e) {
           console.log(e)
           response.writeHead(403).end();
+          return
         }
       });
       request.on('error', function() {
         response.writeHead(403).end();
+        return
       });
     } else {
       response.writeHead(403).end();
+      return
     }
   }
 }

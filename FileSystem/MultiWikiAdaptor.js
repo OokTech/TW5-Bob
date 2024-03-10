@@ -325,6 +325,7 @@ if($tw.node) {
   // Wiki management stuff
 
   MultiWikiAdaptor.prototype.renameWiki = function(data, cb) {
+    if (typeof cb != 'function') {cb = () => {}}
     const authorised = $tw.Bob.AccessCheck(data.fromWiki, {"decoded":data.decoded}, 'rename', 'wiki');
     if($tw.syncadaptor.existsListed(data.oldWiki) && !$tw.syncadaptor.existsListed(data.newWiki) && authorised) {
       // Unload the old wiki
@@ -359,6 +360,7 @@ if($tw.node) {
 
 
   MultiWikiAdaptor.prototype.deleteWiki = function(data, cb) {
+    if (typeof cb != 'function') {cb = () => {}}
     const authorised = $tw.Bob.AccessCheck(data.deleteWiki, {"decoded":data.decoded}, 'delete', 'wiki');
     // Make sure that the wiki exists and is listed
     if($tw.syncadaptor.existsListed(data.deleteWiki) && authorised) {
@@ -508,6 +510,7 @@ if($tw.node) {
     isn't called for any of the recursive calls used for sub-directories.
   */
   MultiWikiAdaptor.prototype.specialCopy = function(source, destination, copyChildren, cb) {
+    if (typeof cb != 'function') {cb = () => {}}
     let err = undefined;
     // Check to make sure inputs are what we expect
     if(typeof source !== 'string' || typeof destination !== 'string') {
@@ -682,6 +685,7 @@ if($tw.node) {
     This function loads a wiki that has a route listed.
   */
   MultiWikiAdaptor.prototype.loadWiki = function (wikiName, cb) {
+    if (typeof cb != 'function') {cb = () => {}}
     const wikiFolder = $tw.syncadaptor.existsListed(wikiName);
     // Add tiddlers to the node process
     if(wikiFolder) {
@@ -1154,7 +1158,7 @@ if($tw.node) {
         // This is just adding an existing node wiki to the listing
         addListing(name, data.nodeWikiPath);
         data.fromServer = true;
-        $tw.nodeMessageHandlers.saveSettings(data);
+        //$tw.nodeMessageHandlers.saveSettings(data);
         finish();
       } else if(data.tiddlers || data.externalTiddlers) {
         data.tiddlers = data.tiddlers || data.externalTiddlers;
@@ -1257,9 +1261,7 @@ if($tw.node) {
   envVar: Environment variable name for these plugins
   */
   MultiWikiAdaptor.prototype.loadPlugins = function(plugins, libraryPath, envVar, wikiName, cb) {
-    if(typeof cb !== 'function') {
-      cb = () => {};
-    }
+    if (typeof cb != 'function') {cb = () => {}}
     if(plugins) {
       const pluginPaths = $tw.getLibraryItemSearchPaths(libraryPath,envVar);
       for(let t=0; t<plugins.length; t++) {
@@ -1357,9 +1359,7 @@ if($tw.node) {
   }
 
   MultiWikiAdaptor.prototype.loadSettings = function(cb) {
-    if(typeof cb !== 'function') {
-      cb = () => {};
-    }
+    if (typeof cb != 'function') {cb = () => {}}
     // The user settings path
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     $tw.settings = JSON.parse($tw.wiki.getTiddler('$:/plugins/OokTech/Bob/DefaultSettings').fields.text);
@@ -1471,9 +1471,7 @@ if($tw.node) {
       });
     }
 
-  if($tw.node) {
-    exports.adaptorClass = MultiWikiAdaptor;
-  }
+  exports.adaptorClass = MultiWikiAdaptor;
 }
 
 })();

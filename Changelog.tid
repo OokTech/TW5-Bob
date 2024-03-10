@@ -6,6 +6,11 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** Remove the `async-limiter` external library, it is no longer a dependency of `ws`
 * Update the `IP` external libarry to [ext[v1.1.8|https://github.com/indutny/node-ip/releases/tag/v1.1.8]]
 * Remove more redundant messages and function calls
+* Fix the folding wiki listing so it doesn't duplicate entries when one wiki name is a prefix of another name.
+* Add option for uploading photos as thumbnails (requires some external components, need documentation)
+* Update the default mime map for which media types are saved on the server as external files
+* Fix some problems where alerts didn't get sent to the browser correctly
+* General improvements to error handling
 
 !! Version 1.7.5 Missing Numbers
 
