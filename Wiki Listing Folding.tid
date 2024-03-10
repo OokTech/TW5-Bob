@@ -26,8 +26,9 @@ tags: $:/tags/Macro
 \end
 
 \define thisFoldingWikiListingInnerList()
+  <$vars wikiNameSlash={{{ [<WikiName>addsuffix<Sep>] }}}>
   <$list
-    filter='[subfilter<InputList>removeprefix<WikiPrefix>splitbefore<Sep>prefix<WikiName>] +[sort[]]'
+    filter='[subfilter<InputList>removeprefix<WikiPrefix>prefix<WikiNameSlash>splitbefore<Sep>] +[sort[]]'
     variable=WikiName
   >
     <$list
@@ -115,6 +116,7 @@ tags: $:/tags/Macro
       </li>
     </$list>
   </$list>
+  </$vars>
 \end
 
 \define existsTemplate()
@@ -155,7 +157,7 @@ tags: $:/tags/Macro
     class='folding-list'
   >
     <$list
-      filter='[subfilter<InputList>splitbefore<Sep>removesuffix<Sep>][subfilter<InputList>splitbefore<Sep>!suffix<Sep>] +[sort[]]'
+      filter='[subfilter<InputList>splitbefore<Sep>removesuffix<Sep>][subfilter<InputList>splitbefore<Sep>!suffix<Sep>] +[sort[]] +[limit[1]]'
       variable=WikiName
       emptyMessage='No child wikis listed.'
     >
