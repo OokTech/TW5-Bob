@@ -154,8 +154,17 @@ exports.handler = function(request,response,state) {
             response.end();
           }
         })
+      } else {
+        response.writeHead(403);
+        response.end();
       }
+    } else {
+      response.writeHead(403);
+      response.end();
     }
+  } else {
+    response.writeHead(403);
+    response.end();
   }
 }
 }());

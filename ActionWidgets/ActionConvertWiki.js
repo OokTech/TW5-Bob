@@ -71,8 +71,6 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
     // Read the file and pass it to the parsing stuff
     if(file) {
       $tw.wiki.readFileContent(file, file.type, false, undefined, function (output) {
-        console.log(output)
-        console.log(self.wikiName)
         if(output.length > 0) {
           const message = {
             "type": "newWikiFromTiddlers",
@@ -81,7 +79,8 @@ ActionConvertWiki.prototype.invokeAction = function(triggeringWidget,event) {
             "wikiName": self.wikiName,
             "wikiFolder": self.wikiFolder,
             "wiki": wikiName,
-            "overwrite": self.overwrite
+            "overwrite": self.overwrite,
+            'sessionId': sessionStorage.getItem('sessionId')
           }
           $tw.Bob.Shared.sendMessage(message, 0)
         } else {

@@ -67,8 +67,12 @@ caption: Wiki Listing
   prefix='true'
   emptyMessage="""<<foldingTree>>"""
 >
+  Wiki Search: <$edit-text tiddler='$:/temp/wikisearch' tag=input placeholder='type to search wikis'/>
+  <li>
+    [ext[Root Wiki|/]]
+  </li>
   <$list
-    filter='[list[$:/state/ViewableWikis]]'
+    filter='[list[$:/state/ViewableWikis]search:title{$:/temp/wikisearch}]'
     variable=WikiName
     emptyMessage='No child wikis listed.'
   >

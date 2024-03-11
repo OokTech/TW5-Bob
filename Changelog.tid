@@ -1,5 +1,16 @@
 title: $:/plugins/OokTech/Bob/Changelog
 
+!! Version 1.7.7 Look On My Wiki Ye Mighty
+
+* Add a search to the wiki listing
+** Also added the root wiki to the wiki listing
+* Add start of recovery tools tab
+** Revert the wiki to previous states using the automatic backups feature
+** Recover from tiddlers that get stuck in the locked state preventing editing
+** Save manual backup (a html version of the current wiki with any edits in case of server errors)
+* Creating a wiki in Bob from an html wiki works again
+* A little cleanup on the logger interface
+
 !! Version 1.7.6 Something Wiki This Way Comes
 
 * Update the `ws` external library to [ext[version 8.14.2|https://github.com/websockets/ws/releases/tag/8.14.2]]

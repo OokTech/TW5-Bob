@@ -15,4 +15,5 @@ Give the wiki a name:
     fileInput='#fileInput'
     wikiName={{$:/temp/NewWiki!!wiki_name}}
   />
+  <$action-setfield $tiddler='$:/temp/NewWiki' wiki_name=''/>
 </$button>

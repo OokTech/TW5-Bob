@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutRevertToBackup
+
+Click the `Revert` button to revert to the backup. This replaces the current wiki with the backup.
+This does not modify the backup file.

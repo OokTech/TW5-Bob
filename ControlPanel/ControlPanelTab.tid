@@ -12,6 +12,7 @@ Click the ^^(?)^^ next to options for more information.
 >
 
 * [[Setup This Wiki|$:/plugins/OokTech/Bob/ThisWikiTab]] - manage plugins and themes for this wiki
+* [[Recovery Tools|$:/plugins/OokTech/Bob/RecoveryTab]] - tools to help recover from when Bob makes a mistake
 * [[Backups|$:/plugins/OokTech/Bob/BackupsTab]] - enable and setup automatic backups
 * [[Wiki Management|$:/plugins/OokTech/Bob/ManageWikis]] - create, delete and rename wikis
 * [[Saver Server|$:/plugins/OokTech/Bob/SaverServer]] - enable and configure the saver for single file wikis

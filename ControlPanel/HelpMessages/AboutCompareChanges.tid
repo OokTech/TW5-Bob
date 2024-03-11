@@ -1,0 +1,4 @@
+title: $:/plugins/OokTech/Bob/AboutCompareChanges
+
+This generates a list of changes between the current wiki and the backup so that they can be reviewed and you can select the version you wish to keep.
+This does not modify the backup file.

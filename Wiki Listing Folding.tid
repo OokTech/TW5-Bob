@@ -147,7 +147,8 @@ tags: $:/tags/Macro
 />
 \end
 
-\define foldingTree(source:'[list[$:/state/ViewableWikis]] -RootWiki' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
+\define foldingTree(source:'[list[$:/state/ViewableWikis]search:title{$:/temp/wikisearch}] -RootWiki' sep:'/' exist:"<<existsTemplate>>" notexist:"<<doesntExistTemplate>>")
+Wiki Search: <$edit-text tiddler='$:/temp/wikisearch' tag=input placeholder='type to search wikis'/>
 <$vars
   InputList=<<__source__>>
   Sep=<<__sep__>>
@@ -156,6 +157,9 @@ tags: $:/tags/Macro
   <ul
     class='folding-list'
   >
+		<li>
+			[ext[Root Wiki|/]]
+		</li>
     <$list
       filter='[subfilter<InputList>splitbefore<Sep>removesuffix<Sep>][subfilter<InputList>splitbefore<Sep>!suffix<Sep>] +[sort[]] +[limit[1]]'
       variable=WikiName

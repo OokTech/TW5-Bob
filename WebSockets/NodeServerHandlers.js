@@ -945,6 +945,33 @@ if($tw.node) {
     }
   }
 
+  $tw.nodeMessageHandlers.listBackups = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    $tw.syncadaptor.getBackupList(data.wiki, function(error, backupList) {
+      if(error) {
+        // TODO have it send an error message to the browser saying what happened
+        const message = {
+          alert: 'failed to get backup list for ' + data.wiki + ' with error \n' + error,
+          connections: [$tw.connections[data.source_connection]]
+        }
+        $tw.ServerSide.sendBrowserAlert(message)
+      } else {
+        // send a message to save the $:/state/AvailableBackups tiddler
+        // the text field is the stringified list of backups
+        const message = {
+          type: 'saveTiddler',
+          tiddler: {
+            fields: {
+              title: '$:/state/AvailableBackups',
+              text: backupList
+            }
+          }
+        }
+        $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+      }
+    })
+  }
+
   /*
     This handlers takes a folder as input and if the folder is one of the
     folders with media being served it will return a list of files available in

@@ -1,0 +1,85 @@
+title: $:/plugins/OokTech/Bob/RecoveryTab
+caption: Recovery Tools
+
+\define getBackupsButton() <$button><$action-websocketmessage $type='listBackups'/>Get or Update List of Backups</$button>
+
+For those unfortunate times when there has been a mistake and some form of recovery is needed.
+This is a work in progress and can't cover every situation.
+
+!! Rollback to Previous State
+
+If you have backups enabled then you can select a backup here and revert the wiki to the state it was in when the backup was created.
+This is very simple for now, when I have the time it will be able to do more.
+
+!!! Available Backups
+
+<<getBackupsButton>>
+
+Here you can preview<<helpButton "$:/plugins/OokTech/Bob/AboutBackupList">>, revert<<helpButton "$:/plugins/OokTech/Bob/AboutRevertToBackup">> or compare<<helpButton "$:/plugins/OokTech/Bob/AboutCompareChanges">> to a backup
+
+<table>
+    <tr>
+        <th>
+            Backup List
+        </th>
+        <th>
+            Revert to Backup
+        </th>
+        <th>
+            Compare Changes
+        </th>
+    </tr>
+    <$list
+        filter={{$:/state/AvailableBackups}}
+        emptyMessage="<$list filter='[[$:/state/AvailableBackups]has[title]]' emptyMessage='<<getBackupsButton>>'>No Backups Found</$list>"
+    >
+        <tr>
+            <td>
+                <a
+                    href={{{ [[./backups/]addsuffix{$:/WikiName}addsuffix[/]addsuffix{!!title}] }}} 
+                    target='_blank'
+                >
+                    <$text text={{{ [<currentTiddler>removeprefix[backup-]removesuffix[.html]format:date[DDth mmm YYYY 0hh:0mm:0ss]] }}}/>
+                </a>
+            </td>
+            <td>
+                Revert
+            </td>
+            <td>
+                Compare
+            </td>
+        </tr>
+    </$list>
+</table>
+
+Have a way to revert to the backup
+
+In the future have a way to see individual changes and revert only certain ones
+
+This requires being able to load an html wiki into a temporary node wiki and preview it at the start
+Then it requires the same thing, but also a template to be able to switch between the current and previous states of individual tiddlers to see it 
+all within one wiki
+
+!! Locked Tiddlers
+
+If Bob has locked a tiddler like someone is editing it, but it isn't being edited you can correct the problem here.
+
+These are the tiddlers in this wiki that Bob thinks are currently being edited. If you are __''certain''__ that a tiddler isn't being edited by someone else or in a separate window or browser tab and editing is still locked you can remove it from the list here by clicking on the x next to the title.
+
+''WARNING:'' If you remove a tiddler from this list that is being edited by someone else and then edit it yourself either you will overwirte their edits or they will overwrite yours. The same will happen if you have are editing a tiddler in another window or tab and then edit it after removing it from the list.
+
+__Tiddlers currently being edited__
+
+<$list filter={{$:/state/Bob/EditingTiddlers!!list}} emptyMessage='There are no tiddlers currently being edited'>
+
+<$button class='tc-btn-invisible'>{{$:/core/images/cancel-button}}</$button> {{{ [<currentTiddler>] }}}
+</$list>
+
+!! Save Emergency Backup
+
+If for some reason the wiki isn't connecting to the Bob server and you want to save a backup of the current state, this button will save the backup.
+
+<$button>
+  Download HTML version of this wiki
+  <$action-downloadwiki/>
+</$button> <<helpButton $:/plugins/OokTech/Bob/AboutDownloadHTMLVersion>>

@@ -62,7 +62,8 @@ ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
   const message = {
     "type": "updateSetting",
     "settingsString": settings,
-    "wiki": wikiName
+    "wiki": wikiName,
+    'sessionId': sessionStorage.getItem('sessionId')
   }
   $tw.Bob.Shared.sendMessage(message, 0)
   return true; // Action was invoked

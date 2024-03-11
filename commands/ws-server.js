@@ -57,7 +57,7 @@ if($tw.node) {
     $tw.Bob.logger.log('Received websocket message ', event, {level:4});
     // Determine which connection the message came from
     //let thisIndex = $tw.connections.findIndex(function(connection) {return connection.socket === self;});
-    try {
+    //try {
       let eventData = JSON.parse(event);
       let thisIndex = eventData.sessionId;
       // Add the source to the eventData object so it can be used later. The source is the sessionId so the server can respond to the same wiki easily
@@ -88,9 +88,9 @@ if($tw.node) {
       } else {
         $tw.Bob.logger.log('Target wiki and connected wiki don\'t match', {level:3});
       }
-    } catch (e) {
-      $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
-    }
+    //} catch (e) {
+    //  $tw.Bob.logger.error("WebSocket error: ", e, {level:1});
+    //}
   }
 
 

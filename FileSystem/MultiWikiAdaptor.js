@@ -997,8 +997,8 @@ if($tw.node) {
       })
       return prunedSettings;
     }
-    const fs = require('fs');
-    const path = require('path');
+    //const fs = require('fs');
+    //const path = require('path');
     const basePath = $tw.syncadaptor.getBasePath();
     $tw.settings.wikisPath = $tw.settings.wikisPath || './Wikis';
     let wikiFolderPath = path.resolve(basePath, $tw.settings.wikisPath);
@@ -1291,8 +1291,8 @@ if($tw.node) {
     data = data || {}
     data.wiki = data.wiki || 'RootWiki'
 
-    const fs = require('fs');
-    const path = require('path');
+    //const fs = require('fs');
+    //const path = require('path');
     // Create the $:/ServerIP tiddler
     const message = {
       type: 'saveTiddler',
@@ -1334,8 +1334,8 @@ if($tw.node) {
 
 
   MultiWikiAdaptor.prototype.saveSettings = function(data) {
-    const path = require('path');
-    const fs = require('fs');
+    //const path = require('path');
+    //const fs = require('fs');
     // Save the updated settings
     const userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     const userSettingsFolder = path.join($tw.boot.wikiPath, 'settings')
@@ -1417,8 +1417,8 @@ if($tw.node) {
   }
 
   MultiWikiAdaptor.prototype.updateTiddlyWikiInfo = function(data) {
-    const path = require('path')
-    const fs = require('fs')
+    //const path = require('path')
+    //const fs = require('fs')
     const wikiInfoPath = path.join($tw.Bob.Wikis[data.wiki].wikiPath, 'tiddlywiki.info');
     let wikiInfo = {}
     try {
@@ -1443,6 +1443,22 @@ if($tw.node) {
     } catch (e) {
       $tw.Bob.logger.error(e, {level:1})
     }
+  }
+
+  MultiWikiAdaptor.prototype.getBackupList = function(wikiName, cb) {
+    if(typeof cb !== 'function') {
+      cb = () => {}
+    }
+    // get all files in the backups folder for the wiki wikiName
+    const backupsPath = path.resolve($tw.settings.backups.backupFolder, wikiName)
+    fs.readdir(backupsPath, (err, files) => {
+      if(err) {
+        cb(err)
+      } else {
+        const theBackupsList = files.filter(thisFile => {return thisFile.endsWith('.html') || thisFile.endsWith('.htm')})
+        cb(null, $tw.utils.stringifyList(theBackupsList))
+      }
+    })
   }
 
   /*

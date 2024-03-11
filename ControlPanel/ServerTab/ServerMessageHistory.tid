@@ -86,13 +86,12 @@ buttons it is 2.
 >
   4
 </$radio>
-<$button
->
+<$button>
   Update Console Logging Level
   <$action-updatesetting
     logger= {{{ [[{"consoleLogLevel":]addsuffix{$:/WikiSettings/split/logger##consoleLogLevel}addsuffix[}]] }}}
   />
-</$radio>
+</$button>
 
 !!! File Logging
 
@@ -100,7 +99,7 @@ buttons it is 2.
   checkactions=<<fileLoggingCheck>>
   uncheckactions=<<fileLoggingUncheck>>
   tiddler="$:/WikiSettings/split/logger"
-  index=""
+  index="useFileLogging"
   checked="yes"
   unchecked="no"
   default="no"
@@ -149,6 +148,7 @@ Log folder:
   tiddler='$:/WikiSettings/split/logger'
   index='outputFolder'
   default='./logs'
+  tag=input
 />
 (update button for log folder)
 
