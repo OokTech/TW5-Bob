@@ -1,0 +1,6 @@
+title: $:/plugins/Bob/SubtitleTitle
+
+\whitespace trim
+<h2 class="tc-title">
+<$view field="subtitle"><$view field='title'/></$view>
+</h2>

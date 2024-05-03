@@ -56,7 +56,7 @@ Date Range widget
         this.lowDate.style = 'pointer-events:none;user-select:none;position:relative;';
         this.highDate.style = 'pointer-events:none;user-select:none;position:absolute;right:0px;';
         this.backgroundBar.style = 'position:relative;width:100%;height:7px;background-color:lightblue;margin-top:10px;border-radius:5px;overflow:visible;';
-        this.selectedBar.style = 'position:absolute;width:50px;height:100%;background-color:blue;pointer-events:none;';
+        this.selectedBar.style = 'position:absolute;width:50px;height:100%;background-color:blue;'//pointer-events:none;';
         this.lowMarker.style = 'position:absolute;width:10px;height:20px;border-radius:10px 0px 0px 10px;background-color:pink;top:-7px;';
         this.highMarker.style = 'position:absolute;width:10px;height:20px;border-radius:0px 10px 10px 0px;background-color:orange;top:-7px;';
         this.selectedDates.style = 'position:relative;text-align:center;pointer-events:none;user-select:none;top:7px;';
@@ -66,8 +66,6 @@ Date Range widget
         this.container.width = this.width;
 
         this.selectedDates.innerHTML = new Date(this.end).toLocaleDateString('EN-GB')
-        this.lowMarker.style.left = (-1 * this.handleWidth) + 'px';
-        this.highMarker.style.left = '0px';
         this.selectedBar.style.left = (this.lowDate.getBoundingClientRect().right - this.handleWidth) + 'px';
         this.selectedBar.style.width = this.highDate.getBoundingClientRect().left - this.lowDate.getBoundingClientRect().right + 'px';
         this.lowDate.innerHTML = this.start
@@ -76,32 +74,38 @@ Date Range widget
         // Add a click event handler
         $tw.utils.addEventListeners(this.lowMarker,[
             {name:"mousedown", handlerObject:this, handlerMethod:"handleLowMouseDownEvent"},
-            {name:"mouseup",   handlerObject:this, handlerMethod:"handleMouseUpEvent"},
         ]);
         $tw.utils.addEventListeners(this.highMarker,[
             {name:"mousedown", handlerObject:this, handlerMethod:"handleHighMouseDownEvent"},
-            {name:"mouseup",   handlerObject:this, handlerMethod:"handleMouseUpEvent"},
         ]);
         $tw.utils.addEventListeners(this.container, [
             {name:"mousemove",    handlerObject:this, handlerMethod:"handleMouseMoveEvent"},
             {name:"mouseleave",    handlerObject:this, handlerMethod:"handleMouseLeaveEvent"},
+            {name:"mouseup",    handlerObject:this, handlerMethod:"handleMouseUpEvent"},
         ]);
+        $tw.utils.addEventListeners(this.selectedBar, [
+            {name:"mousedown", handlerObject:this, handlerMethod:"handleBarMouseDownEvent"},
+        ])
         // Insert the label into the DOM and render any children
         parent.insertBefore(this.container,nextSibling);
         const full = this.backgroundBar.getBoundingClientRect().width;
         const oneDay = 24 * 60 * 60 * 1000;
         const startOne = new Date(this.start);
         const endOne = new Date(this.end);
-        const totalDays = Math.round(Math.abs(endOne - startOne) / oneDay);
+        const totalDays = Math.round(Math.abs(endOne.valueOf() - startOne.valueOf()) / oneDay);
         this.binWidth = full / totalDays;
 
         // the start date thing
-        const startIndex = Math.floor(this.lowMarker.getBoundingClientRect().right / this.binWidth);
+        // the scale factor to use to translate from the timestamp to pixels
+        const scaleFactor = full / (new Date(this.end).valueOf() - new Date(this.start).valueOf())
+        const startIndex = (this.theStartDate.valueOf() - new Date(this.start).valueOf()) * scaleFactor
         // the end date thing
-        const endIndex = Math.floor(this.highMarker.getBoundingClientRect().left / this.binWidth);
+        const endIndex = (this.theEndDate.valueOf() - new Date(this.start).valueOf()) * scaleFactor
         // the actual dates
-        this.theStartDate = new Date(startOne.valueOf() + startIndex * oneDay);
-        this.theEndDate = new Date(startOne.valueOf() + endIndex * oneDay);
+        this.lowMarker.style.left = (startIndex - this.binWidth) + 'px';
+        this.highMarker.style.left = (endIndex + this.binWidth) + 'px';
+        this.selectedBar.style.left = this.lowMarker.getBoundingClientRect().right - this.backgroundBar.getBoundingClientRect().left + 'px';
+        this.selectedBar.style.width = this.highMarker.getBoundingClientRect().left - this.lowMarker.getBoundingClientRect().right + 'px';
         this.domNodes.push(this.container);
     };
     
@@ -116,6 +120,13 @@ Date Range widget
         event.preventDefault();
         this.isDownHigh = true;
         this.startOffset = this.highMarker.offsetLeft - event.clientX;
+    }
+
+    DateRangeWidget.prototype.handleBarMouseDownEvent = function(event) {
+        event.preventDefault();
+        this.isDownBar = true;
+        this.highStartOffset = this.highMarker.offsetLeft - event.clientX;
+        this.lowStartOffset = this.lowMarker.offsetLeft - event.clientX;
     }
     
     DateRangeWidget.prototype.handleMouseMoveEvent = function(event) {
@@ -144,7 +155,29 @@ Date Range widget
                 this.lowMarker.style.left = (this.highMarker.getBoundingClientRect().left - this.handleWidth - this.backgroundBar.getBoundingClientRect().left) + 'px';
             }
         }
-        if(this.isDownHigh || this.isDownLow) {
+        if (this.isDownBar) {
+            this.highMarker.style.left = (event.clientX + this.highStartOffset) + 'px';
+            this.lowMarker.style.left  = (event.clientX + this.lowStartOffset) + 'px';
+            if (this.lowMarker.getBoundingClientRect().right - this.backgroundBar.getBoundingClientRect().left >= this.backgroundBar.getBoundingClientRect().width) {
+                this.lowMarker.style.left = (this.backgroundBar.getBoundingClientRect().width - this.handleWidth) + 'px';
+            }
+            if (this.lowMarker.getBoundingClientRect().right <= this.backgroundBar.getBoundingClientRect().left) {
+                this.lowMarker.style.left = -1.0 * this.handleWidth + 'px'
+            }
+            if(this.lowMarker.getBoundingClientRect().right > this.highMarker.getBoundingClientRect().left) {
+                this.highMarker.style.left = (this.lowMarker.getBoundingClientRect().right - this.backgroundBar.getBoundingClientRect().left) + 'px';
+            }
+            if(this.highMarker.getBoundingClientRect().left >= this.backgroundBar.getBoundingClientRect().right) {
+                this.highMarker.style.left = this.backgroundBar.getBoundingClientRect().width + "px";
+            }
+            if(this.highMarker.getBoundingClientRect().left <= this.backgroundBar.getBoundingClientRect().left) {
+                this.highMarker.style.left = "0px";
+            }
+            if(this.highMarker.getBoundingClientRect().left - this.handleWidth < this.lowMarker.getBoundingClientRect().left) {
+                this.lowMarker.style.left = (this.highMarker.getBoundingClientRect().left - this.handleWidth - this.backgroundBar.getBoundingClientRect().left) + 'px';
+            }
+        }
+        if(this.isDownHigh || this.isDownLow || this.isDownBar) {
             this.selectedBar.style.left = this.lowMarker.getBoundingClientRect().right - this.backgroundBar.getBoundingClientRect().left + 'px';
             this.selectedBar.style.width = this.highMarker.getBoundingClientRect().left - this.lowMarker.getBoundingClientRect().right + 'px';
 
@@ -174,20 +207,22 @@ Date Range widget
         event.preventDefault();
         this.isDownHigh = false;
         this.isDownLow = false;
+        this.isDownBar = false;
     }
     
     DateRangeWidget.prototype.handleMouseLeaveEvent = function(event) {
         event.preventDefault();
         this.isDownHigh = false;
         this.isDownLow = false;
+        this.isDownBar = false;
     }
     
     /*
     Compute the internal state of the widget
     */
     DateRangeWidget.prototype.execute = function() {
-        this.start = this.getAttribute('start', '01/01/2022')
-        this.end = this.getAttribute('end', '01/01/2023')
+        this.start = this.getAttribute('start', '2022-01-01')
+        this.end = this.getAttribute('end', '2023-01-01')
         this.handleWidth = this.getAttribute('handleWidth', 15)
         this.width = this.getAttribute('width', '100%')
 
@@ -197,6 +232,7 @@ Date Range widget
 
         this.isDownHigh = false;
         this.isDownLow = false;
+        this.isDownBar = false;
 
         this.binWidth = 10;
 
@@ -205,6 +241,9 @@ Date Range widget
         if(thisTiddler) {
             this.theStartDate = $tw.utils.parseDate(thisTiddler.fields[this.startField]);
             this.theEndDate = $tw.utils.parseDate(thisTiddler.fields[this.endField]);
+        } else {
+            this.theStartDate = new Date(this.start)
+            this.theEndDate = new Date(this.end)
         }
         // Make the child widgets
         this.makeChildWidgets();

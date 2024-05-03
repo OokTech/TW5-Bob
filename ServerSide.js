@@ -420,6 +420,7 @@ ServerSide.getViewableSettings = function(data) {
   tempSettings.advanced = tempSettings.avanced || {};
   tempSettings['ws-server'] = tempSettings['ws-server'] || {};
   tempSettings['fed-wss'] = tempSettings['fed-wss'] || {};
+  tempSettings.photoThumbnails = $tw.settings.photoThumbnails
 
   return tempSettings;
 }
@@ -582,6 +583,7 @@ ServerSide.listFiles = function(data, cb) {
           '.csv': 'text/csv',
           '.doc': 'application/msword',
           '.epub': 'application/epub+zip',
+          '.gpx': 'application/gpx+xml',
           '.gif': 'image/gif',
           '.html': 'text/html',
           '.htm': 'text/html',

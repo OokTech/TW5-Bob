@@ -55,7 +55,6 @@ ActionSaveSettings.prototype.refresh = function(changedTiddlers) {
 Invoke the action associated with this widget
 */
 ActionSaveSettings.prototype.invokeAction = function(triggeringWidget,event) {
-  let self = this;
   const tiddler = $tw.wiki.getTiddler('$:/WikiSettings/split');
   const settings = JSON.stringify(buildSettings(tiddler), "", 2);
   const wikiName = $tw.wiki.getTiddlerText("$:/WikiName");

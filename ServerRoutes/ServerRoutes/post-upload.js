@@ -22,6 +22,7 @@ exports.handler = function(request,response,state) {
   const fs = require('fs')
   const path = require('path')
   const buffer = require('buffer')
+  const crypto = require('crypto')
   $tw.settings.API = $tw.settings.API || {};
   const authorised = $tw.Bob.AccessCheck(decodeURIComponent(request.headers['x-wiki-name']), response, 'upload', 'wiki');
   if (authorised) {
@@ -29,7 +30,7 @@ exports.handler = function(request,response,state) {
     request.on('data', function(chunk){
       body += chunk;
       // We limit the size of an upload to 10mb for now.
-      if(body.length > 10e6) {
+      if(body.length > 100e6) {
         response.writeHead(413, {'Content-Type': 'text/plain'}).end();
         request.connection.destroy();
       }
@@ -51,14 +52,16 @@ exports.handler = function(request,response,state) {
         const filesPath = path.resolve($tw.syncadaptor.getWikiPath(bodyData.wiki), 'files');
         $tw.utils.createDirectory(filesPath);
         const buf = Buffer.from(bodyData.tiddler.fields.text,'base64');
+        const imageHash = crypto.createHash('sha256').update(buf).digest('hex');
         fs.writeFile(path.join(filesPath, bodyData.tiddler.fields.title), buf, function(error) {
           if(error) {
             response.writeHead(500).end();
             $tw.Bob.logger.error(error, {level: 2});
           } else {
             $tw.Bob.logger.log("File saved on server: ", bodyData.tiddler.fields.title, {level: 3});
-            // Send browser message letting the person know that the file has been uploaded.
-            response.writeHead(200).end();
+            // Send browser message letting the person know that the file has been uploaded. Include the file hash
+            // to add to the tiddler in the browser
+            response.writeHead(200).end(JSON.stringify({title: bodyData.tiddler.fields.title, hash: imageHash}), 'utf8');
           }
         });
       } catch (e) {

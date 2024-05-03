@@ -584,6 +584,7 @@ function BrowserWSAdaptor(options) {
           '.csv': 'text/csv',
           '.doc': 'application/msword',
           '.epub': 'application/epub+zip',
+          '.gpx': 'application/gpx+xml',
           '.gif': 'image/gif',
           '.html': 'text/html',
           '.htm': 'text/html',
@@ -607,7 +608,7 @@ function BrowserWSAdaptor(options) {
           '.jp2': 'image/jpeg',
           '.heic': 'image/heic'
         };
-        if(Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri) {
+        if(Object.values(mimeMap).indexOf(tiddler.fields.type) !== -1 && !tiddler.fields._canonical_uri && !(tiddler.fields.type === 'image/svg+xml' || tiddler.fields.type === 'image/svg')) {
           // Check if this is set up to use HTTP post or websockets to save the
           // image on the server.
           const request = new XMLHttpRequest();
@@ -638,6 +639,25 @@ function BrowserWSAdaptor(options) {
                 // Things should be ok
                 // The server should send a browser message saying that the
                 // upload was successful.
+                let info = {}
+                try {
+                  info = JSON.parse(request.response)
+                } catch {
+                  console.log(request)
+                }
+                const theTid = $tw.wiki.getTiddler(info.title)
+                if(theTid) {
+                  const otherTid = JSON.parse(JSON.stringify(theTid))
+                  otherTid.fields.hash = info.hash
+                  $tw.wiki.addTiddler(new $tw.Tiddler(otherTid.fields));
+                  const fields = {
+                    component: 'Server Message',
+                    title: '$:/temp/File Saved',
+                    text: 'Saved File on Server'+"<br/><$button>Clear Alerts<$action-deletetiddler $filter='[tag[$:/tags/Alert]component[Server Message]]'/></$button>",
+                    tags: '$:/tags/Alert'
+                  }
+                  $tw.wiki.addTiddler(new $tw.Tiddler(fields, $tw.wiki.getCreationFields()));
+                }
               } else {
                 // There is a problem
                 // Make a tiddler that has the tag $:/tags/Alert that has the text of
@@ -659,21 +679,15 @@ function BrowserWSAdaptor(options) {
           wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
           $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
           const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
-          fields.title = tiddler.fields.title;
-          fields.type = tiddler.fields.type;
 
           if($tw.settings.photoThumbnails && tiddler.fields.type.startsWith('image/')) {
+            fields.title = 'NotActuallyUsed';
+            fields.text = 'This is a placeholder, the imported images have the hash as a title and the image name as the subtitle'
             fields.uri = uri;
             return new $tw.Tiddler(fields)
           } else {
-            // Change the tiddler fields and stuff
-            //const fields = {};
-            //wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-            //wikiPrefix = wikiPrefix === '' ? '' : '/' + wikiPrefix;
-            //$tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
-            //const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
-            //fields.title = tiddler.fields.title;
-            //fields.type = tiddler.fields.type;
+            fields.title = tiddler.fields.title;
+            fields.type = tiddler.fields.type;
             fields._canonical_uri = uri;
             return new $tw.Tiddler(fields);
           }

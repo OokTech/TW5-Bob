@@ -21,6 +21,7 @@ title: $:/plugins/OokTech/Bob/DefaultSettings
   "perWikiFiles": "no",
   "enableBobSaver": "yes",
   "persistentUsernames": "no",
+  "photoThumbnails": "true",
   "scripts": {
     "NewWiki": "tiddlywiki #wikiName --init #editionName"
   },

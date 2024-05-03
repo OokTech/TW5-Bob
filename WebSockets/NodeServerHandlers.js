@@ -1062,6 +1062,7 @@ if($tw.node) {
         '.csv': 'text/csv',
         '.doc': 'application/msword',
         '.epub': 'application/epub+zip',
+        '.gpx': 'application/gpx+xml',
         '.gif': 'image/gif',
         '.html': 'text/html',
         '.htm': 'text/html',

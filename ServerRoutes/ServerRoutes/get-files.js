@@ -100,6 +100,7 @@ exports.handler = function(request,response,state) {
             '.doc': 'application/msword',
             '.epub': 'application/epub+zip',
             '.gif': 'image/gif',
+            '.gpx': 'application/gpx+xml',
             '.html': 'text/html',
             '.htm': 'text/html',
             '.ico': 'image/x-icon',

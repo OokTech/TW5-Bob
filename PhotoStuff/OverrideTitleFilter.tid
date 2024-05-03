@@ -1,0 +1,2 @@
+title: $:/tags/ViewTemplateTitleFilter
+list: $:/plugins/Bob/SubTitleFilter $:/config/ViewTemplateTitleFilters/system $:/config/ViewTemplateTitleFilters/default
