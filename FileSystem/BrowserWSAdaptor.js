@@ -618,7 +618,7 @@ function BrowserWSAdaptor(options) {
           request.upload.addEventListener('abort', transferCanceled);
 
           let wikiPrefix = $tw.wiki.getTiddlerText('$:/WikiName') || '';
-          if($tw.settings.photoThumbnails && tiddler.fields.type.startsWith('image/')) {
+          if($tw.settings.photoThumbnails === 'true' && tiddler.fields.type.startsWith('image/')) {
             const photoUploadURL = '/api/upload/photo/';
             request.open('POST', photoUploadURL, true);
 
