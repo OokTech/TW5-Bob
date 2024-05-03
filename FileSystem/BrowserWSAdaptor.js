@@ -680,7 +680,7 @@ function BrowserWSAdaptor(options) {
           $tw.settings.fileURLPrefix = $tw.settings.fileURLPrefix || 'files';
           const uri = wikiPrefix + '/' + $tw.settings.fileURLPrefix + '/' + tiddler.fields.title;
 
-          if($tw.settings.photoThumbnails && tiddler.fields.type.startsWith('image/')) {
+          if($tw.settings.photoThumbnails === 'true' && tiddler.fields.type.startsWith('image/')) {
             fields.title = 'NotActuallyUsed';
             fields.text = 'This is a placeholder, the imported images have the hash as a title and the image name as the subtitle'
             fields.uri = uri;
