@@ -10,6 +10,7 @@ title: $:/plugins/OokTech/Bob/Changelog
 ** Save manual backup (a html version of the current wiki with any edits in case of server errors)
 * Creating a wiki in Bob from an html wiki works again
 * A little cleanup on the logger interface
+* (WikiDB backend only) add searching multiple wikis at once
 
 !! Version 1.7.6 Something Wiki This Way Comes
 

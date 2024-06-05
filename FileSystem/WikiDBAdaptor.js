@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/WikiDBAdaptor.js
 type: application/javascript
-module-type: asyncadaptor
+module-type: syncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -522,6 +522,33 @@ A sync adaptor module for synchronising multiple wikis
       } else {
         return false
       }
+    }
+
+    // With the wikidb we can search though all of the wikis without trouble, so we can have this here
+    // the wikiList is the list of wikis to search, if it is undefined or null or empty it will search all the wikis
+    // the logged in identity has access to.
+    WikiDBAdaptor.prototype.searchWikis = function(wikiList, tiddlerFilter, cb) {
+      //
+      if (typeof cb !== 'function') {cb = () => {}}
+      const body = JSON.stringify({
+        db: wikiList,
+        filter: tiddlerFilter
+      })
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/search',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      }
+      httpRequest(options, body)
+      .then((response) => {
+        cb(response)
+      })
     }
 
     WikiDBAdaptor.prototype.loadWiki = function(wikiName, cb) {

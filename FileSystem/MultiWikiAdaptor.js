@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/MultiWikiAdaptor.js
 type: application/javascript
-module-type: syncadaptor
+module-type: asyncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 

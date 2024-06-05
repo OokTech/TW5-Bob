@@ -141,6 +141,18 @@ function BrowserWSAdaptor(options) {
 
   BrowserWSAdaptor.prototype.sendToServer = _sendToServer
 
+  BrowserWSAdaptor.prototype.searchWikis = function(filter='[is[system]!is[system]]', wikis=[], tiddler='$:/state/interwikisearch/results') {
+    // send a message to the server telling it to use the inter-wiki search
+    // the response should make some temporary tiddlers with the results
+    const message = {
+      type: 'search',
+      wikis: wikis,
+      filter: filter,
+      tiddler: tiddler
+    }
+    _sendToServer(message)
+    // handling the response is a message handler, so it doesn't need anything here
+  }
 
   BrowserWSAdaptor.prototype.setConnected = function() {
     if($tw.wiki.tiddlerExists('$:/plugins/OokTech/Bob/Server Warning')) {

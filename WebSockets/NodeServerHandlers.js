@@ -1195,6 +1195,35 @@ if($tw.node) {
     }
     $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
   }
+
+  /*
+    Search a list of wikis using a filter
+  */
+  $tw.nodeMessageHandlers.searchWikis = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    if(!$tw.syncadaptor.searchWikis || typeof $tw.syncadaptor.searchWikis !== 'function') {
+      // send browser alert saying that the back-end dosen't support searching across all wikis
+      $tw.ServerSide.sendBrowserAlert({alert: "searching other wikis isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+    } else {
+      $tw.syncadaptor.searchWikis(data.wikis, data.filter, function (searchResults) {
+        Object.keys(searchResults).forEach(function(thisWikiName) {
+          // search results is an object in the form {wikiName: [filter resulsts], wikiName2: [filter results2], ...}
+          // save the results in a set of tiddlers, tiddler names are in the form $:/state/searchresults/<wikiName>
+          // the list field has the results of the filter (maybe, it amy have to be text fields due to line breaks and the like)
+          const fields = {
+            title: `$:/state/searchresults/${thisWikiName}`,
+            list: searchResults[thisWikiName]
+          }
+          const message = {
+            type: 'saveTiddler',
+            tiddler: fields,
+            wiki: data.wiki
+          }
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+        })
+      });
+    }
+  }
 }
 }
 })();
