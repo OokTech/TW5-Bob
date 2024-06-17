@@ -480,8 +480,6 @@ if($tw.node) {
   /*
     This updates the settings.json file based on the changes that have been made
     in the browser.
-
-    TODO: Move file system things somewhere else
   */
   $tw.nodeMessageHandlers.saveSettings = function(data) {
     $tw.Bob.Shared.sendAck(data);
@@ -546,20 +544,28 @@ if($tw.node) {
   */
   $tw.nodeMessageHandlers.getPluginList = function (data) {
     $tw.Bob.Shared.sendAck(data);
-    const pluginNames = $tw.ServerSide.getViewablePluginsList(data);
-    const fields = {
-      title: '$:/Bob/AvailablePluginList',
-      list: $tw.utils.stringifyList(Object.keys(pluginNames))
-    }
-    const tiddler = {
-      fields: fields
-    };
-    const message = {
-      type: 'saveTiddler',
-      tiddler: tiddler,
-      wiki: data.wiki
-    }
-    $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+    $tw.syncadaptor.getViewablePluginsList(data)
+    .then(function(pluginsData) {
+      const theTextField = {}
+      Object.keys(pluginsData).forEach(function(thisOne){
+        theTextField[thisOne] = pluginsData[thisOne].description
+      })
+      const fields = {
+        title: '$:/Bob/AvailablePluginList',
+        type: 'application/json',
+        text: JSON.stringify(theTextField),
+        list: $tw.utils.stringifyList(Object.keys(pluginsData))
+      }
+      const tiddler = {
+        fields: fields
+      };
+      const message = {
+        type: 'saveTiddler',
+        tiddler: tiddler,
+        wiki: data.wiki
+      }
+      $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+    })
   }
 
   /*
@@ -1008,9 +1014,7 @@ if($tw.node) {
       }
       $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message);
     }
-
     $tw.ServerSide.listFiles(data, thisCallback)
-
   }
 
   /*
@@ -1216,12 +1220,21 @@ if($tw.node) {
           }
           const message = {
             type: 'saveTiddler',
-            tiddler: fields,
+            tiddler: {fields: fields},
             wiki: data.wiki
           }
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
         })
       });
+    }
+  }
+
+  $tw.nodeMessageHandlers.updateDBPlugin = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    if(typeof $tw.syncadaptor.updateDBPlugin !== 'function') {
+      $tw.ServerSide.sendBrowserAlert({alert: "updating plugins in the database isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+    } else {
+      $tw.syncadaptor.updateDBPlugin(data)
     }
   }
 }

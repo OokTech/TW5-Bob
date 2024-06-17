@@ -777,7 +777,7 @@ BrowserWSAdaptor.prototype.saveTiddler = function (tiddler, callback) {
       this.idList.push(id)
       $tw.rootWidget.addEventListener('handle-ack', function(e) {
         handleAck(e.detail)
-      })
+      }, {once: true})
     }
   }
 }
@@ -817,7 +817,7 @@ BrowserWSAdaptor.prototype.saveTiddlers = function (tiddlers, callback) {
     this.idList.push(id);
     $tw.rootWidget.addEventListener('handle-ack', function(e) {
       handleAck(e.detail);
-    })
+    }, {once: true})
   }
 }
 
@@ -839,8 +839,41 @@ BrowserWSAdaptor.prototype.loadTiddler = function (title, callback) {
     const id = $tw.syncadaptor.sendToServer(message)
     $tw.rootWidget.addEventListener('loaded-tiddler', function(e) {
       handleLoadedTiddler(e.detail)
-    })
+    }, {once: true})
   }
+}
+
+// Optional, only for adaptors that support multiple wikis on the server
+// load a tiddler from another wiki, it is the same as loadTiddler but you also give a wiki name so it can come from any wiki on the server
+BrowserWSAdaptor.prototype.loadExternalTiddler = function(title, wiki, callback) {
+  function handleLoadedTiddler(tiddler, wikiName) {
+    callback(null, tiddler.fields, wikiName)
+  }
+  const message = {
+    type: 'getFullTiddler',
+    title: title,
+    wiki: wiki
+  }
+  const id = $tw.syncadaptor.sendToServer(message)
+  $tw.rootWidget.addEventListener('loaded-tiddler', function(e) {
+    handleLoadedTiddler(e.detail, wiki)
+  }, {once: true})
+}
+
+// Load external tiddlers using a filter
+BrowserWSAdaptor.prototype.loadExternalTiddlers = function(filter, wiki, callback) {
+  function handleLoadedTiddlers(tiddlers, wikiName) {
+    callback(null, tiddlers, wikiName)
+  }
+  const message = {
+    type: 'getTiddlers',
+    filter: filter,
+    wiki: wiki
+  }
+  const id = $tw.syncadaptor.sendToServer(message)
+  $tw.rootWidget.addEventListener('loaded-tiddlers', function(e) {
+    handleLoadedTiddlers(e.detail, wiki)
+  }, {once: true})
 }
 
 // REQUIRED
@@ -874,7 +907,7 @@ BrowserWSAdaptor.prototype.deleteTiddler = function (title, callback, options) {
     this.idList.push(id)
     $tw.rootWidget.addEventListener('handle-ack', function(e) {
       handleAck(e.detail)
-    })
+    }, {once: true})
   }
 }
 
@@ -969,7 +1002,7 @@ function setupSkinnyTiddlerLoading() {
                   id = $tw.syncadaptor.sendToServer(message)
                   $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
                     handleSkinnyTiddlers(e.detail)
-                  })
+                  }, {once: true})
                 } else {
                   setSendThingTimeout()
                 }
@@ -983,7 +1016,7 @@ function setupSkinnyTiddlerLoading() {
               id = $tw.syncadaptor.sendToServer(message)
               $tw.rootWidget.addEventListener('skinny-tiddlers', function(e) {
                 handleSkinnyTiddlers(e.detail)
-              })
+              }, {once: true})
             } else {
               setSendThingTimeout()
             }

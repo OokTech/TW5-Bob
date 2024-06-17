@@ -1,0 +1,32 @@
+title: $:/plugins/OokTech/Bob/SearchWikisTab
+caption: Search Wikis
+
+THIS DOESN'T DO ANYTHING FOR THE NORMAL VERSION OF BOB!!!
+
+This isn't really a search so much as being able to run a filter in each wiki.
+
+Wikis To Search: //for now it is all of them// <$list filter='[list[$:/state/ViewableWikis]]'>
+
+<a href={{{ [<currentTiddler>] }}}><$text text={{{  [<currentTiddler>] }}}/></a>
+</$list>
+
+Search Filter: <$edit-text tiddler='$:/temp/searchwikis/searchfilter' field='searchfilter' placeholder='Search Filter'/>
+
+<$button>Clear<$action-deletetiddler $filter='[prefix[$:/state/searchresults/]]'/></$button><$button>
+Search Wikis
+<$action-websocketmessage $type='searchWikis' filter={{$:/temp/searchwikis/searchfilter!!searchfilter}}/>
+</$button>
+
+Click the tiddler name to open a local preview
+
+<$list filter='[prefix[$:/state/searchresults/]]' variable=searchResultsTid>
+
+!! <a href={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]] }}}><$text text={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]] }}}/></a>
+
+<$list filter='[list<searchResultsTid>]'>
+
+<<currentTiddler>> (<a href={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]addsuffix[#]addsuffix<currentTiddler>] }}} target='_blank'>Open Original</a>)
+
+</$list>
+
+</$list>

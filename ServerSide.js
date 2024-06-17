@@ -271,38 +271,6 @@ ServerSide.getViewableWikiList = function (data) {
   return tempObj;
 }
 
-ServerSide.getViewablePluginsList = function (data) {
-  data = data || {};
-  $tw.settings.pluginLibrary = $tw.settings.pluginLibrary || {};
-  const viewablePlugins = [];
-  const pluginList = $tw.utils.getPluginInfo();
-  if($tw.settings.pluginLibrary.allPublic === 'yes') {
-    return pluginList;
-  }
-  Object.keys(pluginList).forEach(function(pluginName) {
-    if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
-      viewablePlugins[pluginName] = pluginList[pluginName];
-    }
-  })
-  return viewablePlugins;
-}
-
-ServerSide.getViewableThemesList = function (data) {
-  data = data || {};
-  $tw.settings.themeLibrary = $tw.settings.themeLibrary || {};
-  const viewableThemes = [];
-  const themeList = $tw.utils.getThemeInfo();
-  if($tw.settings.themeLibrary.allPublic === 'yes') {
-    return themeList;
-  }
-  Object.keys(themeList).forEach(function(themeName) {
-    if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
-      viewableThemes[themeName] = themeList[themeName];
-    }
-  })
-  return viewableThemes;
-}
-
 ServerSide.getViewableEditionsList = function (data) {
   // This may not be needed anymore
   if(typeof $tw.settings.editionsPath === 'string') {

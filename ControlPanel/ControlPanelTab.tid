@@ -19,6 +19,7 @@ Click the ^^(?)^^ next to options for more information.
 * [[File Server|$:/plugins/OokTech/Bob/FileServerSetup]] - setup file server so that you can access local media files
 * [[Server Settings|$:/plugins/OokTech/Bob/ServerTab]] - logging and manual settings
 * [[Federation|$:/plugins/OokTech/Bob/FederationTab]] - federated chat and set up wiki syncing between this server and other Bob servers
+* [[Search All Wikis|$:/plugins/OokTech/Bob/SearchWikisTab]] - **In development, don't expect it to work!!** search though multiple (or all) wikis on the server
 <$reveal
   type=match
   state="$:/status/IsLoggedIn"

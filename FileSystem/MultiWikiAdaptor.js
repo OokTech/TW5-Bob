@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/MultiWikiAdaptor.js
 type: application/javascript
-module-type: asyncadaptor
+module-type: syncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -1459,6 +1459,38 @@ if($tw.node) {
         cb(null, $tw.utils.stringifyList(theBackupsList))
       }
     })
+  }
+
+  MultiWikiAdaptor.prototype.getViewablePluginsList = function(data) {
+    data = data || {};
+    $tw.settings.pluginLibrary = $tw.settings.pluginLibrary || {};
+    const viewablePlugins = [];
+    const pluginList = $tw.utils.getPluginInfo();
+    if($tw.settings.pluginLibrary.allPublic === 'yes') {
+      return pluginList;
+    }
+    Object.keys(pluginList).forEach(function(pluginName) {
+      if($tw.Bob.AccessCheck(pluginName, {"decoded": data.decoded}, 'view', 'plugin')) {
+        viewablePlugins[pluginName] = pluginList[pluginName];
+      }
+    })
+    return new Promise(function(resolve, reject){resolve(viewablePlugins)})
+  }
+
+  MultiWikiAdaptor.prototype.getViewableThemesList = function(data) {
+    data = data || {};
+    $tw.settings.themeLibrary = $tw.settings.themeLibrary || {};
+    const viewableThemes = [];
+    const themeList = $tw.utils.getThemeInfo();
+    if($tw.settings.themeLibrary.allPublic === 'yes') {
+      return themeList;
+    }
+    Object.keys(themeList).forEach(function(themeName) {
+      if($tw.Bob.AccessCheck(themeName, {"decoded": data.decoded}, 'view', 'theme')) {
+        viewableThemes[themeName] = themeList[themeName];
+      }
+    })
+    return new Promise(function(resolve, reject){resolve(viewableThemes)})
   }
 
   /*

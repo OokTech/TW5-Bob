@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/WikiDBAdaptor.js
 type: application/javascript
-module-type: syncadaptor
+module-type: asyncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -298,6 +298,9 @@ A sync adaptor module for synchronising multiple wikis
       httpRequest(options, body)
       .then((response)=>{
         callback(null, response[0])
+      })
+      .catch(function(e) {
+        console.log(e)
       });
     };
   
@@ -548,6 +551,9 @@ A sync adaptor module for synchronising multiple wikis
       httpRequest(options, body)
       .then((response) => {
         cb(response)
+      })
+      .catch(function(e) {
+        console.log(e)
       })
     }
 
@@ -828,6 +834,9 @@ A sync adaptor module for synchronising multiple wikis
         const message = {type: 'updateSettings'};
         $tw.Bob.SendToBrowsers(message);
         cb();
+      })
+      .catch(function(e) {
+        console.log(e)
       });
     }
 
@@ -1137,6 +1146,104 @@ A sync adaptor module for synchronising multiple wikis
       .catch((err) => {
         $tw.Bob.logger.log(`Error updating TiddlyWiki info for ${data.wiki} in DB`, {level:1})
       });
+    }
+
+    WikiDBAdaptor.prototype.updateDBPlugin = function(data) {
+      // At some point data will have the plugin name or path or something like that
+      // load the plugin as a json object
+      const pluginJSON = $tw.loadPluginFolder(data.path || "./TiddlyWiki5/plugins/OokTech/Bob")
+      // Save the updated version to the database
+      const body = JSON.stringify({
+        db: '__plugins',
+        docs: [pluginJSON]
+      });
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/store',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      };
+      httpRequest(options, body)
+      .then(res => {
+        console.log(res)
+        console.log('success updating bob!')
+      })
+      .catch(console.log)
+    }
+
+    WikiDBAdaptor.prototype.getViewablePluginsList = function(data) {
+      data = data || {};
+      const body = JSON.stringify({
+        db: '__plugins',
+        filter: '[all[]]'
+      });
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/skinny',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      };
+      return httpRequest(options, body)
+      .then(function(pluginList) {
+        $tw.settings.pluginLibrary = $tw.settings.pluginLibrary || {};
+        const viewablePlugins = {};
+        if($tw.settings.pluginLibrary.allPublic === 'yes') {
+          return pluginList
+        }
+        pluginList.forEach(function(pluginInfo) {
+          const theName = pluginInfo.title.startsWith('$:/plugins/') ? pluginInfo.title.slice(11) : pluginInfo.title
+          if($tw.Bob.AccessCheck(theName, {"decoded": data.decoded}, 'view', 'plugin')) {
+            viewablePlugins[theName] = pluginInfo;
+          }
+        })
+        return viewablePlugins
+      })
+      .catch(console.log)
+    }
+
+    WikiDBAdaptor.prototype.getViewableThemesList = function(data) {
+      data = data || {};
+      const body = JSON.stringify({
+        db: '__themes',
+        filter: '[all[]]'
+      });
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/skinny',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      };
+      return httpRequest(options, body)
+      .then(function(themeList) {
+        $tw.settings.pluginLibrary = $tw.settings.pluginLibrary || {};
+        const viewableThemes = {};
+        if($tw.settings.pluginLibrary.allPublic === 'yes') {
+          return themeList
+        }
+        themeList.forEach(function(themeInfo) {
+          const theName = themeInfo.title.startsWith('$:/themes/') ? themeInfo.title.slice(10) : themeInfo.title
+          if($tw.Bob.AccessCheck(theName, {"decoded": data.decoded}, 'view', 'theme')) {
+            viewableThemes[theName] = themeInfo;
+          }
+        })
+        return viewableThemes
+      })
+      .catch(console.log)
     }
 
     exports.adaptorClass = WikiDBAdaptor;
