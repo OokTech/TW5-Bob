@@ -1265,7 +1265,7 @@ if($tw.node) {
   $tw.nodeMessageHandlers.crossImport = function(data) {
     $tw.Bob.Shared.sendAck(data)
     if(!$tw.syncadaptor.searchWikisSkinny || typeof $tw.syncadaptor.searchWikisSkinny !== 'function') {
-      $tw.ServerSide.sendBrowserAlert({alert: "searching other wikis isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+      $tw.ServerSide.sendBrowserAlert({alert: "this type of import isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
     } else {
       // get the tiddler from the database and then send a message to the browser to import it into the wiki
       $tw.syncadaptor.loadTiddler(data.tiddler_title, data.from_wiki, function(err, theTiddler) {
@@ -1275,6 +1275,28 @@ if($tw.node) {
           const message = {
             type: 'import',
             tiddler: {fields: theTiddler},
+            wiki: data.wiki
+          }
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+        }
+      })
+    }
+  }
+
+  // for now this works on one wiki, we can make it so that you can give a list of wikis and filters that it will get thing from but that is for future Jed
+  $tw.nodeMessageHandlers.crossImportBulk = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    if(!$tw.syncadaptor.searchWikisSkinny || typeof $tw.syncadaptor.searchWikisSkinny !== 'function') {
+      $tw.ServerSide.sendBrowserAlert({alert: "this type of import isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+    } else {
+      // get the tiddlers from the database and then send them to the browser
+      $tw.syncadaptor.loadTiddlers(data.filter, data.from_wiki, function(err, theTiddlers) {
+        if(err) {
+          $tw.ServerSide.sendBrowserAlert({alert: "Error loading tiddlers to import.", connections: [$tw.connections[data.source_connection]]})
+        } else {
+          const message = {
+            type: 'importBulk',
+            tiddlers: theTiddlers,
             wiki: data.wiki
           }
           $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
