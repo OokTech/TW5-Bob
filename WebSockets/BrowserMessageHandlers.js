@@ -134,17 +134,17 @@ it will overwrite this file.
 								$tw.syncer.tiddlerInfo[thisTiddler.fields.title].timestampLastSaved = new Date();
                 $tw.syncer.tiddlerInfo[thisTiddler.fields.title].revision = thisTiddler.fields.revision
               } else {
-                $tw.syncer.tiddlerInfo[data.tiddler.fields.title] = {
+                $tw.syncer.tiddlerInfo[thisTiddler.fields.title] = {
 									changeCount: $tw.wiki.getChangeCount(thisTiddler.fields.title),
 									adaptorInfo: "",
                   revision: thisTiddler.fields.revision
 								}
               }
-              if(data.tiddler.fields._revision) {
-                data.tiddler.fields.revision = data.tiddler.fields._revision;
-                delete data.tiddler.fields._revision;
+              if(thisTiddler.fields._revision) {
+                thisTiddler.fields.revision = thisTiddler.fields._revision;
+                delete thisTiddler.fields._revision;
               }
-              $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
+              $tw.wiki.addTiddler(new $tw.Tiddler(thisTiddler.fields));
             }
           } else {
             console.log("tiddler has no title, or it isn't a string")
@@ -302,6 +302,29 @@ it will overwrite this file.
       text: "",
       list: storyList
     },$tw.wiki.getModificationFields());
+  }
+
+  /*
+    The same as import, but it takes an array of tiddlers and imports all of them.
+  */
+  $tw.browserMessageHandlers.importBulk = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    if(data.tiddlers && Array.isArray(data.tiddlers) && data.tiddlers.length > 0) {
+      data.tiddlers.forEach(function(thisTiddler) {
+        thisTiddler.fields.created = $tw.utils.stringifyDate(new Date(thisTiddler.fields.created))
+        thisTiddler.fields.modified = $tw.utils.stringifyDate(new Date(thisTiddler.fields.modified))
+        const newTitle = '$:/state/Bob/Import/' + thisTiddler.fields.title;
+        $tw.wiki.importTiddler(new $tw.Tiddler(thisTiddler.fields, {title: newTitle}));
+        // we have conflicts so open the conflict list tiddler
+        let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+        storyList = "$:/plugins/OokTech/Bob/ImportList " + $tw.utils.stringifyList(storyList)
+        $tw.wiki.addTiddler({
+          title: "$:/StoryList",
+          text: "",
+          list: storyList
+        },$tw.wiki.getModificationFields());
+      })
+    }
   }
 
   /*
