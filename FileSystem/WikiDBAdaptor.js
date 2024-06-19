@@ -1,7 +1,7 @@
 /*\
 title: $:/plugins/OokTech/Bob/WikiDBAdaptor.js
 type: application/javascript
-module-type: asyncadaptor
+module-type: syncadaptor
 
 A sync adaptor module for synchronising multiple wikis
 
@@ -301,6 +301,7 @@ A sync adaptor module for synchronising multiple wikis
       })
       .catch(function(e) {
         console.log(e)
+        callback(e, null)
       });
     };
   
@@ -541,6 +542,32 @@ A sync adaptor module for synchronising multiple wikis
         hostname: '127.0.0.1',
         port: 9999,
         path: '/search',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      }
+      httpRequest(options, body)
+      .then((response) => {
+        cb(response)
+      })
+      .catch(function(e) {
+        console.log(e)
+      })
+    }
+
+    WikiDBAdaptor.prototype.searchWikisSkinny = function(wikiList, tiddlerFilter, cb) {
+      if (typeof cb !== 'function') {cb = () => {}}
+      const body = JSON.stringify({
+        db: wikiList,
+        filter: tiddlerFilter
+      })
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/searchskinny',
         method: 'POST',
         mode: 'cors',
         headers: {

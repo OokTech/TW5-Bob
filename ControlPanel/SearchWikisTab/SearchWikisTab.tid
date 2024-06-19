@@ -1,0 +1,114 @@
+title: $:/plugins/OokTech/Bob/SearchWikisTab
+caption: Search Wikis
+
+THIS DOESN'T DO ANYTHING FOR THE NORMAL VERSION OF BOB!!!
+
+This isn't really a search so much as being able to run a filter in each wiki.
+
+Wikis To Search: //for now it is all of them// <$list filter='[list[$:/state/ViewableWikis]]'>
+
+<a href={{{ [<currentTiddler>] }}}><$text text={{{  [<currentTiddler>] }}}/></a>
+</$list>
+
+Search Filter: <$edit-text tiddler='$:/temp/searchwikis/searchfilter' field='searchfilter' placeholder='Search Filter'/>
+
+<$button>
+    Clear
+    <$action-deletetiddler
+        $filter='[prefix[$:/state/searchresults/]][prefix[$:/state/skinnysearchresults/]]'
+    />
+</$button>
+<$button>
+    Search Wikis
+    <$action-websocketmessage
+        $type='searchWikis'
+        filter={{$:/temp/searchwikis/searchfilter!!searchfilter}}
+    />
+</$button>
+
+<$button>
+    Search Skinny Wikis
+    <$action-websocketmessage
+        $type='searchWikisSkinny'
+        filter={{$:/temp/searchwikis/searchfilter!!searchfilter}}
+    />
+</$button>
+
+<$list
+    filter='[tag[Skinny Search Result]get[from_wiki]unique[]]'
+    variable='fromWiki'
+>
+    <h2><<fromWiki>></h2>
+    <$list
+        filter='[tag[Skinny Search Result]from_wiki<fromWiki>]'
+        variable='resultTiddler'
+    >
+        <$vars
+            stateTiddler={{{ [[$:/state/searchwikis/revealed/]addsuffix<resultTiddler>] }}}
+            originalTitle={{{ [<resultTiddler>get[_title]] }}}
+        >
+            <table
+                style='width:100%;margin:0px;'
+            >
+                <tr>
+                    <th colspan=2>
+                        <$button
+                            class='tc-btn-invisible'
+                            style='width:100%;height:100%;text-align:left;'
+                            actions="""<$list filter='[<stateTiddler>text[show]limit[1]]' emptyMessage="<$action-setfield $tiddler=<<stateTiddler>> $field='text' $value='show'/>"><$action-setfield $tiddler=<<stateTiddler>> $field='text' $value='hide'/></$list>"""
+                        >
+                            <div
+                                style='width:100%;height:100%'
+                            >
+                            <span title='See Fields' style='position:relative;left:0px;'>{{$:/core/images/chevron-down}}</span>
+                            <$list filter='[<resultTiddler>get[_type]prefix[image/]limit[1]]'><span title={{{ [<resultTiddler>get[_type]removeprefix[image/]addsuffix[ Image]] }}} style='position:relative;left:0px;'> {{{ [<resultTiddler>get[type]] }}} {{{ [<resultTiddler>get[type]removeprefix[image/]] }}} {{$:/core/images/picture}}</span></$list>
+                            <$list filter='[<resultTiddler>has[__canonical_uri]limit[1]]'><span title='External File' style='position:relative;left:0px;'>{{$:/core/images/link}}</span></$list>
+                            <span title='Import Into Wiki' style='float:right;'><$button><$action-websocketmessage $type='crossImport' tiddler_title=<<originalTitle>> from_wiki=<<fromWiki>>/>{{$:/core/images/download-button}}</$button></span>
+                            <span style='width:90%;text-align:center;display:inline-block;'>
+                                <$view
+                                    tiddler=<<resultTiddler>>
+                                    field='_title'
+                                /> (<a href={{{ [<resultTiddler>get[from_wiki]!prefix[RootWiki]else[]addprefix[/]addsuffix[#]addsuffix<originalTitle>] }}} target='_blank'>Open Original</a>)
+                            </span>
+                            </div>
+                        </$button>
+                    </th>
+                </tr>
+                <$list filter='[<stateTiddler>text[show]limit[1]]'>
+                    <$list
+                        filter='[<resultTiddler>fields[]prefix[_]]'
+                        variable='rawFieldName'
+                    >
+                        <tr>
+                            <th>
+                                <$text
+                                    text={{{ [<rawFieldName>removeprefix[_]] }}}
+                                />
+                            </th>
+                            <td>
+                                <$view
+                                    tiddler=<<resultTiddler>>
+                                    field=<<rawFieldName>>
+                                />
+                            </td>
+                        </tr>
+                    </$list>
+                </$list>
+            </table>
+        </$vars>
+    </$list>
+</$list>
+
+Click the tiddler name to open a local preview
+
+<$list filter='[prefix[$:/state/searchresults/]]' variable=searchResultsTid>
+
+!! <a href={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]] }}}><$text text={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]] }}}/></a>
+
+<$list filter='[list<searchResultsTid>]'>
+
+<<currentTiddler>> (<a href={{{ [<searchResultsTid>removeprefix[$:/state/searchresults]addsuffix[#]addsuffix<currentTiddler>] }}} target='_blank'>Open Original</a>)
+
+</$list>
+
+</$list>

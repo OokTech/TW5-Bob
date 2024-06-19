@@ -1,0 +1,38 @@
+title: $:/plugins/OokTech/Bob/SkinnyResultTemplate
+
+<h2>
+    <$view
+        tiddler=<<currentTiddler>>
+        field='_title'
+    />
+</h2>
+<table
+    style='width:100%'
+>
+    <tr>
+        <th>
+            Field Name
+        </th>
+        <th>
+            Field Value
+        </th>
+    </tr>
+    <$list
+        filter='[<currentTiddler>fields[]prefix[_]]'
+        variable='rawFieldName'
+    >
+        <tr>
+            <th>
+                <$text
+                    text={{{ [<rawFieldName>removeprefix[_]] }}}
+                />
+            </th>
+            <td>
+                <$view
+                    tiddler=<<curentTiddler>>
+                    field=<<rawFieldName>>
+                />
+            </td>
+        </tr>
+    </$list>
+</table>

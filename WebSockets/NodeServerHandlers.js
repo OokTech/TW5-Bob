@@ -1229,6 +1229,60 @@ if($tw.node) {
     }
   }
 
+  $tw.nodeMessageHandlers.searchWikisSkinny = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    if(!$tw.syncadaptor.searchWikisSkinny || typeof $tw.syncadaptor.searchWikisSkinny !== 'function') {
+      $tw.ServerSide.sendBrowserAlert({alert: "searching other wikis isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+    } else {
+      $tw.syncadaptor.searchWikisSkinny(data.wikis, data.filter, function (searchResults) {
+        Object.keys(searchResults).forEach(function(thisWikiName) {
+          searchResults[thisWikiName].forEach(function(thisSkinnyTiddler)  {
+            // search results is an object in the form {wikiName: [filter resulsts], wikiName2: [filter results2], ...}
+            // save the results in a set of tiddlers, tiddler names are in the form $:/state/searchresults/<wikiName>
+            // the list field has the results of the filter (maybe, it amy have to be text fields due to line breaks and the like)
+            const newFields = {}
+            newFields.title = `$:/state/skinnysearchresults/${thisWikiName}/${thisSkinnyTiddler.title}`
+            newFields.tags = '[[Skinny Search Result]]'
+            newFields.from_wiki = thisWikiName
+            Object.keys(thisSkinnyTiddler).forEach(function(thisFieldName) {
+              newFields[`_${thisFieldName}`] = thisSkinnyTiddler[thisFieldName]
+            })
+            const message = {
+              type: 'saveTiddler',
+              tiddler: {fields: newFields},
+              wiki: data.wiki,
+              db: []
+            }
+            $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+          })
+        })
+      });
+    }
+  }
+
+  // this needs a better name
+  // import a tiddler from another wiki stored on the same back-end server
+  $tw.nodeMessageHandlers.crossImport = function(data) {
+    $tw.Bob.Shared.sendAck(data)
+    if(!$tw.syncadaptor.searchWikisSkinny || typeof $tw.syncadaptor.searchWikisSkinny !== 'function') {
+      $tw.ServerSide.sendBrowserAlert({alert: "searching other wikis isn't available with the current back-end.", connections: [$tw.connections[data.source_connection]]})
+    } else {
+      // get the tiddler from the database and then send a message to the browser to import it into the wiki
+      $tw.syncadaptor.loadTiddler(data.tiddler_title, data.from_wiki, function(err, theTiddler) {
+        if(err) {
+          $tw.ServerSide.sendBrowserAlert({alert: "Error loading tiddler to import.", connections: [$tw.connections[data.source_connection]]})
+        } else {
+          const message = {
+            type: 'import',
+            tiddler: {fields: theTiddler},
+            wiki: data.wiki
+          }
+          $tw.Bob.SendToBrowser($tw.connections[data.source_connection], message)
+        }
+      })
+    }
+  }
+
   $tw.nodeMessageHandlers.updateDBPlugin = function(data) {
     $tw.Bob.Shared.sendAck(data)
     if(typeof $tw.syncadaptor.updateDBPlugin !== 'function') {
