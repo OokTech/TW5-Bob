@@ -306,6 +306,38 @@ A sync adaptor module for synchronising multiple wikis
     };
   
     /*
+      Load multiple tiddlers and invoke the callback
+
+      This is almost identical to loadTiddler, we may be able to combine them
+    */
+    WikiDBAdaptor.prototype.loadTiddlers = function(filter, wiki, callback) {
+      if(!callback) {callback = function() {}}
+      const body = JSON.stringify({
+        db: wiki,
+        filter: filter
+      })
+      const options = {
+        hostname: '127.0.0.1',
+        port: 9999,
+        path: '/fetch',
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      }
+      httpRequest(options, body)
+      .then((response)=>{
+        callback(null, response)
+      })
+      .catch(function(e) {
+        console.log(e)
+        callback(e, null)
+      });
+    }
+
+    /*
     Delete a tiddler and invoke the callback with (err)
     */
     WikiDBAdaptor.prototype.deleteTiddler = function(title, callback, options) {
