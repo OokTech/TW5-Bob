@@ -311,12 +311,12 @@ it will overwrite this file.
     $tw.Bob.Shared.sendAck(data)
     if(data.tiddlers && Array.isArray(data.tiddlers) && data.tiddlers.length > 0) {
       data.tiddlers.forEach(function(thisTiddler) {
-        thisTiddler.fields.created = $tw.utils.stringifyDate(new Date(thisTiddler.fields.created))
-        thisTiddler.fields.modified = $tw.utils.stringifyDate(new Date(thisTiddler.fields.modified))
-        const newTitle = '$:/state/Bob/Import/' + thisTiddler.fields.title;
-        $tw.wiki.importTiddler(new $tw.Tiddler(thisTiddler.fields, {title: newTitle}));
+        thisTiddler.created = $tw.utils.stringifyDate(new Date(thisTiddler.created))
+        thisTiddler.modified = $tw.utils.stringifyDate(new Date(thisTiddler.modified))
+        const newTitle = '$:/state/Bob/Import/' + thisTiddler.title;
+        $tw.wiki.importTiddler(new $tw.Tiddler(thisTiddler, {title: newTitle}));
         // we have conflicts so open the conflict list tiddler
-        let storyList = $tw.wiki.getTiddler('$:/StoryList').fields.list
+        let storyList = $tw.wiki.getTiddler('$:/StoryList').list
         storyList = "$:/plugins/OokTech/Bob/ImportList " + $tw.utils.stringifyList(storyList)
         $tw.wiki.addTiddler({
           title: "$:/StoryList",
