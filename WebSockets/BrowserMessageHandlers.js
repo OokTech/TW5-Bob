@@ -119,6 +119,44 @@ it will overwrite this file.
   }
 
   /*
+    This message handler is like saveTiddler, but it takes an array of tiddlers instead of just one and then saves them all.
+  */
+  $tw.browserMessageHandlers.saveTiddlers = function(data) {
+    $tw.Bob.Shared.sendAck(data);
+    if(data.wiki === $tw.wikiName) {
+      if(data.tiddlers && Array.isArray(data.tiddlers) && data.tiddlers.length > 0) {
+        data.tiddlers.forEach(function(thisTiddler) {
+          if(thisTiddler.fields && typeof thisTiddler.fields.title === 'string') {
+            const changed = $tw.Bob.Shared.TiddlerHasChanged(thisTiddler, $tw.wiki.getTiddler(thisTiddler.fields.title));
+            if(changed) {
+              if($tw.syncer.tiddlerInfo[thisTiddler.fields.title]) {
+                $tw.syncer.tiddlerInfo[thisTiddler.fields.title].changeCount = $tw.wiki.getChangeCount(thisTiddler.fields.title);
+								$tw.syncer.tiddlerInfo[thisTiddler.fields.title].timestampLastSaved = new Date();
+                $tw.syncer.tiddlerInfo[thisTiddler.fields.title].revision = thisTiddler.fields.revision
+              } else {
+                $tw.syncer.tiddlerInfo[data.tiddler.fields.title] = {
+									changeCount: $tw.wiki.getChangeCount(thisTiddler.fields.title),
+									adaptorInfo: "",
+                  revision: thisTiddler.fields.revision
+								}
+              }
+              if(data.tiddler.fields._revision) {
+                data.tiddler.fields.revision = data.tiddler.fields._revision;
+                delete data.tiddler.fields._revision;
+              }
+              $tw.wiki.addTiddler(new $tw.Tiddler(data.tiddler.fields));
+            }
+          } else {
+            console.log("tiddler has no title, or it isn't a string")
+          }
+        })
+      } else {
+        console.log('No Tiddlers to save')
+      }
+    }
+  }
+
+  /*
     When the browser receives skinny tiddlers from the server dispatch the
     'skinny-tiddlers' event with the received tiddlers.
     It is handled by the syncadaptor.
