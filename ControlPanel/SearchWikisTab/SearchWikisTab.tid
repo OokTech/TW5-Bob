@@ -38,7 +38,7 @@ Search Filter: <$edit-text tiddler='$:/temp/searchwikis/searchfilter' field='sea
     filter='[tag[Skinny Search Result]get[from_wiki]unique[]]'
     variable='fromWiki'
 >
-    <h2><<fromWiki>></h2>
+    <h2><<fromWiki>> (<$button><$action-websocketmessage $type=crossImportBulk filter={{$:/temp/searchwikis/searchfilter!!searchfilter}} from_wiki=<<fromWiki>>/> Import All</$button>)</h2>
     <$list
         filter='[tag[Skinny Search Result]from_wiki<fromWiki>]'
         variable='resultTiddler'
@@ -60,9 +60,12 @@ Search Filter: <$edit-text tiddler='$:/temp/searchwikis/searchfilter' field='sea
                             <div
                                 style='width:100%;height:100%'
                             >
-                            <span title='See Fields' style='position:relative;left:0px;'>{{$:/core/images/chevron-down}}</span>
-                            <$list filter='[<resultTiddler>get[_type]prefix[image/]limit[1]]'><span title={{{ [<resultTiddler>get[_type]removeprefix[image/]addsuffix[ Image]] }}} style='position:relative;left:0px;'> {{{ [<resultTiddler>get[type]] }}} {{{ [<resultTiddler>get[type]removeprefix[image/]] }}} {{$:/core/images/picture}}</span></$list>
+                            <span style='position:absolute;'>
+                            <$list filter='[<resultTiddler>get[_type]prefix[video/]limit[1]]'><span title={{{ [<resultTiddler>get[_type]removeprefix[video/]addsuffix[ video]] }}} style='position:relative;left:0px;'>{{$:/core/images/video}}</span></$list>
+                            <$list filter='[<resultTiddler>get[_type]prefix[image/]limit[1]]'><span title={{{ [<resultTiddler>get[_type]removeprefix[video/]addsuffix[ video]] }}} style='position:relative;left:0px;'>{{$:/core/images/picture}}</span></$list>
                             <$list filter='[<resultTiddler>has[__canonical_uri]limit[1]]'><span title='External File' style='position:relative;left:0px;'>{{$:/core/images/link}}</span></$list>
+                            <$list filter='[<resultTiddler>get[_title]get[title]]'><span title='a tiddler with the same title exists in this wiki'>{{$:/core/images/warning}}</span></$list>
+                            </span>
                             <span title='Import Into Wiki' style='float:right;'><$button><$action-websocketmessage $type='crossImport' tiddler_title=<<originalTitle>> from_wiki=<<fromWiki>>/>{{$:/core/images/download-button}}</$button></span>
                             <span style='width:90%;text-align:center;display:inline-block;'>
                                 <$view
